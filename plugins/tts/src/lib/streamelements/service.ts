@@ -1,8 +1,6 @@
 import type { StreamElementsVoice } from './types';
-import type { App } from '@stream-kit/app/api';
-import type { LazyStore } from '@tauri-apps/plugin-store';
+import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
 
-import { SETTINGS_KEY } from '../..';
 import { TtsPlayer } from '../player';
 import { fetchStreamElementsSpeech, fetchStreamElementsVoices } from './api';
 
@@ -14,21 +12,15 @@ export class StreamElementsService {
 	public defaultVoice: string | undefined;
 	public volume = 1;
 
-	private store?: LazyStore;
+	private store?: PluginStore;
 	private player = new TtsPlayer();
 	private voicesCache: StreamElementsVoice[] | undefined;
 	private voicesCacheExpiry = 0;
 
-	async boot(app: App): Promise<void> {
-		this.store = app.settings.getStore(SETTINGS_KEY);
-		this.player.setPlayback((blob, volume) => app.playAudio(blob, volume));
+	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
+		this.store = store;
+		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume));
 		await this.syncFromStore();
-
-		this.store.onKeyChange<string>('apiKey', (value) => {
-			this.apiKey = value;
-			this.isConfigured = Boolean(value?.trim());
-			this.invalidateVoiceCache();
-		});
 	}
 
 	async syncFromStore(): Promise<void> {

@@ -1,16 +1,17 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
+import { getTwitch } from './plugin-api';
 
-export function getBroadcasterId(app: App): string | undefined {
-	return app.twitch.userId;
+export function getBroadcasterId(app: PluginAppApi): string | undefined {
+	return getTwitch(app).userId;
 }
 
-export function getBroadcasterName(app: App): string | undefined {
-	return app.twitch.token?.userName ?? undefined;
+export function getBroadcasterName(app: PluginAppApi): string | undefined {
+	return getTwitch(app).token?.userName ?? undefined;
 }
 
 export function getChannelFromContext(
 	context: { channel?: string },
-	app: App
+	app: PluginAppApi
 ): string | undefined {
 	return context.channel ?? getBroadcasterName(app);
 }

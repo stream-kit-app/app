@@ -1,10 +1,11 @@
-import type { ActionHandler, App } from '@stream-kit/app/api';
+import type { ActionHandler, PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import type { PointsRedemptionContext } from '../../contexts';
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
 import { rewardSelectField } from '../../lib/rewards';
+import { getTwitch } from '../../lib/plugin-api';
 
 function resolveRedemptionIds(
 	handler: ActionHandler,
@@ -23,7 +24,7 @@ function resolveRedemptionIds(
 	};
 }
 
-export const createPointsFulfillHandler = (app: App) =>
+export const createPointsFulfillHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-points-fulfill',
 		name: 'Fulfill Redemption',
@@ -47,7 +48,7 @@ export const createPointsFulfillHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.channelPoints.updateRedemptionStatusByIds(
+			void getTwitch(app).client?.channelPoints.updateRedemptionStatusByIds(
 				broadcasterId,
 				rewardId,
 				[redemptionId],
@@ -56,7 +57,7 @@ export const createPointsFulfillHandler = (app: App) =>
 		}
 	}) satisfies HandlerDefinitionProps;
 
-export const createPointsCancelHandler = (app: App) =>
+export const createPointsCancelHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-points-cancel',
 		name: 'Cancel Redemption',
@@ -80,7 +81,7 @@ export const createPointsCancelHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.channelPoints.updateRedemptionStatusByIds(
+			void getTwitch(app).client?.channelPoints.updateRedemptionStatusByIds(
 				broadcasterId,
 				rewardId,
 				[redemptionId],

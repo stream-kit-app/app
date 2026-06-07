@@ -1,17 +1,17 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 
 import { getBroadcasterId, getBroadcasterName, getChannelFromContext } from './broadcaster';
 
 export function resolveBroadcasterId(
 	context: { broadcasterId?: string },
-	app: App
+	app: PluginAppApi
 ): string | undefined {
 	return context.broadcasterId || getBroadcasterId(app);
 }
 
 export function resolveChannel(
 	context: { channel?: string },
-	app: App
+	app: PluginAppApi
 ): string | undefined {
 	return getChannelFromContext(context, app);
 }

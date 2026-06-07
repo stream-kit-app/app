@@ -1,4 +1,4 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import type { PointsRedemptionContext } from '../../contexts';
@@ -12,7 +12,7 @@ import { subscribeRedemptionAdd } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 import { evaluateWith } from '../../lib/trigger-helpers';
 
-export const createPointsRedeemedTrigger = (app: App) =>
+export const createPointsRedeemedTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-points-redeemed',
 		name: 'Reward Redeemed',

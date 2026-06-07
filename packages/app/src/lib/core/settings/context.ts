@@ -1,9 +1,7 @@
-import type { App } from '../app.svelte';
 import type { SettingsFieldValue } from './field';
-import type { LazyStore } from '@tauri-apps/plugin-store';
 
-export type SettingsContext<TSettings extends LazyStore = LazyStore> = {
-	app: App;
+export type SettingsContext<TSettings = unknown, TApp = unknown> = {
+	app: TApp;
 	settings: TSettings;
 	getValue: (key: string) => SettingsFieldValue | undefined;
 };

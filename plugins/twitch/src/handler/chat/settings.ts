@@ -1,10 +1,11 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createChatSettingsHandler = (app: App) =>
+export const createChatSettingsHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-chat-settings',
 		name: 'Update Chat Settings',
@@ -65,6 +66,6 @@ export const createChatSettingsHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.chat.updateSettings(broadcasterId, settings);
+			void getTwitch(app).client?.chat.updateSettings(broadcasterId, settings);
 		}
 	}) satisfies HandlerDefinitionProps;

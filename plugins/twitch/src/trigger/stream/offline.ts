@@ -1,10 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribeStreamOffline } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createStreamOfflineTrigger = (app: App) =>
+export const createStreamOfflineTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-stream-offline',
 		name: 'Stream Offline',

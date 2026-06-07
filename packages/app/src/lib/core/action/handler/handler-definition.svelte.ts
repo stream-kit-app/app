@@ -32,6 +32,7 @@ export class HandlerDefinitions {
 export class HandlerDefinition {
 	id: string;
 	name: string;
+	isAvailable: boolean = $state(true);
 
 	fields?: HandlerFieldDefinition[];
 	execute?: (action: Action, handler: ActionHandler, context: unknown) => void;

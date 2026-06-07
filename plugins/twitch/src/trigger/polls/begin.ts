@@ -1,10 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribePollBegin } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createPollBeginTrigger = (app: App) =>
+export const createPollBeginTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-poll-begin',
 		name: 'Poll Begin',

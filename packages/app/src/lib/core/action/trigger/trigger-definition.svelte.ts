@@ -32,6 +32,7 @@ export class TriggerDefinitions {
 export class TriggerDefinition {
 	id: string;
 	name: string;
+	isAvailable: boolean = $state(true);
 
 	conditions?: ConditionDefinition[];
 	validate?: (conditions: ConditionGroupNode, context: unknown) => boolean;

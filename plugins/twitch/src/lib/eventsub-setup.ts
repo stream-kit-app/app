@@ -1,17 +1,18 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
+import { getTwitch } from './plugin-api';
 
 type SimpleHandler<T> = (context: T) => void;
 
 const handlerMaps = new Map<string, Set<SimpleHandler<unknown>>>();
 
 function subscribeEventSub<T>(
-	app: App,
+	app: PluginAppApi,
 	key: string,
 	register: (userId: string, emit: (context: T) => void) => () => void,
 	handler: SimpleHandler<T>
 ): () => void {
-	const userId = app.twitch.userId;
-	const eventSub = app.twitch.eventSub;
+	const userId = getTwitch(app).userId;
+	const eventSub = getTwitch(app).eventSub;
 
 	if (!userId || !eventSub) {
 		return () => {};
@@ -44,11 +45,11 @@ function subscribeEventSub<T>(
 }
 
 export function subscribeStreamOnline(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string; streamId: string }>
 ): () => void {
 	return subscribeEventSub(app, 'stream-online', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onStreamOnline(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onStreamOnline(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -61,14 +62,14 @@ export function subscribeStreamOnline(
 }
 
 export function subscribeStreamOffline(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string }>
 ): () => void {
 	return subscribeEventSub(app, 'stream-offline', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onStreamOffline(userId, () => {
+		const sub = getTwitch(app).eventSub!.onStreamOffline(userId, () => {
 			emit({
 				broadcasterId: userId,
-				channel: app.twitch.token?.userName ?? ''
+				channel: getTwitch(app).token?.userName ?? ''
 			});
 		});
 
@@ -77,11 +78,11 @@ export function subscribeStreamOffline(
 }
 
 export function subscribeChannelFollow(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string; user: string; userId: string }>
 ): () => void {
 	return subscribeEventSub(app, 'channel-follow', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelFollow(userId, userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelFollow(userId, userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -95,11 +96,11 @@ export function subscribeChannelFollow(
 }
 
 export function subscribeChannelUpdate(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string; title: string; game: string }>
 ): () => void {
 	return subscribeEventSub(app, 'channel-update', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelUpdate(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelUpdate(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -113,7 +114,7 @@ export function subscribeChannelUpdate(
 }
 
 export function subscribeRedemptionAdd(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -126,7 +127,7 @@ export function subscribeRedemptionAdd(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'redemption-add', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelRedemptionAdd(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelRedemptionAdd(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -144,7 +145,7 @@ export function subscribeRedemptionAdd(
 }
 
 export function subscribeHypeTrainBegin(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -155,7 +156,7 @@ export function subscribeHypeTrainBegin(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'hype-begin', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelHypeTrainBeginV2(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelHypeTrainBeginV2(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -171,7 +172,7 @@ export function subscribeHypeTrainBegin(
 }
 
 export function subscribeHypeTrainProgress(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -182,7 +183,7 @@ export function subscribeHypeTrainProgress(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'hype-progress', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelHypeTrainProgressV2(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelHypeTrainProgressV2(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -198,7 +199,7 @@ export function subscribeHypeTrainProgress(
 }
 
 export function subscribeHypeTrainEnd(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -207,7 +208,7 @@ export function subscribeHypeTrainEnd(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'hype-end', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelHypeTrainEndV2(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelHypeTrainEndV2(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -221,11 +222,11 @@ export function subscribeHypeTrainEnd(
 }
 
 export function subscribePollBegin(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string; pollId: string; title: string }>
 ): () => void {
 	return subscribeEventSub(app, 'poll-begin', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelPollBegin(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelPollBegin(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -239,11 +240,11 @@ export function subscribePollBegin(
 }
 
 export function subscribePollEnd(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string; pollId: string; title: string }>
 ): () => void {
 	return subscribeEventSub(app, 'poll-end', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelPollEnd(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelPollEnd(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -257,7 +258,7 @@ export function subscribePollEnd(
 }
 
 export function subscribePredictionBegin(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -266,7 +267,7 @@ export function subscribePredictionBegin(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'prediction-begin', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelPredictionBegin(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelPredictionBegin(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -280,7 +281,7 @@ export function subscribePredictionBegin(
 }
 
 export function subscribePredictionLock(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -289,7 +290,7 @@ export function subscribePredictionLock(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'prediction-lock', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelPredictionLock(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelPredictionLock(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -303,7 +304,7 @@ export function subscribePredictionLock(
 }
 
 export function subscribePredictionEnd(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -312,7 +313,7 @@ export function subscribePredictionEnd(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'prediction-end', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelPredictionEnd(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelPredictionEnd(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -326,7 +327,7 @@ export function subscribePredictionEnd(
 }
 
 export function subscribeChannelBan(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{
 		broadcasterId: string;
 		channel: string;
@@ -336,7 +337,7 @@ export function subscribeChannelBan(
 	}>
 ): () => void {
 	return subscribeEventSub(app, 'channel-ban', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelBan(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelBan(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -351,11 +352,11 @@ export function subscribeChannelBan(
 }
 
 export function subscribeChannelUnban(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string; user: string; userId: string }>
 ): () => void {
 	return subscribeEventSub(app, 'channel-unban', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelUnban(userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelUnban(userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName,
@@ -369,11 +370,11 @@ export function subscribeChannelUnban(
 }
 
 export function subscribeShieldModeBegin(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string }>
 ): () => void {
 	return subscribeEventSub(app, 'shield-begin', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelShieldModeBegin(userId, userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelShieldModeBegin(userId, userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName
@@ -385,11 +386,11 @@ export function subscribeShieldModeBegin(
 }
 
 export function subscribeShieldModeEnd(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ broadcasterId: string; channel: string }>
 ): () => void {
 	return subscribeEventSub(app, 'shield-end', (userId, emit) => {
-		const sub = app.twitch.eventSub!.onChannelShieldModeEnd(userId, userId, (event) => {
+		const sub = getTwitch(app).eventSub!.onChannelShieldModeEnd(userId, userId, (event) => {
 			emit({
 				broadcasterId: userId,
 				channel: event.broadcasterDisplayName

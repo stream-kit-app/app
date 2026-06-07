@@ -67,8 +67,19 @@ export class Actions {
 	}
 
 	activate(action: Action): void {
+		const app = getApp();
+
 		for (const trigger of action.triggers) {
-			trigger.definition.activate?.(action, trigger);
+			try {
+				trigger.definition.activate?.(action, trigger);
+			} catch (error) {
+				console.warn(`Failed to activate trigger ${trigger.definition.id}`, error);
+				app.toast.create({
+					title: 'Trigger kon niet gestart worden',
+					description: `${trigger.definition.name} kon niet gestart worden.`,
+					variant: 'warning'
+				});
+			}
 		}
 	}
 
@@ -106,7 +117,7 @@ export class Action {
 		const triggers = record.triggers.flatMap((stored) => {
 			const definition = app.triggerDefinitions.find(stored.triggerTypeId);
 
-			if (!definition) {
+			if (!definition?.isAvailable) {
 				return [];
 			}
 
@@ -125,7 +136,7 @@ export class Action {
 		const handlers = record.handlers.flatMap((stored) => {
 			const definition = app.handlerDefinitions.find(stored.handlerTypeId);
 
-			if (!definition) {
+			if (!definition?.isAvailable) {
 				return [];
 			}
 

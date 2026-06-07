@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import type { PredictionContext } from '../../contexts';
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createPredictionCancelHandler = (app: App) =>
+export const createPredictionCancelHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-prediction-cancel',
 		name: 'Cancel Prediction',
@@ -28,6 +29,6 @@ export const createPredictionCancelHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.predictions.cancelPrediction(broadcasterId, predictionId);
+			void getTwitch(app).client?.predictions.cancelPrediction(broadcasterId, predictionId);
 		}
 	}) satisfies HandlerDefinitionProps;

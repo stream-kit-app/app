@@ -1,4 +1,4 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import type { EventSubModerationContext } from '../../contexts';
@@ -7,7 +7,7 @@ import { subscribeChannelUnban } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 import { evaluateWith } from '../../lib/trigger-helpers';
 
-export const createChannelUnbanTrigger = (app: App) =>
+export const createChannelUnbanTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-mod-unban-es',
 		name: 'User Unbanned (EventSub)',

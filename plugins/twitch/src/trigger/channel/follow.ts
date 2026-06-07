@@ -1,10 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribeChannelFollow } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createFollowTrigger = (app: App) =>
+export const createFollowTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-follow',
 		name: 'New Follower',

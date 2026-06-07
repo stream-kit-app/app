@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId, resolveUserFromContext } from '../../lib/handler-helpers';
 import { TARGET_USER_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createUnbanHandler = (app: App) =>
+export const createUnbanHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-mod-unban',
 		name: 'Unban User',
@@ -31,6 +32,6 @@ export const createUnbanHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.moderation.unbanUser(broadcasterId, target);
+			void getTwitch(app).client?.moderation.unbanUser(broadcasterId, target);
 		}
 	}) satisfies HandlerDefinitionProps;

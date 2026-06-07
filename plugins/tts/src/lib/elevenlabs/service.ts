@@ -1,8 +1,6 @@
 import type { ElevenLabsVoice } from './types';
-import type { App } from '@stream-kit/app/api';
-import type { LazyStore } from '@tauri-apps/plugin-store';
+import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
 
-import { SETTINGS_KEY } from '../..';
 import { TtsPlayer } from '../player';
 import { fetchElevenLabsSpeech, fetchElevenLabsVoices } from './api';
 import { DEFAULT_ELEVENLABS_MODEL_ID } from './types';
@@ -23,21 +21,15 @@ export class ElevenLabsService {
 	public modelId = DEFAULT_ELEVENLABS_MODEL_ID;
 	public volume = 1;
 
-	private store?: LazyStore;
+	private store?: PluginStore;
 	private player = new TtsPlayer();
 	private voicesCache: ElevenLabsVoice[] | undefined;
 	private voicesCacheExpiry = 0;
 
-	async boot(app: App): Promise<void> {
-		this.store = app.settings.getStore(SETTINGS_KEY);
-		this.player.setPlayback((blob, volume) => app.playAudio(blob, volume));
+	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
+		this.store = store;
+		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume));
 		await this.syncFromStore();
-
-		this.store.onKeyChange<string>(STORE_KEYS.apiKey, (value) => {
-			this.apiKey = value;
-			this.isConfigured = Boolean(value?.trim());
-			this.invalidateVoiceCache();
-		});
 	}
 
 	async syncFromStore(): Promise<void> {

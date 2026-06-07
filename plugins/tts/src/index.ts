@@ -1,4 +1,4 @@
-import type { App, Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/app/api';
 
 import { createElevenLabsSpeakHandler } from './handler/elevenlabs/speak';
 import { createStreamElementsSpeakHandler } from './handler/streamelements/speak';
@@ -8,14 +8,19 @@ import { elevenlabsVoiceSelectSettingsField } from './lib/elevenlabs/voices';
 import { streamelements } from './lib/streamelements';
 import { voiceSelectSettingsField } from './lib/streamelements/voices';
 
-export const SETTINGS_KEY = 'tts-streamelements';
+export const SETTINGS_KEY = 'tts';
 
-const plugin: Plugin = async (app: App): Promise<void> => {
-	app.settings.add({
+const plugin: Plugin = (app) => {
+	return {
 		key: SETTINGS_KEY,
-		title: 'TTS',
+		name: 'TTS',
 		description: 'Configure the TTS engine and settings.',
-		fields: [
+		icon: 'ri:speaker-3-line',
+		dependencies: ['twitch'],
+		isConfigured: ({ getValue }) =>
+			Boolean(String(getValue('apiKey') ?? '').trim()) ||
+			Boolean(String(getValue('elevenlabsApiKey') ?? '').trim()),
+		settings: [
 			{
 				type: 'section',
 				title: 'StreamElements',
@@ -168,29 +173,32 @@ const plugin: Plugin = async (app: App): Promise<void> => {
 		onSave: async () => {
 			await streamelements.syncFromStore();
 			await elevenlabs.syncFromStore();
-		}
-	});
-
-	app.handlerDefinitions.add({
-		id: 'tts',
-		name: 'TTS',
-		children: [
+		},
+		onBoot: async ({ store }) => {
+			await streamelements.boot(app, store);
+			await elevenlabs.boot(app, store);
+		},
+		handlers: [
 			{
-				id: 'tts-streamelements',
-				name: 'StreamElements',
-				children: [createStreamElementsSpeakHandler()]
-			},
-			{
-				id: 'tts-elevenlabs',
-				name: 'ElevenLabs',
-				children: [createElevenLabsSpeakHandler()]
+				id: 'tts',
+				name: 'TTS',
+				children: [
+					{
+						id: 'tts-streamelements',
+						name: 'StreamElements',
+						children: [createStreamElementsSpeakHandler()]
+					},
+					{
+						id: 'tts-elevenlabs',
+						name: 'ElevenLabs',
+						children: [createElevenLabsSpeakHandler()]
+					}
+				]
 			}
 		]
-	});
-
-	await streamelements.boot(app);
-	await elevenlabs.boot(app);
+	};
 };
+
 
 export default plugin;
 export { streamelements } from './lib/streamelements';

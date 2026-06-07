@@ -1,10 +1,11 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createCommercialHandler = (app: App) =>
+export const createCommercialHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-commercial',
 		name: 'Run Commercial',
@@ -28,6 +29,6 @@ export const createCommercialHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.channels.startChannelCommercial(broadcasterId, length);
+			void getTwitch(app).client?.channels.startChannelCommercial(broadcasterId, length);
 		}
 	}) satisfies HandlerDefinitionProps;

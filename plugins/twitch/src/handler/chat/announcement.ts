@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
 import { CHAT_TEXT_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createAnnouncementHandler = (app: App) =>
+export const createAnnouncementHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-chat-announcement',
 		name: 'Send Announcement',
@@ -34,7 +35,7 @@ export const createAnnouncementHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.chat.sendAnnouncement(broadcasterId, {
+			void getTwitch(app).client?.chat.sendAnnouncement(broadcasterId, {
 				message: message.trim(),
 				color: (typeof color === 'string' ? color : 'primary') as
 					| 'primary'

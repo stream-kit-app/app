@@ -1,10 +1,11 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createRaidStartHandler = (app: App) =>
+export const createRaidStartHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-raid-start',
 		name: 'Start Raid',
@@ -25,6 +26,6 @@ export const createRaidStartHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.raids.startRaid(broadcasterId, target.trim());
+			void getTwitch(app).client?.raids.startRaid(broadcasterId, target.trim());
 		}
 	}) satisfies HandlerDefinitionProps;

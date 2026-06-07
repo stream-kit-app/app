@@ -19,7 +19,10 @@
 	},
 	"dependencies": {
 		"@stream-kit/core": "workspace:*",
-		"@twurple/chat": "^8.1.4"
+		"@twurple/api": "^8.1.4",
+		"@twurple/auth": "^8.1.4",
+		"@twurple/chat": "^8.1.4",
+		"@twurple/eventsub-ws": "^8.1.4"
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",

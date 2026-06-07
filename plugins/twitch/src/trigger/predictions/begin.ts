@@ -1,10 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribePredictionBegin } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createPredictionBeginTrigger = (app: App) =>
+export const createPredictionBeginTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-prediction-begin',
 		name: 'Prediction Begin',

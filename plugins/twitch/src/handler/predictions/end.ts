@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import type { PredictionContext } from '../../contexts';
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createPredictionEndHandler = (app: App) =>
+export const createPredictionEndHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-prediction-end',
 		name: 'End Prediction',
@@ -41,7 +42,7 @@ export const createPredictionEndHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.predictions.resolvePrediction(
+			void getTwitch(app).client?.predictions.resolvePrediction(
 				broadcasterId,
 				predictionId,
 				winningOutcomeId.trim()

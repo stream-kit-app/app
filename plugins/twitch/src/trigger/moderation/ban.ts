@@ -1,4 +1,4 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import type { ModerationContext } from '../../contexts';
@@ -8,7 +8,7 @@ import { subscribeModeration } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 import { evaluateWith } from '../../lib/trigger-helpers';
 
-export const createBanTrigger = (app: App) =>
+export const createBanTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-mod-ban',
 		name: 'User Banned',

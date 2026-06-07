@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId, resolveUserFromContext } from '../../lib/handler-helpers';
 import { TARGET_USER_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createModAddHandler = (app: App) =>
+export const createModAddHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-mod-add',
 		name: 'Add Moderator',
@@ -27,11 +28,11 @@ export const createModAddHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.moderation.addModerator(broadcasterId, userName);
+			void getTwitch(app).client?.moderation.addModerator(broadcasterId, userName);
 		}
 	}) satisfies HandlerDefinitionProps;
 
-export const createModRemoveHandler = (app: App) =>
+export const createModRemoveHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-mod-remove',
 		name: 'Remove Moderator',
@@ -53,6 +54,6 @@ export const createModRemoveHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.moderation.removeModerator(broadcasterId, userName);
+			void getTwitch(app).client?.moderation.removeModerator(broadcasterId, userName);
 		}
 	}) satisfies HandlerDefinitionProps;

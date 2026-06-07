@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { resolveFieldText } from '../../get-field-value';
 import { resolveUserFromContext } from '../../lib/handler-helpers';
 import { MESSAGE_TEXT_VARIABLES, TARGET_USER_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createWhisperHandler = (app: App) =>
+export const createWhisperHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-chat-whisper',
 		name: 'Send Whisper',
@@ -29,7 +30,7 @@ export const createWhisperHandler = (app: App) =>
 		execute: (_action, handler, context) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
-			const fromUserId = app.twitch.userId;
+			const fromUserId = getTwitch(app).userId;
 
 			if (typeof message !== 'string' || !message.trim() || !fromUserId) {
 				return;
@@ -44,6 +45,6 @@ export const createWhisperHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.whispers.sendWhisper(fromUserId, userName, message.trim());
+			void getTwitch(app).client?.whispers.sendWhisper(fromUserId, userName, message.trim());
 		}
 	}) satisfies HandlerDefinitionProps;

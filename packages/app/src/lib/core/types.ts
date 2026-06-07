@@ -9,3 +9,11 @@ export type {
 	SettingsFieldValue,
 	SettingsSectionProps
 } from './settings';
+export type {
+	Plugin,
+	PluginAppApi,
+	PluginPublicApi,
+	PluginRegistration,
+	PluginSettingsContext,
+	PluginStore
+} from './plugins';

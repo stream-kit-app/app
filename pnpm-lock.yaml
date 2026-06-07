@@ -223,9 +223,18 @@ importers:
       '@stream-kit/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@twurple/api':
+        specifier: ^8.1.4
+        version: 8.1.4(@twurple/auth@8.1.4)
+      '@twurple/auth':
+        specifier: ^8.1.4
+        version: 8.1.4
       '@twurple/chat':
         specifier: ^8.1.4
         version: 8.1.4(@twurple/auth@8.1.4)
+      '@twurple/eventsub-ws':
+        specifier: ^8.1.4
+        version: 8.1.4(@twurple/api@8.1.4(@twurple/auth@8.1.4))
     devDependencies:
       '@stream-kit/app':
         specifier: workspace:*

@@ -1,4 +1,4 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import type { SubContext } from '../../contexts';
@@ -13,7 +13,7 @@ import { subscribeSubs } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 import { evaluateWith } from '../../lib/trigger-helpers';
 
-export const createSubTrigger = (app: App) =>
+export const createSubTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-sub-new',
 		name: 'New Subscription',

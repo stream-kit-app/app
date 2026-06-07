@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId, resolveUserFromContext } from '../../lib/handler-helpers';
 import { MESSAGE_TEXT_VARIABLES, TARGET_USER_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createBanHandler = (app: App) =>
+export const createBanHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-mod-ban',
 		name: 'Ban / Timeout User',
@@ -50,7 +51,7 @@ export const createBanHandler = (app: App) =>
 			const timeoutDuration =
 				!Number.isNaN(duration) && duration > 0 ? duration : undefined;
 
-			void app.twitch.client?.moderation.banUser(broadcasterId, {
+			void getTwitch(app).client?.moderation.banUser(broadcasterId, {
 				user: userName,
 				duration: timeoutDuration,
 				reason: typeof reason === 'string' ? reason : undefined

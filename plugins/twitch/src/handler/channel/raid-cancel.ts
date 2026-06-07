@@ -1,9 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createRaidCancelHandler = (app: App) =>
+export const createRaidCancelHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-raid-cancel',
 		name: 'Cancel Raid',
@@ -14,6 +15,6 @@ export const createRaidCancelHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.raids.cancelRaid(broadcasterId);
+			void getTwitch(app).client?.raids.cancelRaid(broadcasterId);
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId, resolveUserFromContext } from '../../lib/handler-helpers';
 import { TARGET_USER_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createVipAddHandler = (app: App) =>
+export const createVipAddHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-vip-add',
 		name: 'Add VIP',
@@ -27,11 +28,11 @@ export const createVipAddHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.channels.addVip(broadcasterId, userName);
+			void getTwitch(app).client?.channels.addVip(broadcasterId, userName);
 		}
 	}) satisfies HandlerDefinitionProps;
 
-export const createVipRemoveHandler = (app: App) =>
+export const createVipRemoveHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-channel-vip-remove',
 		name: 'Remove VIP',
@@ -53,6 +54,6 @@ export const createVipRemoveHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.channels.removeVip(broadcasterId, userName);
+			void getTwitch(app).client?.channels.removeVip(broadcasterId, userName);
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -1,9 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createClipHandler = (app: App) =>
+export const createClipHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-clip-create',
 		name: 'Create Clip',
@@ -14,6 +15,6 @@ export const createClipHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.clips.createClip({ channel: broadcasterId });
+			void getTwitch(app).client?.clips.createClip({ channel: broadcasterId });
 		}
 	}) satisfies HandlerDefinitionProps;

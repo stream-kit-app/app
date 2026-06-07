@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId, resolveUserFromContext } from '../../lib/handler-helpers';
 import { MESSAGE_TEXT_VARIABLES, TARGET_USER_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createWarnHandler = (app: App) =>
+export const createWarnHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-mod-warn',
 		name: 'Warn User',
@@ -40,6 +41,6 @@ export const createWarnHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.moderation.warnUser(broadcasterId, target, reason.trim());
+			void getTwitch(app).client?.moderation.warnUser(broadcasterId, target, reason.trim());
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import type { PollContext } from '../../contexts';
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createPollEndHandler = (app: App) =>
+export const createPollEndHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-poll-end',
 		name: 'End Poll',
@@ -34,6 +35,6 @@ export const createPollEndHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.polls.endPoll(broadcasterId, pollId, showResult);
+			void getTwitch(app).client?.polls.endPoll(broadcasterId, pollId, showResult);
 		}
 	}) satisfies HandlerDefinitionProps;

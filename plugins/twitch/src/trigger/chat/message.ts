@@ -1,4 +1,4 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import type { ChatMessageContext } from '../../contexts';
@@ -22,7 +22,7 @@ import { rewardSelectCondition } from '../../lib/rewards';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 import { evaluateWith } from '../../lib/trigger-helpers';
 
-export const createChatMessageTrigger = (app: App) =>
+export const createChatMessageTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-chat-message',
 		name: 'Chat Message',

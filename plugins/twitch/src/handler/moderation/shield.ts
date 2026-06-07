@@ -1,10 +1,11 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createShieldModeHandler = (app: App) =>
+export const createShieldModeHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-mod-shield',
 		name: 'Toggle Shield Mode',
@@ -24,6 +25,6 @@ export const createShieldModeHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.moderation.updateShieldModeStatus(broadcasterId, enabled);
+			void getTwitch(app).client?.moderation.updateShieldModeStatus(broadcasterId, enabled);
 		}
 	}) satisfies HandlerDefinitionProps;

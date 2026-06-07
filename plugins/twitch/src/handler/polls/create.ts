@@ -1,12 +1,13 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
 import { parseListField, parsePositiveInt } from '../../lib/parse-list';
 import { CHAT_TEXT_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createPollStartHandler = (app: App) =>
+export const createPollStartHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-poll-start',
 		name: 'Start Poll',
@@ -58,7 +59,7 @@ export const createPollStartHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.polls.createPoll(broadcasterId, {
+			void getTwitch(app).client?.polls.createPoll(broadcasterId, {
 				title: title.trim(),
 				choices,
 				duration,

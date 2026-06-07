@@ -1,10 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribePollEnd } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createPollEndTrigger = (app: App) =>
+export const createPollEndTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-poll-end',
 		name: 'Poll End',

@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId, resolveChannel } from '../../lib/handler-helpers';
 import { CHAT_TEXT_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createSendMessageHandler = (app: App) => {
+export const createSendMessageHandler = (app: PluginAppApi) => {
 	return {
 		id: 'twitch-chat-send',
 		name: 'Send Message',
@@ -36,16 +37,16 @@ export const createSendMessageHandler = (app: App) => {
 				return;
 			}
 
-			if (asBot && broadcasterId && app.twitch.userId && app.twitch.client) {
-				void app.twitch.client.chat.sendChatMessageAsApp(
-					app.twitch.userId,
+			if (asBot && broadcasterId && getTwitch(app).userId && getTwitch(app).client) {
+				void getTwitch(app).client.chat.sendChatMessageAsApp(
+					getTwitch(app).userId,
 					broadcasterId,
 					message.trim()
 				);
 				return;
 			}
 
-			void app.twitch.chat?.say(channel, message.trim());
+			void getTwitch(app).chat?.say(channel, message.trim());
 		}
 	} satisfies HandlerDefinitionProps;
 };

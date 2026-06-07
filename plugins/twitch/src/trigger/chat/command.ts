@@ -1,4 +1,4 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import type { CommandContext } from '../../contexts';
@@ -13,7 +13,7 @@ import { subscribeMessages } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 import { evaluateWith } from '../../lib/trigger-helpers';
 
-export const createCommandTrigger = (app: App) =>
+export const createCommandTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-chat-command',
 		name: 'Chat Command',

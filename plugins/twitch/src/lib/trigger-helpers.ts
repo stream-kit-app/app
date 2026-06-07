@@ -1,4 +1,5 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
+import { getTwitch } from './plugin-api';
 import type { Action } from '@stream-kit/app/api';
 import type { ActionTrigger } from '@stream-kit/app/api';
 import type { ConditionGroupNode } from '@stream-kit/core';
@@ -8,16 +9,16 @@ import { resolveConditionValue } from '../resolve-condition-value';
 import { subscribe } from './event-hub';
 import { disposeTriggerSubscription, setTriggerSubscription } from './subscription';
 
-export function isTwitchReady(app: App): boolean {
-	return app.twitch.isConnected && app.twitch.chat != null;
+export function isTwitchReady(app: PluginAppApi): boolean {
+	return getTwitch(app).isConnected && getTwitch(app).chat != null;
 }
 
-export function isEventSubReady(app: App): boolean {
-	return app.twitch.isConnected && app.twitch.eventSub != null && app.twitch.userId != null;
+export function isEventSubReady(app: PluginAppApi): boolean {
+	return getTwitch(app).isConnected && getTwitch(app).eventSub != null && getTwitch(app).userId != null;
 }
 
 export function createActivate<TContext>(
-	app: App,
+	app: PluginAppApi,
 	eventKey: string,
 	setup: (emit: (context: TContext) => void) => () => void,
 	validate: (conditions: ConditionGroupNode, context: TContext) => boolean

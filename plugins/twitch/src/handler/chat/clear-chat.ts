@@ -1,10 +1,11 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import type { ChatMessageContext } from '../../contexts';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createClearChatHandler = (app: App) =>
+export const createClearChatHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-chat-clear',
 		name: 'Clear Chat',
@@ -17,6 +18,6 @@ export const createClearChatHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.moderation.deleteChatMessages(broadcasterId);
+			void getTwitch(app).client?.moderation.deleteChatMessages(broadcasterId);
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -1,10 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribePredictionLock } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createPredictionLockTrigger = (app: App) =>
+export const createPredictionLockTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-prediction-lock',
 		name: 'Prediction Lock',

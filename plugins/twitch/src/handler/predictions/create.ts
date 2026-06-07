@@ -1,12 +1,13 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId } from '../../lib/handler-helpers';
 import { parsePositiveInt } from '../../lib/parse-list';
 import { CHAT_TEXT_VARIABLES } from '../../lib/variables';
+import { getTwitch } from '../../lib/plugin-api';
 
-export const createPredictionStartHandler = (app: App) =>
+export const createPredictionStartHandler = (app: PluginAppApi) =>
 	({
 		id: 'twitch-prediction-start',
 		name: 'Start Prediction',
@@ -60,7 +61,7 @@ export const createPredictionStartHandler = (app: App) =>
 				return;
 			}
 
-			void app.twitch.client?.predictions.createPrediction(broadcasterId, {
+			void getTwitch(app).client?.predictions.createPrediction(broadcasterId, {
 				title: title.trim(),
 				outcomes: [outcome1.trim(), outcome2.trim()],
 				autoLockAfter

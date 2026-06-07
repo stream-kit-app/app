@@ -1,0 +1,64 @@
+<script lang="ts">
+	import type { RegisteredPlugin } from '$lib/core/plugins';
+
+	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { app } from '$lib/core';
+
+	type Props = {
+		plugin: RegisteredPlugin;
+	};
+
+	let { plugin }: Props = $props();
+	let revision = $state(0);
+
+	const context = $derived.by(() => {
+		void revision;
+
+		for (const field of plugin.fields) {
+			void field.value;
+		}
+
+		return plugin.createContext(app);
+	});
+	let isSaving = $state(false);
+
+	$effect(() => {
+		const api = plugin.api as { subscribe?: (listener: () => void) => () => void } | undefined;
+
+		return api?.subscribe?.(() => {
+			revision += 1;
+		});
+	});
+
+	async function savePluginSettings() {
+		isSaving = true;
+
+		try {
+			const saved = await plugin.save(app);
+
+			if (saved) {
+				app.toast.create({
+					title: 'Plugin saved',
+					description: `${plugin.name} has been saved successfully`,
+					variant: 'success'
+				});
+			}
+		} finally {
+			isSaving = false;
+		}
+	}
+</script>
+
+<div class="flex w-full flex-col gap-6">
+	<SettingsFieldGroup
+		{context}
+		items={plugin.fieldItems}
+		getField={(key) => plugin.getField(key)}
+		getFieldError={(fieldId) => plugin.getFieldError(fieldId, plugin.formErrors)}
+	/>
+
+	<div>
+		<Button onclick={savePluginSettings} isLoading={isSaving}>Save</Button>
+	</div>
+</div>

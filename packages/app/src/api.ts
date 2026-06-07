@@ -1,4 +1,3 @@
-export type { App, Plugin } from './lib/core/app.svelte';
 export type { Action } from './lib/core/action/action.svelte';
 export type { ActionTrigger } from './lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from './lib/core/action/action-handler.svelte';
@@ -18,6 +17,18 @@ export type {
 	SettingsSectionProps
 } from './lib/core/settings';
 export type { ModalProps } from './lib/core/modal/modal.svelte';
+export type {
+	Plugin,
+	PluginAppApi,
+	PluginPublicApi,
+	PluginRegistration,
+	PluginSettingsContext,
+	PluginStore
+} from './lib/core/plugins';
+export { Plugins, RegisteredPlugin } from './lib/core/plugins';
+export type { OAuthStartOptions } from './lib/core/oauth';
+export { OAuth } from './lib/core/oauth';
+export { Opener } from './lib/core/opener';
 export type {
 	ConditionDefinition,
 	ConditionGroupNode,

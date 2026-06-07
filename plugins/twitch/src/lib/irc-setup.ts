@@ -1,8 +1,9 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { ChatMessage } from '@twurple/chat';
 
 import type { ChatMessageContext } from '../contexts';
 import { resolveUserRole } from './role';
+import { getTwitch } from './plugin-api';
 
 type RawMessageHandler = (context: ChatMessageContext) => void;
 
@@ -26,12 +27,12 @@ function buildMessageContext(
 	};
 }
 
-function ensureMessageListener(app: App): void {
-	if (messageListener || !app.twitch.chat) {
+function ensureMessageListener(app: PluginAppApi): void {
+	if (messageListener || !getTwitch(app).chat) {
 		return;
 	}
 
-	messageListener = app.twitch.chat.onMessage((channel, user, text, msg) => {
+	messageListener = getTwitch(app).chat.onMessage((channel, user, text, msg) => {
 		const context = buildMessageContext(channel, user, text, msg);
 
 		for (const handler of messageHandlers) {
@@ -41,7 +42,7 @@ function ensureMessageListener(app: App): void {
 }
 
 export function subscribeMessages(
-	app: App,
+	app: PluginAppApi,
 	filter: (context: ChatMessageContext) => boolean,
 	handler: RawMessageHandler
 ): () => void {
@@ -65,7 +66,7 @@ type SimpleHandler<T> = (context: T) => void;
 const handlerMaps = new Map<string, Set<SimpleHandler<unknown>>>();
 
 function subscribeSimple<T>(
-	app: App,
+	app: PluginAppApi,
 	key: string,
 	register: (emit: (context: T) => void) => () => void,
 	handler: SimpleHandler<T>
@@ -97,10 +98,10 @@ function subscribeSimple<T>(
 }
 
 export function subscribeWhispers(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ user: string; message: string }>
 ): () => void {
-	const chat = app.twitch.chat;
+	const chat = getTwitch(app).chat;
 
 	if (!chat) {
 		return () => {};
@@ -115,8 +116,8 @@ export function subscribeWhispers(
 	}, handler);
 }
 
-export function subscribeSubs(app: App, handler: SimpleHandler<unknown>): () => void {
-	const chat = app.twitch.chat;
+export function subscribeSubs(app: PluginAppApi, handler: SimpleHandler<unknown>): () => void {
+	const chat = getTwitch(app).chat;
 
 	if (!chat) {
 		return () => {};
@@ -170,10 +171,10 @@ export function subscribeSubs(app: App, handler: SimpleHandler<unknown>): () => 
 }
 
 export function subscribeRaids(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ channel: string; user: string; viewers: number }>
 ): () => void {
-	const chat = app.twitch.chat;
+	const chat = getTwitch(app).chat;
 
 	if (!chat) {
 		return () => {};
@@ -189,10 +190,10 @@ export function subscribeRaids(
 }
 
 export function subscribeModeration(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ type: string; channel: string; user: string; duration?: number }>
 ): () => void {
-	const chat = app.twitch.chat;
+	const chat = getTwitch(app).chat;
 
 	if (!chat) {
 		return () => {};
@@ -217,10 +218,10 @@ export function subscribeModeration(
 }
 
 export function subscribeJoinPart(
-	app: App,
+	app: PluginAppApi,
 	handler: SimpleHandler<{ type: string; channel: string; user: string }>
 ): () => void {
-	const chat = app.twitch.chat;
+	const chat = getTwitch(app).chat;
 
 	if (!chat) {
 		return () => {};

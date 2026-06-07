@@ -34,13 +34,8 @@ export const load = async () => {
 		icon: 'carbon:trigger'
 	});
 	app.menu.add({
-		path: '/twitch',
-		title: 'Twitch',
-		icon: 'ri:twitch-line'
-	});
-	app.menu.add({
-		path: '/integrations',
-		title: 'Integrations',
+		path: '/plugins',
+		title: 'Plugins',
 		icon: 'ri:plug-line'
 	});
 	app.menu.add({
@@ -49,7 +44,7 @@ export const load = async () => {
 		icon: 'ri:settings-5-line'
 	});
 
+	await app.plugins.load(app);
 	await app.settings.load();
-	app.settings.syncMenu();
 	await app.actions.load();
 };

@@ -1,11 +1,11 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { getBroadcasterId } from '../../lib/broadcaster';
 import { subscribeJoinPart } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createUserJoinTrigger = (app: App) =>
+export const createUserJoinTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-user-join',
 		name: 'User Join',

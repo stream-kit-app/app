@@ -1,11 +1,12 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { ConditionDefinition, HandlerFieldDefinition, SelectItem } from '@stream-kit/core';
+import { getTwitch } from './plugin-api';
 
-export async function loadCustomRewardItems(app: App): Promise<SelectItem[]> {
-	const broadcasterId = app.twitch.userId;
-	const client = app.twitch.client;
+export async function loadCustomRewardItems(app: PluginAppApi): Promise<SelectItem[]> {
+	const broadcasterId = getTwitch(app).userId;
+	const client = getTwitch(app).client;
 
-	if (!broadcasterId || !client || !app.twitch.isConnected) {
+	if (!broadcasterId || !client || !getTwitch(app).isConnected) {
 		return [];
 	}
 
@@ -22,13 +23,13 @@ export async function loadCustomRewardItems(app: App): Promise<SelectItem[]> {
 }
 
 export function rewardSelectItems(
-	app: App,
+	app: PluginAppApi,
 	emptyOption: SelectItem
 ): () => Promise<SelectItem[]> {
 	return async () => [emptyOption, ...(await loadCustomRewardItems(app))];
 }
 
-export function rewardSelectCondition(app: App): ConditionDefinition {
+export function rewardSelectCondition(app: PluginAppApi): ConditionDefinition {
 	return {
 		type: 'select',
 		key: 'rewardId',
@@ -40,7 +41,7 @@ export function rewardSelectCondition(app: App): ConditionDefinition {
 }
 
 export function rewardSelectField(
-	app: App,
+	app: PluginAppApi,
 	options: { name?: string; emptyLabel?: string; required?: boolean } = {}
 ): HandlerFieldDefinition {
 	return {

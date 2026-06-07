@@ -1,10 +1,10 @@
-import type { App } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribeHypeTrainBegin } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 
-export const createHypeTrainBeginTrigger = (app: App) =>
+export const createHypeTrainBeginTrigger = (app: PluginAppApi) =>
 	({
 		id: 'twitch-hype-begin',
 		name: 'Hype Train Begin',

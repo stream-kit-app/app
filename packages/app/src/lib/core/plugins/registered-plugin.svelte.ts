@@ -1,0 +1,253 @@
+import type { App } from '../app.svelte';
+import type { HandlerDefinition, HandlerDefinitionProps } from '../action/handler';
+import type { TriggerDefinition, TriggerDefinitionProps } from '../action/trigger';
+import type {
+	SettingsFieldDefinition,
+	SettingsFieldInstance,
+	SettingsFieldItem
+} from '../settings';
+import type { SettingsFormErrors } from '../settings/validate-settings';
+import type { PluginSettingsContext } from './context';
+import type { PluginStore } from './store';
+import type { PluginPublicApi, PluginRegistration } from './types';
+import type { LazyStore } from '@tauri-apps/plugin-store';
+
+import {
+	createSettingsFields,
+	flattenSettingsFieldItems,
+	getSettingsFieldDefinition,
+	getSettingsFieldValue,
+	isPersistedSettingsField
+} from '../settings/settings-field';
+import { validateSettingsFields } from '../settings/validate-settings';
+import { createPluginAppApi } from './app-api';
+import { createPluginStore } from './store';
+
+const ENABLED_KEY = '__enabled';
+
+export class RegisteredPlugin<TApi = PluginPublicApi> {
+	key: string;
+	name: string;
+	description?: string;
+	icon?: string;
+	dependencies: string[];
+	fieldItems: SettingsFieldItem[];
+	fields: SettingsFieldInstance[] = $state([]);
+	formErrors: SettingsFormErrors | null = $state(null);
+	isEnabled: boolean = $state(true);
+	api?: TApi;
+
+	private store: LazyStore;
+	private isConfiguredResolver?: PluginRegistration<TApi>['isConfigured'];
+	private onLoad?: PluginRegistration<TApi>['onLoad'];
+	private onSave?: PluginRegistration<TApi>['onSave'];
+	private onBoot?: PluginRegistration<TApi>['onBoot'];
+	private storeFacade: PluginStore;
+	private legacyStores: LazyStore[];
+	private hasBooted = false;
+	private triggers: TriggerDefinitionProps<any>[];
+	private handlers: HandlerDefinitionProps[];
+	private registeredTriggers: TriggerDefinition[] = [];
+	private registeredHandlers: HandlerDefinition[] = [];
+
+	constructor(props: PluginRegistration<TApi>, store: LazyStore, legacyStores: LazyStore[] = []) {
+		this.key = props.key;
+		this.name = props.name;
+		this.description = props.description;
+		this.icon = props.icon;
+		this.dependencies = props.dependencies ?? [];
+		this.fieldItems = props.settings ?? [];
+		this.api = props.api;
+		this.isConfiguredResolver = props.isConfigured;
+		this.onLoad = props.onLoad;
+		this.onSave = props.onSave;
+		this.onBoot = props.onBoot;
+		this.store = store;
+		this.legacyStores = legacyStores;
+		this.storeFacade = createPluginStore(store);
+		this.fields = createSettingsFields(this.fieldItems);
+		this.triggers = props.triggers ?? [];
+		this.handlers = props.handlers ?? [];
+	}
+
+	get hasSettings(): boolean {
+		return this.fieldItems.length > 0;
+	}
+
+	isConfigured(app: App): boolean {
+		try {
+			return this.isConfiguredResolver?.(this.createContext(app)) ?? false;
+		} catch (error) {
+			console.warn(`Failed to resolve plugin configured state for ${this.key}`, error);
+			return false;
+		}
+	}
+
+	get persistedDefinitions(): SettingsFieldDefinition[] {
+		return flattenSettingsFieldItems(this.fieldItems).filter(isPersistedSettingsField);
+	}
+
+	getField(key: string): SettingsFieldInstance | undefined {
+		return this.fields.find((field) => field.key === key);
+	}
+
+	getFieldDefinition(key: string): SettingsFieldDefinition | undefined {
+		return getSettingsFieldDefinition(this.fieldItems, key);
+	}
+
+	getFieldError(fieldId: string, errors?: SettingsFormErrors | null): string | undefined {
+		return errors?.fieldErrors[fieldId];
+	}
+
+	createContext(app: App): PluginSettingsContext {
+		return {
+			app: createPluginAppApi(app),
+			store: this.storeFacade,
+			settings: this.storeFacade,
+			getValue: (key) => getSettingsFieldValue(this.fields, key)
+		};
+	}
+
+	registerDefinitions(app: App): void {
+		for (const trigger of this.triggers) {
+			let definition = app.triggerDefinitions.find(trigger.id);
+
+			if (!definition) {
+				definition = app.triggerDefinitions.add(trigger);
+				this.registeredTriggers.push(definition);
+			}
+
+			definition.isAvailable = true;
+		}
+
+		for (const handler of this.handlers) {
+			let definition = app.handlerDefinitions.find(handler.id);
+
+			if (!definition) {
+				definition = app.handlerDefinitions.add(handler);
+				this.registeredHandlers.push(definition);
+			}
+
+			definition.isAvailable = true;
+		}
+	}
+
+	unregisterDefinitions(_app: App): void {
+		for (const definition of this.registeredTriggers) {
+			definition.isAvailable = false;
+		}
+
+		for (const definition of this.registeredHandlers) {
+			definition.isAvailable = false;
+		}
+	}
+
+	async load(app: App): Promise<void> {
+		await this.loadEnabledState();
+		const stored: SettingsFieldInstance[] = [];
+
+		for (const definition of this.persistedDefinitions) {
+			let value = await this.store.get<SettingsFieldInstance['value']>(definition.key);
+
+			if (value === undefined || value === null) {
+				value = await this.getLegacyValue(definition.key);
+
+				if (value !== undefined && value !== null) {
+					await this.store.set(definition.key, value);
+				}
+			}
+
+			if (value !== undefined && value !== null) {
+				stored.push({
+					id: crypto.randomUUID(),
+					key: definition.key,
+					value
+				});
+			}
+		}
+
+		this.fields = createSettingsFields(this.fieldItems, stored);
+		await this.onLoad?.(this.createContext(app));
+	}
+
+	async loadEnabledState(): Promise<void> {
+		this.isEnabled = (await this.store.get<boolean>(ENABLED_KEY)) ?? true;
+	}
+
+	private async getLegacyValue(key: string): Promise<SettingsFieldInstance['value'] | undefined> {
+		for (const legacyStore of this.legacyStores) {
+			const value = await legacyStore.get<SettingsFieldInstance['value']>(key);
+
+			if (value !== undefined && value !== null) {
+				return value;
+			}
+		}
+	}
+
+	missingDependencies(app: App): string[] {
+		return this.dependencies.filter((key) => !app.plugins.find(key));
+	}
+
+	disabledDependencies(app: App): string[] {
+		return this.dependencies.filter((key) => app.plugins.find(key)?.isEnabled === false);
+	}
+
+	canBoot(app: App): boolean {
+		return (
+			this.isEnabled &&
+			this.missingDependencies(app).length === 0 &&
+			this.disabledDependencies(app).length === 0
+		);
+	}
+
+	async boot(app: App): Promise<void> {
+		await this.loadEnabledState();
+
+		if (this.hasBooted || !this.canBoot(app)) {
+			if (!this.canBoot(app)) {
+				this.unregisterDefinitions(app);
+			}
+
+			return;
+		}
+
+		await this.onBoot?.(this.createContext(app));
+		this.hasBooted = true;
+	}
+
+	async setEnabled(app: App, enabled: boolean): Promise<void> {
+		this.isEnabled = enabled;
+		await this.store.set(ENABLED_KEY, enabled);
+
+		if (enabled) {
+			this.registerDefinitions(app);
+			await this.boot(app);
+		} else {
+			this.unregisterDefinitions(app);
+		}
+	}
+
+	async save(app: App): Promise<boolean> {
+		if (!this.validate(app)) {
+			return false;
+		}
+
+		for (const field of this.fields) {
+			await this.store.set(field.key, field.value);
+		}
+
+		await this.onSave?.(this.createContext(app));
+
+		return true;
+	}
+
+	validate(app: App): boolean {
+		this.formErrors = validateSettingsFields(
+			this.fields,
+			this.fieldItems,
+			this.createContext(app)
+		);
+
+		return this.formErrors === null;
+	}
+}
