@@ -1,0 +1,45 @@
+{
+	"name": "@stream-kit/core",
+	"version": "0.1.0",
+	"type": "module",
+	"license": "MIT",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"files": ["dist"],
+	"scripts": {
+		"prebuild": "pnpm --filter @stream-kit/app exec svelte-kit sync",
+		"build": "dts-bundle-generator --config dts-bundle.json && esbuild src/index.ts --bundle --format=esm --platform=neutral --outfile=dist/index.js",
+		"check": "pnpm build && tsc --noEmit -p tsconfig.json",
+		"dev": "chokidar-cli \"../app/src/api.ts\" \"../app/src/lib/**/*.{ts,svelte.ts}\" \"src/**/*.ts\" -c \"pnpm build\" --initial"
+	},
+	"peerDependencies": {
+		"@twurple/api": "^8.1.4",
+		"@twurple/auth": "^8.1.4",
+		"@twurple/chat": "^8.1.4",
+		"svelte": "^5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@twurple/api": {
+			"optional": true
+		},
+		"@twurple/chat": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@stream-kit/app": "workspace:*",
+		"@twurple/api": "^8.1.4",
+		"@twurple/auth": "^8.1.4",
+		"@twurple/chat": "^8.1.4",
+		"@types/node": "^24.12.4",
+		"svelte": "^5.56.1",
+		"chokidar-cli": "^3.0.0",
+		"dts-bundle-generator": "^9.5.1",
+		"esbuild": "^0.25.0",
+		"typescript": "~6.0.3"
+	}
+}

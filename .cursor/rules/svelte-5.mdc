@@ -1,0 +1,97 @@
+---
+description: Svelte 5 conventions — runes, bits-ui, and runed
+globs: packages/app/**/*.svelte,packages/app/**/*.svelte.ts
+alwaysApply: false
+---
+
+# Svelte 5
+
+Use Svelte 5 runes and modern patterns. Validate with the Svelte MCP `svelte-autofixer` before finishing.
+
+## Runes
+
+- Props: `$props()` with typed `Props`; use `$bindable()` for two-way bindings
+- State: `$state()` for reactive values; `$state.raw()` for large objects/arrays that are reassigned, not mutated
+- Derived: `$derived` / `$derived.by` — prefer over `$effect` for computed values
+- Effects: `$effect` only as an escape hatch; avoid updating state inside effects
+- Events: `onclick`, `onchange`, etc. — not `on:click`
+- Composition: `{#snippet}` / `{@render}` for flexible child content
+
+Put reusable reactive logic in `.svelte.ts` classes or modules, not legacy stores.
+
+## bits-ui (preferred for UI primitives)
+
+Use `bits-ui` for headless, accessible components instead of building from scratch.
+
+**Already used in this project** — extend these before adding new primitives:
+
+| Need                | bits-ui               |
+| ------------------- | --------------------- |
+| Dialog / modal      | `Dialog`              |
+| Dropdown            | `DropdownMenu`        |
+| Select              | `Select`, `Combobox`  |
+| Checkbox / switch   | `Checkbox`, `Switch`  |
+| Label               | `Label`               |
+| Scroll area         | `ScrollArea`          |
+| IDs / merging props | `useId`, `mergeProps` |
+
+Wrap bits-ui in `$lib/components/ui/` with project styling (`cn`, Tailwind). Use `WithoutChildren` / `WithoutChild` types when forwarding props. Follow existing patterns in `input-*`, `dropdown/`, and `modal.svelte`.
+
+```svelte
+<script lang="ts">
+	import type { WithoutChildren } from 'bits-ui';
+
+	import { Select, useId } from 'bits-ui';
+
+	type Props = {
+		id?: string;
+		contentProps?: WithoutChildren<Select.ContentProps>;
+	} & WithoutChildren<Select.RootProps>;
+
+	let { id = useId(), contentProps, ...props }: Props = $props();
+</script>
+
+<Select.Root {...props}>
+	<!-- styled sub-components -->
+</Select.Root>
+```
+
+Check `$lib/components/ui/` before creating new interactive UI.
+
+## runed (preferred for reactive utilities)
+
+Use `runed` instead of hand-rolled `$effect` / DOM listeners when a utility exists:
+
+| Need                                | runed                                                            |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| React to value changes              | `watch`                                                          |
+| Debounced/throttled values          | `Debounced`, `Throttled`, `useDebounce`, `useThrottle`           |
+| Click outside, resize, intersection | `onClickOutside`, `useResizeObserver`, `useIntersectionObserver` |
+| Previous value                      | `Previous`                                                       |
+| Persisted state                     | `persistedState`                                                 |
+| Element/focus tracking              | `activeElement`, `isFocusWithin`, `elementSize`                  |
+
+```ts
+import { watch } from 'runed';
+
+watch(
+	() => someValue,
+	(value) => {
+		/* side effect */
+	}
+);
+```
+
+```svelte
+<script lang="ts">
+	import { Debounced } from 'runed';
+
+	const debouncedQuery = new Debounced(() => query, 150);
+</script>
+```
+
+## General
+
+- Match surrounding code: imports, `cn()`, Iconify icons, TypeScript strictness
+- Prefer extending existing UI components over duplicating markup
+- Use Svelte MCP docs (`list-sections` → `get-documentation`) when unsure about Svelte 5 APIs

@@ -1,0 +1,37 @@
+{
+	"useTabs": true,
+	"singleQuote": true,
+	"trailingComma": "none",
+	"printWidth": 100,
+	"tabWidth": 4,
+	"plugins": [
+		"@ianvs/prettier-plugin-sort-imports",
+		"prettier-plugin-svelte",
+		"prettier-plugin-tailwindcss"
+	],
+	"importOrder": [
+		"<TYPES>",
+		"",
+		"<BUILTIN_MODULES>",
+		"",
+		"<THIRD_PARTY_MODULES>",
+		"",
+		"^@stream-kit/(.*)$",
+		"",
+		"^\\$lib/(.*)$",
+		"",
+		"^[./]"
+	],
+	"importOrderTypeScriptVersion": "5.0.0",
+	"importOrderParserPlugins": ["typescript", "decorators-legacy"],
+	"overrides": [
+		{
+			"files": "*.svelte",
+			"options": {
+				"parser": "svelte"
+			}
+		}
+	],
+	"tailwindStylesheet": "./packages/app/src/routes/layout.css",
+	"tailwindFunctions": ["tv", "cn"]
+}

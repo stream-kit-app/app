@@ -1,0 +1,19 @@
+# Package Managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lock
+bun.lockb
+
+# Build output
+/build
+/packages/app/build
+/.svelte-kit
+/packages/app/.svelte-kit
+/node_modules
+/packages/*/dist
+/plugins/*/dist
+/packages/app/src-tauri/target
+
+# Miscellaneous
+/packages/app/static/

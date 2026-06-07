@@ -1,0 +1,19 @@
+{
+	"compilationOptions": {
+		"preferredConfigPath": "./tsconfig.api.json"
+	},
+	"entries": [
+		{
+			"filePath": "../app/src/api.ts",
+			"outFile": "./dist/index.d.ts",
+			"libraries": {
+				"inlinedLibraries": []
+			},
+			"noCheck": true,
+			"output": {
+				"exportReferencedTypes": false,
+				"noBanner": true
+			}
+		}
+	]
+}

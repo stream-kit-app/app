@@ -1,0 +1,21 @@
+import type { App } from '@stream-kit/app/api';
+import type { TriggerDefinitionProps } from '@stream-kit/core';
+
+import { subscribePredictionEnd } from '../../lib/eventsub-setup';
+import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
+
+export const createPredictionEndTrigger = (app: App) =>
+	({
+		id: 'twitch-prediction-end',
+		name: 'Prediction End',
+		activate: (action, trigger) => {
+			const unsubscribe = subscribePredictionEnd(app, (context) => {
+				action.fire(trigger, context);
+			});
+
+			setTriggerSubscription(trigger, { dispose: unsubscribe });
+		},
+		deactivate: (_action, trigger) => {
+			disposeTriggerSubscription(trigger);
+		}
+	}) satisfies TriggerDefinitionProps;

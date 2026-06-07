@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant has-focus (&:has(:focus));
+
+/*
+ * Stream Kit palette
+ * dark scale — neutral super-dark gray (minimal chroma)
+ * primary scale — electric cerulean (hue 255), same L steps as dark
+ * Secondary: soft orchid — badges, secondary actions, highlights
+ * success scale — vivid emerald (hue 152)
+ * warning scale — warm amber (hue 85)
+ * destructive scale — signal red (hue 27)
+ */
+@theme {
+	/* ~0.06–0.08 L between steps so surfaces read clearly on dark UIs */
+	--color-dark-50: oklch(0.78 0.012 264);
+	--color-dark-100: oklch(0.7 0.011 264);
+	--color-dark-200: oklch(0.62 0.01 264);
+	--color-dark-300: oklch(0.54 0.009 264);
+	--color-dark-400: oklch(0.46 0.008 264);
+	--color-dark-500: oklch(0.38 0.007 264);
+	--color-dark-600: oklch(0.3 0.007 264);
+	--color-dark-700: oklch(0.23 0.006 264);
+	--color-dark-800: oklch(0.17 0.006 264);
+	--color-dark-900: oklch(0.11 0.005 264);
+	--color-dark-950: oklch(0.06 0.004 264);
+
+	/* primary scale — chroma tapers at extremes, peaks around 300–400 */
+	--color-primary-50: oklch(0.78 0.06 255);
+	--color-primary-100: oklch(0.7 0.1 255);
+	--color-primary-200: oklch(0.62 0.14 255);
+	--color-primary-300: oklch(0.54 0.17 255);
+	--color-primary-400: oklch(0.46 0.18 255);
+	--color-primary-500: oklch(0.38 0.16 255);
+	--color-primary-600: oklch(0.3 0.14 255);
+	--color-primary-700: oklch(0.23 0.12 255);
+	--color-primary-800: oklch(0.17 0.1 255);
+	--color-primary-900: oklch(0.11 0.08 255);
+	--color-primary-950: oklch(0.06 0.06 255);
+
+	/* success scale — chroma tapers at extremes, peaks around 300–400 */
+	--color-success-50: oklch(0.78 0.06 152);
+	--color-success-100: oklch(0.7 0.1 152);
+	--color-success-200: oklch(0.62 0.14 152);
+	--color-success-300: oklch(0.54 0.17 152);
+	--color-success-400: oklch(0.46 0.18 152);
+	--color-success-500: oklch(0.38 0.16 152);
+	--color-success-600: oklch(0.3 0.14 152);
+	--color-success-700: oklch(0.23 0.12 152);
+	--color-success-800: oklch(0.17 0.1 152);
+	--color-success-900: oklch(0.11 0.08 152);
+	--color-success-950: oklch(0.06 0.06 152);
+
+	/* warning scale — chroma tapers at extremes, peaks around 300–400 */
+	--color-warning-50: oklch(0.78 0.06 85);
+	--color-warning-100: oklch(0.7 0.1 85);
+	--color-warning-200: oklch(0.62 0.14 85);
+	--color-warning-300: oklch(0.54 0.17 85);
+	--color-warning-400: oklch(0.46 0.18 85);
+	--color-warning-500: oklch(0.38 0.16 85);
+	--color-warning-600: oklch(0.3 0.14 85);
+	--color-warning-700: oklch(0.23 0.12 85);
+	--color-warning-800: oklch(0.17 0.1 85);
+	--color-warning-900: oklch(0.11 0.08 85);
+	--color-warning-950: oklch(0.06 0.06 85);
+
+	/* destructive scale — chroma tapers at extremes, peaks around 300–400 */
+	--color-destructive-50: oklch(0.78 0.06 27);
+	--color-destructive-100: oklch(0.7 0.1 27);
+	--color-destructive-200: oklch(0.62 0.14 27);
+	--color-destructive-300: oklch(0.54 0.17 27);
+	--color-destructive-400: oklch(0.46 0.18 27);
+	--color-destructive-500: oklch(0.38 0.16 27);
+	--color-destructive-600: oklch(0.3 0.14 27);
+	--color-destructive-700: oklch(0.23 0.12 27);
+	--color-destructive-800: oklch(0.17 0.1 27);
+	--color-destructive-900: oklch(0.11 0.08 27);
+	--color-destructive-950: oklch(0.06 0.06 27);
+
+	--color-background: var(--color-dark-950);
+	--color-foreground: oklch(0.98 0.002 264);
+
+	--color-primary: var(--color-primary-200);
+	--color-primary-foreground: oklch(0.99 0.002 250);
+
+	--color-secondary: oklch(0.62 0.14 305);
+	--color-secondary-foreground: oklch(0.99 0.002 250);
+
+	--color-success: var(--color-success-200);
+	--color-success-foreground: oklch(0.99 0.002 152);
+
+	--color-warning: var(--color-warning-200);
+	--color-warning-foreground: oklch(0.12 0.02 85);
+
+	--color-destructive: var(--color-destructive-400);
+	--color-destructive-foreground: oklch(0.99 0.002 27);
+
+	--color-muted: var(--color-dark-800);
+	--color-muted-foreground: var(--color-dark-300);
+
+	--color-accent: var(--color-dark-700);
+	--color-accent-foreground: oklch(0.98 0.002 264);
+
+	--color-border: var(--color-dark-600);
+	--color-ring: var(--color-primary-200);
+
+	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-border);
+	}
+
+	html {
+		font-size: 16px;
+	}
+
+	body {
+		@apply bg-background font-sans text-foreground antialiased;
+	}
+}

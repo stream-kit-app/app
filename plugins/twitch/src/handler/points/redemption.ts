@@ -1,0 +1,90 @@
+import type { ActionHandler, App } from '@stream-kit/app/api';
+import type { HandlerDefinitionProps } from '@stream-kit/core';
+
+import type { PointsRedemptionContext } from '../../contexts';
+import { getFieldValue } from '../../get-field-value';
+import { resolveBroadcasterId } from '../../lib/handler-helpers';
+import { rewardSelectField } from '../../lib/rewards';
+
+function resolveRedemptionIds(
+	handler: ActionHandler,
+	context: PointsRedemptionContext
+): { rewardId?: string; redemptionId?: string } {
+	const fieldRewardId = getFieldValue(handler.fields, 'rewardId');
+	const fieldRedemptionId = getFieldValue(handler.fields, 'redemptionId');
+
+	return {
+		rewardId:
+			(typeof fieldRewardId === 'string' && fieldRewardId.trim()) || context.rewardId || undefined,
+		redemptionId:
+			(typeof fieldRedemptionId === 'string' && fieldRedemptionId.trim()) ||
+			context.redemptionId ||
+			undefined
+	};
+}
+
+export const createPointsFulfillHandler = (app: App) =>
+	({
+		id: 'twitch-points-fulfill',
+		name: 'Fulfill Redemption',
+		fields: [
+			rewardSelectField(app),
+			{
+				type: 'text',
+				key: 'redemptionId',
+				name: 'Redemption ID',
+				placeholder: 'Leave empty to use trigger redemption'
+			}
+		],
+		execute: (_action, handler, context) => {
+			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const { rewardId, redemptionId } = resolveRedemptionIds(
+				handler,
+				context as PointsRedemptionContext
+			);
+
+			if (!broadcasterId || !rewardId || !redemptionId) {
+				return;
+			}
+
+			void app.twitch.client?.channelPoints.updateRedemptionStatusByIds(
+				broadcasterId,
+				rewardId,
+				[redemptionId],
+				'FULFILLED'
+			);
+		}
+	}) satisfies HandlerDefinitionProps;
+
+export const createPointsCancelHandler = (app: App) =>
+	({
+		id: 'twitch-points-cancel',
+		name: 'Cancel Redemption',
+		fields: [
+			rewardSelectField(app),
+			{
+				type: 'text',
+				key: 'redemptionId',
+				name: 'Redemption ID',
+				placeholder: 'Leave empty to use trigger redemption'
+			}
+		],
+		execute: (_action, handler, context) => {
+			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const { rewardId, redemptionId } = resolveRedemptionIds(
+				handler,
+				context as PointsRedemptionContext
+			);
+
+			if (!broadcasterId || !rewardId || !redemptionId) {
+				return;
+			}
+
+			void app.twitch.client?.channelPoints.updateRedemptionStatusByIds(
+				broadcasterId,
+				rewardId,
+				[redemptionId],
+				'CANCELED'
+			);
+		}
+	}) satisfies HandlerDefinitionProps;
