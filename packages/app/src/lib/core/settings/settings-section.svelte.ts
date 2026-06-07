@@ -11,6 +11,7 @@ import {
 	createSettingsFields,
 	flattenSettingsFieldItems,
 	getSettingsFieldDefinition,
+	getSettingsFieldValue,
 	isPersistedSettingsField
 } from './settings-field';
 
@@ -55,7 +56,11 @@ export class SettingsSection {
 	}
 
 	createContext(app: App): SettingsContext {
-		return { app, settings: this.store };
+		return {
+			app,
+			settings: this.store,
+			getValue: (key) => getSettingsFieldValue(this.fields, key)
+		};
 	}
 
 	async load(): Promise<void> {
@@ -82,8 +87,12 @@ export class SettingsSection {
 		}
 	}
 
-	validate(): boolean {
-		this.formErrors = validateSettingsFields(this.fields, this.fieldItems);
+	validate(app: App): boolean {
+		this.formErrors = validateSettingsFields(
+			this.fields,
+			this.fieldItems,
+			this.createContext(app)
+		);
 
 		return this.formErrors === null;
 	}

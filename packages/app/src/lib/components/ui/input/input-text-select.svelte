@@ -1,15 +1,20 @@
 <script lang="ts">
-	import type { SelectItemsSource } from '$lib/core/action/trigger';
+	import type { SelectItem, SelectItemsSource } from '$lib/core/action/trigger';
 	import type { WithoutChildren } from 'bits-ui';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	import Icon from '@iconify/svelte';
 	import { Combobox, mergeProps, useId } from 'bits-ui';
+	import { Debounced } from 'runed';
+	import { tick } from 'svelte';
 
 	import { cn } from '$lib/utils';
 
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
+	import { filterSelectItems } from './select-dropdown-limits';
+	import { DropdownScroll } from './use-dropdown-scroll.svelte';
+	import VirtualSelectItems from './virtual-select-items.svelte';
 
 	type Props = {
 		label?: string;
@@ -17,6 +22,8 @@
 		placeholder?: string;
 		loadingPlaceholder?: string;
 		selectAriaLabel?: string;
+		allowCustomValue?: boolean;
+		reloadKey?: () => unknown;
 		id?: string;
 		class?: string;
 		selectClass?: string;
@@ -31,6 +38,8 @@
 		placeholder,
 		loadingPlaceholder = 'Loading…',
 		selectAriaLabel = 'Select value',
+		allowCustomValue = true,
+		reloadKey,
 		id = useId(),
 		class: className,
 		selectClass,
@@ -41,74 +50,97 @@
 	}: Props = $props();
 
 	let open = $state(false);
-	let showAllItems = $state(false);
+	let inputValue = $state('');
+	let isSearching = $state(false);
 
-	const resolvedItems = resolveSelectItems(() => itemsSource);
-	const selectedItemValue = $derived(
-		resolvedItems.items.find((item) => item.value === value)?.value ?? ''
-	);
+	const dropdownScroll = new DropdownScroll();
+	const resolvedItems = resolveSelectItems(() => itemsSource, reloadKey);
+	const debouncedQuery = new Debounced(() => inputValue, 100);
+	const itemsByValue = $derived(new Map(resolvedItems.items.map((item) => [item.value, item])));
+	const selectedItem = $derived(itemsByValue.get(value));
+	const selectedItemValue = $derived(selectedItem?.value ?? '');
 
-	function filterItems(query: string) {
-		const normalizedQuery = query.trim().toLowerCase();
-
-		if (!normalizedQuery) {
-			return resolvedItems.items;
-		}
-
-		return resolvedItems.items.filter(
-			(item) =>
-				item.label.toLowerCase().includes(normalizedQuery) ||
-				item.value.toLowerCase().includes(normalizedQuery)
-		);
-	}
-
-	const filteredItems = $derived.by(() => {
+	const listItems = $derived.by(() => {
 		if (resolvedItems.loading) {
 			return [];
 		}
 
-		if (showAllItems) {
-			return resolvedItems.items;
+		const query = debouncedQuery.current.trim();
+
+		return query ? filterSelectItems(resolvedItems.items, query) : resolvedItems.items;
+	});
+
+	const comboboxItems = $derived.by(() => {
+		if (selectedItem && !listItems.some((item) => item.value === selectedItem.value)) {
+			return [selectedItem, ...listItems];
 		}
 
-		return filterItems(value);
+		return listItems;
+	});
+
+	function syncInputFromSelection() {
+		if (isSearching) {
+			return;
+		}
+
+		inputValue = selectedItem?.label ?? (allowCustomValue ? value : '');
+	}
+
+	$effect(() => {
+		value;
+		selectedItem?.label;
+		syncInputFromSelection();
+	});
+
+	$effect(() => {
+		debouncedQuery.current;
+
+		if (!open) {
+			return;
+		}
+
+		dropdownScroll.resetScroll();
 	});
 
 	function updateOpenFromInput() {
-		if (showAllItems) {
-			return;
-		}
-
-		const query = value.trim();
-
-		if (!query) {
-			open = false;
-			return;
-		}
-
-		open = filterItems(value).length > 0;
+		open = listItems.length > 0 || resolvedItems.items.length > 0;
 	}
 
 	function handleInput(event: Event & { currentTarget: HTMLInputElement }) {
-		value = event.currentTarget.value;
-		showAllItems = false;
+		inputValue = event.currentTarget.value;
+		isSearching = true;
+
+		if (allowCustomValue) {
+			value = inputValue;
+		}
+
 		updateOpenFromInput();
 	}
 
 	function handleFocus() {
-		if (filterItems(value).length > 0) {
-			open = true;
-		}
+		open = true;
 	}
 
-	function handleOpenChange(nextOpen: boolean) {
+	function handleBlur() {
+		isSearching = false;
+		syncInputFromSelection();
+	}
+
+	async function handleOpenChange(nextOpen: boolean) {
+		open = nextOpen;
+
 		if (!nextOpen) {
-			showAllItems = false;
+			isSearching = false;
+			dropdownScroll.resetScroll();
+			syncInputFromSelection();
+			return;
 		}
+
+		await tick();
+		dropdownScroll.scrollToValue(listItems, value);
 	}
 
 	function handleTriggerClick() {
-		showAllItems = true;
 		open = true;
 	}
 
@@ -123,10 +155,33 @@
 			),
 			'aria-invalid': error ? true : undefined,
 			oninput: handleInput,
-			onfocus: handleFocus
+			onfocus: handleFocus,
+			onblur: handleBlur
 		})
 	);
 </script>
+
+{#snippet comboboxItem(item: SelectItem)}
+	{@const itemValue = item.value}
+	{@const itemLabel = item.label}
+	{@const itemDisabled = item.disabled}
+	<Combobox.Item
+		value={itemValue}
+		label={itemLabel}
+		disabled={itemDisabled}
+		class={cn(
+			'flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-1.5 text-dark-50 outline-none',
+			'data-disabled:cursor-default data-disabled:opacity-50 data-highlighted:bg-dark-700'
+		)}
+	>
+		{#snippet children({ selected })}
+			{itemLabel}
+			{#if selected}
+				<Icon icon="ri:check-line" class="size-5 text-primary" />
+			{/if}
+		{/snippet}
+	</Combobox.Item>
+{/snippet}
 
 <div class={cn('relative grid w-full gap-2', className)}>
 	{#if label}
@@ -134,14 +189,15 @@
 	{/if}
 	<Combobox.Root
 		type="single"
-		items={resolvedItems.items}
-		inputValue={value}
+		items={comboboxItems}
+		{inputValue}
 		value={selectedItemValue}
 		onValueChange={(next) => {
 			if (next) {
 				value = next;
+				isSearching = false;
 				open = false;
-				showAllItems = false;
+				syncInputFromSelection();
 			}
 		}}
 		bind:open
@@ -176,7 +232,7 @@
 				{...contentProps}
 				sideOffset={contentProps?.sideOffset ?? 4}
 				class={cn(
-					'z-50 max-h-(--bits-combobox-content-available-height) min-w-(--bits-combobox-anchor-width)',
+					'z-50 max-h-84 min-w-(--bits-combobox-anchor-width)',
 					'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 					contentProps?.class
 				)}
@@ -186,28 +242,20 @@
 				>
 					<Icon icon="ri:arrow-up-s-line" />
 				</Combobox.ScrollUpButton>
-				<Combobox.Viewport>
+				<Combobox.Viewport
+					bind:ref={dropdownScroll.viewportRef}
+					onscroll={dropdownScroll.handleViewportScroll}
+				>
 					{#if resolvedItems.loading}
 						<div class="px-3 py-1.5 text-sm text-dark-300">{loadingPlaceholder}</div>
-					{:else if filteredItems.length > 0}
-						{#each filteredItems as { value: itemValue, label: itemLabel, disabled } (itemValue)}
-							<Combobox.Item
-								value={itemValue}
-								label={itemLabel}
-								{disabled}
-								class={cn(
-									'flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-1.5 text-dark-50 outline-none',
-									'data-disabled:cursor-default data-disabled:opacity-50 data-highlighted:bg-dark-700'
-								)}
-							>
-								{#snippet children({ selected })}
-									{itemLabel}
-									{#if selected}
-										<Icon icon="ri:check-line" class="size-5 text-primary" />
-									{/if}
-								{/snippet}
-							</Combobox.Item>
-						{/each}
+					{:else if listItems.length > 0}
+						<VirtualSelectItems
+							items={listItems}
+							scrollTop={dropdownScroll.scrollTop}
+							item={comboboxItem}
+						/>
+					{:else}
+						<div class="px-3 py-1.5 text-sm text-dark-300">No matches found</div>
 					{/if}
 				</Combobox.Viewport>
 				<Combobox.ScrollDownButton

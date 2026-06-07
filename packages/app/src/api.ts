@@ -6,12 +6,15 @@ export type { TriggerDefinitionProps } from './lib/core/action/trigger/types';
 export type { HandlerDefinitionProps } from './lib/core/action/handler/types';
 export type { MenuItem, MenuItemChild } from './lib/core/menu/types';
 export type {
+	SettingsButtonVariant,
 	SettingsContext,
+	SettingsVisibilityContext,
 	SettingsFieldDefinition,
 	SettingsFieldInstance,
 	SettingsFieldItem,
 	SettingsFieldSectionDefinition,
 	SettingsFieldValue,
+	SettingsSelectItemsSource,
 	SettingsSectionProps
 } from './lib/core/settings';
 export type { ModalProps } from './lib/core/modal/modal.svelte';

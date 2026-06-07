@@ -77,7 +77,7 @@ export class Settings {
 		const app = getApp();
 		const section = this.find(key);
 
-		if (!section?.validate()) {
+		if (!section?.validate(app)) {
 			return false;
 		}
 

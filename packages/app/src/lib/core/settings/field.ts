@@ -1,8 +1,20 @@
-import type { SelectItemsSource } from '../action/trigger/condition';
+import type { SelectItem } from '../action/trigger/condition';
 
-import type { SettingsContext } from './context';
+import type { SettingsContext, SettingsVisibilityContext } from './context';
+
+export type SettingsSelectItemsSource =
+	| SelectItem[]
+	| ((context: SettingsContext) => SelectItem[] | Promise<SelectItem[]>);
 
 export type SettingsFieldValue = string | boolean | number;
+
+export type SettingsButtonVariant =
+	| 'default'
+	| 'secondary'
+	| 'outline'
+	| 'ghost'
+	| 'destructive'
+	| 'link';
 
 export type SettingsFieldDefinition =
 	| (SettingsFieldBase & {
@@ -13,19 +25,31 @@ export type SettingsFieldDefinition =
 	| (SettingsFieldBase & { type: 'checkbox' })
 	| (SettingsFieldBase & {
 			type: 'select';
-			items: SelectItemsSource;
+			items: SettingsSelectItemsSource;
+			itemsReload?: (context: SettingsContext) => unknown;
+			loadingPlaceholder?: string;
+	  })
+	| (SettingsFieldBase & {
+			type: 'combobox';
+			items: SettingsSelectItemsSource;
+			itemsReload?: (context: SettingsContext) => unknown;
 			loadingPlaceholder?: string;
 	  })
 	| (SettingsFieldBase & { type: 'slider'; min: number; max: number; step?: number })
-	| (SettingsFieldBase & {
+	| {
 			type: 'button';
+			key: string;
+			name: string;
+			variant?: SettingsButtonVariant;
+			visible?: (context: SettingsVisibilityContext) => boolean;
 			onClick: (context: SettingsContext) => void | Promise<void>;
-	  });
+	  };
 
 export type SettingsFieldSectionDefinition = {
 	type: 'section';
 	title?: string;
 	description?: string;
+	visible?: (context: SettingsVisibilityContext) => boolean;
 	fields: SettingsFieldDefinition[];
 };
 
@@ -43,4 +67,5 @@ type SettingsFieldBase = {
 	placeholder?: string;
 	defaultValue?: SettingsFieldValue;
 	required?: boolean;
+	visible?: (context: SettingsVisibilityContext) => boolean;
 };

@@ -3,12 +3,15 @@
 
 	import Icon from '@iconify/svelte';
 	import { Select, useId } from 'bits-ui';
+	import { tick } from 'svelte';
 
-	import type { SelectItemsSource } from '$lib/core/action/trigger';
+	import type { SelectItem, SelectItemsSource } from '$lib/core/action/trigger';
 	import { cn } from '$lib/utils';
 
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
+	import { DropdownScroll } from './use-dropdown-scroll.svelte';
+	import VirtualSelectItems from './virtual-select-items.svelte';
 
 	type SharedProps = {
 		label?: string;
@@ -19,6 +22,7 @@
 		id?: string;
 		class?: string;
 		error?: string;
+		reloadKey?: () => unknown;
 		contentProps?: WithoutChildren<Select.ContentProps>;
 	};
 
@@ -48,15 +52,54 @@
 		id = useId(),
 		class: className,
 		error,
+		reloadKey,
 		type,
 		disabled: disabledProp,
 		value = $bindable(),
 		...rootProps
 	}: Props = $props();
 
-	const resolvedItems = resolveSelectItems(() => itemsSource);
+	let open = $state(false);
+	const dropdownScroll = new DropdownScroll();
+
+	const resolvedItems = resolveSelectItems(() => itemsSource, reloadKey);
 	const disabled = $derived(disabledProp);
+	const selectedValue = $derived(type === 'multiple' ? undefined : (value as string | undefined));
+
+	async function handleOpenChange(nextOpen: boolean) {
+		open = nextOpen;
+
+		if (!nextOpen) {
+			dropdownScroll.resetScroll();
+			return;
+		}
+
+		await tick();
+		dropdownScroll.scrollToValue(resolvedItems.items, selectedValue);
+	}
 </script>
+
+{#snippet selectItem(item: SelectItem)}
+	{@const itemValue = item.value}
+	{@const itemLabel = item.label}
+	{@const itemDisabled = item.disabled}
+	<Select.Item
+		value={itemValue}
+		label={itemLabel}
+		disabled={itemDisabled}
+		class={cn(
+			'flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-1.5 text-dark-50 outline-none',
+			'data-disabled:cursor-default data-disabled:opacity-50 data-highlighted:bg-dark-700'
+		)}
+	>
+		{#snippet children({ selected })}
+			{itemLabel}
+			{#if selected}
+				<Icon icon="ri:check-line" class="size-5 text-primary" />
+			{/if}
+		{/snippet}
+	</Select.Item>
+{/snippet}
 
 {#snippet selectBody()}
 	<div
@@ -98,7 +141,7 @@
 			{...contentProps}
 			sideOffset={contentProps?.sideOffset ?? 4}
 			class={cn(
-				'z-50 max-h-(--bits-select-content-available-height) w-(--bits-select-anchor-width) min-w-(--bits-select-anchor-width)',
+				'z-50 h-60 max-h-60 w-(--bits-select-anchor-width) min-w-(--bits-select-anchor-width)',
 				'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 				contentProps?.class
 			)}
@@ -106,28 +149,18 @@
 			<Select.ScrollUpButton class="flex w-full items-center justify-center py-1 text-dark-300">
 				<Icon icon="ri:arrow-up-s-line" />
 			</Select.ScrollUpButton>
-			<Select.Viewport>
+			<Select.Viewport
+				bind:ref={dropdownScroll.viewportRef}
+				onscroll={dropdownScroll.handleViewportScroll}
+			>
 				{#if resolvedItems.loading}
 					<div class="px-3 py-1.5 text-sm text-dark-300">{loadingPlaceholder}</div>
-				{:else}
-					{#each resolvedItems.items as { value: itemValue, label: itemLabel, disabled: itemDisabled } (itemValue)}
-						<Select.Item
-							value={itemValue}
-							label={itemLabel}
-							disabled={itemDisabled}
-							class={cn(
-								'flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-1.5 text-dark-50 outline-none',
-								'data-disabled:cursor-default data-disabled:opacity-50 data-highlighted:bg-dark-700'
-							)}
-						>
-							{#snippet children({ selected })}
-								{itemLabel}
-								{#if selected}
-									<Icon icon="ri:check-line" class="size-5 text-primary" />
-								{/if}
-							{/snippet}
-						</Select.Item>
-					{/each}
+				{:else if resolvedItems.items.length > 0}
+					<VirtualSelectItems
+						items={resolvedItems.items}
+						scrollTop={dropdownScroll.scrollTop}
+						item={selectItem}
+					/>
 				{/if}
 			</Select.Viewport>
 			<Select.ScrollDownButton class="flex w-full items-center justify-center py-1 text-dark-300">
@@ -146,6 +179,8 @@
 			type="single"
 			items={resolvedItems.items}
 			{disabled}
+			bind:open
+			onOpenChange={handleOpenChange}
 			bind:value={value as string}
 			{...(rootProps as SingleRootRest)}
 		>
@@ -156,6 +191,8 @@
 			type="multiple"
 			items={resolvedItems.items}
 			{disabled}
+			bind:open
+			onOpenChange={handleOpenChange}
 			bind:value={value as string[]}
 			{...(rootProps as MultipleRootRest)}
 		>

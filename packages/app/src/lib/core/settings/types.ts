@@ -1,13 +1,15 @@
 import type { SettingsContext } from './context';
 import type { SettingsFieldItem } from './field';
 
-export type { SettingsContext } from './context';
+export type { SettingsContext, SettingsVisibilityContext } from './context';
 export type {
+	SettingsButtonVariant,
 	SettingsFieldDefinition,
 	SettingsFieldInstance,
 	SettingsFieldItem,
 	SettingsFieldSectionDefinition,
-	SettingsFieldValue
+	SettingsFieldValue,
+	SettingsSelectItemsSource
 } from './field';
 
 export type SettingsSectionProps = {

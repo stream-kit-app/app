@@ -4,7 +4,7 @@ import { tv } from 'tailwind-variants';
 
 export const buttonVariants = tv({
 	base: [
-		'inline-flex shrink-0 items-center justify-center gap-2',
+		'inline-flex shrink-0 items-center justify-center gap-2 border border-transparent',
 		'cursor-pointer rounded-xl font-semibold whitespace-nowrap',
 		'transition-[color,background-color,box-shadow,transform] duration-150',
 		'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
@@ -13,13 +13,15 @@ export const buttonVariants = tv({
 	],
 	variants: {
 		variant: {
-			default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
-			secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/90',
+			default:
+				'border-primary bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
+			secondary:
+				'border-secondary bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/90',
 			outline:
 				'border border-border bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground',
 			ghost: 'hover:bg-accent hover:text-accent-foreground',
 			destructive:
-				'bg-red-600 text-white shadow-sm hover:bg-red-600/90 focus-visible:ring-red-600 dark:bg-red-500 dark:hover:bg-red-500/90',
+				'border-destructive-600 bg-destructive-800 text-white shadow-sm hover:bg-destructive-900 focus-visible:ring-destructive-700 dark:bg-destructive-500 dark:hover:bg-destructive-500/90',
 			link: 'text-primary underline-offset-4 hover:underline'
 		},
 		size: {

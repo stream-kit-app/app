@@ -13,11 +13,16 @@
 	import {
 		InputCheckbox,
 		InputSelect,
+		InputTextSelect,
 		InputSlider,
 		InputSwitch,
 		InputText
 	} from '$lib/components/ui/input';
-	import { isSettingsFieldSection } from '$lib/core/settings/settings-field';
+	import {
+		filterVisibleFieldItems,
+		isSettingsFieldSection,
+		toSettingsSelectItemsSource
+	} from '$lib/core/settings/settings-field';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -30,15 +35,16 @@
 
 	let { context, items, getField, getFieldError, class: className }: Props = $props();
 
-	function persistField(field: SettingsFieldInstance, value: SettingsFieldValue): void {
+	const visibleItems = $derived(filterVisibleFieldItems(items, context));
+
+	function updateField(field: SettingsFieldInstance, value: SettingsFieldValue): void {
 		field.value = value;
-		void context.settings.set(field.key, value);
 	}
 
 	const onTextInput =
 		(field: SettingsFieldInstance): FormEventHandler<HTMLInputElement> =>
 		(event) => {
-			persistField(field, event.currentTarget.value);
+			updateField(field, event.currentTarget.value);
 		};
 </script>
 
@@ -56,24 +62,37 @@
 	{:else if config.type === 'checkbox'}
 		<InputCheckbox
 			label={config.name}
-			bind:checked={() => Boolean(field.value), (value) => persistField(field, value)}
+			bind:checked={() => Boolean(field.value), (value) => updateField(field, value)}
 			{error}
 		/>
 	{:else if config.type === 'switch'}
 		<InputSwitch
 			label={config.name}
-			bind:checked={() => Boolean(field.value), (value) => persistField(field, value)}
+			bind:checked={() => Boolean(field.value), (value) => updateField(field, value)}
 			{error}
 		/>
 	{:else if config.type === 'select'}
 		<InputSelect
 			type="single"
 			label={config.name}
-			items={config.items}
+			items={toSettingsSelectItemsSource(config.items, context)}
+			reloadKey={config.itemsReload ? () => config.itemsReload?.(context) : undefined}
 			placeholder={config.placeholder}
 			loadingPlaceholder={config.loadingPlaceholder}
 			required={config.required}
-			bind:value={() => String(field.value ?? ''), (value) => persistField(field, value)}
+			bind:value={() => String(field.value ?? ''), (value) => updateField(field, value)}
+			{error}
+		/>
+	{:else if config.type === 'combobox'}
+		<InputTextSelect
+			label={config.name}
+			items={toSettingsSelectItemsSource(config.items, context)}
+			reloadKey={config.itemsReload ? () => config.itemsReload?.(context) : undefined}
+			placeholder={config.placeholder}
+			loadingPlaceholder={config.loadingPlaceholder}
+			required={config.required}
+			allowCustomValue={false}
+			bind:value={() => String(field.value ?? ''), (value) => updateField(field, value)}
 			{error}
 		/>
 	{:else if config.type === 'slider'}
@@ -83,7 +102,7 @@
 			max={config.max}
 			step={config.step ?? 1}
 			bind:value={() => Number(field.value ?? config.defaultValue ?? config.min), (value) =>
-				persistField(field, value)}
+				updateField(field, value)}
 			{error}
 		/>
 	{/if}
@@ -93,7 +112,12 @@
 	<div class="grid gap-4">
 		{#each definitions as config (config.key)}
 			{#if config.type === 'button'}
-				<Button variant="outline" onclick={() => void config.onClick(context)}>{config.name}</Button>
+				<Button
+					variant={config.variant ?? 'outline'}
+					onclick={() => void config.onClick(context)}
+				>
+					{config.name}
+				</Button>
 			{:else}
 				{@const field = getField(config.key)}
 				{#if field}
@@ -105,7 +129,7 @@
 {/snippet}
 
 <div class={cn('flex flex-col gap-8', className)}>
-	{#each items as item, index (isSettingsFieldSection(item) ? (item.title ?? `section-${index}`) : item.key)}
+	{#each visibleItems as item, index (isSettingsFieldSection(item) ? (item.title ?? `section-${index}`) : item.key)}
 		{#if isSettingsFieldSection(item)}
 			<section class="flex flex-col gap-4">
 				{#if item.title || item.description}

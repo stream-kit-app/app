@@ -12,7 +12,13 @@
 
 	let { section }: Props = $props();
 
-	const context = $derived(section.createContext(app));
+	const context = $derived.by(() => {
+		for (const field of section.fields) {
+			void field.value;
+		}
+
+		return section.createContext(app);
+	});
 	let isSaving = $state(false);
 
 	async function saveSettings() {

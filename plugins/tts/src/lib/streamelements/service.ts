@@ -4,7 +4,7 @@ import type { LazyStore } from '@tauri-apps/plugin-store';
 
 import { SETTINGS_KEY } from '../..';
 import { fetchStreamElementsSpeech, fetchStreamElementsVoices } from './api';
-import { TtsPlayer } from './player';
+import { TtsPlayer } from '../player';
 
 const VOICE_CACHE_TTL_MS = 5 * 60 * 1000;
 

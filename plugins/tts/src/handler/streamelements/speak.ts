@@ -2,7 +2,7 @@ import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import { streamelements } from '../../lib/streamelements';
-import { voiceSelectField } from '../../lib/voices';
+import { voiceSelectField } from '../../lib/streamelements/voices';
 import { TTS_TEXT_VARIABLES } from '../../lib/variables';
 
 export const createStreamElementsSpeakHandler = () => {

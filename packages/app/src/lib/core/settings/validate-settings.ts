@@ -1,6 +1,8 @@
+import type { SettingsVisibilityContext } from './context';
 import type { SettingsFieldInstance, SettingsFieldItem } from './field';
 
 import {
+	filterVisibleFieldItems,
 	flattenSettingsFieldItems,
 	isPersistedSettingsField,
 	isSettingsFieldValueEmpty
@@ -13,14 +15,19 @@ export type SettingsFormErrors = {
 
 export function validateSettingsFields(
 	fields: SettingsFieldInstance[],
-	items: SettingsFieldItem[] | undefined
+	items: SettingsFieldItem[] | undefined,
+	context: SettingsVisibilityContext
 ): SettingsFormErrors | null {
 	const errors: SettingsFormErrors = {
 		fieldErrors: {},
 		missingFields: []
 	};
 
-	for (const definition of flattenSettingsFieldItems(items).filter(isPersistedSettingsField)) {
+	const visibleItems = filterVisibleFieldItems(items, context);
+
+	for (const definition of flattenSettingsFieldItems(visibleItems).filter(
+		isPersistedSettingsField
+	)) {
 		const instance = fields.find((field) => field.key === definition.key);
 
 		if (!instance) {

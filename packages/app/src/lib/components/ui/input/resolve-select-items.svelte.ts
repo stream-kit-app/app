@@ -1,6 +1,9 @@
 import type { SelectItem, SelectItemsSource } from '$lib/core/action/trigger';
 
-export function resolveSelectItems(getSource: () => SelectItemsSource) {
+export function resolveSelectItems(
+	getSource: () => SelectItemsSource,
+	getReloadKey?: () => unknown
+) {
 	let asyncItems = $state<SelectItem[]>([]);
 	let loading = $state(false);
 	let asyncVersion = $state(0);
@@ -28,6 +31,10 @@ export function resolveSelectItems(getSource: () => SelectItemsSource) {
 	});
 
 	$effect(() => {
+		if (getReloadKey) {
+			void getReloadKey();
+		}
+
 		const source = getSource();
 
 		if (typeof source !== 'function') {

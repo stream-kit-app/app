@@ -1,10 +1,25 @@
+import type { SelectItemsSource } from '../action/trigger/condition';
+
+import type { SettingsContext, SettingsVisibilityContext } from './context';
 import type {
 	SettingsFieldDefinition,
 	SettingsFieldInstance,
 	SettingsFieldItem,
 	SettingsFieldSectionDefinition,
-	SettingsFieldValue
+	SettingsFieldValue,
+	SettingsSelectItemsSource
 } from './field';
+
+export function toSettingsSelectItemsSource(
+	items: SettingsSelectItemsSource,
+	context: SettingsContext
+): SelectItemsSource {
+	if (Array.isArray(items)) {
+		return items;
+	}
+
+	return () => items(context);
+}
 
 export function isSettingsFieldSection(
 	item: SettingsFieldItem
@@ -18,7 +33,46 @@ export function flattenSettingsFieldItems(
 	return (items ?? []).flatMap((item) => (isSettingsFieldSection(item) ? item.fields : [item]));
 }
 
-export function isPersistedSettingsField(definition: SettingsFieldDefinition): boolean {
+export function isSettingsFieldVisible(
+	definition: SettingsFieldDefinition,
+	context: SettingsVisibilityContext
+): boolean {
+	return definition.visible?.(context) ?? true;
+}
+
+export function filterVisibleFieldItems(
+	items: SettingsFieldItem[] | undefined,
+	context: SettingsVisibilityContext
+): SettingsFieldItem[] {
+	const visible: SettingsFieldItem[] = [];
+
+	for (const item of items ?? []) {
+		if (isSettingsFieldSection(item)) {
+			if (item.visible && !item.visible(context)) {
+				continue;
+			}
+
+			const fields = item.fields.filter((field) => isSettingsFieldVisible(field, context));
+
+			if (fields.length === 0) {
+				continue;
+			}
+
+			visible.push({ ...item, fields });
+			continue;
+		}
+
+		if (isSettingsFieldVisible(item, context)) {
+			visible.push(item);
+		}
+	}
+
+	return visible;
+}
+
+export function isPersistedSettingsField(
+	definition: SettingsFieldDefinition
+): definition is Exclude<SettingsFieldDefinition, { type: 'button' }> {
 	return definition.type !== 'button';
 }
 
@@ -38,11 +92,15 @@ export function createSettingsFields(
 }
 
 export function initSettingsFieldValue(definition: SettingsFieldDefinition): SettingsFieldValue {
+	if (definition.type === 'button') {
+		return false;
+	}
+
 	if (definition.defaultValue !== undefined) {
 		return definition.defaultValue;
 	}
 
-	if (definition.type === 'text' || definition.type === 'select') {
+	if (definition.type === 'text' || definition.type === 'select' || definition.type === 'combobox') {
 		return '';
 	}
 
@@ -75,7 +133,7 @@ export function isSettingsFieldValueEmpty(
 		return false;
 	}
 
-	if (definition.type === 'text' || definition.type === 'select') {
+	if (definition.type === 'text' || definition.type === 'select' || definition.type === 'combobox') {
 		return !String(value ?? '').trim();
 	}
 

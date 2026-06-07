@@ -21,9 +21,7 @@
 	let expandedPaths = new SvelteSet<string>();
 
 	function hasActiveChild(item: MenuItem): boolean {
-		return (
-			item.children?.some((child) => child.path === page.url.pathname) ?? false
-		);
+		return item.children?.some((child) => child.path === page.url.pathname) ?? false;
 	}
 
 	function isExpanded(item: MenuItem): boolean {
@@ -50,7 +48,7 @@
 						type="button"
 						onclick={item.onClick}
 						class={cn(
-							'flex w-full items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600'
+							'flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600'
 						)}
 					>
 						<Icon icon={item.icon} width={22} />
@@ -62,7 +60,7 @@
 						onclick={() => toggleExpanded(item.path)}
 						aria-expanded={isExpanded(item)}
 						class={cn(
-							'flex w-full items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600',
+							'flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600',
 							hasActiveChild(item) && 'bg-dark-600'
 						)}
 					>
@@ -70,7 +68,10 @@
 						{item.title}
 						<Icon
 							icon="gg:chevron-down"
-							class={cn('ms-auto transition-transform', isExpanded(item) && 'rotate-180')}
+							class={cn(
+								'ms-auto transition-transform',
+								isExpanded(item) && 'rotate-180'
+							)}
 						/>
 					</button>
 					{#if isExpanded(item)}
