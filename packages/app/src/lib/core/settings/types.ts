@@ -3,6 +3,7 @@ import type { SettingsFieldItem } from './field';
 
 export type { SettingsContext, SettingsVisibilityContext } from './context';
 export type {
+	SettingsAlertVariant,
 	SettingsButtonVariant,
 	SettingsFieldDefinition,
 	SettingsFieldInstance,

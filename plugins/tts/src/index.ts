@@ -22,6 +22,14 @@ const plugin: Plugin = async (app: App): Promise<void> => {
 				description: 'StreamElements integration',
 				fields: [
 					{
+						type: 'alert',
+						key: 'apiKeyAlert',
+						name: 'API key',
+						description: 'Enter your StreamElements overlay token',
+						variant: 'success',
+						visible: ({ getValue }) => Boolean(String(getValue('apiKey') ?? '').trim())
+					},
+					{
 						type: 'text',
 						inputType: 'password',
 						key: 'apiKey',

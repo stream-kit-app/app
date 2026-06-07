@@ -3,9 +3,9 @@ import type { App } from '@stream-kit/app/api';
 import type { LazyStore } from '@tauri-apps/plugin-store';
 
 import { SETTINGS_KEY } from '../..';
+import { TtsPlayer } from '../player';
 import { fetchElevenLabsSpeech, fetchElevenLabsVoices } from './api';
 import { DEFAULT_ELEVENLABS_MODEL_ID } from './types';
-import { TtsPlayer } from '../player';
 
 const VOICE_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -30,6 +30,7 @@ export class ElevenLabsService {
 
 	async boot(app: App): Promise<void> {
 		this.store = app.settings.getStore(SETTINGS_KEY);
+		this.player.setPlayback((blob, volume) => app.playAudio(blob, volume));
 		await this.syncFromStore();
 
 		this.store.onKeyChange<string>(STORE_KEYS.apiKey, (value) => {

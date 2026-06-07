@@ -8,15 +8,16 @@
 	} from '$lib/core/settings/field';
 	import type { FormEventHandler } from 'svelte/elements';
 
+	import { Alert } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import { Heading } from '$lib/components/ui/heading';
 	import {
 		InputCheckbox,
 		InputSelect,
-		InputTextSelect,
 		InputSlider,
 		InputSwitch,
-		InputText
+		InputText,
+		InputTextSelect
 	} from '$lib/components/ui/input';
 	import {
 		filterVisibleFieldItems,
@@ -101,8 +102,10 @@
 			min={config.min}
 			max={config.max}
 			step={config.step ?? 1}
-			bind:value={() => Number(field.value ?? config.defaultValue ?? config.min), (value) =>
-				updateField(field, value)}
+			bind:value={
+				() => Number(field.value ?? config.defaultValue ?? config.min),
+				(value) => updateField(field, value)
+			}
 			{error}
 		/>
 	{/if}
@@ -111,7 +114,10 @@
 {#snippet fieldList(definitions: SettingsFieldDefinition[])}
 	<div class="grid gap-4">
 		{#each definitions as config (config.key)}
-			{#if config.type === 'button'}
+			{#if config.type === 'alert'}
+				{@const variant = config.variant ?? 'default'}
+				<Alert {variant} title={config.name} description={config.description} />
+			{:else if config.type === 'button'}
 				<Button
 					variant={config.variant ?? 'outline'}
 					onclick={() => void config.onClick(context)}

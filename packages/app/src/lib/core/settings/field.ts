@@ -1,6 +1,5 @@
 import type { SelectItem } from '../action/trigger/condition';
-
-import type { SettingsContext, SettingsVisibilityContext } from './context';
+import type { SettingsContext } from './context';
 
 export type SettingsSelectItemsSource =
 	| SelectItem[]
@@ -15,6 +14,8 @@ export type SettingsButtonVariant =
 	| 'ghost'
 	| 'destructive'
 	| 'link';
+
+export type SettingsAlertVariant = 'default' | 'success' | 'error' | 'warning';
 
 export type SettingsFieldDefinition =
 	| (SettingsFieldBase & {
@@ -41,15 +42,23 @@ export type SettingsFieldDefinition =
 			key: string;
 			name: string;
 			variant?: SettingsButtonVariant;
-			visible?: (context: SettingsVisibilityContext) => boolean;
+			visible?: (context: SettingsContext) => boolean;
 			onClick: (context: SettingsContext) => void | Promise<void>;
+	  }
+	| {
+			type: 'alert';
+			key: string;
+			name: string;
+			description?: string;
+			variant?: SettingsAlertVariant;
+			visible?: (context: SettingsContext) => boolean;
 	  };
 
 export type SettingsFieldSectionDefinition = {
 	type: 'section';
 	title?: string;
 	description?: string;
-	visible?: (context: SettingsVisibilityContext) => boolean;
+	visible?: (context: SettingsContext) => boolean;
 	fields: SettingsFieldDefinition[];
 };
 
@@ -67,5 +76,5 @@ type SettingsFieldBase = {
 	placeholder?: string;
 	defaultValue?: SettingsFieldValue;
 	required?: boolean;
-	visible?: (context: SettingsVisibilityContext) => boolean;
+	visible?: (context: SettingsContext) => boolean;
 };

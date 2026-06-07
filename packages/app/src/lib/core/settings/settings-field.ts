@@ -1,5 +1,4 @@
 import type { SelectItemsSource } from '../action/trigger/condition';
-
 import type { SettingsContext, SettingsVisibilityContext } from './context';
 import type {
 	SettingsFieldDefinition,
@@ -70,29 +69,33 @@ export function filterVisibleFieldItems(
 	return visible;
 }
 
+type NonPersistedSettingsField = Extract<SettingsFieldDefinition, { type: 'alert' | 'button' }>;
+
 export function isPersistedSettingsField(
 	definition: SettingsFieldDefinition
-): definition is Exclude<SettingsFieldDefinition, { type: 'button' }> {
-	return definition.type !== 'button';
+): definition is Exclude<SettingsFieldDefinition, NonPersistedSettingsField> {
+	return definition.type !== 'alert' && definition.type !== 'button';
 }
 
 export function createSettingsFields(
 	items: SettingsFieldItem[] | undefined,
 	stored?: SettingsFieldInstance[]
 ): SettingsFieldInstance[] {
-	return flattenSettingsFieldItems(items).filter(isPersistedSettingsField).map((definition) => {
-		const existing = stored?.find((field) => field.key === definition.key);
+	return flattenSettingsFieldItems(items)
+		.filter(isPersistedSettingsField)
+		.map((definition) => {
+			const existing = stored?.find((field) => field.key === definition.key);
 
-		return {
-			id: existing?.id ?? crypto.randomUUID(),
-			key: definition.key,
-			value: existing?.value ?? initSettingsFieldValue(definition)
-		};
-	});
+			return {
+				id: existing?.id ?? crypto.randomUUID(),
+				key: definition.key,
+				value: existing?.value ?? initSettingsFieldValue(definition)
+			};
+		});
 }
 
 export function initSettingsFieldValue(definition: SettingsFieldDefinition): SettingsFieldValue {
-	if (definition.type === 'button') {
+	if (definition.type === 'alert' || definition.type === 'button') {
 		return false;
 	}
 
@@ -100,7 +103,11 @@ export function initSettingsFieldValue(definition: SettingsFieldDefinition): Set
 		return definition.defaultValue;
 	}
 
-	if (definition.type === 'text' || definition.type === 'select' || definition.type === 'combobox') {
+	if (
+		definition.type === 'text' ||
+		definition.type === 'select' ||
+		definition.type === 'combobox'
+	) {
 		return '';
 	}
 
@@ -129,11 +136,15 @@ export function isSettingsFieldValueEmpty(
 	definition: SettingsFieldDefinition,
 	value: SettingsFieldValue
 ): boolean {
-	if (definition.type === 'button') {
+	if (definition.type === 'alert' || definition.type === 'button') {
 		return false;
 	}
 
-	if (definition.type === 'text' || definition.type === 'select' || definition.type === 'combobox') {
+	if (
+		definition.type === 'text' ||
+		definition.type === 'select' ||
+		definition.type === 'combobox'
+	) {
 		return !String(value ?? '').trim();
 	}
 

@@ -3,9 +3,16 @@ type QueueItem = {
 	volume: number;
 };
 
+export type TtsPlayback = (blob: Blob, volume: number) => Promise<void>;
+
 export class TtsPlayer {
 	private queue: QueueItem[] = [];
 	private playing = false;
+	private playback?: TtsPlayback;
+
+	setPlayback(playback: TtsPlayback): void {
+		this.playback = playback;
+	}
 
 	enqueue(blob: Blob, volume: number): void {
 		this.queue.push({ blob, volume: Math.min(1, Math.max(0, volume)) });
@@ -25,20 +32,13 @@ export class TtsPlayer {
 
 		this.playing = true;
 
-		const url = URL.createObjectURL(item.blob);
-		const audio = new Audio(url);
-		audio.volume = item.volume;
-
-		await new Promise<void>((resolve) => {
-			const cleanup = () => {
-				URL.revokeObjectURL(url);
-				resolve();
-			};
-
-			audio.addEventListener('ended', cleanup, { once: true });
-			audio.addEventListener('error', cleanup, { once: true });
-			void audio.play().catch(cleanup);
-		});
+		if (!this.playback) {
+			console.error('TTS playback is not configured.');
+		} else {
+			await this.playback(item.blob, item.volume).catch((error: unknown) => {
+				console.error('Failed to play TTS audio', error);
+			});
+		}
 
 		await this.playNext();
 	}

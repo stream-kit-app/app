@@ -1,5 +1,6 @@
 import type { ModalProps } from './modal/modal.svelte';
 
+import { invoke } from '@tauri-apps/api/core';
 import { SvelteMap } from 'svelte/reactivity';
 
 import { Actions } from './action/action.svelte';
@@ -60,5 +61,10 @@ export class App extends Bootable {
 
 	public use(plugin: Plugin): void | Promise<void> {
 		return plugin(this);
+	}
+
+	public async playAudio(blob: Blob, volume: number): Promise<void> {
+		const data = Array.from(new Uint8Array(await blob.arrayBuffer()));
+		await invoke('play_audio', { data, volume: Math.min(1, Math.max(0, volume)) });
 	}
 }

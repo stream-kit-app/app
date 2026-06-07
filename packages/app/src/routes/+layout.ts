@@ -36,7 +36,12 @@ export const load = async () => {
 	app.menu.add({
 		path: '/twitch',
 		title: 'Twitch',
-		icon: 'mdi:twitch'
+		icon: 'ri:twitch-line'
+	});
+	app.menu.add({
+		path: '/integrations',
+		title: 'Integrations',
+		icon: 'ri:plug-line'
 	});
 	app.menu.add({
 		path: '/settings',
