@@ -10,6 +10,8 @@ import { Menu } from './menu';
 import { Modal } from './modal';
 import { OAuth } from './oauth';
 import { Opener } from './opener';
+import type { RegisterPluginOptions } from './plugins/installed-plugin';
+
 import { Plugins, type Plugin, type PluginRegistration } from './plugins';
 import { createPluginAppApi } from './plugins/app-api';
 import { Settings } from './settings';
@@ -59,7 +61,7 @@ export class App extends Bootable {
 		return modal;
 	}
 
-	public async use(plugin: Plugin): Promise<void> {
+	public async use(plugin: Plugin, options: RegisterPluginOptions = {}): Promise<void> {
 		try {
 			const registration = await plugin(createPluginAppApi(this));
 
@@ -72,8 +74,7 @@ export class App extends Bootable {
 				return;
 			}
 
-			const registeredPlugin = this.plugins.register(registration);
-			registeredPlugin.registerDefinitions(this);
+			this.plugins.register(registration, options);
 		} catch (error) {
 			console.warn('Failed to load plugin', error);
 			this.toast.create({

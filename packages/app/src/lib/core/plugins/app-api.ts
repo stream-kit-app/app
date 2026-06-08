@@ -1,84 +1,44 @@
 import type { HandlerDefinitionProps } from '../action/handler';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
-import type { ConfirmOptions } from '../confirm';
-import type { MenuItem } from '../menu/types';
-import type { Modal } from '../modal';
-import type { ModalProps } from '../modal/modal.svelte';
-import type { OAuthStartOptions } from '../oauth';
-import type { ToastCreateProps } from '../toast';
-
-import type { UnlistenFn } from '@tauri-apps/api/event';
-
-export type PluginAppApi = {
-	plugins: {
-		get<T>(key: string): T;
-		tryGet<T>(key: string): T | undefined;
-	};
-	toast: {
-		create(props: ToastCreateProps): void;
-		dismiss(id: string): void;
-	};
-	confirm: {
-		ask(options: ConfirmOptions): Promise<boolean>;
-	};
-	modal: {
-		create(props: ModalProps): Modal;
-	};
-	menu: {
-		add(item: MenuItem): MenuItem;
-		remove(path: string): void;
-	};
-	audio: {
-		play(blob: Blob, volume: number): Promise<void>;
-	};
-	oauth: {
-		start(options: OAuthStartOptions): Promise<number>;
-		onUrl(callback: (url: string) => void): Promise<UnlistenFn>;
-		onInvalidUrl(callback: (url: string) => void): Promise<UnlistenFn>;
-	};
-	opener: {
-		openUrl(url: string): Promise<void>;
-	};
-};
 
 export type PluginDefinitionCollections = {
 	triggers?: TriggerDefinitionProps[];
 	handlers?: HandlerDefinitionProps[];
 };
 
-export function createPluginAppApi(app: App): PluginAppApi {
+export function createPluginAppApi(app: App) {
 	return {
 		plugins: {
-			get: <T>(key: string) => app.plugins.get<T>(key),
-			tryGet: <T>(key: string) => app.plugins.tryGet<T>(key)
+			get: app.plugins.get.bind(app.plugins),
+			tryGet: app.plugins.tryGet.bind(app.plugins)
 		},
 		toast: {
-			create: (props) => {
-				app.toast.create(props);
-			},
-			dismiss: (id) => app.toast.dismiss(id)
+			create: app.toast.create.bind(app.toast),
+			dismiss: app.toast.dismiss.bind(app.toast)
 		},
 		confirm: {
-			ask: (options) => app.confirm.ask(options)
+			ask: app.confirm.ask.bind(app.confirm)
 		},
 		modal: {
-			create: (props) => app.createModal(props)
+			create: app.createModal.bind(app)
 		},
 		menu: {
-			add: (item) => app.menu.add(item),
-			remove: (path) => app.menu.remove(path)
+			add: app.menu.add.bind(app.menu),
+			remove: app.menu.remove.bind(app.menu)
 		},
 		audio: {
-			play: (blob, volume) => app.playAudio(blob, volume)
+			play: app.playAudio.bind(app)
 		},
 		oauth: {
-			start: (options) => app.oauth.start(options),
-			onUrl: (callback) => app.oauth.onUrl(callback),
-			onInvalidUrl: (callback) => app.oauth.onInvalidUrl(callback)
+			start: app.oauth.start.bind(app.oauth),
+			onUrl: app.oauth.onUrl.bind(app.oauth),
+			onInvalidUrl: app.oauth.onInvalidUrl.bind(app.oauth)
 		},
 		opener: {
-			openUrl: (url) => app.opener.openUrl(url)
+			openUrl: app.opener.openUrl.bind(app.opener)
 		}
 	};
 }
+
+export type PluginAppApi = ReturnType<typeof createPluginAppApi>;

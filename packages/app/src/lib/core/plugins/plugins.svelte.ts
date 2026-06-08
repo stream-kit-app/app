@@ -1,6 +1,7 @@
 import { LazyStore } from '@tauri-apps/plugin-store';
 
 import type { App } from '../app.svelte';
+import type { RegisterPluginOptions } from './installed-plugin';
 import type { PluginRegistration, PluginPublicApi } from './types';
 
 import { RegisteredPlugin } from './registered-plugin.svelte';
@@ -12,7 +13,10 @@ const LEGACY_PLUGIN_STORE_PATHS: Record<string, string[]> = {
 export class Plugins {
 	items: RegisteredPlugin[] = $state.raw([]);
 
-	register<TApi = PluginPublicApi>(props: PluginRegistration<TApi>): RegisteredPlugin<TApi> {
+	register<TApi = PluginPublicApi>(
+		props: PluginRegistration<TApi>,
+		options: RegisterPluginOptions = {}
+	): RegisteredPlugin<TApi> {
 		if (this.find(props.key)) {
 			throw new Error(`Plugin with key ${props.key} already exists`);
 		}
@@ -21,10 +25,33 @@ export class Plugins {
 		const legacyStores = (LEGACY_PLUGIN_STORE_PATHS[props.key] ?? []).map(
 			(path) => new LazyStore(path)
 		);
-		const plugin = new RegisteredPlugin<TApi>(props, store, legacyStores);
+		const plugin = new RegisteredPlugin<TApi>(props, store, legacyStores, options);
 		this.items = [...this.items, plugin];
 
 		return plugin;
+	}
+
+	remove(key: string): void {
+		this.items = this.items.filter((plugin) => plugin.key !== key);
+	}
+
+	async loadPlugin(app: App, key: string): Promise<void> {
+		const plugin = this.find(key);
+
+		if (!plugin) {
+			throw new Error(`Plugin with key ${key} is not registered`);
+		}
+
+		try {
+			await plugin.load(app);
+		} catch (error) {
+			console.warn(`Failed to load plugin ${plugin.key}`, error);
+			app.toast.create({
+				title: 'Plugin kon niet geladen worden',
+				description: `${plugin.name} kon niet geladen worden.`,
+				variant: 'warning'
+			});
+		}
 	}
 
 	find(key: string): RegisteredPlugin | undefined {

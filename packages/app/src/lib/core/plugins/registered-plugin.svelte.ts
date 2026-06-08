@@ -9,6 +9,7 @@ import type {
 import type { SettingsFormErrors } from '../settings/validate-settings';
 import type { PluginSettingsContext } from './context';
 import type { PluginStore } from './store';
+import type { PluginSource, RegisterPluginOptions } from './installed-plugin';
 import type { PluginPublicApi, PluginRegistration } from './types';
 import type { LazyStore } from '@tauri-apps/plugin-store';
 
@@ -30,12 +31,16 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	name: string;
 	description?: string;
 	icon?: string;
+	version?: string;
+	source: PluginSource;
+	installPath?: string;
 	dependencies: string[];
 	fieldItems: SettingsFieldItem[];
 	fields: SettingsFieldInstance[] = $state([]);
 	formErrors: SettingsFormErrors | null = $state(null);
 	isEnabled: boolean = $state(true);
 	api?: TApi;
+	private defaultEnabled: boolean;
 
 	private store: LazyStore;
 	private isConfiguredResolver?: PluginRegistration<TApi>['isConfigured'];
@@ -45,12 +50,23 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	private storeFacade: PluginStore;
 	private legacyStores: LazyStore[];
 	private hasBooted = false;
+	private hasLoaded = false;
 	private triggers: TriggerDefinitionProps<any>[];
 	private handlers: HandlerDefinitionProps[];
 	private registeredTriggers: TriggerDefinition[] = [];
 	private registeredHandlers: HandlerDefinition[] = [];
 
-	constructor(props: PluginRegistration<TApi>, store: LazyStore, legacyStores: LazyStore[] = []) {
+	constructor(
+		props: PluginRegistration<TApi>,
+		store: LazyStore,
+		legacyStores: LazyStore[] = [],
+		options: RegisterPluginOptions = {}
+	) {
+		this.source = options.source ?? 'builtin';
+		this.installPath = options.installPath;
+		this.version = options.version;
+		this.defaultEnabled = this.source === 'builtin';
+		this.isEnabled = this.defaultEnabled;
 		this.key = props.key;
 		this.name = props.name;
 		this.description = props.description;
@@ -143,7 +159,16 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	}
 
 	async load(app: App): Promise<void> {
+		if (this.hasLoaded) {
+			return;
+		}
+
 		await this.loadEnabledState();
+
+		if (this.isEnabled) {
+			this.registerDefinitions(app);
+		}
+
 		const stored: SettingsFieldInstance[] = [];
 
 		for (const definition of this.persistedDefinitions) {
@@ -168,10 +193,11 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 		this.fields = createSettingsFields(this.fieldItems, stored);
 		await this.onLoad?.(this.createContext(app));
+		this.hasLoaded = true;
 	}
 
 	async loadEnabledState(): Promise<void> {
-		this.isEnabled = (await this.store.get<boolean>(ENABLED_KEY)) ?? true;
+		this.isEnabled = (await this.store.get<boolean>(ENABLED_KEY)) ?? this.defaultEnabled;
 	}
 
 	private async getLegacyValue(key: string): Promise<SettingsFieldInstance['value'] | undefined> {
