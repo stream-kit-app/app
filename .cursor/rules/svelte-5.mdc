@@ -95,3 +95,6 @@ watch(
 - Match surrounding code: imports, `cn()`, Iconify icons, TypeScript strictness
 - Prefer extending existing UI components over duplicating markup
 - Use Svelte MCP docs (`list-sections` → `get-documentation`) when unsure about Svelte 5 APIs
+- Always use the i18n internationalization system whenever displaying user-facing strings.
+- When introducing new strings, ensure they are added to the appropriate translation files, so all languages remain up-to-date.
+- Do not hardcode visible text. Instead, wrap strings in the translation function (e.g., `t('Your string here')`) and register those keys for translation management.

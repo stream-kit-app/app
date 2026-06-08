@@ -1,3 +1,5 @@
+import { translate } from '$lib/i18n';
+
 export type ConfirmOptions = {
 	title: string;
 	description?: string;
@@ -17,8 +19,8 @@ export class Confirm {
 		}
 
 		this.options = {
-			confirmLabel: 'Confirm',
-			cancelLabel: 'Cancel',
+			confirmLabel: translate('Confirm'),
+			cancelLabel: translate('Cancel'),
 			...options
 		};
 		this.isOpen = true;

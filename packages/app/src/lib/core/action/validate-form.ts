@@ -6,6 +6,8 @@ import type {
 } from './trigger/condition';
 import type { HandlerFieldDefinition, HandlerFieldInstance } from './handler/field';
 
+import { translate } from '$lib/i18n';
+
 import type { HandlerFieldFormErrors } from './action-handler.svelte';
 import { isHandlerFieldValueEmpty } from './handler-field';
 
@@ -64,7 +66,9 @@ function validateConditionTree(
 
 		for (const leaf of leaves) {
 			if (isFieldValueEmpty(definition, leaf.value)) {
-				errors.conditionFields[leaf.id] = `${definition.name} is required`;
+				errors.conditionFields[leaf.id] = translate('{field} is required', {
+					field: definition.name
+				});
 			}
 		}
 	}
@@ -93,7 +97,9 @@ function validateHandlerFields(
 		}
 
 		if (definition.required && isHandlerFieldValueEmpty(definition, instance.value)) {
-			errors.fieldErrors[instance.id] = `${definition.name} is required`;
+			errors.fieldErrors[instance.id] = translate('{field} is required', {
+				field: definition.name
+			});
 		}
 	}
 
@@ -121,15 +127,15 @@ export function validateActionForm(input: {
 	};
 
 	if (!input.name.trim()) {
-		errors.name = 'Name is required';
+		errors.name = translate('Name is required');
 	}
 
 	if (input.triggers.length === 0) {
-		errors.triggers = 'Add at least one trigger';
+		errors.triggers = translate('Add at least one trigger');
 	}
 
 	if (input.handlers.length === 0) {
-		errors.handlers = 'Add at least one handler';
+		errors.handlers = translate('Add at least one handler');
 	}
 
 	for (const trigger of input.triggers) {

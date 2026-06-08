@@ -1,6 +1,8 @@
 import type { SettingsVisibilityContext } from './context';
 import type { SettingsFieldInstance, SettingsFieldItem } from './field';
 
+import { translate } from '$lib/i18n';
+
 import {
 	filterVisibleFieldItems,
 	flattenSettingsFieldItems,
@@ -39,7 +41,9 @@ export function validateSettingsFields(
 		}
 
 		if (definition.required && isSettingsFieldValueEmpty(definition, instance.value)) {
-			errors.fieldErrors[instance.id] = `${definition.name} is required`;
+			errors.fieldErrors[instance.id] = translate('{field} is required', {
+				field: definition.name
+			});
 		}
 	}
 

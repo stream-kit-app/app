@@ -10,6 +10,7 @@ node_modules
 .env
 .env.*
 !.env.example
+plugins/youtube/src/config.ts
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /src-tauri

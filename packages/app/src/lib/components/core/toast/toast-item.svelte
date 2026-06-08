@@ -3,6 +3,8 @@
 
 	import Icon from '@iconify/svelte';
 
+	import { useI18n } from '$lib/i18n';
+
 	import { toastIconVariants } from './toast-variants';
 
 	type Props = {
@@ -11,6 +13,7 @@
 	};
 
 	const { item, onDismiss }: Props = $props();
+	const { t } = useI18n();
 
 	const iconByVariant = {
 		default: 'ri:information-fill',
@@ -36,7 +39,7 @@
 	type="button"
 	class="shrink-0 cursor-pointer text-dark-200 outline-none hover:text-dark-50"
 	onclick={onDismiss}
-	aria-label="Dismiss toast"
+	aria-label={t('Dismiss toast')}
 >
 	<Icon icon="ri:close-fill" class="size-5" />
 </button>

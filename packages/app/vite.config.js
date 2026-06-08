@@ -32,6 +32,6 @@ export default defineConfig(async () => ({
 		}
 	},
 	ssr: {
-		noExternal: ['@stream-kit/app', '@stream-kit/plugin-twitch', '@stream-kit/plugin-tts']
+		noExternal: ['@stream-kit/app', '@stream-kit/plugin-twitch', '@stream-kit/plugin-youtube', '@stream-kit/plugin-tts']
 	}
 }));

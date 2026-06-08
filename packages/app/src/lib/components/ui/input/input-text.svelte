@@ -4,6 +4,7 @@
 	import Icon from '@iconify/svelte';
 	import { useId } from 'bits-ui';
 
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import Label from './label.svelte';
@@ -16,6 +17,7 @@
 	} & HTMLInputAttributes;
 
 	const { label, id = useId(), prependIcon, appendIcon, error, ...props }: Props = $props();
+	const { t } = useI18n();
 	let showPassword = $state(false);
 
 	const isPasswordField = $derived(props.type === 'password');
@@ -72,7 +74,7 @@
 			<button
 				type="button"
 				class="grid h-full min-w-10 place-items-center rounded-r-xl border border-dark-500 border-l-dark-600 bg-dark-700 text-dark-50"
-				aria-label={showPassword ? 'Hide password' : 'Show password'}
+				aria-label={showPassword ? t('Hide password') : t('Show password')}
 				aria-pressed={showPassword}
 				onclick={() => (showPassword = !showPassword)}
 			>

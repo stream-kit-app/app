@@ -1,13 +1,15 @@
+import type { TranslationKey } from '$lib/i18n';
+
 export type MenuItemChild = {
 	path: string;
-	title: string;
+	title?: TranslationKey;
 	isDisabled?: boolean | (() => boolean);
 	onClick?: () => void;
 };
 
 export type MenuItem = {
 	path: string;
-	title: string;
+	title?: TranslationKey;
 	icon: string;
 	children?: MenuItemChild[];
 	isDisabled?: boolean | (() => boolean);

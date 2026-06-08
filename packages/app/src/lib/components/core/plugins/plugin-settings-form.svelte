@@ -4,12 +4,14 @@
 	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { app } from '$lib/core';
+	import { useI18n } from '$lib/i18n';
 
 	type Props = {
 		plugin: RegisteredPlugin;
 	};
 
 	let { plugin }: Props = $props();
+	const { t } = useI18n();
 	let revision = $state(0);
 
 	const context = $derived.by(() => {
@@ -39,8 +41,8 @@
 
 			if (saved) {
 				app.toast.create({
-					title: 'Plugin saved',
-					description: `${plugin.name} has been saved successfully`,
+					title: t('Plugin saved'),
+					description: t('{name} has been saved successfully', { name: plugin.name }),
 					variant: 'success'
 				});
 			}
@@ -59,6 +61,6 @@
 	/>
 
 	<div>
-		<Button onclick={savePluginSettings} isLoading={isSaving}>Save</Button>
+		<Button onclick={savePluginSettings} isLoading={isSaving}>{t('Save')}</Button>
 	</div>
 </div>

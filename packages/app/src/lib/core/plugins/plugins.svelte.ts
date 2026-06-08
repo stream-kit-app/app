@@ -4,6 +4,8 @@ import type { App } from '../app.svelte';
 import type { RegisterPluginOptions } from './installed-plugin';
 import type { PluginRegistration, PluginPublicApi } from './types';
 
+import { translate } from '$lib/i18n';
+
 import { RegisteredPlugin } from './registered-plugin.svelte';
 
 const LEGACY_PLUGIN_STORE_PATHS: Record<string, string[]> = {
@@ -47,8 +49,8 @@ export class Plugins {
 		} catch (error) {
 			console.warn(`Failed to load plugin ${plugin.key}`, error);
 			app.toast.create({
-				title: 'Plugin kon niet geladen worden',
-				description: `${plugin.name} kon niet geladen worden.`,
+				title: translate('Plugin could not be loaded'),
+				description: translate('{name} could not be loaded.', { name: plugin.name }),
 				variant: 'warning'
 			});
 		}
@@ -79,8 +81,8 @@ export class Plugins {
 			} catch (error) {
 				console.warn(`Failed to load plugin ${plugin.key}`, error);
 				app.toast.create({
-					title: 'Plugin kon niet geladen worden',
-					description: `${plugin.name} kon niet geladen worden.`,
+					title: translate('Plugin could not be loaded'),
+					description: translate('{name} could not be loaded.', { name: plugin.name }),
 					variant: 'warning'
 				});
 			}
@@ -94,8 +96,8 @@ export class Plugins {
 			} catch (error) {
 				console.warn(`Failed to boot plugin ${plugin.key}`, error);
 				app.toast.create({
-					title: 'Plugin kon niet gestart worden',
-					description: `${plugin.name} kon niet gestart worden.`,
+					title: translate('Plugin could not be started'),
+					description: translate('{name} could not be started.', { name: plugin.name }),
 					variant: 'warning'
 				});
 			}

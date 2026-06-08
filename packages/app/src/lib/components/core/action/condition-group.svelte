@@ -20,6 +20,7 @@
 		InputTextVariables,
 		Label
 	} from '$lib/components/ui/input';
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import Self from './condition-group.svelte';
@@ -32,11 +33,12 @@
 	};
 
 	let { editor, group, fieldErrors, root = false }: Props = $props();
+	const { t } = useI18n();
 
-	const operatorItems = [
-		{ value: 'and', label: 'AND' },
-		{ value: 'or', label: 'OR' }
-	];
+	const operatorItems = $derived([
+		{ value: 'and', label: t('AND') },
+		{ value: 'or', label: t('OR') }
+	]);
 
 	const onConditionTextInput =
 		(node: ConditionLeafNode): FormEventHandler<HTMLInputElement> =>
@@ -118,10 +120,12 @@
 			{#if config}
 				<div class="grid gap-2">
 					<Label class="flex flex-wrap items-baseline gap-x-1.5 font-mono text-base">
-						<span class="text-green-500">{child.operator ? child.operator : 'if'}</span>
+						<span class="font-bold text-green-500 uppercase">
+							{child.operator ? child.operator : t('if')}
+						</span>
 						<span class="text-primary-100 italic">{config.name.toLowerCase()}</span>
 						{#if child.negate}
-							<span class="text-red-400">not</span>
+							<span class="font-bold text-red-400 uppercase">{t('not')}</span>
 						{/if}
 						{#if config.required}
 							<span class="text-red-400">*</span>
@@ -143,12 +147,14 @@
 						<div class="flex h-10 shrink-0 items-center gap-2">
 							<span
 								{@attach tooltip(
-									'Negate this condition. Enable to reverse: Passes if NOT matched.'
+									t(
+										'Negate this condition. Enable to reverse: Passes if NOT matched.'
+									)
 								)}
 							>
 								<InputCheckbox
 									inline
-									label="Not"
+									label={t('Not')}
 									bind:checked={
 										() => child.negate ?? false,
 										(value) => (child.negate = value)
@@ -159,7 +165,7 @@
 								variant="ghost"
 								size="icon"
 								icon="ri:close-line"
-								aria-label="Remove"
+								aria-label={t('Remove')}
 								onclick={() => editor.removeChild(group, index)}
 							/>
 						</div>
@@ -180,7 +186,7 @@
 					variant="ghost"
 					size="icon"
 					icon="ri:close-line"
-					aria-label="Remove"
+					aria-label={t('Remove')}
 					class="shrink-0 text-red-400"
 					onclick={() => editor.removeChild(group, index)}
 				/>
@@ -192,7 +198,7 @@
 		<Dropdown.Root>
 			{#snippet trigger({ props })}
 				<Button variant="ghost" size="sm" icon="ri:add-line" {...props}
-					>Add Condition</Button
+					>{t('Add Condition')}</Button
 				>
 			{/snippet}
 			<Dropdown.Content>
@@ -212,7 +218,7 @@
 				icon="ri:node-tree"
 				onclick={() => editor.addGroup(group)}
 			>
-				Add Group
+				{t('Add Group')}
 			</Button>
 		{/if}
 	</div>

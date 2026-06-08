@@ -5,12 +5,14 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Heading } from '$lib/components/ui/heading';
 	import { app } from '$lib/core';
+	import { useI18n } from '$lib/i18n';
 
 	type Props = {
 		section: SettingsSection;
 	};
 
 	let { section }: Props = $props();
+	const { t } = useI18n();
 
 	const context = $derived.by(() => {
 		for (const field of section.fields) {
@@ -45,6 +47,6 @@
 	/>
 
 	<div>
-		<Button onclick={saveSettings} isLoading={isSaving}>Save</Button>
+		<Button onclick={saveSettings} isLoading={isSaving}>{t('Save')}</Button>
 	</div>
 </div>

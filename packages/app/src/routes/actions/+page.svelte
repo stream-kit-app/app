@@ -7,21 +7,23 @@
 	import { Heading } from '$lib/components/ui/heading';
 	import { app } from '$lib/core';
 	import { Action } from '$lib/core/action';
+	import { useI18n } from '$lib/i18n';
 
+	const { t } = useI18n();
 	const groups = $derived(groupBy(app.actions.items, (action) => action.group));
 </script>
 
 <div class="p-4">
 	<Container size="md">
 		<header class="flex justify-between">
-			<Heading level="1" subTitle="Manage your actions">Actions</Heading>
+			<Heading level="1" subTitle={t('Manage your actions')}>{t('Actions')}</Heading>
 			<Button
 				icon="ri:add-fill"
 				size="lg"
 				variant="outline"
 				onclick={() => Action.createDraft().open()}
 			>
-				Add Action
+				{t('Add Action')}
 			</Button>
 		</header>
 		<div class="mt-8 grid gap-6">

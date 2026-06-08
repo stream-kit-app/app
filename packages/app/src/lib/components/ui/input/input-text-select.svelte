@@ -8,6 +8,7 @@
 	import { Debounced } from 'runed';
 	import { tick } from 'svelte';
 
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import Label from './label.svelte';
@@ -36,8 +37,8 @@
 		label,
 		items: itemsSource,
 		placeholder,
-		loadingPlaceholder = 'Loading…',
-		selectAriaLabel = 'Select value',
+		loadingPlaceholder,
+		selectAriaLabel,
 		allowCustomValue = true,
 		reloadKey,
 		id = useId(),
@@ -48,6 +49,11 @@
 		value = $bindable(''),
 		...props
 	}: Props = $props();
+	const { t } = useI18n();
+
+	const resolvedPlaceholder = $derived(placeholder);
+	const resolvedLoadingPlaceholder = $derived(loadingPlaceholder ?? t('Loading…'));
+	const resolvedSelectAriaLabel = $derived(selectAriaLabel ?? t('Select value'));
 
 	let open = $state(false);
 	let inputValue = $state('');
@@ -147,7 +153,7 @@
 	const mergedInputProps = $derived(
 		mergeProps(props, {
 			id,
-			placeholder: resolvedItems.loading ? loadingPlaceholder : placeholder,
+			placeholder: resolvedItems.loading ? resolvedLoadingPlaceholder : resolvedPlaceholder,
 			autocomplete: 'off',
 			class: cn(
 				'w-full rounded-l-xl border border-r-0 bg-dark-700 px-4 py-2 text-dark-50 outline-none',
@@ -213,7 +219,7 @@
 			<Combobox.Input {...mergedInputProps} />
 			<button
 				type="button"
-				aria-label={selectAriaLabel}
+				aria-label={resolvedSelectAriaLabel}
 				aria-haspopup="listbox"
 				aria-expanded={open}
 				disabled={!!props.disabled}
@@ -247,7 +253,7 @@
 					onscroll={dropdownScroll.handleViewportScroll}
 				>
 					{#if resolvedItems.loading}
-						<div class="px-3 py-1.5 text-sm text-dark-300">{loadingPlaceholder}</div>
+						<div class="px-3 py-1.5 text-sm text-dark-300">{resolvedLoadingPlaceholder}</div>
 					{:else if listItems.length > 0}
 						<VirtualSelectItems
 							items={listItems}
@@ -255,7 +261,7 @@
 							item={comboboxItem}
 						/>
 					{:else}
-						<div class="px-3 py-1.5 text-sm text-dark-300">No matches found</div>
+						<div class="px-3 py-1.5 text-sm text-dark-300">{t('No matches found')}</div>
 					{/if}
 				</Combobox.Viewport>
 				<Combobox.ScrollDownButton

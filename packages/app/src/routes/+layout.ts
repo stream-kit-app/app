@@ -2,12 +2,27 @@
 // so we use adapter-static with a fallback to index.html to put the site in SPA mode
 // See: https://svelte.dev/docs/kit/single-page-apps
 
+import { createI18n } from '@svelte-i18n/core';
+
 import { app } from '$lib/core';
+import { getSavedLocale } from '$lib/core/locale/store';
 
 // See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
 export const ssr = false;
 
 export const load = async () => {
+	const savedLocale = (await getSavedLocale()) ?? 'en';
+
+	const i18n = await createI18n({
+		locales: ['en', 'nl'],
+		locale: savedLocale,
+		fallbackLocale: 'en',
+		dictionaries: {
+			en: async () => (await import('$lib/locales/en.json')).default,
+			nl: async () => (await import('$lib/locales/nl.json')).default
+		}
+	});
+
 	app.menu.add({
 		path: '/',
 		title: 'Dashboard',
@@ -47,4 +62,6 @@ export const load = async () => {
 	await app.plugins.load(app);
 	await app.settings.load();
 	await app.actions.load();
+
+	return { i18n };
 };

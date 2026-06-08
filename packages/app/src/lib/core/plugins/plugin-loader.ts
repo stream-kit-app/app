@@ -1,8 +1,13 @@
 import type { App } from '../app.svelte';
-import type { Plugin } from './types';
 import type { InstalledPluginManifest } from './installed-plugin';
+import type { Plugin } from './types';
 
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+
+import { translate } from '$lib/i18n';
+
+import { settings } from '../settings';
+import { stopPluginDevWatcher } from './plugin-dev-watcher';
 
 let importMapReady = false;
 
@@ -33,7 +38,9 @@ async function ensurePluginImportMap(): Promise<void> {
 	importMapReady = true;
 }
 
-function resolveEntryPath(manifest: InstalledPluginManifest): string {
+export function resolveEntryPath(
+	manifest: Pick<InstalledPluginManifest, 'installPath' | 'entry'>
+): string {
 	const installPath = manifest.installPath.replace(/\\/g, '/');
 	const entry = manifest.entry.replace(/\\/g, '/');
 
@@ -79,11 +86,14 @@ export async function discoverAndLoadInstalledPlugins(app: App): Promise<void> {
 		} catch (error) {
 			console.warn(`Failed to load installed plugin ${manifest.key}`, error);
 			app.toast.create({
-				title: 'Plugin kon niet geladen worden',
+				title: translate('Plugin could not be loaded'),
 				description:
 					error instanceof Error
-						? `${manifest.name}: ${error.message}`
-						: `${manifest.name} kon niet geladen worden.`,
+						? translate('{name}: {error}', {
+								name: manifest.name,
+								error: error.message
+							})
+						: translate('{name} could not be loaded.', { name: manifest.name }),
 				variant: 'warning'
 			});
 		}
@@ -125,6 +135,9 @@ export async function uninstallInstalledPlugin(app: App, key: string): Promise<v
 	if (plugin.isEnabled) {
 		await plugin.setEnabled(app, false);
 	}
+
+	await stopPluginDevWatcher(key);
+	await settings.clearPluginDevMode(key);
 
 	await invoke('uninstall_plugin', { key });
 	app.plugins.remove(key);

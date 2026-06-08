@@ -1,13 +1,18 @@
 <script lang="ts">
 	import type { RegisteredPlugin } from '$lib/core/plugins';
+	import type { InstalledPluginManifest } from '$lib/core/plugins/installed-plugin';
 
 	import Icon from '@iconify/svelte';
+	import { invoke } from '@tauri-apps/api/core';
 
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { InputSwitch } from '$lib/components/ui/input';
 	import { app } from '$lib/core';
+	import { setPluginDevMode } from '$lib/core/plugins/plugin-dev-watcher';
 	import { uninstallInstalledPlugin } from '$lib/core/plugins/plugin-loader';
+	import { settings } from '$lib/core/settings';
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import PluginSettingsForm from './plugin-settings-form.svelte';
@@ -17,6 +22,7 @@
 	};
 
 	let { plugin }: Props = $props();
+	const { t } = useI18n();
 	let statusRevision = $state(0);
 
 	const missingDependencies = $derived.by(() => {
@@ -37,6 +43,8 @@
 		return plugin.isConfigured(app);
 	});
 	const hasDependencyIssues = $derived(hasMissingDependencies || hasDisabledDependencies);
+	const showDevMode = $derived(settings.developerMode && plugin.source === 'installed');
+	const isDevMode = $derived(settings.isPluginDevMode(plugin.key));
 
 	$effect(() => {
 		const api = plugin.api as { subscribe?: (listener: () => void) => () => void } | undefined;
@@ -57,23 +65,35 @@
 		}).open();
 	}
 
+	async function setPluginDevModeEnabled(enabled: boolean): Promise<void> {
+		const manifests = await invoke<InstalledPluginManifest[]>('list_installed_plugins');
+		const manifest = manifests.find((item) => item.key === plugin.key);
+
+		await setPluginDevMode(app, plugin.key, enabled, manifest);
+	}
+
 	async function setPluginEnabled(enabled: boolean): Promise<void> {
 		await plugin.setEnabled(app, enabled);
 		statusRevision += 1;
 
 		app.toast.create({
-			title: plugin.isEnabled ? 'Plugin enabled' : 'Plugin disabled',
-			description: `${plugin.name} has been ${plugin.isEnabled ? 'enabled' : 'disabled'}.`,
+			title: plugin.isEnabled ? t('Plugin enabled') : t('Plugin disabled'),
+			description: plugin.isEnabled
+				? t('{name} has been enabled.', { name: plugin.name })
+				: t('{name} has been disabled.', { name: plugin.name }),
 			variant: 'success'
 		});
 	}
 
 	async function uninstallPlugin(): Promise<void> {
 		const confirmed = await app.confirm.ask({
-			title: 'Plugin verwijderen?',
-			description: `Weet je zeker dat je ${plugin.name} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`,
-			confirmLabel: 'Verwijderen',
-			cancelLabel: 'Annuleren'
+			title: t('Remove plugin?'),
+			description: t(
+				'Are you sure you want to remove {name}? This action cannot be undone.',
+				{ name: plugin.name }
+			),
+			confirmLabel: t('Delete'),
+			cancelLabel: t('Cancel')
 		});
 
 		if (!confirmed) {
@@ -83,14 +103,14 @@
 		try {
 			await uninstallInstalledPlugin(app, plugin.key);
 			app.toast.create({
-				title: 'Plugin verwijderd',
-				description: `${plugin.name} is verwijderd.`,
+				title: t('Plugin removed'),
+				description: t('{name} has been removed.', { name: plugin.name }),
 				variant: 'success'
 			});
 		} catch (error) {
 			app.toast.create({
-				title: 'Plugin kon niet verwijderd worden',
-				description: error instanceof Error ? error.message : 'Onbekende fout.',
+				title: t('Plugin could not be removed'),
+				description: error instanceof Error ? error.message : t('Unknown error.'),
 				variant: 'error'
 			});
 		}
@@ -111,7 +131,7 @@
 			<div class="flex flex-wrap items-center gap-2">
 				<h2 class="font-semibold">{plugin.name}</h2>
 				{#if plugin.source === 'installed'}
-					<Badge variant="default">Installed</Badge>
+					<Badge variant="default">{t('Installed')}</Badge>
 				{/if}
 				{#if plugin.version}
 					<Badge variant="default">v{plugin.version}</Badge>
@@ -128,15 +148,29 @@
 	</div>
 
 	<div class="flex flex-col gap-2 text-sm">
+		{#if showDevMode}
+			<div class="flex items-center justify-between gap-3">
+				<div class="flex flex-col gap-0.5">
+					<span class="text-dark-100">{t('Dev mode')}</span>
+					<span class="text-xs text-dark-300"
+						>{t('Watch plugin entry and reload on change')}</span
+					>
+				</div>
+				<InputSwitch
+					class="shrink-0"
+					bind:checked={() => isDevMode, (value) => void setPluginDevModeEnabled(value)}
+				/>
+			</div>
+		{/if}
 		<div class="flex items-center justify-between gap-3">
-			<span class="text-dark-100">Configured</span>
+			<span class="text-dark-100">{t('Configured')}</span>
 			<Badge variant={isConfigured ? 'success' : 'default'}>
-				{isConfigured ? 'Yes' : 'No'}
+				{isConfigured ? t('Yes') : t('No')}
 			</Badge>
 		</div>
 		{#if plugin.dependencies.length > 0}
 			<div class="flex items-start justify-between gap-3">
-				<span class="text-dark-100">Depends on</span>
+				<span class="text-dark-100">{t('Depends on')}</span>
 				{#each plugin.dependencies as dependency (dependency)}
 					<Badge variant={hasDependencyIssues ? 'destructive' : 'success'}>
 						{dependency}
@@ -148,10 +182,10 @@
 
 	<div class="mt-auto flex flex-wrap gap-2">
 		{#if plugin.hasSettings}
-			<Button variant="outline" onclick={openSettings}>Configure</Button>
+			<Button variant="outline" onclick={openSettings}>{t('Configure')}</Button>
 		{/if}
 		{#if plugin.source === 'installed'}
-			<Button variant="destructive" onclick={uninstallPlugin}>Verwijderen</Button>
+			<Button variant="destructive" onclick={uninstallPlugin}>{t('Remove')}</Button>
 		{/if}
 	</div>
 </section>

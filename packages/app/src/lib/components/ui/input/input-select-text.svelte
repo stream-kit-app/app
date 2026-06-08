@@ -11,6 +11,7 @@
 
 	import type { HandlerFieldVariable } from '$lib/core/action/handler/field';
 	import type { SelectItemsSource } from '$lib/core/action/trigger';
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import { Button } from '../button';
@@ -37,8 +38,8 @@
 	let {
 		label,
 		items: itemsSource,
-		selectPlaceholder = 'Select',
-		loadingPlaceholder = 'Loading…',
+		selectPlaceholder,
+		loadingPlaceholder,
 		placeholder,
 		variables = [],
 		id = useId(),
@@ -49,6 +50,10 @@
 		value = $bindable({ type: '', value: '' }),
 		...props
 	}: Props = $props();
+	const { t } = useI18n();
+
+	const resolvedSelectPlaceholder = $derived(selectPlaceholder ?? t('Select'));
+	const resolvedLoadingPlaceholder = $derived(loadingPlaceholder ?? t('Loading…'));
 
 	const resolvedItems = resolveSelectItems(() => itemsSource);
 
@@ -218,7 +223,7 @@
 				)}
 			>
 				<Select.Value
-					placeholder={resolvedItems.loading ? loadingPlaceholder : selectPlaceholder}
+					placeholder={resolvedItems.loading ? resolvedLoadingPlaceholder : resolvedSelectPlaceholder}
 					class="truncate data-placeholder:text-dark-300"
 				/>
 				<Icon icon="ri:expand-up-down-line" class="size-5 shrink-0 text-dark-300" />
@@ -240,7 +245,7 @@
 					</Select.ScrollUpButton>
 					<Select.Viewport>
 						{#if resolvedItems.loading}
-							<div class="px-3 py-1.5 text-sm text-dark-300">{loadingPlaceholder}</div>
+							<div class="px-3 py-1.5 text-sm text-dark-300">{resolvedLoadingPlaceholder}</div>
 						{:else}
 							{#each resolvedItems.items as { value: itemValue, label: itemLabel, disabled } (itemValue)}
 								<Select.Item

@@ -1,4 +1,5 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod dev;
 mod plugins;
 
 use std::io::Cursor;
@@ -59,12 +60,17 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             play_audio,
+            dev::watch_plugin_entry,
+            dev::unwatch_plugin_entry,
+            dev::open_devtools_if_needed,
             plugins::get_plugins_dir,
             plugins::list_installed_plugins,
             plugins::install_plugin_zip,
             plugins::uninstall_plugin
         ])
         .setup(|app| {
+            app.manage(dev::PluginWatchers(std::sync::Mutex::new(std::collections::HashMap::new())));
+
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window("main") {
                 window.open_devtools();

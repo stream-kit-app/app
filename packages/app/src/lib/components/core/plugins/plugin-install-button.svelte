@@ -5,7 +5,9 @@
 	import { Button } from '$lib/components/ui/button';
 	import { app } from '$lib/core';
 	import { installPluginFromZip } from '$lib/core/plugins/plugin-loader';
+	import { useI18n } from '$lib/i18n';
 
+	const { t } = useI18n();
 	let isInstalling = $state(false);
 
 	async function installPlugin(): Promise<void> {
@@ -16,7 +18,7 @@
 		const selected = await open({
 			multiple: false,
 			directory: false,
-			filters: [{ name: 'Plugin zip', extensions: ['zip'] }]
+			filters: [{ name: t('Plugin zip'), extensions: ['zip'] }]
 		});
 
 		if (!selected || Array.isArray(selected)) {
@@ -28,50 +30,52 @@
 		try {
 			const manifest = await installPluginFromZip(app, selected);
 			app.toast.create({
-				title: 'Plugin installed',
-				description: `${manifest.name} has been installed. Enable the plugin to start using it.`,
+				title: t('Plugin installed'),
+				description: t('{name} has been installed. Enable the plugin to start using it.', {
+					name: manifest.name
+				}),
 				variant: 'success'
 			});
 		} catch (error) {
-			console.log(error);
 			const message =
 				error instanceof Error
 					? error.message
 					: isString(error)
 						? error.toString()
-						: 'Unknown installation error.';
+						: t('Unknown installation error.');
 
 			if (message.includes('already installed')) {
 				const confirmed = await app.confirm.ask({
-					title: 'Replace plugin?',
-					description:
-						'A plugin with this key is already installed. Do you want to replace the existing plugin?',
-					confirmLabel: 'Replace',
-					cancelLabel: 'Cancel'
+					title: t('Replace plugin?'),
+					description: t(
+						'A plugin with this key is already installed. Do you want to replace the existing plugin?'
+					),
+					confirmLabel: t('Replace'),
+					cancelLabel: t('Cancel')
 				});
 
 				if (confirmed) {
 					try {
 						const manifest = await installPluginFromZip(app, selected, true);
 						app.toast.create({
-							title: 'Plugin replaced',
-							description: `${manifest.name} has been reinstalled.`,
+							title: t('Plugin replaced'),
+							description: t('{name} has been reinstalled.', { name: manifest.name }),
 							variant: 'success'
 						});
 					} catch (replaceError) {
 						app.toast.create({
-							title: 'Plugin could not be installed',
+							title: t('Plugin could not be installed'),
 							description:
 								replaceError instanceof Error
 									? replaceError.message
-									: 'Unknown installation error.',
+									: t('Unknown installation error.'),
 							variant: 'error'
 						});
 					}
 				}
 			} else {
 				app.toast.create({
-					title: 'Plugin could not be installed',
+					title: t('Plugin could not be installed'),
 					description: message,
 					variant: 'error'
 				});
@@ -82,6 +86,13 @@
 	}
 </script>
 
-<Button onclick={installPlugin} disabled={isInstalling}>
-	{isInstalling ? 'Installing...' : 'Install plugin'}
+<Button
+	onclick={installPlugin}
+	variant="outline"
+	disabled={isInstalling}
+	icon="ri:upload-line"
+	aria-label={t('Install plugin')}
+	isLoading={isInstalling}
+>
+	{isInstalling ? t('Installing...') : t('Install plugin')}
 </Button>

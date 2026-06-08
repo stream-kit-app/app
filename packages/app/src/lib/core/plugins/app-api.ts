@@ -30,6 +30,14 @@ export function createPluginAppApi(app: App) {
 		audio: {
 			play: app.playAudio.bind(app)
 		},
+		actions: {
+			reactivateAll: () => {
+				for (const action of app.actions.items) {
+					app.actions.deactivate(action);
+					app.actions.activate(action);
+				}
+			}
+		},
 		oauth: {
 			start: app.oauth.start.bind(app.oauth),
 			onUrl: app.oauth.onUrl.bind(app.oauth),

@@ -1,5 +1,7 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import type { LayoutProps } from './$types';
+
+	import { onMount } from 'svelte';
 
 	import { ConfirmDialog } from '$lib/components/core/confirm';
 	import { Modal } from '$lib/components/core/modal';
@@ -9,10 +11,26 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { TooltipProvider } from '$lib/components/ui/tooltip';
 	import { app } from '$lib/core';
+	import {
+		initPluginDevWatcher,
+		syncPluginDevWatchers
+	} from '$lib/core/plugins/plugin-dev-watcher';
+	import { settings } from '$lib/core/settings';
+	import { registerI18n } from '$lib/i18n';
 
 	import './layout.css';
 
-	const { children } = $props();
+	let { children, data }: LayoutProps = $props();
+
+	registerI18n(() => data.i18n);
+
+	onMount(() => {
+		void (async () => {
+			await settings.load();
+			await initPluginDevWatcher();
+			await syncPluginDevWatchers(app);
+		})();
+	});
 </script>
 
 <TooltipProvider>

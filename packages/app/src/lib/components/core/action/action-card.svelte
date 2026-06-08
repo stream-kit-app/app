@@ -4,6 +4,7 @@
 	import Icon from '@iconify/svelte';
 
 	import { tooltip } from '$lib/attachments';
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -11,6 +12,7 @@
 	};
 
 	let { action }: Props = $props();
+	const { t } = useI18n();
 </script>
 
 <button
@@ -20,7 +22,7 @@
 		'group w-full cursor-pointer items-center justify-between rounded-xl',
 		'border px-4 py-3 text-left transition-colors',
 		action.hasUnavailableDefinitions
-			? 'border-red-500 bg-red-500/5 hover:bg-red-500/10'
+			? 'border-destructive-500 bg-destructive-800 hover:bg-destructive-900'
 			: 'border-transparent bg-dark-800 hover:bg-dark-600'
 	)}
 	onclick={() => action.open()}
@@ -30,27 +32,27 @@
 		class={cn(
 			'text-center',
 			action.triggers.some((trigger) => !trigger.definition.isAvailable)
-				? 'text-red-300'
+				? 'text-destructive-50'
 				: 'text-dark-300'
 		)}
 		{@attach tooltip(() =>
 			action.triggers.map((trigger) => `- ${trigger.definition.name}`).join('<br />')
 		)}
 	>
-		triggers ({action.triggers.length})
+		{t('triggers ({count})', { count: action.triggers.length })}
 	</span>
 	<span
 		class={cn(
 			'text-center',
 			action.handlers.some((handler) => !handler.definition.isAvailable)
-				? 'text-red-300'
+				? 'text-destructive-50'
 				: 'text-dark-300'
 		)}
 		{@attach tooltip(() =>
 			action.handlers.map((handler) => `- ${handler.definition.name}`).join('<br />')
 		)}
 	>
-		handlers ({action.handlers.length})
+		{t('handlers ({count})', { count: action.handlers.length })}
 	</span>
 	<span class="justify-self-end">
 		<Icon

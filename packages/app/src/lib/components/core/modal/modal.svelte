@@ -5,6 +5,7 @@
 	import { Dialog } from 'bits-ui';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -12,6 +13,7 @@
 	};
 
 	const { modal }: Props = $props();
+	const { t } = useI18n();
 </script>
 
 <Dialog.Root bind:open={modal.isOpen}>
@@ -47,7 +49,7 @@
 						)}
 					>
 						<Icon icon="ri:close-fill" class="h-6 w-6" />
-						<span>Close</span>
+						<span>{t('Close')}</span>
 					</Dialog.Close>
 					<Dialog.Title class="text-2xl font-bold">{modal.title}</Dialog.Title>
 					{#if modal.description}

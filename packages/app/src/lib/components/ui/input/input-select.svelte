@@ -1,11 +1,12 @@
 <script lang="ts">
+	import type { SelectItem, SelectItemsSource } from '$lib/core/action/trigger';
 	import type { WithoutChildren } from 'bits-ui';
 
 	import Icon from '@iconify/svelte';
 	import { Select, useId } from 'bits-ui';
 	import { tick } from 'svelte';
 
-	import type { SelectItem, SelectItemsSource } from '$lib/core/action/trigger';
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import Label from './label.svelte';
@@ -45,8 +46,8 @@
 	let {
 		label,
 		items: itemsSource,
-		placeholder = 'Select an option',
-		loadingPlaceholder = 'Loading…',
+		placeholder,
+		loadingPlaceholder,
 		prependIcon,
 		contentProps,
 		id = useId(),
@@ -58,6 +59,10 @@
 		value = $bindable(),
 		...rootProps
 	}: Props = $props();
+	const { t } = useI18n();
+
+	const resolvedPlaceholder = $derived(placeholder ?? t('Select an option'));
+	const resolvedLoadingPlaceholder = $derived(loadingPlaceholder ?? t('Loading…'));
 
 	let open = $state(false);
 	const dropdownScroll = new DropdownScroll();
@@ -129,8 +134,10 @@
 				)}
 			>
 				<Select.Value
-					placeholder={resolvedItems.loading ? loadingPlaceholder : placeholder}
-					class="data-placeholder:text-dark-300"
+					placeholder={resolvedItems.loading
+						? resolvedLoadingPlaceholder
+						: resolvedPlaceholder}
+					class="truncate data-placeholder:text-dark-300"
 				/>
 				<Icon icon="ri:expand-up-down-line" class="size-5 shrink-0 text-dark-300" />
 			</span>
@@ -141,12 +148,14 @@
 			{...contentProps}
 			sideOffset={contentProps?.sideOffset ?? 4}
 			class={cn(
-				'z-50 h-60 max-h-60 w-(--bits-select-anchor-width) min-w-(--bits-select-anchor-width)',
+				'z-50 max-h-60 w-(--bits-select-anchor-width) min-w-(--bits-select-anchor-width)',
 				'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 				contentProps?.class
 			)}
 		>
-			<Select.ScrollUpButton class="flex w-full items-center justify-center py-1 text-dark-300">
+			<Select.ScrollUpButton
+				class="flex w-full items-center justify-center py-1 text-dark-300"
+			>
 				<Icon icon="ri:arrow-up-s-line" />
 			</Select.ScrollUpButton>
 			<Select.Viewport
@@ -154,7 +163,9 @@
 				onscroll={dropdownScroll.handleViewportScroll}
 			>
 				{#if resolvedItems.loading}
-					<div class="px-3 py-1.5 text-sm text-dark-300">{loadingPlaceholder}</div>
+					<div class="px-3 py-1.5 text-sm text-dark-300">
+						{resolvedLoadingPlaceholder}
+					</div>
 				{:else if resolvedItems.items.length > 0}
 					<VirtualSelectItems
 						items={resolvedItems.items}
@@ -163,7 +174,9 @@
 					/>
 				{/if}
 			</Select.Viewport>
-			<Select.ScrollDownButton class="flex w-full items-center justify-center py-1 text-dark-300">
+			<Select.ScrollDownButton
+				class="flex w-full items-center justify-center py-1 text-dark-300"
+			>
 				<Icon icon="ri:arrow-down-s-line" />
 			</Select.ScrollDownButton>
 		</Select.Content>
@@ -182,7 +195,7 @@
 			bind:open
 			onOpenChange={handleOpenChange}
 			bind:value={value as string}
-			{...(rootProps as SingleRootRest)}
+			{...rootProps as SingleRootRest}
 		>
 			{@render selectBody()}
 		</Select.Root>
@@ -194,7 +207,7 @@
 			bind:open
 			onOpenChange={handleOpenChange}
 			bind:value={value as string[]}
-			{...(rootProps as MultipleRootRest)}
+			{...rootProps as MultipleRootRest}
 		>
 			{@render selectBody()}
 		</Select.Root>

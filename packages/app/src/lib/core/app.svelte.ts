@@ -1,7 +1,11 @@
 import type { ModalProps } from './modal/modal.svelte';
+import type { Plugin, PluginRegistration } from './plugins';
+import type { RegisterPluginOptions } from './plugins/installed-plugin';
 
 import { invoke } from '@tauri-apps/api/core';
 import { SvelteMap } from 'svelte/reactivity';
+
+import { translate } from '$lib/i18n';
 
 import { Actions } from './action/action.svelte';
 import { Bootable } from './bootable.svelte';
@@ -10,9 +14,7 @@ import { Menu } from './menu';
 import { Modal } from './modal';
 import { OAuth } from './oauth';
 import { Opener } from './opener';
-import type { RegisterPluginOptions } from './plugins/installed-plugin';
-
-import { Plugins, type Plugin, type PluginRegistration } from './plugins';
+import { Plugins } from './plugins';
 import { createPluginAppApi } from './plugins/app-api';
 import { Settings } from './settings';
 import { Toast } from './toast';
@@ -67,8 +69,8 @@ export class App extends Bootable {
 
 			if (!this.isPluginRegistration(registration)) {
 				this.toast.create({
-					title: 'Plugin kon niet geladen worden',
-					description: 'Een plugin gaf geen geldige registratie terug.',
+					title: translate('Plugin could not be loaded'),
+					description: translate('A plugin returned an invalid registration.'),
 					variant: 'warning'
 				});
 				return;
@@ -78,8 +80,9 @@ export class App extends Bootable {
 		} catch (error) {
 			console.warn('Failed to load plugin', error);
 			this.toast.create({
-				title: 'Plugin kon niet geladen worden',
-				description: error instanceof Error ? error.message : 'Onbekende plugin fout.',
+				title: translate('Plugin could not be loaded'),
+				description:
+					error instanceof Error ? error.message : translate('Unknown plugin error.'),
 				variant: 'warning'
 			});
 		}

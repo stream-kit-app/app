@@ -133,6 +133,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 				this.registeredTriggers.push(definition);
 			}
 
+			definition.setPluginName(this.name);
 			definition.setAvailable(true);
 		}
 

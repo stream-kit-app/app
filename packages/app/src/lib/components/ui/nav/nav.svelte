@@ -7,6 +7,7 @@
 	import { page } from '$app/state';
 	import { SvelteSet } from 'svelte/reactivity';
 
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import NavLink from './nav-link.svelte';
@@ -17,8 +18,17 @@
 	};
 
 	const { items, children, ...props }: Props = $props();
+	const { t } = useI18n();
 
 	let expandedPaths = new SvelteSet<string>();
+
+	function getTitle(item: { title?: import('$lib/i18n').TranslationKey }): string {
+		if (item.title) {
+			return t(item.title);
+		}
+
+		return '';
+	}
 
 	function hasActiveChild(item: MenuItem): boolean {
 		return item.children?.some((child) => child.path === page.url.pathname) ?? false;
@@ -52,7 +62,7 @@
 						)}
 					>
 						<Icon icon={item.icon} width={22} />
-						{item.title}
+						{getTitle(item)}
 					</button>
 				{:else if item.children?.length}
 					<button
@@ -65,7 +75,7 @@
 						)}
 					>
 						<Icon icon={item.icon} width={22} />
-						{item.title}
+						{getTitle(item)}
 						<Icon
 							icon="gg:chevron-down"
 							class={cn(
@@ -84,11 +94,11 @@
 											onclick={child.onClick}
 											class="flex w-full rounded-xl px-4 py-2 ps-14 text-left font-normal hover:bg-dark-600"
 										>
-											{child.title}
+											{getTitle(child)}
 										</button>
 									{:else}
 										<NavLink href={child.path} variant="sidebar" class="ps-14">
-											{child.title}
+											{getTitle(child)}
 										</NavLink>
 									{/if}
 								</li>
@@ -98,7 +108,7 @@
 				{:else}
 					<NavLink href={item.path} class="flex">
 						<Icon icon={item.icon} width={22} />
-						{item.title}
+						{getTitle(item)}
 					</NavLink>
 				{/if}
 			</div>

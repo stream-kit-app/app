@@ -32,6 +32,7 @@ export class TriggerDefinitions {
 export class TriggerDefinition {
 	id: string;
 	name: string;
+	pluginName?: string;
 	isAvailable: boolean = $state(true);
 
 	conditions?: ConditionDefinition[];
@@ -44,6 +45,7 @@ export class TriggerDefinition {
 	constructor(props: TriggerDefinitionProps<any>) {
 		this.id = props.id;
 		this.name = props.name;
+		this.pluginName = props.pluginName;
 		this.conditions = props.conditions;
 		this.validate = props.validate as
 			| ((conditions: ConditionGroupNode, context: unknown) => boolean)
@@ -71,6 +73,14 @@ export class TriggerDefinition {
 
 		for (const child of this.children.items) {
 			child.setAvailable(available);
+		}
+	}
+
+	setPluginName(name: string): void {
+		this.pluginName = name;
+
+		for (const child of this.children.items) {
+			child.setPluginName(name);
 		}
 	}
 }

@@ -3,10 +3,12 @@
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { getActionGroups } from '$db/repositories/actions';
+	import { cn } from 'tailwind-variants';
 
 	import { Button } from '$lib/components/ui/button';
 	import { InputText, InputTextSelect, Label } from '$lib/components/ui/input';
 	import { getApp } from '$lib/core/registry';
+	import { useI18n } from '$lib/i18n';
 
 	import ConditionGroup from './condition-group.svelte';
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
@@ -17,6 +19,7 @@
 	};
 
 	let { action }: Props = $props();
+	const { t } = useI18n();
 
 	async function handleSave() {
 		await action.save();
@@ -48,9 +51,11 @@
 
 	async function handleDelete() {
 		const confirmed = await getApp().confirm.ask({
-			title: 'Delete action',
-			description: `Are you sure you want to delete "${action.name.trim() || 'this action'}"? This cannot be undone.`,
-			confirmLabel: 'Delete'
+			title: t('Delete action'),
+			description: t('Are you sure you want to delete "{name}"? This cannot be undone.', {
+				name: action.name.trim() || t('this action')
+			}),
+			confirmLabel: t('Delete')
 		});
 
 		if (confirmed) {
@@ -61,7 +66,7 @@
 
 <form class="grid gap-6" onsubmit={(event: SubmitEvent) => event.preventDefault()}>
 	<InputText
-		label="Name"
+		label={t('Name')}
 		required
 		value={action.name}
 		error={action.formErrors?.name}
@@ -69,38 +74,48 @@
 	/>
 
 	<InputTextSelect
-		label="Group"
-		placeholder="Select or enter a group"
+		label={t('Group')}
+		placeholder={t('Select or enter a group')}
 		items={getActionGroups}
 		bind:value={action.group}
 	/>
 
 	<section class="grid gap-3">
 		<div class="flex flex-wrap items-center justify-between gap-2">
-			<Label>Triggers</Label>
+			<Label>{t('Triggers')}</Label>
 			<DefinitionPickerDropdown
-				label="Add Trigger"
+				label={t('Add Trigger')}
 				definitions={getApp().actions.triggers.items}
 				onSelect={addTrigger}
 			/>
 		</div>
 
 		{#if action.formErrors?.triggers}
-			<p class="text-sm text-red-400">{action.formErrors.triggers}</p>
+			<p class="text-sm text-destructive-50">{action.formErrors.triggers}</p>
 		{/if}
 
 		{#if action.triggers.length === 0}
-			<p class="text-sm text-dark-300">No triggers added yet.</p>
+			<p class="text-sm text-dark-300">{t('No triggers added yet.')}</p>
 		{/if}
 
 		{#each action.triggers as trigger (trigger.id)}
 			<div
-				class={`grid gap-2 rounded-xl border px-4 pt-4 pb-4 ${trigger.definition.isAvailable ? 'border-dark-600' : 'border-red-500 bg-red-500/5'}`}
+				class={cn('grid rounded-xl border px-4 pt-4 pb-4', {
+					'border-dark-600': trigger.definition.isAvailable,
+					'border-destructive-500 bg-destructive-800': !trigger.definition.isAvailable
+				})}
 			>
+				<div class="relative top-2 flex items-center gap-2">
+					{#if trigger.pluginName}
+						<span class="font-mono text-primary italic">
+							{trigger.pluginName}
+						</span>
+					{/if}
+				</div>
 				<div class="flex items-center justify-between gap-2">
 					<span class="flex items-center gap-2 font-mono font-medium text-dark-50">
-						<span class={trigger.definition.isAvailable ? 'text-green-500' : 'text-red-400'}>
-							{trigger.definition.isAvailable ? 'ON' : 'BROKEN'}
+						<span class={cn('font-bold text-green-500')}>
+							{t('ON')}
 						</span>
 						<span class="text-dark-50 italic">
 							{trigger.definition.name.toLowerCase()}
@@ -110,21 +125,21 @@
 						variant="ghost"
 						size="icon"
 						icon="ri:close-line"
-						aria-label="Remove trigger"
+						aria-label={t('Remove')}
 						onclick={() => action.removeTrigger(trigger.id)}
 					/>
 				</div>
 
 				{#if !trigger.definition.isAvailable}
-					<p class="text-sm text-red-300">
-						This trigger is not available. The plugin may be disabled or missing.
+					<p class="text-sm text-destructive-50">
+						{t('This trigger is not available. The plugin may be disabled or missing.')}
 					</p>
 				{/if}
 
 				{#if action.formErrors?.triggerErrors[trigger.id]?.missingConditions.length}
-					<ul class="grid gap-1 text-sm text-red-400">
+					<ul class="grid gap-1 text-sm text-destructive-50">
 						{#each action.formErrors.triggerErrors[trigger.id].missingConditions as name (name)}
-							<li>{name} is required</li>
+							<li>{t('{field} is required', { field: name })}</li>
 						{/each}
 					</ul>
 				{/if}
@@ -143,52 +158,57 @@
 
 	<section class="grid gap-3">
 		<div class="flex flex-wrap items-center justify-between gap-2">
-			<Label>Handlers</Label>
+			<Label>{t('Handlers')}</Label>
 			<DefinitionPickerDropdown
-				label="Add Handler"
+				label={t('Add Handler')}
 				definitions={getApp().actions.actions.items}
 				onSelect={addHandler}
 			/>
 		</div>
 
 		{#if action.formErrors?.handlers}
-			<p class="text-sm text-red-400">{action.formErrors.handlers}</p>
+			<p class="text-sm text-destructive-50">{action.formErrors.handlers}</p>
 		{/if}
 
 		{#if action.handlers.length === 0}
-			<p class="text-sm text-dark-300">No handlers added yet.</p>
+			<p class="text-sm text-dark-300">{t('No handlers added yet.')}</p>
 		{/if}
 
 		{#each action.handlers as handler (handler.id)}
 			<div
-				class={`grid gap-2 rounded-xl border px-4 py-4 ${handler.definition.isAvailable ? 'border-dark-600' : 'border-red-500 bg-red-500/5'}`}
+				class={cn('grid gap-2 rounded-xl border px-4 py-4', {
+					'border-dark-600': handler.definition.isAvailable,
+					'border-destructive-500 bg-destructive-800': !handler.definition.isAvailable
+				})}
 			>
 				<div class="flex items-center justify-between gap-2">
 					<p class="font-medium text-dark-50">
 						{handler.definition.name}
 						{#if !handler.definition.isAvailable}
-							<span class="ml-2 text-sm font-normal text-red-300">Unavailable</span>
+							<span class="ml-2 text-sm font-normal text-destructive-50"
+								>{t('Unavailable')}</span
+							>
 						{/if}
 					</p>
 					<Button
 						variant="ghost"
 						size="icon"
 						icon="ri:close-line"
-						aria-label="Remove handler"
+						aria-label={t('Remove')}
 						onclick={() => action.removeHandler(handler.id)}
 					/>
 				</div>
 
 				{#if !handler.definition.isAvailable}
-					<p class="text-sm text-red-300">
-						This handler is not available. The plugin may be disabled or missing.
+					<p class="text-sm text-destructive-50">
+						{t('This handler is not available. The plugin may be disabled or missing.')}
 					</p>
 				{/if}
 
 				{#if action.formErrors?.handlerErrors[handler.id]?.missingFields.length}
-					<ul class="grid gap-1 text-sm text-red-400">
+					<ul class="grid gap-1 text-sm text-destructive-50">
 						{#each action.formErrors.handlerErrors[handler.id].missingFields as name (name)}
-							<li>{name} is required</li>
+							<li>{t('{field} is required', { field: name })}</li>
 						{/each}
 					</ul>
 				{/if}
@@ -204,7 +224,7 @@
 	</section>
 
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<Button type="submit" onclick={() => void handleSave()}>Save</Button>
+		<Button type="submit" onclick={() => void handleSave()}>{t('Save')}</Button>
 		{#if action.id != null}
 			<Button
 				type="button"
@@ -213,7 +233,7 @@
 				onclick={() => void handleDelete()}
 				icon="ri:delete-bin-line"
 			>
-				Delete
+				{t('Delete')}
 			</Button>
 		{/if}
 	</div>

@@ -38,6 +38,12 @@ importers:
       '@stream-kit/plugin-twitch':
         specifier: workspace:*
         version: link:../../plugins/twitch
+      '@stream-kit/plugin-youtube':
+        specifier: workspace:*
+        version: link:../../plugins/youtube
+      '@svelte-i18n/core':
+        specifier: ^2.0.1
+        version: 2.0.1(svelte@5.56.1(@typescript-eslint/types@8.60.1))
       '@tauri-apps/api':
         specifier: ^2.11.0
         version: 2.11.0
@@ -130,7 +136,7 @@ importers:
         specifier: ^0.31.10
         version: 0.31.10
       esbuild:
-        specifier: ^0.25.0
+        specifier: ^0.25.12
         version: 0.25.12
       eslint:
         specifier: ^10.4.1
@@ -257,6 +263,22 @@ importers:
       '@twurple/eventsub-ws':
         specifier: ^8.1.4
         version: 8.1.4(@twurple/api@8.1.4(@twurple/auth@8.1.4))
+    devDependencies:
+      '@stream-kit/app':
+        specifier: workspace:*
+        version: link:../../packages/app
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  plugins/youtube:
+    dependencies:
+      '@stream-kit/core':
+        specifier: workspace:*
+        version: link:../../packages/core
     devDependencies:
       '@stream-kit/app':
         specifier: workspace:*
@@ -1380,6 +1402,11 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@svelte-i18n/core@2.0.1':
+    resolution: {integrity: sha512-56BhuUiCBrgq3hzsyCAdTCzuDQlPVNOggSlSohYQJinfvXreRnYV6JE11laWeRpEZXy9Rpy/CKsVh5S3LY+6ag==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   '@sveltejs/acorn-typescript@1.0.10':
     resolution: {integrity: sha512-4WfKk68eTih+MiJD4fSbxN7E8kVBmTMPWHUPYjvl2N0rMs53YLTT8/YjKU5Dtnz5LqDjl7LEw4U7lXR2W3J5WA==}
@@ -3798,6 +3825,10 @@ snapshots:
     optional: true
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@svelte-i18n/core@2.0.1(svelte@5.56.1(@typescript-eslint/types@8.60.1))':
+    dependencies:
+      svelte: 5.56.1(@typescript-eslint/types@8.60.1)
 
   '@sveltejs/acorn-typescript@1.0.10(acorn@8.16.0)':
     dependencies:

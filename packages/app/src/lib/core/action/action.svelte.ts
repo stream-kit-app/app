@@ -15,6 +15,7 @@ import {
 import { DEFAULT_ACTION_GROUP } from '$db/schemas/actions';
 
 import ActionForm from '$lib/components/core/action/action-form.svelte';
+import { translate } from '$lib/i18n';
 
 import { getApp } from '../registry';
 import { ActionHandler } from './action-handler.svelte';
@@ -83,8 +84,10 @@ export class Actions {
 			} catch (error) {
 				console.warn(`Failed to activate trigger ${trigger.definition.id}`, error);
 				app.toast.create({
-					title: 'Trigger kon niet gestart worden',
-					description: `${trigger.definition.name} kon niet gestart worden.`,
+					title: translate('Trigger could not be started'),
+					description: translate('{name} could not be started.', {
+						name: trigger.definition.name
+					}),
 					variant: 'warning'
 				});
 			}
@@ -197,7 +200,10 @@ export class Action {
 			app.modals.get(this.modalId) ??
 			app.createModal({
 				id: this.modalId,
-				title: this.id != null ? `Edit ${this.name}` : 'New Action',
+				title:
+					this.id != null
+						? translate('Edit {name}', { name: this.name })
+						: translate('New Action'),
 				content: ActionForm,
 				props: { action: this }
 			});
@@ -305,8 +311,8 @@ export class Action {
 		}
 
 		app.toast.create({
-			title: 'Action saved',
-			description: 'The action has been saved successfully',
+			title: translate('Action saved'),
+			description: translate('The action has been saved successfully'),
 			variant: 'success'
 		});
 

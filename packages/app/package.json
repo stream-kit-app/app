@@ -26,6 +26,8 @@
 		"@stream-kit/core": "workspace:*",
 		"@stream-kit/plugin-tts": "workspace:*",
 		"@stream-kit/plugin-twitch": "workspace:*",
+		"@stream-kit/plugin-youtube": "workspace:*",
+		"@svelte-i18n/core": "^2.0.1",
 		"@tauri-apps/api": "^2.11.0",
 		"@tauri-apps/plugin-dialog": "^2.4.2",
 		"@tauri-apps/plugin-opener": "^2.5.4",

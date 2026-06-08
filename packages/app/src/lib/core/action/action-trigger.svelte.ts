@@ -45,6 +45,10 @@ export class ActionTrigger implements ConditionEditor {
 		return this.definition.conditions;
 	}
 
+	get pluginName(): string | undefined {
+		return this.definition.pluginName;
+	}
+
 	getConditionDefinition(key: string): ConditionDefinition | undefined {
 		return getConditionDefinition(this.definition.conditions, key);
 	}
