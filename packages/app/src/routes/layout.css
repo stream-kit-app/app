@@ -107,6 +107,7 @@
 	--color-ring: var(--color-primary-200);
 
 	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+	--font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {

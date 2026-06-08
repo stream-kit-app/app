@@ -17,14 +17,13 @@
 	this={`h${level}`}
 	{...props}
 	class={cn(
-		'font-bold',
 		{
-			'text-2xl': level == 1,
-			'text-xl': level == 2,
-			'text-lg': level == 3,
-			'text-base': level == 4,
-			'text-sm': level == 5,
-			'text-xs': level == 6
+			'font-outfit text-4xl font-semibold': level == 1,
+			'text-xl font-bold': level == 2,
+			'text-lg font-bold': level == 3,
+			'text-base font-bold': level == 4,
+			'text-sm font-bold': level == 5,
+			'text-xs font-bold': level == 6
 		},
 		props.class
 	)}
