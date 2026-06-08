@@ -6,11 +6,14 @@ export const messageMatchOperators = [
 	{ value: 'startsWith', label: 'Starts with' },
 	{ value: 'endsWith', label: 'Ends with' },
 	{ value: 'contains', label: 'Contains' },
+	{ value: 'equals', label: 'Equals' }
+] as const;
+
+export const userMatchOperators = [
 	{ value: 'equals', label: 'Equals' },
-	{ value: 'notStartsWith', label: 'Not Starts with' },
-	{ value: 'notEndsWith', label: 'Not Ends with' },
-	{ value: 'notContains', label: 'Not Contains' },
-	{ value: 'notEquals', label: 'Not Equals' }
+	{ value: 'startsWith', label: 'Starts with' },
+	{ value: 'endsWith', label: 'Ends with' },
+	{ value: 'contains', label: 'Contains' }
 ] as const;
 
 export const roleItems = [
@@ -61,10 +64,12 @@ export function userMatchCondition(
 	placeholder = 'Username (optional)'
 ): ConditionDefinition {
 	return {
-		type: 'text',
+		type: 'select-text',
 		key,
 		name,
-		placeholder
+		placeholder,
+		defaultValue: { type: 'equals', value: '' },
+		items: [...userMatchOperators]
 	};
 }
 
@@ -120,11 +125,25 @@ export function evaluateBooleanFilter(actual: boolean, _value: FieldValue): bool
 }
 
 export function evaluateUserMatch(username: string, value: FieldValue): boolean {
-	if (typeof value !== 'string' || !value.trim()) {
+	if (typeof value === 'string') {
+		if (!value.trim()) {
+			return true;
+		}
+
+		return matchText(username, 'equals', value);
+	}
+
+	if (!value || typeof value !== 'object' || !('value' in value)) {
 		return true;
 	}
 
-	return username.toLowerCase() === value.trim().toLowerCase();
+	const match = value as { type: string; value: string };
+
+	if (!match.value?.trim()) {
+		return true;
+	}
+
+	return matchText(username, match.type, match.value);
 }
 
 export function evaluateRole(role: string, value: FieldValue): boolean {
