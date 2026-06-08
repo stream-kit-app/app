@@ -1,4 +1,4 @@
-# Stream Kit
+<img src="banner.png" alt="Stream Kit" width="100%" />
 
 [![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/stream-kit-app/app)
 [![Status](https://img.shields.io/badge/status-work%20in%20progress-orange)](#current-status)
