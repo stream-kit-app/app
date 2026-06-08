@@ -156,10 +156,6 @@ const plugin: Plugin = (app) => {
 				onClick: () => publicApi.disconnect()
 			}
 		],
-		onBoot: async ({ store }) => {
-			twitchApi = createTwitchPluginApi(app, store);
-			await twitchApi.boot();
-		},
 		triggers: [
 			{
 				id: 'twitch',
@@ -187,7 +183,11 @@ const plugin: Plugin = (app) => {
 							createCommunitySubTrigger(app)
 						]
 					},
-					{ id: 'twitch-raids', name: 'Raids', children: [createIncomingRaidTrigger(app)] },
+					{
+						id: 'twitch-raids',
+						name: 'Raids',
+						children: [createIncomingRaidTrigger(app)]
+					},
 					{
 						id: 'twitch-moderation',
 						name: 'Moderation',
@@ -310,7 +310,11 @@ const plugin: Plugin = (app) => {
 					{ id: 'twitch-clips', name: 'Clips', children: [createClipHandler(app)] }
 				]
 			}
-		]
+		],
+		onBoot: async ({ store }) => {
+			twitchApi = createTwitchPluginApi(app, store);
+			await twitchApi.boot();
+		}
 	};
 };
 

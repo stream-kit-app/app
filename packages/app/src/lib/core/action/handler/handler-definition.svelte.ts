@@ -59,4 +59,12 @@ export class HandlerDefinition {
 
 		return this.children.find(id);
 	}
+
+	setAvailable(available: boolean): void {
+		this.isAvailable = available;
+
+		for (const child of this.children.items) {
+			child.setAvailable(available);
+		}
+	}
 }

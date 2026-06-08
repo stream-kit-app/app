@@ -110,35 +110,35 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 	registerDefinitions(app: App): void {
 		for (const trigger of this.triggers) {
-			let definition = app.triggerDefinitions.find(trigger.id);
+			let definition = app.actions.triggers.find(trigger.id);
 
 			if (!definition) {
-				definition = app.triggerDefinitions.add(trigger);
+				definition = app.actions.triggers.add(trigger);
 				this.registeredTriggers.push(definition);
 			}
 
-			definition.isAvailable = true;
+			definition.setAvailable(true);
 		}
 
 		for (const handler of this.handlers) {
-			let definition = app.handlerDefinitions.find(handler.id);
+			let definition = app.actions.actions.find(handler.id);
 
 			if (!definition) {
-				definition = app.handlerDefinitions.add(handler);
+				definition = app.actions.actions.add(handler);
 				this.registeredHandlers.push(definition);
 			}
 
-			definition.isAvailable = true;
+			definition.setAvailable(true);
 		}
 	}
 
 	unregisterDefinitions(_app: App): void {
 		for (const definition of this.registeredTriggers) {
-			definition.isAvailable = false;
+			definition.setAvailable(false);
 		}
 
 		for (const definition of this.registeredHandlers) {
-			definition.isAvailable = false;
+			definition.setAvailable(false);
 		}
 	}
 

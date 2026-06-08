@@ -7,7 +7,7 @@ export const toastVariants = tv({
 	variants: {
 		variant: {
 			default: 'border-border bg-dark-900 text-foreground',
-			success: 'border-success-600 bg-success-900 text-success-100',
+			success: 'border-success-600 bg-success-900 text-success-50',
 			error: 'border-destructive-600 bg-destructive-900 text-destructive-100',
 			warning: 'border-warning-600 bg-warning-900 text-warning-100'
 		}

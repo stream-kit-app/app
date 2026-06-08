@@ -11,14 +11,6 @@
 	};
 
 	let { action }: Props = $props();
-
-	const triggerSummary = $derived(
-		action.triggers.map((trigger) => trigger.definition.name).join(', ') || 'None'
-	);
-
-	const handlerSummary = $derived(
-		action.handlers.map((handler) => handler.definition.name).join(', ') || 'None'
-	);
 </script>
 
 <button
@@ -26,13 +18,21 @@
 	class={cn(
 		'grid grid-cols-[30%_200px_200px_1fr]',
 		'group w-full cursor-pointer items-center justify-between rounded-xl',
-		' bg-dark-800 px-4 py-3 text-left transition-colors hover:bg-dark-600'
+		'border px-4 py-3 text-left transition-colors',
+		action.hasUnavailableDefinitions
+			? 'border-red-500 bg-red-500/5 hover:bg-red-500/10'
+			: 'border-transparent bg-dark-800 hover:bg-dark-600'
 	)}
 	onclick={() => action.open()}
 >
 	<span>{action.name.trim()}</span>
 	<span
-		class="text-center text-dark-300"
+		class={cn(
+			'text-center',
+			action.triggers.some((trigger) => !trigger.definition.isAvailable)
+				? 'text-red-300'
+				: 'text-dark-300'
+		)}
 		{@attach tooltip(() =>
 			action.triggers.map((trigger) => `- ${trigger.definition.name}`).join('<br />')
 		)}
@@ -40,7 +40,12 @@
 		triggers ({action.triggers.length})
 	</span>
 	<span
-		class="text-center text-dark-300"
+		class={cn(
+			'text-center',
+			action.handlers.some((handler) => !handler.definition.isAvailable)
+				? 'text-red-300'
+				: 'text-dark-300'
+		)}
 		{@attach tooltip(() =>
 			action.handlers.map((handler) => `- ${handler.definition.name}`).join('<br />')
 		)}

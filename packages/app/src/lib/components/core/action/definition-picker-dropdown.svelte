@@ -6,6 +6,7 @@
 		id: string;
 		name: string;
 		isGroup: boolean;
+		isAvailable: boolean;
 		children: { items: DefinitionNode[] };
 	};
 
@@ -17,6 +18,20 @@
 	};
 
 	let { label, icon = 'ri:add-line', definitions, onSelect }: Props = $props();
+
+	function getAvailableChildren(definition: DefinitionNode): DefinitionNode[] {
+		return definition.children.items.filter(isSelectable);
+	}
+
+	function isSelectable(definition: DefinitionNode): boolean {
+		if (!definition.isAvailable) {
+			return false;
+		}
+
+		return !definition.isGroup || getAvailableChildren(definition).length > 0;
+	}
+
+	const selectableDefinitions = $derived(definitions.filter(isSelectable));
 </script>
 
 {#snippet node(definition: DefinitionNode)}
@@ -24,7 +39,7 @@
 		<Dropdown.Sub>
 			<Dropdown.SubTrigger>{definition.name}</Dropdown.SubTrigger>
 			<Dropdown.SubContent>
-				{#each definition.children.items as item (item.id)}
+				{#each getAvailableChildren(definition) as item (item.id)}
 					{@render node(item)}
 				{/each}
 			</Dropdown.SubContent>
@@ -41,7 +56,7 @@
 		<Button variant="ghost" size="sm" {icon} {...props}>{label}</Button>
 	{/snippet}
 	<Dropdown.Content>
-		{#each definitions as definition (definition.id)}
+		{#each selectableDefinitions as definition (definition.id)}
 			{@render node(definition)}
 		{/each}
 	</Dropdown.Content>

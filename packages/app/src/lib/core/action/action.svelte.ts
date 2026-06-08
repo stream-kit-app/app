@@ -1,6 +1,8 @@
 import type { Modal } from '../modal';
-import type { HandlerDefinition } from './handler/handler-definition.svelte';
-import type { TriggerDefinition } from './trigger/trigger-definition.svelte';
+import { HandlerDefinitions } from './handler';
+import { HandlerDefinition } from './handler/handler-definition.svelte';
+import { TriggerDefinitions } from './trigger';
+import { TriggerDefinition } from './trigger/trigger-definition.svelte';
 import type { ActionFormErrors } from './validate-form';
 import type { ActionRecord } from '$db/schemas/actions';
 
@@ -29,6 +31,8 @@ export type ActionProps = {
 };
 
 export class Actions {
+	triggers = new TriggerDefinitions();
+	actions = new HandlerDefinitions();
 	items: Action[] = $state.raw([]);
 
 	add(action: Action): void {
@@ -70,6 +74,10 @@ export class Actions {
 		const app = getApp();
 
 		for (const trigger of action.triggers) {
+			if (!trigger.definition.isAvailable) {
+				continue;
+			}
+
 			try {
 				trigger.definition.activate?.(action, trigger);
 			} catch (error) {
@@ -85,6 +93,10 @@ export class Actions {
 
 	deactivate(action: Action): void {
 		for (const trigger of action.triggers) {
+			if (!trigger.definition.isAvailable) {
+				continue;
+			}
+
 			trigger.definition.deactivate?.(action, trigger);
 		}
 	}
@@ -108,44 +120,43 @@ export class Action {
 		this.handlers = props.handlers ?? [];
 	}
 
+	get hasUnavailableDefinitions(): boolean {
+		return (
+			this.triggers.some((trigger) => !trigger.definition.isAvailable) ||
+			this.handlers.some((handler) => !handler.definition.isAvailable)
+		);
+	}
+
 	static createDraft(): Action {
 		return new Action();
 	}
 
 	static fromRecord(record: ActionRecord): Action | null {
 		const app = getApp();
-		const triggers = record.triggers.flatMap((stored) => {
-			const definition = app.triggerDefinitions.find(stored.triggerTypeId);
+		const triggers = record.triggers.map((stored) => {
+			const definition =
+				app.actions.triggers.find(stored.triggerTypeId) ??
+				Action.createUnavailableTriggerDefinition(stored.triggerTypeId);
 
-			if (!definition?.isAvailable) {
-				return [];
-			}
-
-			return [
-				new ActionTrigger(definition, {
-					id: stored.id,
-					conditions: stored.conditions
-				})
-			];
+			return new ActionTrigger(definition, {
+				id: stored.id,
+				conditions: stored.conditions
+			});
 		});
 
 		if (triggers.length === 0 && record.triggers.length > 0) {
 			return null;
 		}
 
-		const handlers = record.handlers.flatMap((stored) => {
-			const definition = app.handlerDefinitions.find(stored.handlerTypeId);
+		const handlers = record.handlers.map((stored) => {
+			const definition =
+				app.actions.actions.find(stored.handlerTypeId) ??
+				Action.createUnavailableHandlerDefinition(stored.handlerTypeId);
 
-			if (!definition?.isAvailable) {
-				return [];
-			}
-
-			return [
-				new ActionHandler(definition, {
-					id: stored.id,
-					fields: migrateLegacyHandlerFields(stored)
-				})
-			];
+			return new ActionHandler(definition, {
+				id: stored.id,
+				fields: migrateLegacyHandlerFields(stored)
+			});
 		});
 
 		return new Action({
@@ -155,6 +166,26 @@ export class Action {
 			triggers,
 			handlers
 		});
+	}
+
+	private static createUnavailableTriggerDefinition(id: string): TriggerDefinition {
+		const definition = new TriggerDefinition({
+			id,
+			name: id
+		});
+		definition.setAvailable(false);
+
+		return definition;
+	}
+
+	private static createUnavailableHandlerDefinition(id: string): HandlerDefinition {
+		const definition = new HandlerDefinition({
+			id,
+			name: id
+		});
+		definition.setAvailable(false);
+
+		return definition;
 	}
 
 	open(): Modal {
@@ -211,11 +242,19 @@ export class Action {
 	}
 
 	fire(trigger: ActionTrigger, context: unknown): void {
+		if (!trigger.definition.isAvailable) {
+			return;
+		}
+
 		if (!trigger.evaluate(context)) {
 			return;
 		}
 
 		for (const handler of this.handlers) {
+			if (!handler.definition.isAvailable) {
+				continue;
+			}
+
 			handler.definition.execute?.(this, handler, context);
 		}
 	}

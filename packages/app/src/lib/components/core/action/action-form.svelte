@@ -23,9 +23,9 @@
 	}
 
 	function addTrigger(definition: { id: string }) {
-		const found = getApp().triggerDefinitions.find(definition.id);
+		const found = getApp().actions.triggers.find(definition.id);
 
-		if (!found || found.isGroup) {
+		if (!found || found.isGroup || !found.isAvailable) {
 			return;
 		}
 
@@ -33,9 +33,9 @@
 	}
 
 	function addHandler(definition: { id: string }) {
-		const found = getApp().handlerDefinitions.find(definition.id);
+		const found = getApp().actions.actions.find(definition.id);
 
-		if (!found || found.isGroup) {
+		if (!found || found.isGroup || !found.isAvailable) {
 			return;
 		}
 
@@ -80,7 +80,7 @@
 			<Label>Triggers</Label>
 			<DefinitionPickerDropdown
 				label="Add Trigger"
-				definitions={getApp().triggerDefinitions.items}
+				definitions={getApp().actions.triggers.items}
 				onSelect={addTrigger}
 			/>
 		</div>
@@ -94,10 +94,14 @@
 		{/if}
 
 		{#each action.triggers as trigger (trigger.id)}
-			<div class="grid gap-2 rounded-xl border border-dark-600 px-4 pt-4 pb-4">
+			<div
+				class={`grid gap-2 rounded-xl border px-4 pt-4 pb-4 ${trigger.definition.isAvailable ? 'border-dark-600' : 'border-red-500 bg-red-500/5'}`}
+			>
 				<div class="flex items-center justify-between gap-2">
 					<span class="flex items-center gap-2 font-mono font-medium text-dark-50">
-						<span class="text-green-500">ON</span>
+						<span class={trigger.definition.isAvailable ? 'text-green-500' : 'text-red-400'}>
+							{trigger.definition.isAvailable ? 'ON' : 'BROKEN'}
+						</span>
 						<span class="text-dark-50 italic">
 							{trigger.definition.name.toLowerCase()}
 						</span>
@@ -110,6 +114,12 @@
 						onclick={() => action.removeTrigger(trigger.id)}
 					/>
 				</div>
+
+				{#if !trigger.definition.isAvailable}
+					<p class="text-sm text-red-300">
+						This trigger is not available. The plugin may be disabled or missing.
+					</p>
+				{/if}
 
 				{#if action.formErrors?.triggerErrors[trigger.id]?.missingConditions.length}
 					<ul class="grid gap-1 text-sm text-red-400">
@@ -136,7 +146,7 @@
 			<Label>Handlers</Label>
 			<DefinitionPickerDropdown
 				label="Add Handler"
-				definitions={getApp().handlerDefinitions.items}
+				definitions={getApp().actions.actions.items}
 				onSelect={addHandler}
 			/>
 		</div>
@@ -150,9 +160,16 @@
 		{/if}
 
 		{#each action.handlers as handler (handler.id)}
-			<div class="grid gap-2 rounded-xl border border-dark-600 px-4 py-4">
+			<div
+				class={`grid gap-2 rounded-xl border px-4 py-4 ${handler.definition.isAvailable ? 'border-dark-600' : 'border-red-500 bg-red-500/5'}`}
+			>
 				<div class="flex items-center justify-between gap-2">
-					<p class="font-medium text-dark-50">{handler.definition.name}</p>
+					<p class="font-medium text-dark-50">
+						{handler.definition.name}
+						{#if !handler.definition.isAvailable}
+							<span class="ml-2 text-sm font-normal text-red-300">Unavailable</span>
+						{/if}
+					</p>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -161,6 +178,12 @@
 						onclick={() => action.removeHandler(handler.id)}
 					/>
 				</div>
+
+				{#if !handler.definition.isAvailable}
+					<p class="text-sm text-red-300">
+						This handler is not available. The plugin may be disabled or missing.
+					</p>
+				{/if}
 
 				{#if action.formErrors?.handlerErrors[handler.id]?.missingFields.length}
 					<ul class="grid gap-1 text-sm text-red-400">

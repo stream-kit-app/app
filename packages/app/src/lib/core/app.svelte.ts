@@ -4,8 +4,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { SvelteMap } from 'svelte/reactivity';
 
 import { Actions } from './action/action.svelte';
-import { HandlerDefinitions } from './action/handler';
-import { TriggerDefinitions } from './action/trigger';
 import { Bootable } from './bootable.svelte';
 import { Confirm } from './confirm';
 import { Menu } from './menu';
@@ -20,8 +18,6 @@ import { Toast } from './toast';
 export class App extends Bootable {
 	public menu = new Menu();
 	public plugins = new Plugins();
-	public triggerDefinitions = new TriggerDefinitions();
-	public handlerDefinitions = new HandlerDefinitions();
 	public actions = new Actions();
 	public settings = new Settings();
 	public oauth = new OAuth();

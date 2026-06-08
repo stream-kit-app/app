@@ -166,18 +166,6 @@ const plugin: Plugin = (app) => {
 				]
 			}
 		],
-		onLoad: async () => {
-			await streamelements.syncFromStore();
-			await elevenlabs.syncFromStore();
-		},
-		onSave: async () => {
-			await streamelements.syncFromStore();
-			await elevenlabs.syncFromStore();
-		},
-		onBoot: async ({ store }) => {
-			await streamelements.boot(app, store);
-			await elevenlabs.boot(app, store);
-		},
 		handlers: [
 			{
 				id: 'tts',
@@ -195,10 +183,21 @@ const plugin: Plugin = (app) => {
 					}
 				]
 			}
-		]
+		],
+		onLoad: async () => {
+			await streamelements.syncFromStore();
+			await elevenlabs.syncFromStore();
+		},
+		onSave: async () => {
+			await streamelements.syncFromStore();
+			await elevenlabs.syncFromStore();
+		},
+		onBoot: async ({ store }) => {
+			await streamelements.boot(app, store);
+			await elevenlabs.boot(app, store);
+		}
 	};
 };
-
 
 export default plugin;
 export { streamelements } from './lib/streamelements';
