@@ -14,9 +14,9 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "tsup",
+		"build": "node scripts/build.mjs",
 		"check": "tsc --noEmit",
-		"dev": "tsup --watch src",
+		"dev": "node scripts/build.mjs --watch",
 		"package": "pnpm build && node scripts/package.mjs"
 	},
 	"dependencies": {
@@ -24,6 +24,7 @@
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
+		"esbuild": "^0.25.12",
 		"tsup": "^8.5.0",
 		"typescript": "~6.0.3"
 	}

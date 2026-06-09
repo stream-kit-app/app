@@ -1,1 +1,1 @@
-export { tether } from './tooltip.svelte';
+export { tether } from '@stream-kit/ui/tooltip';

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as Dropdown from '$lib/components/ui/dropdown';
+	import { Button } from '@stream-kit/ui/button';
+	import * as Dropdown from '@stream-kit/ui/dropdown';
 
 	type DefinitionNode = {
 		id: string;

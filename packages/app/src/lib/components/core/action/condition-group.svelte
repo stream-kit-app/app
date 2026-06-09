@@ -9,9 +9,9 @@
 	import type { TriggerFormErrors } from '$lib/core/action/validate-form';
 	import type { FormEventHandler } from 'svelte/elements';
 
-	import { tooltip } from '$lib/attachments';
-	import { Button } from '$lib/components/ui/button';
-	import * as Dropdown from '$lib/components/ui/dropdown';
+	import { tooltip } from '@stream-kit/ui/attachments';
+	import { Button } from '@stream-kit/ui/button';
+	import * as Dropdown from '@stream-kit/ui/dropdown';
 	import {
 		InputCheckbox,
 		InputSelect,
@@ -19,7 +19,7 @@
 		InputText,
 		InputTextVariables,
 		Label
-	} from '$lib/components/ui/input';
+	} from '@stream-kit/ui/input';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 

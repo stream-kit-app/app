@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { TwitchPluginApi } from '@stream-kit/plugin-twitch';
 
-	import { Container } from '$lib/components/ui/container';
-	import { Heading } from '$lib/components/ui/heading';
+	import { Container } from '@stream-kit/ui/container';
+	import { Heading } from '@stream-kit/ui/heading';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 

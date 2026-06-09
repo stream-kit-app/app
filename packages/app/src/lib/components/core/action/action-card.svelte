@@ -3,7 +3,7 @@
 
 	import Icon from '@iconify/svelte';
 
-	import { tooltip } from '$lib/attachments';
+	import { tooltip } from '@stream-kit/ui/attachments';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 

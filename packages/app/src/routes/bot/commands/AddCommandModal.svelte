@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { InputText } from '$lib/components/ui/input';
+	import { InputText } from '@stream-kit/ui/input';
 	import { useI18n } from '$lib/i18n';
 
 	const { t } = useI18n();

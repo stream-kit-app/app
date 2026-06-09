@@ -57,8 +57,9 @@ export async function loadInstalledPluginModule(
 	await ensurePluginImportMap();
 
 	const entryPath = resolveEntryPath(manifest);
-	const url = convertFileSrc(entryPath);
-	const module = await import(/* @vite-ignore */ url);
+	const url = new URL(convertFileSrc(entryPath));
+	url.searchParams.set('streamKitPluginLoad', `${manifest.key}-${manifest.version}-${Date.now()}`);
+	const module = await import(/* @vite-ignore */ url.href);
 	const plugin = module.default;
 
 	if (typeof plugin !== 'function') {

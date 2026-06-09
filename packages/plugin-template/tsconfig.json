@@ -9,7 +9,11 @@
 		"declaration": true,
 		"noEmit": true,
 		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
+		"paths": {
+			"$db/*": ["../app/src/db/*"],
+			"$lib/*": ["../app/src/lib/*"]
+		}
 	},
 	"include": ["src", "src/**/*.d.ts"]
 }

@@ -1,4 +1,5 @@
 export type {
+	SettingsAlertVariant,
 	SettingsButtonVariant,
 	SettingsContext,
 	SettingsVisibilityContext,

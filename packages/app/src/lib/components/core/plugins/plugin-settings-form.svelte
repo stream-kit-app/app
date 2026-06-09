@@ -2,7 +2,7 @@
 	import type { RegisteredPlugin } from '$lib/core/plugins';
 
 	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '@stream-kit/ui/button';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 

@@ -1,28 +1,34 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
 
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 
 	import { ConfirmDialog } from '$lib/components/core/confirm';
 	import { Modal } from '$lib/components/core/modal';
 	import { Toast } from '$lib/components/core/toast';
-	import { Logo } from '$lib/components/ui/logo';
-	import * as Nav from '$lib/components/ui/nav';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import { TooltipProvider } from '$lib/components/ui/tooltip';
+	import { Logo } from '@stream-kit/ui/logo';
+	import * as Nav from '@stream-kit/ui/nav';
+	import { ScrollArea } from '@stream-kit/ui/scroll-area';
+	import { TooltipProvider } from '@stream-kit/ui/tooltip';
 	import { app } from '$lib/core';
 	import {
 		initPluginDevWatcher,
 		syncPluginDevWatchers
 	} from '$lib/core/plugins/plugin-dev-watcher';
 	import { settings } from '$lib/core/settings';
-	import { registerI18n } from '$lib/i18n';
+	import { registerI18n, useI18n } from '$lib/i18n';
 
 	import './layout.css';
 
 	let { children, data }: LayoutProps = $props();
 
 	registerI18n(() => data.i18n);
+	const { t } = useI18n();
+
+	function translateTitle(title: string): string {
+		return t(title as Parameters<typeof t>[0]);
+	}
 
 	onMount(() => {
 		void (async () => {
@@ -40,7 +46,11 @@
 				<Logo />
 			</section>
 			<section class="p-2.5">
-				<Nav.Root items={app.menu.items} />
+				<Nav.Root
+					items={app.menu.items}
+					activePath={page.url.pathname}
+					{translateTitle}
+				/>
 			</section>
 		</aside>
 		<main class="flex min-h-0 flex-1 flex-col">

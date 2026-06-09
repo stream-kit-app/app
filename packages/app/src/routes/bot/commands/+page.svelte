@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 
-	import { Button } from '$lib/components/ui/button';
-	import { Container } from '$lib/components/ui/container';
-	import { Heading } from '$lib/components/ui/heading';
+	import { Button } from '@stream-kit/ui/button';
+	import { Container } from '@stream-kit/ui/container';
+	import { Heading } from '@stream-kit/ui/heading';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 

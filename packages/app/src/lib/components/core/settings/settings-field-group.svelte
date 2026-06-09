@@ -8,9 +8,9 @@
 	} from '$lib/core/settings/field';
 	import type { FormEventHandler } from 'svelte/elements';
 
-	import { Alert } from '$lib/components/ui/alert';
-	import { Button } from '$lib/components/ui/button';
-	import { Heading } from '$lib/components/ui/heading';
+	import { Alert } from '@stream-kit/ui/alert';
+	import { Button } from '@stream-kit/ui/button';
+	import { Heading } from '@stream-kit/ui/heading';
 	import {
 		InputCheckbox,
 		InputSelect,
@@ -18,7 +18,7 @@
 		InputSwitch,
 		InputText,
 		InputTextSelect
-	} from '$lib/components/ui/input';
+	} from '@stream-kit/ui/input';
 	import {
 		filterVisibleFieldItems,
 		isSettingsFieldSection,

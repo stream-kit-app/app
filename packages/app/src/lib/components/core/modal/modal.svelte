@@ -4,7 +4,7 @@
 	import Icon from '@iconify/svelte';
 	import { Dialog } from 'bits-ui';
 
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 

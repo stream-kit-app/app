@@ -113,5 +113,7 @@
 	"{name} has been removed.": "{name} has been removed.",
 	"{name} has been reinstalled.": "{name} has been reinstalled.",
 	"{name} has been saved successfully": "{name} has been saved successfully",
-	"{name}: {error}": "{name}: {error}"
+	"{name}: {error}": "{name}: {error}",
+	"Plugin page not found": "Plugin page not found",
+	"This plugin page is unavailable or the plugin is disabled.": "This plugin page is unavailable or the plugin is disabled."
 }

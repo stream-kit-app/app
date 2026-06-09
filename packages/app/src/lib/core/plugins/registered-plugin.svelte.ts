@@ -10,7 +10,7 @@ import type { SettingsFormErrors } from '../settings/validate-settings';
 import type { PluginSettingsContext } from './context';
 import type { PluginStore } from './store';
 import type { PluginSource, RegisterPluginOptions } from './installed-plugin';
-import type { PluginPublicApi, PluginRegistration } from './types';
+import type { PluginMenuItemDefinition, PluginPublicApi, PluginRegistration } from './types';
 import type { LazyStore } from '@tauri-apps/plugin-store';
 
 import {
@@ -55,6 +55,8 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	private handlers: HandlerDefinitionProps[];
 	private registeredTriggers: TriggerDefinition[] = [];
 	private registeredHandlers: HandlerDefinition[] = [];
+	private menuItems: PluginMenuItemDefinition[];
+	private registeredMenuPaths: string[] = [];
 
 	constructor(
 		props: PluginRegistration<TApi>,
@@ -84,6 +86,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.fields = createSettingsFields(this.fieldItems);
 		this.triggers = props.triggers ?? [];
 		this.handlers = props.handlers ?? [];
+		this.menuItems = props.menuItems ?? [];
 	}
 
 	get hasSettings(): boolean {
@@ -147,9 +150,18 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 			definition.setAvailable(true);
 		}
+
+		if (this.registeredMenuPaths.length === 0 && this.menuItems.length > 0) {
+			const menuItems = app.pluginMenuPages.register(this, this.menuItems);
+
+			for (const item of menuItems) {
+				app.menu.add(item);
+				this.registeredMenuPaths.push(item.path);
+			}
+		}
 	}
 
-	unregisterDefinitions(_app: App): void {
+	unregisterDefinitions(app: App): void {
 		for (const definition of this.registeredTriggers) {
 			definition.setAvailable(false);
 		}
@@ -157,6 +169,13 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		for (const definition of this.registeredHandlers) {
 			definition.setAvailable(false);
 		}
+
+		for (const path of this.registeredMenuPaths) {
+			app.menu.remove(path);
+		}
+
+		this.registeredMenuPaths = [];
+		app.pluginMenuPages.unregister(this.key);
 	}
 
 	async load(app: App): Promise<void> {
@@ -266,6 +285,14 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		await this.onSave?.(this.createContext(app));
 
 		return true;
+	}
+
+	async saveFieldInstances(app: App, fields: SettingsFieldInstance[]): Promise<void> {
+		for (const field of fields) {
+			await this.store.set(field.key, field.value);
+		}
+
+		await this.onSave?.(this.createContext(app));
 	}
 
 	validate(app: App): boolean {

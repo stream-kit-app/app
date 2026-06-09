@@ -2,8 +2,8 @@
 	import type { SettingsSection } from '$lib/core/settings';
 
 	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Heading } from '$lib/components/ui/heading';
+	import { Button } from '@stream-kit/ui/button';
+	import { Heading } from '@stream-kit/ui/heading';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
@@ -27,7 +27,10 @@
 		isSaving = true;
 
 		try {
-			await app.settings.save(section.key);
+			if (section.validate(app)) {
+				await section.save();
+				await section.onSave?.(section.createContext(app));
+			}
 		} finally {
 			isSaving = false;
 		}

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { SupportedLocale } from '$lib/i18n';
 
-	import { Container } from '$lib/components/ui/container';
-	import { Heading } from '$lib/components/ui/heading';
-	import { InputCheckbox, InputSelect } from '$lib/components/ui/input';
+	import { Container } from '@stream-kit/ui/container';
+	import { Heading } from '@stream-kit/ui/heading';
+	import { InputCheckbox, InputSelect } from '@stream-kit/ui/input';
 	import { app } from '$lib/core';
 	import { saveLocale } from '$lib/core/locale/store';
 	import {

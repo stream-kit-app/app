@@ -16,6 +16,7 @@
 		"./env-stub.d.ts",
 		"../app/src/api.ts",
 		"../app/src/lib/**/*.ts",
-		"../app/src/lib/**/*.svelte.ts"
+		"../app/src/lib/**/*.svelte.ts",
+		"../ui/src/**/*.ts"
 	]
 }

@@ -5,8 +5,8 @@
 	import { getActionGroups } from '$db/repositories/actions';
 	import { cn } from 'tailwind-variants';
 
-	import { Button } from '$lib/components/ui/button';
-	import { InputText, InputTextSelect, Label } from '$lib/components/ui/input';
+	import { Button } from '@stream-kit/ui/button';
+	import { InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
 

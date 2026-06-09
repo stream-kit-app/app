@@ -12,7 +12,7 @@
 		InputSwitch,
 		InputText,
 		InputTextVariables
-	} from '$lib/components/ui/input';
+	} from '@stream-kit/ui/input';
 	import { cn } from '$lib/utils';
 
 	type Props = {

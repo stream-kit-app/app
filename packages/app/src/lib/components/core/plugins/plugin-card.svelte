@@ -5,9 +5,9 @@
 	import Icon from '@iconify/svelte';
 	import { invoke } from '@tauri-apps/api/core';
 
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { InputSwitch } from '$lib/components/ui/input';
+	import { Badge } from '@stream-kit/ui/badge';
+	import { Button } from '@stream-kit/ui/button';
+	import { InputSwitch } from '@stream-kit/ui/input';
 	import { app } from '$lib/core';
 	import { setPluginDevMode } from '$lib/core/plugins/plugin-dev-watcher';
 	import { uninstallInstalledPlugin } from '$lib/core/plugins/plugin-loader';

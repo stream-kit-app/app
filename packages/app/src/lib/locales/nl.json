@@ -113,5 +113,7 @@
 	"{name} has been removed.": "{name} is verwijderd.",
 	"{name} has been reinstalled.": "{name} is opnieuw geïnstalleerd.",
 	"{name} has been saved successfully": "{name} is succesvol opgeslagen",
-	"{name}: {error}": "{name}: {error}"
+	"{name}: {error}": "{name}: {error}",
+	"Plugin page not found": "Pluginpagina niet gevonden",
+	"This plugin page is unavailable or the plugin is disabled.": "Deze pluginpagina is niet beschikbaar of de plugin is uitgeschakeld."
 }

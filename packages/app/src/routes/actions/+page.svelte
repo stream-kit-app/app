@@ -2,9 +2,9 @@
 	import { capitalize, groupBy } from 'es-toolkit';
 
 	import { ActionCard } from '$lib/components/core/action';
-	import { Button } from '$lib/components/ui/button';
-	import { Container } from '$lib/components/ui/container';
-	import { Heading } from '$lib/components/ui/heading';
+	import { Button } from '@stream-kit/ui/button';
+	import { Container } from '@stream-kit/ui/container';
+	import { Heading } from '@stream-kit/ui/heading';
 	import { app } from '$lib/core';
 	import { Action } from '$lib/core/action';
 	import { useI18n } from '$lib/i18n';

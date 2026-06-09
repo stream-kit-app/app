@@ -34,9 +34,49 @@ plugin.zip
 
 - Use `import type` from `@stream-kit/app/api` for plugin types.
 - Use `@stream-kit/core` for handler/trigger prop types and `interpolateVariables`.
+- Register plugin menu pages with declarative page definitions from `@stream-kit/app/api`.
+- Do not pass Svelte components, compiled HTML, raw HTML, or `{@html}` for plugin menu pages.
+- Button blocks may define an `onClick` handler when they need plugin-owned behavior.
 - Bundle all other runtime dependencies into `dist/index.js`.
 - Keep `manifest.json` `key` in sync with the `key` returned by your plugin factory.
 - Do not use built-in plugin keys such as `twitch` or `tts`.
+
+## Declarative menu page example
+
+```ts
+import type { Plugin } from '@stream-kit/app/api';
+
+const plugin: Plugin = (app) => ({
+	key: 'hello-world',
+	name: 'Hello World',
+	menuItems: [
+		{
+			key: 'demo',
+			title: 'Hello World',
+			icon: 'ri:hand-heart-line',
+			children: [
+				{
+					key: 'overview',
+					title: 'Overview',
+					page: {
+						title: 'Overview',
+						blocks: [
+							{ type: 'text', text: 'Rendered by Stream Kit.' },
+							{
+								type: 'button',
+								label: 'Show toast',
+								onClick: () => app.toast.create({ title: 'Hello World' })
+							}
+						]
+					}
+				}
+			]
+		}
+	]
+});
+
+export default plugin;
+```
 
 ## Install in Stream Kit
 

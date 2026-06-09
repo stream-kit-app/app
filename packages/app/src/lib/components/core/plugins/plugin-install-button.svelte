@@ -2,7 +2,7 @@
 	import { open } from '@tauri-apps/plugin-dialog';
 	import { isString } from 'es-toolkit';
 
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '@stream-kit/ui/button';
 	import { app } from '$lib/core';
 	import { installPluginFromZip } from '$lib/core/plugins/plugin-loader';
 	import { useI18n } from '$lib/i18n';

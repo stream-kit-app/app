@@ -1,1 +1,1 @@
-export { tooltip, type TooltipAttachmentOptions } from './tooltip.svelte';
+export { tooltip, type TooltipAttachmentOptions } from '@stream-kit/ui/attachments';
