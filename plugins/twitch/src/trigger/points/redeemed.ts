@@ -14,7 +14,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createPointsRedeemedTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-points-redeemed',
 		name: 'Reward Redeemed',
 		conditions: [rewardSelectCondition(app), userMatchCondition()],
 		validate: (conditions, context) => {

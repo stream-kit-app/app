@@ -51,7 +51,6 @@ export function messageMatchCondition(
 export function roleCondition(): ConditionDefinition {
 	return {
 		type: 'select',
-		key: 'role',
 		name: 'Role',
 		placeholder: 'Role',
 		items: [...roleItems]
@@ -94,7 +93,6 @@ export function minNumberCondition(key: string, name: string): ConditionDefiniti
 export function subTierCondition(): ConditionDefinition {
 	return {
 		type: 'select',
-		key: 'tier',
 		name: 'Tier',
 		placeholder: 'Any tier',
 		items: [...subTierItems]

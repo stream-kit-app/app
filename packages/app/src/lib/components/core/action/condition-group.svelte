@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { ConditionEditor } from '$lib/core/action/condition-editor';
 	import type {
-		ConditionDefinition,
 		ConditionGroupNode,
 		ConditionLeafNode,
-		ConditionNode
+		ConditionNode,
+		ResolvedConditionDefinition
 	} from '$lib/core/action/trigger';
 	import type { TriggerFormErrors } from '$lib/core/action/validate-form';
 	import type { FormEventHandler } from 'svelte/elements';
@@ -47,7 +47,7 @@
 		};
 </script>
 
-{#snippet conditionField(config: ConditionDefinition, node: ConditionLeafNode, error?: string)}
+{#snippet conditionField(config: ResolvedConditionDefinition, node: ConditionLeafNode, error?: string)}
 	{#if config.type === 'text'}
 		{#if config.variables && config.variables.length > 0}
 			<InputTextVariables

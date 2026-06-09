@@ -6,7 +6,6 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createClipHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-clip-create',
 		name: 'Create Clip',
 		execute: (_action, _handler, context) => {
 			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);

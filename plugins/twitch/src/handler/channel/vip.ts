@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createVipAddHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-channel-vip-add',
 		name: 'Add VIP',
 		fields: [
 			{
 				type: 'text',
-				key: 'user',
 				name: 'Username',
 				placeholder: 'Leave empty or use {username}',
 				variables: TARGET_USER_VARIABLES
@@ -34,12 +32,10 @@ export const createVipAddHandler = (app: PluginAppApi) =>
 
 export const createVipRemoveHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-channel-vip-remove',
 		name: 'Remove VIP',
 		fields: [
 			{
 				type: 'text',
-				key: 'user',
 				name: 'Username',
 				placeholder: 'Leave empty or use {username}',
 				variables: TARGET_USER_VARIABLES

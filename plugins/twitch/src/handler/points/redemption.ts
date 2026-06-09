@@ -26,13 +26,11 @@ function resolveRedemptionIds(
 
 export const createPointsFulfillHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-points-fulfill',
 		name: 'Fulfill Redemption',
 		fields: [
 			rewardSelectField(app),
 			{
 				type: 'text',
-				key: 'redemptionId',
 				name: 'Redemption ID',
 				placeholder: 'Leave empty to use trigger redemption'
 			}
@@ -59,13 +57,11 @@ export const createPointsFulfillHandler = (app: PluginAppApi) =>
 
 export const createPointsCancelHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-points-cancel',
 		name: 'Cancel Redemption',
 		fields: [
 			rewardSelectField(app),
 			{
 				type: 'text',
-				key: 'redemptionId',
 				name: 'Redemption ID',
 				placeholder: 'Leave empty to use trigger redemption'
 			}

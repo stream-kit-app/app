@@ -6,7 +6,7 @@ export function getFieldValue(
 	fields: HandlerFieldInstance[],
 	key: string
 ): HandlerFieldValue | undefined {
-	return fields.find((field) => field.key === key)?.value;
+	return fields.find((field) => normalizeLookupKey(field.key) === normalizeLookupKey(key))?.value;
 }
 
 export function resolveFieldText(
@@ -21,4 +21,13 @@ export function resolveFieldText(
 	}
 
 	return interpolateVariables(value, contextToVariables(context));
+}
+
+function normalizeLookupKey(value: string): string {
+	return value
+		.trim()
+		.replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
 }

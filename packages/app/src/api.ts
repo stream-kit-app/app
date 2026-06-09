@@ -8,10 +8,7 @@ export type {
 	SettingsButtonVariant,
 	SettingsContext,
 	SettingsVisibilityContext,
-	SettingsFieldDefinition,
 	SettingsFieldInstance,
-	SettingsFieldItem,
-	SettingsFieldSectionDefinition,
 	SettingsFieldValue,
 	SettingsSelectItemsSource,
 	SettingsSectionProps
@@ -31,6 +28,9 @@ export type {
 	PluginPageFormSection,
 	PluginPublicApi,
 	PluginRegistration,
+	PluginSettingsFieldDefinition,
+	PluginSettingsFieldItem,
+	PluginSettingsFieldSectionDefinition,
 	PluginSettingsContext,
 	PluginStore
 } from './lib/core/plugins';

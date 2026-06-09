@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createDeleteMessageHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-delete-message',
 		name: 'Delete Message',
 		fields: [
 			{
 				type: 'text',
-				key: 'messageId',
 				name: 'Message ID',
 				placeholder: 'Leave empty to use trigger message'
 			}

@@ -13,6 +13,7 @@ export type InstalledPluginManifest = {
 };
 
 export type RegisterPluginOptions = {
+	key?: string;
 	source?: PluginSource;
 	installPath?: string;
 	version?: string;

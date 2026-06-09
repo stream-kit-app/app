@@ -9,7 +9,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createUserBannedTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-mod-ban',
 		name: 'User Banned',
 		conditions: [userMatchCondition()],
 		validate: (conditions, context) => {

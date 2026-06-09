@@ -80,6 +80,7 @@ export async function discoverAndLoadInstalledPlugins(app: App): Promise<void> {
 		try {
 			const pluginFactory = await loadInstalledPluginModule(manifest);
 			await app.use(pluginFactory, {
+				key: manifest.key,
 				source: 'installed',
 				installPath: manifest.installPath,
 				version: manifest.version
@@ -117,6 +118,7 @@ export async function installPluginFromZip(
 
 	const pluginFactory = await loadInstalledPluginModule(manifest);
 	await app.use(pluginFactory, {
+		key: manifest.key,
 		source: 'installed',
 		installPath: manifest.installPath,
 		version: manifest.version

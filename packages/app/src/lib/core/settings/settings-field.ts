@@ -122,14 +122,14 @@ export function getSettingsFieldDefinition(
 	items: SettingsFieldItem[] | undefined,
 	key: string
 ): SettingsFieldDefinition | undefined {
-	return flattenSettingsFieldItems(items).find((field) => field.key === key);
+	return flattenSettingsFieldItems(items).find((field) => isMatchingKey(field.key, key));
 }
 
 export function getSettingsFieldValue(
 	fields: SettingsFieldInstance[],
 	key: string
 ): SettingsFieldValue | undefined {
-	return fields.find((field) => field.key === key)?.value;
+	return fields.find((field) => isMatchingKey(field.key, key))?.value;
 }
 
 export function isSettingsFieldValueEmpty(
@@ -153,4 +153,17 @@ export function isSettingsFieldValueEmpty(
 	}
 
 	return false;
+}
+
+function isMatchingKey(left: string, right: string): boolean {
+	return normalizeLookupKey(left) === normalizeLookupKey(right);
+}
+
+function normalizeLookupKey(value: string): string {
+	return value
+		.trim()
+		.replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
 }

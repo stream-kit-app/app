@@ -6,7 +6,6 @@ export type SelectItem = { value: string; label: string; disabled?: boolean };
 export type SelectItemsSource = SelectItem[] | (() => SelectItem[] | Promise<SelectItem[]>);
 
 type ConditionBase = {
-	key: string;
 	name: string;
 	placeholder?: string;
 	loadingPlaceholder?: string;
@@ -25,6 +24,10 @@ export type ConditionDefinition =
 			selectPlaceholder?: string;
 			variables?: HandlerFieldVariable[];
 	  });
+
+export type ResolvedConditionDefinition = ConditionDefinition & {
+	key: string;
+};
 
 /** Runtime value for a condition field. `select-text` produces the compound value. */
 export type FieldValue = string | boolean | { type: string; value: string };

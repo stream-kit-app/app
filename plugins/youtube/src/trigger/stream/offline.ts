@@ -6,7 +6,6 @@ import { createSimpleActivate, createDeactivate } from '../../lib/trigger-helper
 
 export const createStreamOfflineTrigger = (_app: PluginAppApi) =>
 	({
-		id: 'youtube-stream-offline',
 		name: 'Stream Offline',
 		activate: createSimpleActivate((handler) => subscribeStreamOffline(handler)),
 		deactivate: createDeactivate()

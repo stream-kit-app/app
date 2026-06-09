@@ -31,7 +31,6 @@ const plugin: Plugin = (app) => {
 	let youtubeApi: YouTubePluginController | undefined;
 	const warnUnavailable = () => {
 		app.toast.create({
-			id: 'youtube-plugin-unavailable',
 			title: 'YouTube plugin unavailable',
 			description: 'The YouTube plugin is disabled or could not be started.',
 			variant: 'warning'
@@ -81,7 +80,6 @@ const plugin: Plugin = (app) => {
 	};
 
 	return {
-		key: 'youtube',
 		name: 'YouTube',
 		description: 'Connect and manage YouTube Live chat and stream events.',
 		icon: 'ri:youtube-line',
@@ -90,7 +88,6 @@ const plugin: Plugin = (app) => {
 		settings: [
 			{
 				type: 'alert',
-				key: 'connected',
 				name: 'Connected',
 				description: 'Your YouTube account is connected.',
 				variant: 'success',
@@ -98,7 +95,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'alert',
-				key: 'disconnected',
 				name: 'Not connected',
 				description: 'Connect your YouTube account to use YouTube triggers and handlers.',
 				variant: 'warning',
@@ -106,7 +102,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'alert',
-				key: 'live',
 				name: 'Live stream active',
 				description: 'Your channel is currently live and chat is being monitored.',
 				variant: 'success',
@@ -114,7 +109,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'alert',
-				key: 'not-live',
 				name: 'Not live',
 				description: 'Start a YouTube live broadcast to enable chat triggers.',
 				variant: 'warning',
@@ -122,7 +116,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'button',
-				key: 'connect',
 				name: 'Connect your YouTube account',
 				variant: 'outline',
 				visible: () => !publicApi.isConnected,
@@ -130,7 +123,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'button',
-				key: 'disconnect',
 				name: 'Disconnect your YouTube account',
 				variant: 'outline',
 				visible: () => publicApi.isConnected,
@@ -139,11 +131,9 @@ const plugin: Plugin = (app) => {
 		],
 		triggers: [
 			{
-				id: 'youtube',
 				name: 'YouTube',
 				children: [
 					{
-						id: 'youtube-chat',
 						name: 'Chat',
 						children: [
 							createChatMessageTrigger(app),
@@ -158,7 +148,6 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'youtube-membership',
 						name: 'Membership',
 						children: [
 							createNewMemberTrigger(app),
@@ -168,12 +157,10 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'youtube-moderation',
 						name: 'Moderation',
 						children: [createUserBannedTrigger(app), createMessageDeletedTrigger(app)]
 					},
 					{
-						id: 'youtube-stream',
 						name: 'Stream',
 						children: [createStreamOnlineTrigger(app), createStreamOfflineTrigger(app)]
 					}
@@ -182,11 +169,9 @@ const plugin: Plugin = (app) => {
 		],
 		handlers: [
 			{
-				id: 'youtube',
 				name: 'YouTube',
 				children: [
 					{
-						id: 'youtube-chat',
 						name: 'Chat',
 						children: [createSendMessageHandler(app), createDeleteMessageHandler(app)]
 					}

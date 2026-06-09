@@ -14,7 +14,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createRedemptionTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-redemption',
 		name: 'Channel Point Redemption',
 		conditions: [rewardSelectCondition(app), userMatchCondition()],
 		validate: (conditions, context) => {

@@ -39,7 +39,6 @@ export function elevenlabsModelSelectSettingsField(
 ): SettingsFieldDefinition {
 	return {
 		type: 'select',
-		key: options.key ?? 'elevenlabsModelId',
 		name: options.name ?? 'Model',
 		placeholder: options.emptyLabel ?? 'Select a model',
 		loadingPlaceholder: 'Loading models…',

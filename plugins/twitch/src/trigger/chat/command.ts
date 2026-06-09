@@ -15,7 +15,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createCommandTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-command',
 		name: 'Chat Command',
 		conditions: [
 			messageMatchCondition('command', 'Command', { variables: [] }),

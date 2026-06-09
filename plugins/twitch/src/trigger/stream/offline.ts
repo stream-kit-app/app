@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createStreamOfflineTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-stream-offline',
 		name: 'Stream Offline',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeStreamOffline(app, (context) => {

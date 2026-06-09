@@ -6,7 +6,6 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createRaidCancelHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-channel-raid-cancel',
 		name: 'Cancel Raid',
 		execute: (_action, _handler, context) => {
 			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);

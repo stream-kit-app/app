@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createUnbanHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-unban',
 		name: 'Unban User',
 		fields: [
 			{
 				type: 'text',
-				key: 'user',
 				name: 'Username',
 				placeholder: 'Leave empty or use {username}',
 				variables: TARGET_USER_VARIABLES

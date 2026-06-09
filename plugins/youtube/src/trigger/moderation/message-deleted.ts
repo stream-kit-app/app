@@ -8,7 +8,6 @@ import { createSimpleActivate, createDeactivate } from '../../lib/trigger-helper
 
 export const createMessageDeletedTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-mod-message-deleted',
 		name: 'Message Deleted',
 		activate: createSimpleActivate((handler) =>
 			subscribeYouTubeEvent<MessageDeletedContext>(YOUTUBE_EVENTS.MESSAGE_DELETED, handler)

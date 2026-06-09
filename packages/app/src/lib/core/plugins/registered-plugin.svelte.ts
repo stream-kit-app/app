@@ -1,6 +1,6 @@
 import type { App } from '../app.svelte';
-import type { HandlerDefinition, HandlerDefinitionProps } from '../action/handler';
-import type { TriggerDefinition, TriggerDefinitionProps } from '../action/trigger';
+import type { HandlerDefinition, ResolvedHandlerDefinitionProps } from '../action/handler';
+import type { ResolvedTriggerDefinitionProps, TriggerDefinition } from '../action/trigger';
 import type {
 	SettingsFieldDefinition,
 	SettingsFieldInstance,
@@ -10,7 +10,11 @@ import type { SettingsFormErrors } from '../settings/validate-settings';
 import type { PluginSettingsContext } from './context';
 import type { PluginStore } from './store';
 import type { PluginSource, RegisterPluginOptions } from './installed-plugin';
-import type { PluginMenuItemDefinition, PluginPublicApi, PluginRegistration } from './types';
+import type { PluginPublicApi, PluginRegistration } from './types';
+import type {
+	ResolvedPluginMenuItemDefinition,
+	ResolvedPluginRegistration
+} from './registration';
 import type { LazyStore } from '@tauri-apps/plugin-store';
 
 import {
@@ -51,15 +55,15 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	private legacyStores: LazyStore[];
 	private hasBooted = false;
 	private hasLoaded = false;
-	private triggers: TriggerDefinitionProps<any>[];
-	private handlers: HandlerDefinitionProps[];
+	private triggers: ResolvedTriggerDefinitionProps<any>[];
+	private handlers: ResolvedHandlerDefinitionProps[];
 	private registeredTriggers: TriggerDefinition[] = [];
 	private registeredHandlers: HandlerDefinition[] = [];
-	private menuItems: PluginMenuItemDefinition[];
+	private menuItems: ResolvedPluginMenuItemDefinition[];
 	private registeredMenuPaths: string[] = [];
 
 	constructor(
-		props: PluginRegistration<TApi>,
+		props: ResolvedPluginRegistration<TApi>,
 		store: LazyStore,
 		legacyStores: LazyStore[] = [],
 		options: RegisterPluginOptions = {}
@@ -74,7 +78,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.description = props.description;
 		this.icon = props.icon;
 		this.dependencies = props.dependencies ?? [];
-		this.fieldItems = props.settings ?? [];
+		this.fieldItems = props.settings;
 		this.api = props.api;
 		this.isConfiguredResolver = props.isConfigured;
 		this.onLoad = props.onLoad;
@@ -84,9 +88,9 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.legacyStores = legacyStores;
 		this.storeFacade = createPluginStore(store);
 		this.fields = createSettingsFields(this.fieldItems);
-		this.triggers = props.triggers ?? [];
-		this.handlers = props.handlers ?? [];
-		this.menuItems = props.menuItems ?? [];
+		this.triggers = props.triggers;
+		this.handlers = props.handlers;
+		this.menuItems = props.menuItems;
 	}
 
 	get hasSettings(): boolean {
@@ -129,6 +133,10 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 	registerDefinitions(app: App): void {
 		for (const trigger of this.triggers) {
+			if (!trigger.id) {
+				throw new Error(`Plugin trigger "${trigger.name}" was not assigned an id`);
+			}
+
 			let definition = app.actions.triggers.find(trigger.id);
 
 			if (!definition) {
@@ -141,6 +149,10 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		}
 
 		for (const handler of this.handlers) {
+			if (!handler.id) {
+				throw new Error(`Plugin handler "${handler.name}" was not assigned an id`);
+			}
+
 			let definition = app.actions.actions.find(handler.id);
 
 			if (!definition) {

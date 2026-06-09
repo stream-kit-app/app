@@ -7,12 +7,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createRaidStartHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-channel-raid-start',
 		name: 'Start Raid',
 		fields: [
 			{
 				type: 'text',
-				key: 'target',
 				name: 'Target Channel',
 				required: true,
 				placeholder: 'Channel to raid'

@@ -8,7 +8,6 @@ import { createSimpleActivate, createDeactivate } from '../../lib/trigger-helper
 
 export const createPollTrigger = (_app: PluginAppApi) =>
 	({
-		id: 'youtube-chat-poll',
 		name: 'Live Poll',
 		activate: createSimpleActivate((handler) =>
 			subscribeYouTubeEvent<PollContext>(YOUTUBE_EVENTS.POLL, handler)

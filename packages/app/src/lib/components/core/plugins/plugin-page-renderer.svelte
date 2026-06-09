@@ -16,7 +16,6 @@
 {#snippet renderForm(block: PluginPageFormBlock)}
 	<PluginPageForm
 		plugin={entry.plugin}
-		formKey={block.key}
 		title={block.title}
 		description={block.description}
 		fields={block.fields}

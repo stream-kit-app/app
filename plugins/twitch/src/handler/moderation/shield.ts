@@ -7,12 +7,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createShieldModeHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-shield',
 		name: 'Toggle Shield Mode',
 		fields: [
 			{
 				type: 'switch',
-				key: 'enabled',
 				name: 'Enable Shield Mode',
 				required: true
 			}

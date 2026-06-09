@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createShoutoutHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-shoutout',
 		name: 'Shoutout User',
 		fields: [
 			{
 				type: 'text',
-				key: 'user',
 				name: 'Username',
 				required: true,
 				placeholder: 'Leave empty or use {username}',

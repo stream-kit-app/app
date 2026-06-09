@@ -28,7 +28,6 @@ const plugin: Plugin = (app) => {
 				fields: [
 					{
 						type: 'alert',
-						key: 'apiKeyAlert',
 						name: 'API key',
 						description: 'Enter your StreamElements overlay token',
 						variant: 'success',
@@ -37,13 +36,11 @@ const plugin: Plugin = (app) => {
 					{
 						type: 'text',
 						inputType: 'password',
-						key: 'apiKey',
 						name: 'API key',
 						placeholder: 'Paste your StreamElements overlay token'
 					},
 					{
 						type: 'button',
-						key: 'test',
 						name: 'Test API key',
 						variant: 'outline',
 						visible: ({ getValue }) => Boolean(String(getValue('apiKey') ?? '').trim()),
@@ -80,7 +77,6 @@ const plugin: Plugin = (app) => {
 					},
 					{
 						type: 'slider',
-						key: 'volume',
 						name: 'Volume',
 						min: 0,
 						max: 100,
@@ -102,13 +98,11 @@ const plugin: Plugin = (app) => {
 					{
 						type: 'text',
 						inputType: 'password',
-						key: 'elevenlabsApiKey',
 						name: 'API key',
 						placeholder: 'Paste your ElevenLabs API key'
 					},
 					{
 						type: 'button',
-						key: 'elevenlabsTest',
 						name: 'Test API key',
 						variant: 'outline',
 						visible: ({ getValue }) =>
@@ -149,7 +143,6 @@ const plugin: Plugin = (app) => {
 					}),
 					{
 						type: 'slider',
-						key: 'elevenlabsVolume',
 						name: 'Volume',
 						min: 0,
 						max: 100,
@@ -168,16 +161,13 @@ const plugin: Plugin = (app) => {
 		],
 		handlers: [
 			{
-				id: 'tts',
 				name: 'TTS',
 				children: [
 					{
-						id: 'tts-streamelements',
 						name: 'StreamElements',
 						children: [createStreamElementsSpeakHandler()]
 					},
 					{
-						id: 'tts-elevenlabs',
 						name: 'ElevenLabs',
 						children: [createElevenLabsSpeakHandler()]
 					}

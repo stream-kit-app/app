@@ -9,7 +9,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createHypeChatTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-hype',
 		name: 'Hype Chat',
 		conditions: [minNumberCondition('minAmount', 'Minimum Amount')],
 		validate: (conditions, context) => {

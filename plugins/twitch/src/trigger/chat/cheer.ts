@@ -14,7 +14,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createCheerTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-cheer',
 		name: 'Cheer',
 		conditions: [minNumberCondition('minBits', 'Minimum Bits'), userMatchCondition()],
 		validate: (conditions, context) => {

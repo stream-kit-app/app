@@ -38,8 +38,8 @@ plugin.zip
 - Do not pass Svelte components, compiled HTML, raw HTML, or `{@html}` for plugin menu pages.
 - Button blocks may define an `onClick` handler when they need plugin-owned behavior.
 - Bundle all other runtime dependencies into `dist/index.js`.
-- Keep `manifest.json` `key` in sync with the `key` returned by your plugin factory.
-- Do not use built-in plugin keys such as `twitch` or `tts`.
+- Stream Kit generates a unique installed plugin key from the manifest name and adds a suffix if needed.
+- Menu item keys, form keys, and handler/trigger ids are generated and scoped by Stream Kit.
 
 ## Declarative menu page example
 
@@ -47,16 +47,13 @@ plugin.zip
 import type { Plugin } from '@stream-kit/app/api';
 
 const plugin: Plugin = (app) => ({
-	key: 'hello-world',
 	name: 'Hello World',
 	menuItems: [
 		{
-			key: 'demo',
 			title: 'Hello World',
 			icon: 'ri:hand-heart-line',
 			children: [
 				{
-					key: 'overview',
 					title: 'Overview',
 					page: {
 						title: 'Overview',

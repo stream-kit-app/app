@@ -15,7 +15,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createSubTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-sub-new',
 		name: 'New Subscription',
 		conditions: [subTierCondition(), userMatchCondition()],
 		validate: (conditions, context) => {

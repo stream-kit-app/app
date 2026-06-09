@@ -17,7 +17,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createSuperChatTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-chat-super-chat',
 		name: 'Super Chat',
 		conditions: [
 			messageMatchCondition(),

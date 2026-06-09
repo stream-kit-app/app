@@ -17,7 +17,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createResubTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-sub-resub',
 		name: 'Resubscription',
 		conditions: [
 			subTierCondition(),

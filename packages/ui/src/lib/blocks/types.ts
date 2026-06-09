@@ -44,7 +44,6 @@ export type PageFormField =
 	| (PageFieldBase & { type: 'slider'; min: number; max: number; step?: number })
 	| {
 			type: 'alert';
-			key: string;
 			name: string;
 			description?: string;
 			variant?: PageAlertVariant;
@@ -106,7 +105,6 @@ export type PageBlock =
 
 export type PageFormBlock = {
 	type: 'form';
-	key: string;
 	title?: string;
 	description?: string;
 	fields: PageFormItem[];
@@ -121,7 +119,6 @@ export type PageDefinition = {
 };
 
 type PageFieldBase = {
-	key: string;
 	name: string;
 	placeholder?: string;
 	defaultValue?: string | boolean | number;

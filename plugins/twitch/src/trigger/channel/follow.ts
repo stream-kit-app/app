@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createFollowTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-channel-follow',
 		name: 'New Follower',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeChannelFollow(app, (context) => {

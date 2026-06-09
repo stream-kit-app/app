@@ -14,7 +14,10 @@ export type {
 	PluginPageFormItem,
 	PluginPageFormSection,
 	PluginPublicApi,
-	PluginRegistration
+	PluginRegistration,
+	PluginSettingsFieldDefinition,
+	PluginSettingsFieldItem,
+	PluginSettingsFieldSectionDefinition
 } from './types';
 export {
 	discoverAndLoadInstalledPlugins,

@@ -9,7 +9,6 @@ export type HandlerFieldVariable = {
 };
 
 type HandlerFieldBase = {
-	key: string;
 	name: string;
 	placeholder?: string;
 	defaultValue?: HandlerFieldValue;
@@ -26,6 +25,10 @@ export type HandlerFieldDefinition =
 			items: SelectItemsSource;
 			loadingPlaceholder?: string;
 	  });
+
+export type ResolvedHandlerFieldDefinition = HandlerFieldDefinition & {
+	key: string;
+};
 
 /** A configured field instance on a handler action. */
 export type HandlerFieldInstance = {

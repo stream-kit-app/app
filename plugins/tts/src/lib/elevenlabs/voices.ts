@@ -34,7 +34,6 @@ export function elevenlabsVoiceSelectField(
 ): HandlerFieldDefinition {
 	return {
 		type: 'select',
-		key: 'voice',
 		name: options.name ?? 'Voice',
 		placeholder: options.emptyLabel ?? 'Use default voice',
 		loadingPlaceholder: 'Loading voices…',
@@ -78,7 +77,6 @@ export function elevenlabsVoiceSelectSettingsField(
 ): SettingsFieldDefinition {
 	return {
 		type: 'combobox',
-		key: options.key ?? 'elevenlabsDefaultVoice',
 		name: options.name ?? 'Default voice',
 		placeholder: options.emptyLabel ?? 'Select a default voice',
 		loadingPlaceholder: 'Loading voices…',

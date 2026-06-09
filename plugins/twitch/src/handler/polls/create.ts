@@ -9,12 +9,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createPollStartHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-poll-start',
 		name: 'Start Poll',
 		fields: [
 			{
 				type: 'text',
-				key: 'title',
 				name: 'Title',
 				required: true,
 				placeholder: 'Will {username} win?',
@@ -22,21 +20,18 @@ export const createPollStartHandler = (app: PluginAppApi) =>
 			},
 			{
 				type: 'text',
-				key: 'choices',
 				name: 'Choices',
 				required: true,
 				placeholder: 'Yes, No, Maybe (comma or newline separated, 2–5 choices)'
 			},
 			{
 				type: 'text',
-				key: 'duration',
 				name: 'Duration (seconds)',
 				required: true,
 				placeholder: '60'
 			},
 			{
 				type: 'text',
-				key: 'channelPointsPerVote',
 				name: 'Channel points per vote',
 				placeholder: 'Leave empty to disable point voting'
 			}

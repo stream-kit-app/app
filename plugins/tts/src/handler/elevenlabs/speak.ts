@@ -7,12 +7,10 @@ import { TTS_TEXT_VARIABLES } from '../../lib/variables';
 
 export const createElevenLabsSpeakHandler = () => {
 	return {
-		id: 'tts-elevenlabs-speak',
 		name: 'Speak Text',
 		fields: [
 			{
 				type: 'text',
-				key: 'text',
 				name: 'Text',
 				required: true,
 				placeholder: '{message}',

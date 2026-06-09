@@ -21,3 +21,9 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 
 Generates a Svelte Playground link with the provided code.
 After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
+### 5. Development Status and Refactoring Guidance
+
+- This project is currently under active development. Backward compatibility with previous versions is **not required** when performing refactors or major changes.
+- If components, features, or plugins break due to a refactor, it is expected that they be updated or rewritten to match the new architecture or patterns.
+- Prioritize modern best practices and project improvements over maintaining legacy code compatibility. Use this freedom to iterate quickly and keep the codebase clean and current.

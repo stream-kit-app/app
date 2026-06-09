@@ -5,10 +5,11 @@ export type {
 	ConditionNode,
 	FieldValue,
 	Operator,
+	ResolvedConditionDefinition,
 	SelectItem,
 	SelectItemsSource
 } from './condition';
-export type { TriggerDefinitionProps } from './types';
+export type { ResolvedTriggerDefinitionProps, TriggerDefinitionProps } from './types';
 
 import { TriggerDefinition, TriggerDefinitions } from './trigger-definition.svelte';
 

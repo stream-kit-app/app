@@ -12,7 +12,6 @@ const MANIFEST_FILE: &str = "manifest.json";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PluginManifest {
-    pub key: String,
     pub name: String,
     pub version: String,
     pub description: Option<String>,
@@ -40,7 +39,7 @@ pub struct InstalledPluginManifest {
 impl From<PluginManifest> for InstalledPluginManifest {
     fn from(manifest: PluginManifest) -> Self {
         Self {
-            key: manifest.key,
+            key: String::new(),
             name: manifest.name,
             version: manifest.version,
             description: manifest.description,
@@ -59,23 +58,12 @@ fn parse_manifest_contents(contents: &str, source: &str) -> Result<PluginManifes
 }
 
 fn validate_manifest(manifest: &PluginManifest, install_dir: Option<&Path>) -> Result<(), String> {
-    if manifest.key.trim().is_empty() {
-        return Err("manifest key must not be empty".to_string());
-    }
-
     if manifest.name.trim().is_empty() {
         return Err("manifest name must not be empty".to_string());
     }
 
     if manifest.entry.trim().is_empty() {
         return Err("manifest entry must not be empty".to_string());
-    }
-
-    if BUILTIN_PLUGIN_KEYS.contains(&manifest.key.as_str()) {
-        return Err(format!(
-            "plugin key '{}' conflicts with a built-in plugin",
-            manifest.key
-        ));
     }
 
     if let Some(install_dir) = install_dir {
@@ -106,19 +94,85 @@ fn plugins_dir(app: &AppHandle) -> Result<PathBuf, String> {
 
 fn read_manifest(path: &Path) -> Result<InstalledPluginManifest, String> {
     let manifest_path = path.join(MANIFEST_FILE);
-    let contents = fs::read_to_string(&manifest_path)
-        .map_err(|error| format!("failed to read manifest at {}: {error}", manifest_path.display()))?;
+    let contents = fs::read_to_string(&manifest_path).map_err(|error| {
+        format!(
+            "failed to read manifest at {}: {error}",
+            manifest_path.display()
+        )
+    })?;
 
     let manifest = parse_manifest_contents(&contents, &path.display().to_string())?;
     validate_manifest(&manifest, Some(path))?;
 
     let mut installed = InstalledPluginManifest::from(manifest);
+    installed.key = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| "plugin install path is not valid UTF-8".to_string())?
+        .to_string();
     installed.install_path = path
         .to_str()
         .ok_or_else(|| "plugin install path is not valid UTF-8".to_string())?
         .to_string();
 
     Ok(installed)
+}
+
+fn slugify(value: &str, fallback: &str) -> String {
+    let mut slug = String::new();
+    let mut last_was_separator = false;
+
+    for character in value.chars() {
+        if character.is_ascii_alphanumeric() {
+            slug.push(character.to_ascii_lowercase());
+            last_was_separator = false;
+        } else if !last_was_separator && !slug.is_empty() {
+            slug.push('-');
+            last_was_separator = true;
+        }
+    }
+
+    while slug.ends_with('-') {
+        slug.pop();
+    }
+
+    if slug.is_empty() {
+        fallback.to_string()
+    } else {
+        slug
+    }
+}
+
+fn install_key_base(manifest: &PluginManifest) -> String {
+    let mut key = slugify(&manifest.name, "plugin");
+
+    if BUILTIN_PLUGIN_KEYS.contains(&key.as_str()) {
+        key = format!("{key}-plugin");
+    }
+
+    key
+}
+
+fn unique_plugin_destination(
+    plugins_root: &Path,
+    base_key: &str,
+    replace_existing: bool,
+) -> Result<PathBuf, String> {
+    let base_destination = plugins_root.join(base_key);
+
+    if replace_existing || !base_destination.exists() {
+        return Ok(base_destination);
+    }
+
+    for suffix in 2.. {
+        let candidate = plugins_root.join(format!("{base_key}-{suffix}"));
+
+        if !candidate.exists() {
+            return Ok(candidate);
+        }
+    }
+
+    unreachable!("unbounded suffix search should always return a plugin destination")
 }
 
 fn extract_zip_to_dir<R: Read + std::io::Seek>(
@@ -136,14 +190,21 @@ fn extract_zip_to_dir<R: Read + std::io::Seek>(
         let output_path = destination.join(sanitized);
 
         if file.name().ends_with('/') {
-            fs::create_dir_all(&output_path)
-                .map_err(|error| format!("failed to create directory {}: {error}", output_path.display()))?;
+            fs::create_dir_all(&output_path).map_err(|error| {
+                format!(
+                    "failed to create directory {}: {error}",
+                    output_path.display()
+                )
+            })?;
             continue;
         }
 
         if let Some(parent) = output_path.parent() {
             fs::create_dir_all(parent).map_err(|error| {
-                format!("failed to create parent directory {}: {error}", parent.display())
+                format!(
+                    "failed to create parent directory {}: {error}",
+                    parent.display()
+                )
             })?;
         }
 
@@ -169,11 +230,12 @@ pub fn list_installed_plugins(app: AppHandle) -> Result<Vec<InstalledPluginManif
     let dir = plugins_dir(&app)?;
     let mut manifests = Vec::new();
 
-    let entries = fs::read_dir(&dir)
-        .map_err(|error| format!("failed to read plugins directory: {error}"))?;
+    let entries =
+        fs::read_dir(&dir).map_err(|error| format!("failed to read plugins directory: {error}"))?;
 
     for entry in entries {
-        let entry = entry.map_err(|error| format!("failed to read plugins directory entry: {error}"))?;
+        let entry =
+            entry.map_err(|error| format!("failed to read plugins directory entry: {error}"))?;
         let path = entry.path();
 
         if !path.is_dir() {
@@ -204,8 +266,8 @@ pub fn install_plugin_zip(
 ) -> Result<InstalledPluginManifest, String> {
     let zip_file = File::open(&zip_path)
         .map_err(|error| format!("failed to open zip file {}: {error}", zip_path))?;
-    let mut archive =
-        ZipArchive::new(zip_file).map_err(|error| format!("failed to read zip archive: {error}"))?;
+    let mut archive = ZipArchive::new(zip_file)
+        .map_err(|error| format!("failed to read zip archive: {error}"))?;
 
     let mut manifest_contents: Option<String> = None;
 
@@ -223,20 +285,21 @@ pub fn install_plugin_zip(
         }
     }
 
-    let manifest_contents =
-        manifest_contents.ok_or_else(|| "zip archive does not contain manifest.json".to_string())?;
+    let manifest_contents = manifest_contents
+        .ok_or_else(|| "zip archive does not contain manifest.json".to_string())?;
 
     let manifest = parse_manifest_contents(&manifest_contents, "zip archive")?;
     validate_manifest(&manifest, None)?;
 
     let plugins_root = plugins_dir(&app)?;
-    let destination = plugins_root.join(&manifest.key);
+    let install_key = install_key_base(&manifest);
+    let destination = unique_plugin_destination(&plugins_root, &install_key, replace_existing)?;
 
     if destination.exists() {
         if !replace_existing {
             return Err(format!(
                 "a plugin with key '{}' is already installed",
-                manifest.key
+                install_key
             ));
         }
 
@@ -253,8 +316,8 @@ pub fn install_plugin_zip(
 
     let zip_file = File::open(&zip_path)
         .map_err(|error| format!("failed to reopen zip file {}: {error}", zip_path))?;
-    let mut archive =
-        ZipArchive::new(zip_file).map_err(|error| format!("failed to read zip archive: {error}"))?;
+    let mut archive = ZipArchive::new(zip_file)
+        .map_err(|error| format!("failed to read zip archive: {error}"))?;
 
     extract_zip_to_dir(&mut archive, &destination)?;
 

@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createHypeTrainProgressTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-hype-progress',
 		name: 'Hype Train Progress',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeHypeTrainProgress(app, (context) => {

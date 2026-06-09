@@ -7,7 +7,6 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createClearChatHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-clear',
 		name: 'Clear Chat',
 		execute: (_action, _handler, context) => {
 			const broadcasterId =

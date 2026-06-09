@@ -17,7 +17,6 @@
 
 	type Props = {
 		plugin: RegisteredPlugin;
-		formKey: string;
 		title?: string;
 		description?: string;
 		fields: PluginPageFormItem[];
@@ -27,7 +26,6 @@
 
 	let {
 		plugin,
-		formKey: _formKey,
 		title,
 		description,
 		fields,

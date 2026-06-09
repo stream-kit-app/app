@@ -14,7 +14,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createGiftTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-chat-gift',
 		name: 'Gift (Jewels)',
 		conditions: [userMatchCondition(), minNumberCondition('minJewels', 'Minimum Jewels')],
 		validate: (conditions, context) => {

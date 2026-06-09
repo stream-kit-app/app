@@ -16,7 +16,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createMemberMilestoneTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-member-milestone',
 		name: 'Member Milestone',
 		conditions: [
 			messageMatchCondition(),

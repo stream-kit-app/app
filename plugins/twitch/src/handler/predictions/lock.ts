@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createPredictionLockHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-prediction-lock',
 		name: 'Lock Prediction',
 		fields: [
 			{
 				type: 'text',
-				key: 'predictionId',
 				name: 'Prediction ID',
 				placeholder: 'Leave empty to use trigger prediction'
 			}

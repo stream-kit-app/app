@@ -1,15 +1,15 @@
 import type {
-	ConditionDefinition,
 	ConditionGroupNode,
 	ConditionNode,
-	Operator
+	Operator,
+	ResolvedConditionDefinition
 } from './trigger/condition';
 
 import type { TriggerFormErrors } from './validate-form';
 
 export type ConditionEditor = {
-	conditionDefinitions: ConditionDefinition[] | undefined;
-	getConditionDefinition: (key: string) => ConditionDefinition | undefined;
+	conditionDefinitions: ResolvedConditionDefinition[] | undefined;
+	getConditionDefinition: (key: string) => ResolvedConditionDefinition | undefined;
 	getFieldError: (nodeId: string, errors?: TriggerFormErrors) => string | undefined;
 	addCondition: (group: ConditionGroupNode, conditionKey: string) => void;
 	addGroup: (group: ConditionGroupNode) => void;

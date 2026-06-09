@@ -14,7 +14,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createSuperStickerTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-chat-super-sticker',
 		name: 'Super Sticker',
 		conditions: [userMatchCondition(), minNumberCondition('minTier', 'Minimum Tier')],
 		validate: (conditions, context) => {

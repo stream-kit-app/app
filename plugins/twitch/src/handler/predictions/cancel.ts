@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createPredictionCancelHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-prediction-cancel',
 		name: 'Cancel Prediction',
 		fields: [
 			{
 				type: 'text',
-				key: 'predictionId',
 				name: 'Prediction ID',
 				placeholder: 'Leave empty to use trigger prediction'
 			}

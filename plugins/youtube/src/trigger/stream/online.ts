@@ -6,7 +6,6 @@ import { createSimpleActivate, createDeactivate } from '../../lib/trigger-helper
 
 export const createStreamOnlineTrigger = (_app: PluginAppApi) =>
 	({
-		id: 'youtube-stream-online',
 		name: 'Stream Online',
 		activate: createSimpleActivate((handler) => subscribeStreamOnline(handler)),
 		deactivate: createDeactivate()

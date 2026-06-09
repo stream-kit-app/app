@@ -15,7 +15,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createTimeoutTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-timeout',
 		name: 'User Timed Out',
 		conditions: [userMatchCondition(), minNumberCondition('duration', 'Minimum Duration')],
 		validate: (conditions, context) => {

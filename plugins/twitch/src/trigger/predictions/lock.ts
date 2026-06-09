@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createPredictionLockTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-prediction-lock',
 		name: 'Prediction Lock',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribePredictionLock(app, (context) => {

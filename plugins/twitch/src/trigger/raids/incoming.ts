@@ -10,7 +10,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createIncomingRaidTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-raid-incoming',
 		name: 'Incoming Raid',
 		conditions: [minNumberCondition('viewers', 'Minimum Viewers')],
 		validate: (conditions, context) => {

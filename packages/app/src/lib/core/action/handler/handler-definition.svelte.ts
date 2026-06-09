@@ -1,17 +1,25 @@
 import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
-import type { HandlerFieldDefinition } from './field';
+import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
 import type { HandlerDefinitionProps } from './types';
+
+type HandlerDefinitionInput = HandlerDefinitionProps & { id?: string };
 
 export class HandlerDefinitions {
 	items: HandlerDefinition[] = $state.raw([]);
 
-	add(props: HandlerDefinitionProps): HandlerDefinition {
-		if (this.find(props.id)) {
-			throw new Error(`Handler definition with id ${props.id} already exists`);
+	add(props: HandlerDefinitionInput): HandlerDefinition {
+		const normalizedProps = {
+			...props,
+			id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length),
+			fields: resolveFieldDefinitions(props.fields)
+		};
+
+		if (this.find(normalizedProps.id)) {
+			throw new Error(`Handler definition with id ${normalizedProps.id} already exists`);
 		}
 
-		const definition = new HandlerDefinition(props);
+		const definition = new HandlerDefinition(normalizedProps);
 		this.items = [...this.items, definition];
 
 		return definition;
@@ -34,15 +42,15 @@ export class HandlerDefinition {
 	name: string;
 	isAvailable: boolean = $state(true);
 
-	fields?: HandlerFieldDefinition[];
+	fields?: ResolvedHandlerFieldDefinition[];
 	execute?: (action: Action, handler: ActionHandler, context: unknown) => void;
 
 	children = new HandlerDefinitions();
 
-	constructor(props: HandlerDefinitionProps) {
+	constructor(props: HandlerDefinitionInput & { id: string }) {
 		this.id = props.id;
 		this.name = props.name;
-		this.fields = props.fields;
+		this.fields = resolveFieldDefinitions(props.fields);
 		this.execute = props.execute;
 
 		props.children?.forEach((child) => this.children.add(child));
@@ -67,4 +75,41 @@ export class HandlerDefinition {
 			child.setAvailable(available);
 		}
 	}
+}
+
+function resolveFieldDefinitions(
+	fields: HandlerFieldDefinition[] | ResolvedHandlerFieldDefinition[] | undefined
+): ResolvedHandlerFieldDefinition[] | undefined {
+	const usedKeys = new Set<string>();
+
+	return fields?.map((field) => {
+		const baseKey =
+			'key' in field && typeof field.key === 'string'
+				? field.key
+				: createGeneratedDefinitionId(field.name, usedKeys.size);
+		let key = baseKey;
+		let suffix = 2;
+
+		while (usedKeys.has(key)) {
+			key = `${baseKey}-${suffix}`;
+			suffix += 1;
+		}
+
+		usedKeys.add(key);
+
+		return {
+			...field,
+			key
+		};
+	});
+}
+
+function createGeneratedDefinitionId(name: string, index: number): string {
+	const slug = name
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+
+	return `${slug || 'handler'}-${index + 1}`;
 }

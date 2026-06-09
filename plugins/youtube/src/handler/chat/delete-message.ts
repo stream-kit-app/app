@@ -7,12 +7,10 @@ import { getYouTube } from '../../lib/plugin-api';
 
 export const createDeleteMessageHandler = (app: PluginAppApi) =>
 	({
-		id: 'youtube-chat-delete-message',
 		name: 'Delete Message',
 		fields: [
 			{
 				type: 'text',
-				key: 'messageId',
 				name: 'Message ID',
 				placeholder: 'Leave empty to use trigger message'
 			}

@@ -9,7 +9,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createChannelUpdateTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-channel-update',
 		name: 'Channel Update',
 		conditions: [
 			messageMatchCondition('title', 'Title', { variables: [] }),

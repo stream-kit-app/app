@@ -9,7 +9,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createGiftMembershipReceivedTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-member-gift-received',
 		name: 'Gift Membership Received',
 		conditions: [userMatchCondition()],
 		validate: (conditions, context) => {

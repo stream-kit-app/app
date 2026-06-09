@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createAnnouncementHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-announcement',
 		name: 'Send Announcement',
 		fields: [
 			{
 				type: 'text',
-				key: 'message',
 				name: 'Message',
 				required: true,
 				placeholder: 'Announcement text',
@@ -21,7 +19,6 @@ export const createAnnouncementHandler = (app: PluginAppApi) =>
 			},
 			{
 				type: 'text',
-				key: 'color',
 				name: 'Color',
 				placeholder: 'primary, blue, green, orange, purple'
 			}

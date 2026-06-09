@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createPollEndTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-poll-end',
 		name: 'Poll End',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribePollEnd(app, (context) => {

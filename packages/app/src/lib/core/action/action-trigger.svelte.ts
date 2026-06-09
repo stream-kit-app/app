@@ -1,9 +1,9 @@
 import type { TriggerDefinition } from './trigger/trigger-definition.svelte';
 import type {
-	ConditionDefinition,
 	ConditionGroupNode,
 	ConditionNode,
-	Operator
+	Operator,
+	ResolvedConditionDefinition
 } from './trigger/condition';
 
 import type { ConditionEditor } from './condition-editor';
@@ -41,7 +41,7 @@ export class ActionTrigger implements ConditionEditor {
 		}
 	}
 
-	get conditionDefinitions(): ConditionDefinition[] | undefined {
+	get conditionDefinitions(): ResolvedConditionDefinition[] | undefined {
 		return this.definition.conditions;
 	}
 
@@ -49,7 +49,7 @@ export class ActionTrigger implements ConditionEditor {
 		return this.definition.pluginName;
 	}
 
-	getConditionDefinition(key: string): ConditionDefinition | undefined {
+	getConditionDefinition(key: string): ResolvedConditionDefinition | undefined {
 		return getConditionDefinition(this.definition.conditions, key);
 	}
 

@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createStreamOnlineTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-stream-online',
 		name: 'Stream Online',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeStreamOnline(app, (context) => {

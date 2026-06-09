@@ -7,12 +7,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createCommercialHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-channel-commercial',
 		name: 'Run Commercial',
 		fields: [
 			{
 				type: 'text',
-				key: 'length',
 				name: 'Length (seconds)',
 				placeholder: '30, 60, 90, 120, 150, or 180'
 			}

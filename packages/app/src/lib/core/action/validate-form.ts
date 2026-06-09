@@ -1,10 +1,10 @@
 import type {
-	ConditionDefinition,
 	ConditionGroupNode,
 	ConditionLeafNode,
-	FieldValue
+	FieldValue,
+	ResolvedConditionDefinition
 } from './trigger/condition';
-import type { HandlerFieldDefinition, HandlerFieldInstance } from './handler/field';
+import type { HandlerFieldInstance, ResolvedHandlerFieldDefinition } from './handler/field';
 
 import { translate } from '$lib/i18n';
 
@@ -31,7 +31,7 @@ function collectLeaves(group: ConditionGroupNode): ConditionLeafNode[] {
 }
 
 export function isFieldValueEmpty(
-	definition: ConditionDefinition,
+	definition: ResolvedConditionDefinition,
 	value: FieldValue
 ): boolean {
 	if (definition.type === 'checkbox') {
@@ -49,7 +49,7 @@ export function isFieldValueEmpty(
 
 function validateConditionTree(
 	conditions: ConditionGroupNode,
-	definitions: ConditionDefinition[] | undefined
+	definitions: ResolvedConditionDefinition[] | undefined
 ): TriggerFormErrors {
 	const errors: TriggerFormErrors = {
 		conditionFields: {},
@@ -78,7 +78,7 @@ function validateConditionTree(
 
 function validateHandlerFields(
 	fields: HandlerFieldInstance[],
-	definitions: HandlerFieldDefinition[] | undefined
+	definitions: ResolvedHandlerFieldDefinition[] | undefined
 ): HandlerFieldFormErrors {
 	const errors: HandlerFieldFormErrors = {
 		fieldErrors: {},
@@ -118,8 +118,16 @@ function hasHandlerErrors(errors: HandlerFieldFormErrors): boolean {
 
 export function validateActionForm(input: {
 	name: string;
-	triggers: Array<{ id: string; conditions: ConditionGroupNode; definitions?: ConditionDefinition[] }>;
-	handlers: Array<{ id: string; fields: HandlerFieldInstance[]; definitions?: HandlerFieldDefinition[] }>;
+	triggers: Array<{
+		id: string;
+		conditions: ConditionGroupNode;
+		definitions?: ResolvedConditionDefinition[];
+	}>;
+	handlers: Array<{
+		id: string;
+		fields: HandlerFieldInstance[];
+		definitions?: ResolvedHandlerFieldDefinition[];
+	}>;
 }): ActionFormErrors | null {
 	const errors: ActionFormErrors = {
 		triggerErrors: {},

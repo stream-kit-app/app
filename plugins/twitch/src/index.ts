@@ -66,7 +66,6 @@ const plugin: Plugin = (app) => {
 	let twitchApi: TwitchPluginController | undefined;
 	const warnUnavailable = () => {
 		app.toast.create({
-			id: 'twitch-plugin-unavailable',
 			title: 'Twitch plugin unavailable',
 			description: 'The Twitch plugin is disabled or could not be started.',
 			variant: 'warning'
@@ -116,7 +115,6 @@ const plugin: Plugin = (app) => {
 	};
 
 	return {
-		key: 'twitch',
 		name: 'Twitch',
 		description: 'Connect and manage the Twitch chat and EventSub integration.',
 		icon: 'ri:twitch-line',
@@ -125,7 +123,6 @@ const plugin: Plugin = (app) => {
 		settings: [
 			{
 				type: 'alert',
-				key: 'connected',
 				name: 'Connected',
 				description: 'Your Twitch account is connected.',
 				variant: 'success',
@@ -133,7 +130,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'alert',
-				key: 'disconnected',
 				name: 'Not connected',
 				description: 'Connect your Twitch account to use Twitch triggers and handlers.',
 				variant: 'warning',
@@ -141,7 +137,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'button',
-				key: 'connect',
 				name: 'Connect your Twitch account',
 				variant: 'outline',
 				visible: () => !publicApi.isConnected,
@@ -149,7 +144,6 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'button',
-				key: 'disconnect',
 				name: 'Disconnect your Twitch account',
 				variant: 'outline',
 				visible: () => publicApi.isConnected,
@@ -158,11 +152,9 @@ const plugin: Plugin = (app) => {
 		],
 		triggers: [
 			{
-				id: 'twitch',
 				name: 'Twitch',
 				children: [
 					{
-						id: 'twitch-chat',
 						name: 'Chat',
 						children: [
 							createChatMessageTrigger(app),
@@ -174,7 +166,6 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'twitch-subscriptions',
 						name: 'Subscriptions',
 						children: [
 							createSubTrigger(app),
@@ -184,12 +175,10 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'twitch-raids',
 						name: 'Raids',
 						children: [createIncomingRaidTrigger(app)]
 					},
 					{
-						id: 'twitch-moderation',
 						name: 'Moderation',
 						children: [
 							createBanTrigger(app),
@@ -201,27 +190,22 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'twitch-engagement',
 						name: 'Engagement',
 						children: [createUserJoinTrigger(app), createUserPartTrigger(app)]
 					},
 					{
-						id: 'twitch-stream',
 						name: 'Stream',
 						children: [createStreamOnlineTrigger(app), createStreamOfflineTrigger(app)]
 					},
 					{
-						id: 'twitch-channel',
 						name: 'Channel',
 						children: [createFollowTrigger(app), createChannelUpdateTrigger(app)]
 					},
 					{
-						id: 'twitch-points',
 						name: 'Channel Points',
 						children: [createPointsRedeemedTrigger(app)]
 					},
 					{
-						id: 'twitch-hype',
 						name: 'Hype Train',
 						children: [
 							createHypeTrainBeginTrigger(app),
@@ -230,12 +214,10 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'twitch-polls',
 						name: 'Polls',
 						children: [createPollBeginTrigger(app), createPollEndTrigger(app)]
 					},
 					{
-						id: 'twitch-predictions',
 						name: 'Predictions',
 						children: [
 							createPredictionBeginTrigger(app),
@@ -248,11 +230,9 @@ const plugin: Plugin = (app) => {
 		],
 		handlers: [
 			{
-				id: 'twitch',
 				name: 'Twitch',
 				children: [
 					{
-						id: 'twitch-chat',
 						name: 'Chat',
 						children: [
 							createSendMessageHandler(app),
@@ -265,7 +245,6 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'twitch-moderation',
 						name: 'Moderation',
 						children: [
 							createBanHandler(app),
@@ -275,7 +254,6 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'twitch-channel',
 						name: 'Channel',
 						children: [
 							createRaidStartHandler(app),
@@ -288,17 +266,14 @@ const plugin: Plugin = (app) => {
 						]
 					},
 					{
-						id: 'twitch-points',
 						name: 'Channel Points',
 						children: [createPointsFulfillHandler(app), createPointsCancelHandler(app)]
 					},
 					{
-						id: 'twitch-polls',
 						name: 'Polls',
 						children: [createPollStartHandler(app), createPollEndHandler(app)]
 					},
 					{
-						id: 'twitch-predictions',
 						name: 'Predictions',
 						children: [
 							createPredictionStartHandler(app),
@@ -307,7 +282,7 @@ const plugin: Plugin = (app) => {
 							createPredictionCancelHandler(app)
 						]
 					},
-					{ id: 'twitch-clips', name: 'Clips', children: [createClipHandler(app)] }
+					{ name: 'Clips', children: [createClipHandler(app)] }
 				]
 			}
 		],

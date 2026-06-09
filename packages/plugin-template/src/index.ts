@@ -20,19 +20,16 @@ const plugin: Plugin = (app) => {
 	};
 
 	return {
-		key: 'hello-world',
 		name: 'Hello World',
 		description: 'Example Stream Kit plugin with a greeting action.',
 		icon: 'ri:hand-heart-line',
 		handlers: [createGreetHandler()],
 		menuItems: [
 			{
-				key: 'demo',
 				title: 'Hello World',
 				icon: 'ri:hand-heart-line',
 				children: [
 					{
-						key: 'overview',
 						title: 'Overview',
 						page: {
 							title: 'Plugin page block showcase',
@@ -164,7 +161,6 @@ const plugin: Plugin = (app) => {
 								},
 								{
 									type: 'form',
-									key: 'hello-world-overview-form',
 									title: 'Form block',
 									description:
 										'Forms use Stream Kit managed fields and persist to the plugin store.',
@@ -173,7 +169,6 @@ const plugin: Plugin = (app) => {
 									fields: [
 										{
 											type: 'alert',
-											key: 'overview-form-alert',
 											name: 'Form alert field',
 											description: 'Alert fields can be shown inside forms.',
 											variant: 'default'
@@ -185,7 +180,6 @@ const plugin: Plugin = (app) => {
 											fields: [
 												{
 													type: 'text',
-													key: 'overview-text',
 													name: 'Text input',
 													placeholder: 'Type a value',
 													defaultValue: 'Hello blocks',
@@ -193,19 +187,16 @@ const plugin: Plugin = (app) => {
 												},
 												{
 													type: 'checkbox',
-													key: 'overview-checkbox',
 													name: 'Checkbox input',
 													defaultValue: true
 												},
 												{
 													type: 'switch',
-													key: 'overview-switch',
 													name: 'Switch input',
 													defaultValue: true
 												},
 												{
 													type: 'select',
-													key: 'overview-select',
 													name: 'Select input',
 													defaultValue: 'alpha',
 													items: [
@@ -216,7 +207,6 @@ const plugin: Plugin = (app) => {
 												},
 												{
 													type: 'combobox',
-													key: 'overview-combobox',
 													name: 'Combobox input',
 													defaultValue: 'one',
 													items: [
@@ -227,7 +217,6 @@ const plugin: Plugin = (app) => {
 												},
 												{
 													type: 'slider',
-													key: 'overview-slider',
 													name: 'Slider input',
 													min: 0,
 													max: 10,
@@ -242,7 +231,6 @@ const plugin: Plugin = (app) => {
 						}
 					},
 					{
-						key: 'settings',
 						title: 'Settings demo',
 						page: {
 							title: 'Settings demo',
@@ -251,7 +239,6 @@ const plugin: Plugin = (app) => {
 							blocks: [
 								{
 									type: 'form',
-									key: 'hello-world-settings',
 									title: 'Greeting settings',
 									description: 'Save a message and a couple of simple preferences.',
 									submitLabel: 'Save demo settings',
@@ -259,7 +246,6 @@ const plugin: Plugin = (app) => {
 									fields: [
 										{
 											type: 'text',
-											key: 'demo-message',
 											name: 'Message',
 											placeholder: 'Hello from Stream Kit!',
 											defaultValue: 'Hello from Stream Kit!',
@@ -267,13 +253,11 @@ const plugin: Plugin = (app) => {
 										},
 										{
 											type: 'checkbox',
-											key: 'demo-enabled',
 											name: 'Enable demo mode',
 											defaultValue: true
 										},
 										{
 											type: 'select',
-											key: 'demo-tone',
 											name: 'Tone',
 											defaultValue: 'friendly',
 											items: [
@@ -284,7 +268,6 @@ const plugin: Plugin = (app) => {
 										},
 										{
 											type: 'slider',
-											key: 'demo-volume',
 											name: 'Demo volume',
 											min: 0,
 											max: 100,

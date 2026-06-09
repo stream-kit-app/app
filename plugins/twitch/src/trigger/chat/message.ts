@@ -24,7 +24,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createChatMessageTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-message',
 		name: 'Chat Message',
 		conditions: [
 			messageMatchCondition(),

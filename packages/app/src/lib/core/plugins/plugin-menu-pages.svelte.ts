@@ -1,10 +1,10 @@
 import type { MenuItem } from '../menu/types';
-import type { RegisteredPlugin } from './registered-plugin.svelte';
 import type {
-	PluginMenuItemChildDefinition,
-	PluginMenuItemDefinition,
-	PluginPageDefinition
-} from './types';
+	ResolvedPluginMenuItemChildDefinition,
+	ResolvedPluginMenuItemDefinition
+} from './registration';
+import type { RegisteredPlugin } from './registered-plugin.svelte';
+import type { PluginPageDefinition } from './types';
 
 export type PluginMenuPageEntry = {
 	plugin: RegisteredPlugin;
@@ -17,16 +17,18 @@ export type PluginMenuPageEntry = {
 export class PluginMenuPages {
 	entries = $state.raw<PluginMenuPageEntry[]>([]);
 
-	register(plugin: RegisteredPlugin, definitions: PluginMenuItemDefinition[]): MenuItem[] {
+	register(plugin: RegisteredPlugin, definitions: ResolvedPluginMenuItemDefinition[]): MenuItem[] {
 		const menuItems: MenuItem[] = [];
 		const entries: PluginMenuPageEntry[] = [];
 
 		for (const definition of definitions) {
+			const itemKey = definition.key;
 			const hasChildren = (definition.children?.length ?? 0) > 0;
-			const path = this.createPath(plugin.key, definition.key);
+			const path = this.createPath(plugin.key, itemKey);
 			const children = definition.children?.map((child) => {
-				const childPath = this.createPath(plugin.key, definition.key, child.key);
-				entries.push(this.createEntry(plugin, child, childPath, `${definition.key}/${child.key}`));
+				const childKey = child.key;
+				const childPath = this.createPath(plugin.key, itemKey, childKey);
+				entries.push(this.createEntry(plugin, child, childPath, `${itemKey}/${childKey}`));
 
 				return {
 					path: childPath,
@@ -35,7 +37,7 @@ export class PluginMenuPages {
 			});
 
 			if (!hasChildren && definition.page) {
-				entries.push(this.createEntry(plugin, definition, path, definition.key));
+				entries.push(this.createEntry(plugin, definition, path, itemKey));
 			}
 
 			menuItems.push({
@@ -77,7 +79,7 @@ export class PluginMenuPages {
 
 	private createEntry(
 		plugin: RegisteredPlugin,
-		definition: PluginMenuItemDefinition | PluginMenuItemChildDefinition,
+		definition: ResolvedPluginMenuItemDefinition | ResolvedPluginMenuItemChildDefinition,
 		path: string,
 		key: string
 	): PluginMenuPageEntry {

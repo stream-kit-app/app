@@ -7,12 +7,10 @@ import { TTS_TEXT_VARIABLES } from '../../lib/variables';
 
 export const createStreamElementsSpeakHandler = () => {
 	return {
-		id: 'tts-streamelements-speak',
 		name: 'Speak Text',
 		fields: [
 			{
 				type: 'text',
-				key: 'text',
 				name: 'Text',
 				required: true,
 				placeholder: '{message}',

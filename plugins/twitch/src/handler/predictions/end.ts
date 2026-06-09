@@ -8,18 +8,15 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createPredictionEndHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-prediction-end',
 		name: 'End Prediction',
 		fields: [
 			{
 				type: 'text',
-				key: 'predictionId',
 				name: 'Prediction ID',
 				placeholder: 'Leave empty to use trigger prediction'
 			},
 			{
 				type: 'text',
-				key: 'winningOutcomeId',
 				name: 'Winning Outcome ID',
 				required: true,
 				placeholder: 'Outcome ID to resolve as winner'

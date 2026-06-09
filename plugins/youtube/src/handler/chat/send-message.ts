@@ -8,12 +8,10 @@ import { CHAT_TEXT_VARIABLES } from '../../lib/variables';
 
 export const createSendMessageHandler = (app: PluginAppApi) =>
 	({
-		id: 'youtube-chat-send',
 		name: 'Send Message',
 		fields: [
 			{
 				type: 'text',
-				key: 'message',
 				name: 'Message',
 				required: true,
 				placeholder: 'Hello {username}, welcome!',

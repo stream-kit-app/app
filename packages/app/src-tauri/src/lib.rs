@@ -69,7 +69,9 @@ pub fn run() {
             plugins::uninstall_plugin
         ])
         .setup(|app| {
-            app.manage(dev::PluginWatchers(std::sync::Mutex::new(std::collections::HashMap::new())));
+            app.manage(dev::PluginWatchers(std::sync::Mutex::new(
+                std::collections::HashMap::new(),
+            )));
 
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window("main") {

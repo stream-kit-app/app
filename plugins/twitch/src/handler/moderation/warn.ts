@@ -8,19 +8,16 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createWarnHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-warn',
 		name: 'Warn User',
 		fields: [
 			{
 				type: 'text',
-				key: 'user',
 				name: 'Username',
 				placeholder: 'Leave empty or use {username}',
 				variables: TARGET_USER_VARIABLES
 			},
 			{
 				type: 'text',
-				key: 'reason',
 				name: 'Reason',
 				required: true,
 				placeholder: 'Warning reason',

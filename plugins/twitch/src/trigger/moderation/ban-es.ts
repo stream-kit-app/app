@@ -9,7 +9,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createChannelBanTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-ban-es',
 		name: 'User Banned (EventSub)',
 		conditions: [userMatchCondition()],
 		validate: (conditions, context) => {

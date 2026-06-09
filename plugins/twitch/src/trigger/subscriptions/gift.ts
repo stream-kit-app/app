@@ -15,7 +15,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createGiftSubTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-sub-gift',
 		name: 'Gift Subscription',
 		conditions: [subTierCondition(), minNumberCondition('giftCount', 'Minimum Gift Count')],
 		validate: (conditions, context) => {

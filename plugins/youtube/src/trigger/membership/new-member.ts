@@ -9,7 +9,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createNewMemberTrigger = (app: PluginAppApi) =>
 	({
-		id: 'youtube-member-new',
 		name: 'New Member',
 		conditions: [userMatchCondition()],
 		validate: (conditions, context) => {

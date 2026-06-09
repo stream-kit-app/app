@@ -10,7 +10,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createCommunitySubTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-sub-community',
 		name: 'Community Subscription',
 		conditions: [minNumberCondition('giftCount', 'Minimum Gift Count')],
 		validate: (conditions, context) => {

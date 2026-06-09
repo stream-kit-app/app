@@ -7,7 +7,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createUserJoinTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-user-join',
 		name: 'User Join',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeJoinPart(app, (event) => {

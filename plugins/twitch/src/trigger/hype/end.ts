@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createHypeTrainEndTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-hype-end',
 		name: 'Hype Train End',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeHypeTrainEnd(app, (context) => {

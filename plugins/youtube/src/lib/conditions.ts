@@ -42,7 +42,6 @@ export function messageMatchCondition(
 export function roleCondition(): ConditionDefinition {
 	return {
 		type: 'select',
-		key: 'role',
 		name: 'Role',
 		placeholder: 'Role',
 		items: [...roleItems]

@@ -8,19 +8,16 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createWhisperHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-whisper',
 		name: 'Send Whisper',
 		fields: [
 			{
 				type: 'text',
-				key: 'user',
 				name: 'Username',
 				placeholder: 'Leave empty or use {username}',
 				variables: TARGET_USER_VARIABLES
 			},
 			{
 				type: 'text',
-				key: 'message',
 				name: 'Message',
 				required: true,
 				placeholder: 'Whisper message',

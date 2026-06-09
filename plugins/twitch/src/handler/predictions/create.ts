@@ -9,12 +9,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createPredictionStartHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-prediction-start',
 		name: 'Start Prediction',
 		fields: [
 			{
 				type: 'text',
-				key: 'title',
 				name: 'Title',
 				required: true,
 				placeholder: 'Will {username} win?',
@@ -22,21 +20,18 @@ export const createPredictionStartHandler = (app: PluginAppApi) =>
 			},
 			{
 				type: 'text',
-				key: 'outcome1',
 				name: 'Outcome 1',
 				required: true,
 				placeholder: 'Yes'
 			},
 			{
 				type: 'text',
-				key: 'outcome2',
 				name: 'Outcome 2',
 				required: true,
 				placeholder: 'No'
 			},
 			{
 				type: 'text',
-				key: 'autoLockAfter',
 				name: 'Auto-lock after (seconds)',
 				required: true,
 				placeholder: '120'

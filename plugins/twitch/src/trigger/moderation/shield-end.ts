@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createShieldModeEndTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-shield-end',
 		name: 'Shield Mode Disabled',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeShieldModeEnd(app, (context) => {

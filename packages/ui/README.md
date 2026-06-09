@@ -28,11 +28,9 @@ Plugins do not pass Svelte components or HTML for menu pages. They provide decla
 import type { Plugin } from '@stream-kit/app/api';
 
 const plugin: Plugin = (app) => ({
-	key: 'hello-world',
 	name: 'Hello World',
 	menuItems: [
 		{
-			key: 'demo',
 			title: 'Hello World',
 			icon: 'ri:hand-heart-line',
 			page: {

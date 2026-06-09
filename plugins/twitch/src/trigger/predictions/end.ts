@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createPredictionEndTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-prediction-end',
 		name: 'Prediction End',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribePredictionEnd(app, (context) => {

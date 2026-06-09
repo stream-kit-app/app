@@ -1,5 +1,4 @@
 {
-	"key": "hello-world",
 	"name": "Hello World",
 	"version": "0.1.0",
 	"description": "Example Stream Kit plugin with a greeting action.",

@@ -8,18 +8,15 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createPollEndHandler = (app: PluginAppApi) =>
 	({
-		id: 'twitch-poll-end',
 		name: 'End Poll',
 		fields: [
 			{
 				type: 'text',
-				key: 'pollId',
 				name: 'Poll ID',
 				placeholder: 'Leave empty to use trigger poll'
 			},
 			{
 				type: 'switch',
-				key: 'showResult',
 				name: 'Show result'
 			}
 		],

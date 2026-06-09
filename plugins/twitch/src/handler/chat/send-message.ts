@@ -8,12 +8,10 @@ import { getTwitch } from '../../lib/plugin-api';
 
 export const createSendMessageHandler = (app: PluginAppApi) => {
 	return {
-		id: 'twitch-chat-send',
 		name: 'Send Message',
 		fields: [
 			{
 				type: 'text',
-				key: 'message',
 				name: 'Message',
 				required: true,
 				placeholder: 'Hello {username}, welcome!',
@@ -21,7 +19,6 @@ export const createSendMessageHandler = (app: PluginAppApi) => {
 			},
 			{
 				type: 'switch',
-				key: 'as-bot',
 				name: 'As bot',
 				required: false,
 				placeholder: 'Send message as bot'

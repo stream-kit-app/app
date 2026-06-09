@@ -10,7 +10,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createWhisperTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-chat-whisper',
 		name: 'Whisper',
 		conditions: [messageMatchCondition()],
 		validate: (conditions, context) => {

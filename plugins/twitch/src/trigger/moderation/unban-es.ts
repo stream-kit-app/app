@@ -9,7 +9,6 @@ import { evaluateWith } from '../../lib/trigger-helpers';
 
 export const createChannelUnbanTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-unban-es',
 		name: 'User Unbanned (EventSub)',
 		conditions: [userMatchCondition()],
 		validate: (conditions, context) => {

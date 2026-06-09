@@ -6,7 +6,6 @@ import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/su
 
 export const createShieldModeBeginTrigger = (app: PluginAppApi) =>
 	({
-		id: 'twitch-mod-shield-begin',
 		name: 'Shield Mode Enabled',
 		activate: (action, trigger) => {
 			const unsubscribe = subscribeShieldModeBegin(app, (context) => {

@@ -32,7 +32,6 @@ export function rewardSelectItems(
 export function rewardSelectCondition(app: PluginAppApi): ConditionDefinition {
 	return {
 		type: 'select',
-		key: 'rewardId',
 		name: 'Reward',
 		placeholder: 'Any reward',
 		loadingPlaceholder: 'Loading rewards…',
@@ -46,7 +45,6 @@ export function rewardSelectField(
 ): HandlerFieldDefinition {
 	return {
 		type: 'select',
-		key: 'rewardId',
 		name: options.name ?? 'Reward',
 		placeholder: options.emptyLabel ?? 'Use trigger reward',
 		loadingPlaceholder: 'Loading rewards…',

@@ -1,9 +1,9 @@
 import type {
-	ConditionDefinition,
 	ConditionGroupNode,
 	ConditionNode,
 	FieldValue,
-	Operator
+	Operator,
+	ResolvedConditionDefinition
 } from './trigger/condition';
 
 export function emptyConditionGroup(): ConditionGroupNode {
@@ -14,7 +14,7 @@ export function emptyConditionGroup(): ConditionGroupNode {
 	};
 }
 
-export function initConditionValue(definition: ConditionDefinition): FieldValue {
+export function initConditionValue(definition: ResolvedConditionDefinition): FieldValue {
 	if (definition.defaultValue !== undefined) {
 		return definition.type === 'select-text' && typeof definition.defaultValue === 'object'
 			? { ...definition.defaultValue }
@@ -33,16 +33,16 @@ export function initConditionValue(definition: ConditionDefinition): FieldValue 
 }
 
 export function getConditionDefinition(
-	definitions: ConditionDefinition[] | undefined,
+	definitions: ResolvedConditionDefinition[] | undefined,
 	key: string
-): ConditionDefinition | undefined {
+): ResolvedConditionDefinition | undefined {
 	return definitions?.find((condition) => condition.key === key);
 }
 
 export function addConditionToGroup(
 	group: ConditionGroupNode,
 	conditionKey: string,
-	definitions: ConditionDefinition[] | undefined
+	definitions: ResolvedConditionDefinition[] | undefined
 ): void {
 	const definition = getConditionDefinition(definitions, conditionKey);
 

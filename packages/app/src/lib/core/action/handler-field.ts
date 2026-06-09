@@ -2,11 +2,12 @@ import type { ConditionGroupNode } from './trigger/condition';
 import type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,
-	HandlerFieldValue
+	HandlerFieldValue,
+	ResolvedHandlerFieldDefinition
 } from './handler/field';
 
 export function createHandlerFields(
-	definitions: HandlerFieldDefinition[] | undefined,
+	definitions: ResolvedHandlerFieldDefinition[] | undefined,
 	stored?: HandlerFieldInstance[]
 ): HandlerFieldInstance[] {
 	return (definitions ?? []).map((definition) => {
@@ -20,7 +21,7 @@ export function createHandlerFields(
 	});
 }
 
-export function initHandlerFieldValue(definition: HandlerFieldDefinition): HandlerFieldValue {
+export function initHandlerFieldValue(definition: ResolvedHandlerFieldDefinition): HandlerFieldValue {
 	if (definition.defaultValue !== undefined) {
 		return definition.defaultValue;
 	}
@@ -33,9 +34,9 @@ export function initHandlerFieldValue(definition: HandlerFieldDefinition): Handl
 }
 
 export function getHandlerFieldDefinition(
-	definitions: HandlerFieldDefinition[] | undefined,
+	definitions: ResolvedHandlerFieldDefinition[] | undefined,
 	key: string
-): HandlerFieldDefinition | undefined {
+): ResolvedHandlerFieldDefinition | undefined {
 	return definitions?.find((field) => field.key === key);
 }
 
@@ -47,7 +48,7 @@ export function getHandlerFieldValue(
 }
 
 export function isHandlerFieldValueEmpty(
-	definition: HandlerFieldDefinition,
+	definition: ResolvedHandlerFieldDefinition,
 	value: HandlerFieldValue
 ): boolean {
 	if (definition.type === 'text' || definition.type === 'select') {

@@ -15,7 +15,6 @@ import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigge
 
 export const createChatMessageTrigger = (_app: PluginAppApi) =>
 	({
-		id: 'youtube-chat-message',
 		name: 'Chat Message',
 		conditions: [messageMatchCondition(), userMatchCondition(), roleCondition()],
 		validate: (conditions, context) => {

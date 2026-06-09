@@ -2,7 +2,8 @@ import { LazyStore } from '@tauri-apps/plugin-store';
 
 import type { App } from '../app.svelte';
 import type { RegisterPluginOptions } from './installed-plugin';
-import type { PluginRegistration, PluginPublicApi } from './types';
+import type { PluginPublicApi } from './types';
+import type { ResolvedPluginRegistration } from './registration';
 
 import { translate } from '$lib/i18n';
 
@@ -16,15 +17,17 @@ export class Plugins {
 	items: RegisteredPlugin[] = $state.raw([]);
 
 	register<TApi = PluginPublicApi>(
-		props: PluginRegistration<TApi>,
+		props: ResolvedPluginRegistration<TApi>,
 		options: RegisterPluginOptions = {}
 	): RegisteredPlugin<TApi> {
-		if (this.find(props.key)) {
-			throw new Error(`Plugin with key ${props.key} already exists`);
+		const key = props.key;
+
+		if (this.find(key)) {
+			throw new Error(`Plugin with key ${key} already exists`);
 		}
 
-		const store = new LazyStore(`plugin.${props.key}.json`);
-		const legacyStores = (LEGACY_PLUGIN_STORE_PATHS[props.key] ?? []).map(
+		const store = new LazyStore(`plugin.${key}.json`);
+		const legacyStores = (LEGACY_PLUGIN_STORE_PATHS[key] ?? []).map(
 			(path) => new LazyStore(path)
 		);
 		const plugin = new RegisteredPlugin<TApi>(props, store, legacyStores, options);
