@@ -21,6 +21,7 @@ import { getApp } from '../registry';
 import { ActionHandler } from './action-handler.svelte';
 import { ActionTrigger } from './action-trigger.svelte';
 import { migrateLegacyHandlerFields } from './handler-field';
+import type { HandlerTriggerContext } from './handler-context';
 import { validateActionForm } from './validate-form';
 
 export type ActionProps = {
@@ -247,14 +248,19 @@ export class Action {
 		this.handlers = this.handlers.filter((handler) => handler.id !== handlerId);
 	}
 
-	fire(trigger: ActionTrigger, context: unknown): void {
+	fire(trigger: ActionTrigger, data: unknown): void {
 		if (!trigger.definition.isAvailable) {
 			return;
 		}
 
-		if (!trigger.evaluate(context)) {
+		if (!trigger.evaluate(data)) {
 			return;
 		}
+
+		const context: HandlerTriggerContext = {
+			trigger: trigger.definition.name,
+			data
+		};
 
 		for (const handler of this.handlers) {
 			if (!handler.definition.isAvailable) {

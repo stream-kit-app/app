@@ -1,18 +1,27 @@
 <script lang="ts">
-	import type { HandlerFieldDefinition, HandlerFieldInstance } from '$lib/core/action/handler/field';
 	import type {
 		ActionHandler,
 		HandlerFieldFormErrors
 	} from '$lib/core/action/action-handler.svelte';
+	import type {
+		HandlerFieldDefinition,
+		HandlerFieldInstance
+	} from '$lib/core/action/handler/field';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import {
 		InputCheckbox,
+		InputCode,
+		InputFilePath,
 		InputSelect,
 		InputSwitch,
 		InputText,
 		InputTextVariables
 	} from '@stream-kit/ui/input';
+
+	import { getApp } from '$lib/core/registry';
+	import { useI18n } from '$lib/i18n';
+	import { configureScriptApiTypes } from '$lib/monaco/script-setup';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -22,8 +31,16 @@
 
 	let { handler, fieldErrors }: Props = $props();
 
+	const { t } = useI18n();
+
 	const onTextInput =
 		(field: HandlerFieldInstance): FormEventHandler<HTMLInputElement> =>
+		(event) => {
+			field.value = event.currentTarget.value;
+		};
+
+	const onCodeInput =
+		(field: HandlerFieldInstance): FormEventHandler<HTMLTextAreaElement> =>
 		(event) => {
 			field.value = event.currentTarget.value;
 		};
@@ -71,6 +88,36 @@
 			loadingPlaceholder={config.loadingPlaceholder}
 			required={config.required}
 			bind:value={() => String(field.value ?? ''), (value) => (field.value = value)}
+			{error}
+		/>
+	{:else if config.type === 'select-file-or-folder'}
+		<InputFilePath
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			mode={config.mode}
+			filters={config.filters}
+			value={String(field.value ?? '')}
+			onValueChange={(value) => (field.value = value)}
+			browseLabel={t('Browse')}
+			emptyFileLabel={t('No file selected')}
+			emptyFolderLabel={t('No folder selected')}
+			onBrowse={() =>
+				getApp().fs.select({
+					type: config.mode,
+					filters: config.filters
+				})}
+			{error}
+		/>
+	{:else if config.type === 'code'}
+		<InputCode
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			language={config.language}
+			value={String(field.value ?? '')}
+			oninput={onCodeInput(field)}
+			configureMonaco={configureScriptApiTypes}
 			{error}
 		/>
 	{/if}

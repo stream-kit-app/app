@@ -33,7 +33,7 @@ plugin.zip
 ## Authoring rules
 
 - Use `import type` from `@stream-kit/app/api` for plugin types.
-- Use `@stream-kit/core` for handler/trigger prop types and `interpolateVariables`.
+- Use `@stream-kit/core` for handler/trigger prop types, `getFieldValue`, `resolveFieldText`, and `interpolateVariables`.
 - Register plugin menu pages with declarative page definitions from `@stream-kit/app/api`.
 - Do not pass Svelte components, compiled HTML, raw HTML, or `{@html}` for plugin menu pages.
 - Button blocks may define an `onClick` handler when they need plugin-owned behavior.
@@ -73,6 +73,30 @@ const plugin: Plugin = (app) => ({
 });
 
 export default plugin;
+```
+
+## Handler context
+
+Handlers receive a single `HandlerTriggerContext` object:
+
+```ts
+import type { HandlerDefinitionProps } from '@stream-kit/core';
+
+export const createGreetHandler = (): HandlerDefinitionProps => ({
+	name: 'Greet chatter',
+	execute: (_action, handler, context) => {
+		const data = context.data as { user?: string };
+		console.info(`Hello ${data.user ?? 'there'} (trigger: ${context.trigger})`);
+	}
+});
+```
+
+Script handlers receive an array. The platform wraps the context automatically when running user scripts:
+
+```ts
+export default (context: HandlerTriggerContext[]) => {
+	const [{ trigger, data }] = context;
+};
 ```
 
 ## Install in Stream Kit

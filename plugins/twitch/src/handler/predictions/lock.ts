@@ -17,11 +17,11 @@ export const createPredictionLockHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldPredictionId = getFieldValue(handler.fields, 'predictionId');
 			const predictionId =
 				(typeof fieldPredictionId === 'string' && fieldPredictionId.trim()) ||
-				(context as PredictionContext).predictionId;
+				(context.data as PredictionContext).predictionId;
 
 			if (!broadcasterId || !predictionId) {
 				return;

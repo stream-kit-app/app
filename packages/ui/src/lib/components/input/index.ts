@@ -1,4 +1,6 @@
 import InputCheckbox from './input-checkbox.svelte';
+import InputCode from './input-code.svelte';
+import InputFilePath from './input-file-path.svelte';
 import InputSelectText from './input-select-text.svelte';
 import InputSelect from './input-select.svelte';
 import InputSlider from './input-slider.svelte';
@@ -10,6 +12,8 @@ import Label from './label.svelte';
 
 export {
 	InputCheckbox,
+	InputCode,
+	InputFilePath,
 	InputSelect,
 	InputSelectText,
 	InputSlider,
@@ -19,3 +23,4 @@ export {
 	InputTextVariables,
 	Label
 };
+export type { FilePathFilter } from './file-path-types';

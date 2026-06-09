@@ -25,11 +25,11 @@ export const createWarnHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const reason = resolveFieldText(handler.fields, 'reason', context);
 			const { userName, userId } = resolveUserFromContext(
-				context as { user?: string; userId?: string },
+				context,
 				typeof fieldUser === 'string' ? fieldUser : undefined
 			);
 			const target = userId ?? userName;

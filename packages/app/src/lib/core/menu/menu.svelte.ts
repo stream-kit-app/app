@@ -8,13 +8,32 @@ export class Menu {
 			throw new Error(`MenuItem with path ${item.path} already exists`);
 		}
 
-		this.items = [...this.items, item];
+		this.items = [...this.items, { ...item, fromPlugin: false }];
+		this.sortItems();
+
+		return item;
+	}
+
+	addPlugin(item: MenuItem): MenuItem {
+		if (this.find(item.path)) {
+			throw new Error(`MenuItem with path ${item.path} already exists`);
+		}
+
+		this.items = [...this.items, { ...item, fromPlugin: true }];
+		this.sortItems();
 
 		return item;
 	}
 
 	remove(path: string): void {
 		this.items = this.items.filter((item) => item.path !== path);
+	}
+
+	private sortItems(): void {
+		const coreItems = this.items.filter((item) => !item.fromPlugin);
+		const pluginItems = this.items.filter((item) => item.fromPlugin);
+
+		this.items = [...coreItems, ...pluginItems];
 	}
 
 	find(path: string): MenuItem | undefined {

@@ -20,7 +20,7 @@ export const createSendMessageHandler = (app: PluginAppApi) =>
 		],
 		execute: (_action, handler, context) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
-			const liveChatId = resolveLiveChatId(context as { liveChatId?: string }, app);
+			const liveChatId = resolveLiveChatId(context, app);
 			const client = getYouTube(app).client;
 
 			if (typeof message !== 'string' || !message.trim() || !liveChatId || !client) {

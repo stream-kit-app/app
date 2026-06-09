@@ -3,8 +3,10 @@ import { interpolateVariables, type FieldValue } from '@stream-kit/core';
 import { contextToVariables } from './lib/variables';
 
 export function resolveConditionValue(value: FieldValue, context: unknown): FieldValue {
+	const variables = contextToVariables(context);
+
 	if (typeof value === 'string') {
-		return interpolateVariables(value, contextToVariables(context));
+		return interpolateVariables(value, variables);
 	}
 
 	if (
@@ -16,7 +18,7 @@ export function resolveConditionValue(value: FieldValue, context: unknown): Fiel
 	) {
 		return {
 			type: value.type,
-			value: interpolateVariables(value.value, contextToVariables(context))
+			value: interpolateVariables(value.value, variables)
 		};
 	}
 

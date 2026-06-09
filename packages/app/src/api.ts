@@ -1,3 +1,4 @@
+export type { HandlerTriggerContext } from './lib/core/action/handler-context';
 export type { Action } from './lib/core/action/action.svelte';
 export type { ActionTrigger } from './lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from './lib/core/action/action-handler.svelte';
@@ -38,6 +39,35 @@ export { Plugins, RegisteredPlugin } from './lib/core/plugins';
 export type { OAuthStartOptions } from './lib/core/oauth';
 export { OAuth } from './lib/core/oauth';
 export { Opener } from './lib/core/opener';
+export { BaseDirectory, FileHandle, Filesystem, SeekMode } from './lib/core/filesystem';
+export type {
+	CopyFileOptions,
+	CreateOptions,
+	DebouncedWatchOptions,
+	DirEntry,
+	ExistsOptions,
+	FileInfo,
+	FileSystemFilter,
+	FileSystemSelectOptions,
+	MkdirOptions,
+	OpenOptions,
+	ReadDirOptions,
+	ReadFileOptions,
+	RemoveOptions,
+	RenameOptions,
+	StatOptions,
+	TruncateOptions,
+	UnwatchFn,
+	WatchEvent,
+	WatchEventKind,
+	WatchEventKindAccess,
+	WatchEventKindCreate,
+	WatchEventKindModify,
+	WatchEventKindRemove,
+	WatchOptions,
+	WriteFileOptions
+} from './lib/core/filesystem';
+export { Audio } from './lib/core/audio';
 export type {
 	ConditionDefinition,
 	ConditionGroupNode,
@@ -53,5 +83,6 @@ export type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,
 	HandlerFieldValue,
-	HandlerFieldVariable
+	HandlerFieldVariable,
+	HandlerFileFilter
 } from './lib/core/action/handler/field';

@@ -1,0 +1,29 @@
+import type { HandlerDefinitionProps } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/app/api';
+
+import { getFieldValue } from '../../get-field-value';
+import { runUserScript, SCRIPT_TEMPLATE } from '../../lib/run-code';
+
+export const createRunScriptHandler = (app: PluginAppApi) => {
+	return {
+		name: 'Run script',
+		fields: [
+			{
+				type: 'code',
+				name: 'Script',
+				language: 'typescript',
+				required: true,
+				defaultValue: SCRIPT_TEMPLATE
+			}
+		],
+		execute: (_action, handler, context) => {
+			const source = getFieldValue(handler.fields, 'script');
+
+			if (typeof source !== 'string' || !source.trim()) {
+				return;
+			}
+
+			void runUserScript(app, source, [context]);
+		}
+	} satisfies HandlerDefinitionProps;
+};

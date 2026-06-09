@@ -8,7 +8,7 @@ export const createClipHandler = (app: PluginAppApi) =>
 	({
 		name: 'Create Clip',
 		execute: (_action, _handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (!broadcasterId) {
 				return;

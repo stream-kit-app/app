@@ -155,7 +155,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 			const menuItems = app.pluginMenuPages.register(this, this.menuItems);
 
 			for (const item of menuItems) {
-				app.menu.add(item);
+				app.menu.addPlugin(item);
 				this.registeredMenuPaths.push(item.path);
 			}
 		}

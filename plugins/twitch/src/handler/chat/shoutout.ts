@@ -20,7 +20,7 @@ export const createShoutoutHandler = (app: PluginAppApi) =>
 		],
 		execute: (_action, handler, context) => {
 			const user = resolveFieldText(handler.fields, 'user', context);
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (typeof user !== 'string' || !user.trim() || !broadcasterId) {
 				return;

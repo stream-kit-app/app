@@ -15,4 +15,5 @@ export type MenuItem = {
 	isGroupOnly?: boolean;
 	isDisabled?: boolean | (() => boolean);
 	onClick?: () => void;
+	fromPlugin?: boolean;
 };

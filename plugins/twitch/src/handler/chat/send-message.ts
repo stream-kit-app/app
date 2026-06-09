@@ -27,8 +27,8 @@ export const createSendMessageHandler = (app: PluginAppApi) => {
 		execute: (_action, handler, context) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
 			const asBot = getFieldValue(handler.fields, 'as-bot') === true;
-			const channel = resolveChannel(context as { channel?: string }, app);
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const channel = resolveChannel(context, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (typeof message !== 'string' || !message.trim() || !channel) {
 				return;

@@ -8,6 +8,7 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { InputSwitch } from '@stream-kit/ui/input';
+
 	import { app } from '$lib/core';
 	import { setPluginDevMode } from '$lib/core/plugins/plugin-dev-watcher';
 	import { uninstallInstalledPlugin } from '$lib/core/plugins/plugin-loader';
@@ -22,7 +23,7 @@
 	};
 
 	let { plugin }: Props = $props();
-	const { t } = useI18n();
+	let { t } = useI18n();
 	let statusRevision = $state(0);
 
 	const missingDependencies = $derived.by(() => {
@@ -119,7 +120,7 @@
 
 <section
 	class={cn(
-		'flex min-h-52 flex-col gap-4 rounded-lg p-4',
+		'flex min-h-52 flex-col gap-4 rounded-lg border border-dark-600 p-4',
 		hasDependencyIssues ? 'pointer-events-none bg-destructive-900 opacity-70' : 'bg-dark-800'
 	)}
 >

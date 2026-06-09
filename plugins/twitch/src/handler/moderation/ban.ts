@@ -29,12 +29,12 @@ export const createBanHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const reason = resolveFieldText(handler.fields, 'reason', context);
 			const durationValue = getFieldValue(handler.fields, 'duration');
 			const { userName } = resolveUserFromContext(
-				context as { user?: string },
+				context,
 				typeof fieldUser === 'string' ? fieldUser : undefined
 			);
 

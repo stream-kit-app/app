@@ -1,12 +1,13 @@
 import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
+import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
 
 export type HandlerDefinitionProps = {
 	name: string;
 	children?: HandlerDefinitionProps[];
 	fields?: HandlerFieldDefinition[];
-	execute?: (action: Action, handler: ActionHandler, context: unknown) => void;
+	execute?: (action: Action, handler: ActionHandler, context: HandlerTriggerContext) => void;
 };
 
 export type ResolvedHandlerDefinitionProps = Omit<HandlerDefinitionProps, 'children' | 'fields'> & {

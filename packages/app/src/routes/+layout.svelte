@@ -4,13 +4,14 @@
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 
-	import { ConfirmDialog } from '$lib/components/core/confirm';
-	import { Modal } from '$lib/components/core/modal';
-	import { Toast } from '$lib/components/core/toast';
 	import { Logo } from '@stream-kit/ui/logo';
 	import * as Nav from '@stream-kit/ui/nav';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 	import { TooltipProvider } from '@stream-kit/ui/tooltip';
+
+	import { ConfirmDialog } from '$lib/components/core/confirm';
+	import { Modal } from '$lib/components/core/modal';
+	import { Toast } from '$lib/components/core/toast';
 	import { app } from '$lib/core';
 	import {
 		initPluginDevWatcher,
@@ -41,16 +42,14 @@
 
 <TooltipProvider>
 	<div class="flex h-screen w-screen items-stretch p-4">
-		<aside class="flex h-full w-64 flex-col rounded-xl bg-dark-800 shadow-sm">
+		<aside
+			class="flex h-full w-64 flex-col rounded-xl border border-dark-600 bg-dark-800 shadow-sm"
+		>
 			<section class="mt-4 mb-4 p-2.5">
 				<Logo />
 			</section>
 			<section class="p-2.5">
-				<Nav.Root
-					items={app.menu.items}
-					activePath={page.url.pathname}
-					{translateTitle}
-				/>
+				<Nav.Root items={app.menu.items} activePath={page.url.pathname} {translateTitle} />
 			</section>
 		</aside>
 		<main class="flex min-h-0 flex-1 flex-col">

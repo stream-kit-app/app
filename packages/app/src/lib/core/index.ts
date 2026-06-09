@@ -16,4 +16,33 @@ export { Plugins, RegisteredPlugin } from './plugins';
 export type { OAuthStartOptions } from './oauth';
 export { OAuth } from './oauth';
 export { Opener } from './opener';
+export { BaseDirectory, FileHandle, Filesystem, SeekMode } from './filesystem';
+export type {
+	CopyFileOptions,
+	CreateOptions,
+	DebouncedWatchOptions,
+	DirEntry,
+	ExistsOptions,
+	FileInfo,
+	FileSystemFilter,
+	FileSystemSelectOptions,
+	MkdirOptions,
+	OpenOptions,
+	ReadDirOptions,
+	ReadFileOptions,
+	RemoveOptions,
+	RenameOptions,
+	StatOptions,
+	TruncateOptions,
+	UnwatchFn,
+	WatchEvent,
+	WatchEventKind,
+	WatchEventKindAccess,
+	WatchEventKindCreate,
+	WatchEventKindModify,
+	WatchEventKindRemove,
+	WatchOptions,
+	WriteFileOptions
+} from './filesystem';
+export { Audio } from './audio';
 export { app, store, type Store };

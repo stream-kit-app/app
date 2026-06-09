@@ -34,7 +34,7 @@ export const createWhisperHandler = (app: PluginAppApi) =>
 			}
 
 			const { userName } = resolveUserFromContext(
-				context as { user?: string },
+				context,
 				typeof fieldUser === 'string' ? fieldUser : undefined
 			);
 

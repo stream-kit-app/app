@@ -2,21 +2,22 @@ import type { ModalProps } from './modal/modal.svelte';
 import type { Plugin } from './plugins';
 import type { RegisterPluginOptions } from './plugins/installed-plugin';
 
-import { invoke } from '@tauri-apps/api/core';
 import { SvelteMap } from 'svelte/reactivity';
 
 import { translate } from '$lib/i18n';
 
 import { Actions } from './action/action.svelte';
+import { Audio } from './audio';
 import { Bootable } from './bootable.svelte';
 import { Confirm } from './confirm';
+import { Filesystem } from './filesystem';
 import { Menu } from './menu';
 import { Modal } from './modal';
 import { OAuth } from './oauth';
 import { Opener } from './opener';
 import { Plugins } from './plugins';
-import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
 import { createPluginAppApi } from './plugins/app-api';
+import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
 import { Settings } from './settings';
 import { Toast } from './toast';
 
@@ -28,6 +29,8 @@ export class App extends Bootable {
 	public settings = new Settings();
 	public oauth = new OAuth();
 	public opener = new Opener();
+	public fs = new Filesystem();
+	public audio = new Audio();
 
 	public bootables: Bootable[] = $state.raw([]);
 
@@ -80,8 +83,4 @@ export class App extends Bootable {
 		}
 	}
 
-	public async playAudio(blob: Blob, volume: number): Promise<void> {
-		const data = Array.from(new Uint8Array(await blob.arrayBuffer()));
-		await invoke('play_audio', { data, volume: Math.min(1, Math.max(0, volume)) });
-	}
 }

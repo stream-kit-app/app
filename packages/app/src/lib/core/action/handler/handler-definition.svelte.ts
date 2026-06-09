@@ -1,5 +1,6 @@
 import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
+import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
 import type { HandlerDefinitionProps } from './types';
 
@@ -48,7 +49,7 @@ export class HandlerDefinition {
 	isAvailable: boolean = $state(true);
 
 	fields?: ResolvedHandlerFieldDefinition[];
-	execute?: (action: Action, handler: ActionHandler, context: unknown) => void;
+	execute?: (action: Action, handler: ActionHandler, context: HandlerTriggerContext) => void;
 
 	children = new HandlerDefinitions();
 

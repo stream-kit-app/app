@@ -4,9 +4,9 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"build:packages": "pnpm --filter @stream-kit/ui build && pnpm --filter @stream-kit/core build && pnpm --filter @stream-kit/plugin-twitch build && pnpm --filter @stream-kit/plugin-youtube build && pnpm --filter @stream-kit/plugin-tts build && pnpm --filter @stream-kit/app build:plugin-host",
-		"dev": "pnpm build:packages && concurrently -n ui,core,twitch,youtube,tts,tauri -c yellow,blue,magenta,red,cyan,green \"pnpm --filter @stream-kit/ui dev\" \"pnpm --filter @stream-kit/core dev\" \"pnpm --filter @stream-kit/plugin-twitch dev\" \"pnpm --filter @stream-kit/plugin-youtube dev\" \"pnpm --filter @stream-kit/plugin-tts dev\" \"pnpm --filter @stream-kit/app tauri dev\"",
-		"dev:packages": "pnpm --parallel --filter @stream-kit/ui --filter @stream-kit/core --filter @stream-kit/plugin-twitch --filter @stream-kit/plugin-youtube --filter @stream-kit/plugin-tts dev",
+		"build:packages": "pnpm --filter @stream-kit/ui build && pnpm --filter @stream-kit/core build && pnpm --filter @stream-kit/plugin-core build && pnpm --filter @stream-kit/plugin-twitch build && pnpm --filter @stream-kit/plugin-youtube build && pnpm --filter @stream-kit/plugin-tts build && pnpm --filter @stream-kit/app build:plugin-host",
+		"dev": "pnpm build:packages && concurrently -n ui,core-pkg,core-plugin,twitch,youtube,tts,tauri -c yellow,blue,white,magenta,red,cyan,green \"pnpm --filter @stream-kit/ui dev\" \"pnpm --filter @stream-kit/core dev\" \"pnpm --filter @stream-kit/plugin-core dev\" \"pnpm --filter @stream-kit/plugin-twitch dev\" \"pnpm --filter @stream-kit/plugin-youtube dev\" \"pnpm --filter @stream-kit/plugin-tts dev\" \"pnpm --filter @stream-kit/app tauri dev\"",
+		"dev:packages": "pnpm --parallel --filter @stream-kit/ui --filter @stream-kit/core --filter @stream-kit/plugin-core --filter @stream-kit/plugin-twitch --filter @stream-kit/plugin-youtube --filter @stream-kit/plugin-tts dev",
 		"dev:app": "pnpm --filter @stream-kit/app tauri dev",
 		"build": "pnpm build:packages && pnpm --filter @stream-kit/app build",
 		"preview": "pnpm --filter @stream-kit/app preview",

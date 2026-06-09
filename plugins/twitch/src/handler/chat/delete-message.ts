@@ -18,12 +18,13 @@ export const createDeleteMessageHandler = (app: PluginAppApi) =>
 		],
 		execute: (_action, handler, context) => {
 			const fieldMessageId = getFieldValue(handler.fields, 'messageId');
-			const ctx = context as ChatMessageContext;
+			const triggerData = context.data as ChatMessageContext;
 			const messageId =
 				(typeof fieldMessageId === 'string' && fieldMessageId.trim()) ||
-				ctx.msg?.id ||
+				triggerData.msg?.id ||
 				undefined;
-			const broadcasterId = ctx.msg?.channelId ?? resolveBroadcasterId(ctx, app);
+			const broadcasterId =
+				triggerData.msg?.channelId ?? resolveBroadcasterId(context, app);
 
 			if (!broadcasterId || !messageId) {
 				return;

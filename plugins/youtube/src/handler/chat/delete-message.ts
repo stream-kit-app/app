@@ -17,10 +17,10 @@ export const createDeleteMessageHandler = (app: PluginAppApi) =>
 		],
 		execute: (_action, handler, context) => {
 			const fieldMessageId = getFieldValue(handler.fields, 'messageId');
-			const ctx = context as ChatMessageContext;
+			const triggerData = context.data as ChatMessageContext;
 			const messageId =
 				(typeof fieldMessageId === 'string' && fieldMessageId.trim()) ||
-				ctx.raw?.id ||
+				triggerData.raw?.id ||
 				undefined;
 			const client = getYouTube(app).client;
 

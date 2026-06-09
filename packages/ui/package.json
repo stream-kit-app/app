@@ -53,6 +53,10 @@
 			"svelte": "./src/lib/components/heading/index.ts",
 			"import": "./src/lib/components/heading/index.ts"
 		},
+		"./monaco": {
+			"types": "./src/lib/monaco/index.ts",
+			"import": "./src/lib/monaco/index.ts"
+		},
 		"./input": {
 			"types": "./src/lib/components/input/index.ts",
 			"svelte": "./src/lib/components/input/index.ts",
@@ -88,6 +92,9 @@
 		"build": "svelte-check --tsconfig ./tsconfig.json",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"dev": "svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"dependencies": {
+		"monaco-editor": "^0.55.1"
 	},
 	"peerDependencies": {
 		"@iconify/svelte": "^5.0.0",

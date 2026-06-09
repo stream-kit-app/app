@@ -1,6 +1,7 @@
 import type { HandlerDefinitionProps } from '../action/handler';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
+import { createFilesystemApi } from '../filesystem/create-api';
 
 export type PluginDefinitionCollections = {
 	triggers?: TriggerDefinitionProps[];
@@ -24,11 +25,12 @@ export function createPluginAppApi(app: App) {
 			create: app.createModal.bind(app)
 		},
 		menu: {
-			add: app.menu.add.bind(app.menu),
+			add: app.menu.addPlugin.bind(app.menu),
 			remove: app.menu.remove.bind(app.menu)
 		},
+		fs: createFilesystemApi(app.fs),
 		audio: {
-			play: app.playAudio.bind(app)
+			play: app.audio.play.bind(app.audio)
 		},
 		actions: {
 			reactivateAll: () => {

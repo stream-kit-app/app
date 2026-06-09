@@ -16,7 +16,7 @@ export const createShieldModeHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const enabled = getFieldValue(handler.fields, 'enabled') === true;
 
 			if (!broadcasterId) {

@@ -8,7 +8,7 @@ export const createRaidCancelHandler = (app: PluginAppApi) =>
 	({
 		name: 'Cancel Raid',
 		execute: (_action, _handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (!broadcasterId) {
 				return;

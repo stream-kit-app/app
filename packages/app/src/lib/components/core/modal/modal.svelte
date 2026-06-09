@@ -5,6 +5,7 @@
 	import { Dialog } from 'bits-ui';
 
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
+
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
@@ -25,10 +26,21 @@
 			)}
 		/>
 		<Dialog.Content class={cn('group fixed inset-0 flex h-screen w-screen justify-end p-4')}>
+			<div class="p-6">
+				<Dialog.Close
+					class={cn(
+						'cursor-pointer duration-150',
+						'group-data-[state=open]:animate-in group-data-[state=open]:slide-in-from-right-28',
+						'group-data-[state=closed]:animate-out group-data-[state=closed]:slide-out-to-right-28'
+					)}
+				>
+					<Icon icon="ri:close-fill" class="h-12 w-12" />
+				</Dialog.Close>
+			</div>
 			<ScrollArea
 				orientation="vertical"
 				class={cn(
-					'h-full min-h-0 w-full overflow-hidden rounded-2xl bg-dark-800',
+					'h-full min-h-0 w-full overflow-hidden rounded-2xl border border-dark-600 bg-dark-800',
 					'group-data-[state=open]:animate-in group-data-[state=open]:slide-in-from-right-4',
 					'group-data-[state=closed]:animate-out group-data-[state=closed]:slide-out-to-right-4',
 					{
@@ -41,16 +53,6 @@
 				viewportClasses="h-full w-full"
 			>
 				<div class="p-8">
-					<Dialog.Close
-						class={cn(
-							'mb-6 flex cursor-pointer items-center gap-2 text-dark-50 outline-none hover:text-dark-100',
-							'group-data-[state=open]:animate-in group-data-[state=open]:slide-in-from-right-4',
-							'group-data-[state=closed]:animate-out group-data-[state=closed]:slide-out-to-right-4'
-						)}
-					>
-						<Icon icon="ri:close-fill" class="h-6 w-6" />
-						<span>{t('Close')}</span>
-					</Dialog.Close>
 					<Dialog.Title class="text-2xl font-bold">{modal.title}</Dialog.Title>
 					{#if modal.description}
 						<Dialog.Description class="mt-1 text-dark-200">

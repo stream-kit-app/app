@@ -1,6 +1,20 @@
-import { AlertVariant } from '../components/alert';
-import { BadgeVariant } from '../components/badge';
-import { ButtonVariant } from '../components/button';
+export type PageAlertVariant = 'default' | 'success' | 'error' | 'warning';
+export type PageBadgeVariant =
+	| 'default'
+	| 'secondary'
+	| 'outline'
+	| 'ghost'
+	| 'destructive'
+	| 'success'
+	| 'warning'
+	| 'link';
+export type PageButtonVariant =
+	| 'default'
+	| 'secondary'
+	| 'outline'
+	| 'ghost'
+	| 'destructive'
+	| 'link';
 
 export type PageButtonClickHandler = () => void | Promise<void>;
 
@@ -32,7 +46,7 @@ export type PageFormField =
 			type: 'alert';
 			name: string;
 			description?: string;
-			variant?: AlertVariant;
+			variant?: PageAlertVariant;
 	  };
 
 export type PageFormSection = {
@@ -59,12 +73,12 @@ export type PageBlock =
 			type: 'alert';
 			title?: string;
 			description?: string;
-			variant?: AlertVariant;
+			variant?: PageAlertVariant;
 	  }
 	| {
 			type: 'badge';
 			label: string;
-			variant?: BadgeVariant;
+			variant?: PageBadgeVariant;
 	  }
 	| {
 			type: 'card';
@@ -84,7 +98,7 @@ export type PageBlock =
 	| {
 			type: 'button';
 			label: string;
-			variant?: ButtonVariant;
+			variant?: PageButtonVariant;
 			onClick: PageButtonClickHandler;
 	  }
 	| PageFormBlock;

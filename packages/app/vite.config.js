@@ -31,13 +31,17 @@ export default defineConfig(async () => ({
 			ignored: ['**/src-tauri/**']
 		}
 	},
+	optimizeDeps: {
+		include: ['monaco-editor']
+	},
 	ssr: {
 		noExternal: [
 			'@stream-kit/app',
 			'@stream-kit/ui',
 			'@stream-kit/plugin-twitch',
 			'@stream-kit/plugin-youtube',
-			'@stream-kit/plugin-tts'
+			'@stream-kit/plugin-tts',
+			'@stream-kit/plugin-core'
 		]
 	}
 }));

@@ -37,7 +37,7 @@ export const createPollStartHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const title = resolveFieldText(handler.fields, 'title', context);
 			const choices = parseListField(getFieldValue(handler.fields, 'choices'));
 			const duration = parsePositiveInt(getFieldValue(handler.fields, 'duration'));

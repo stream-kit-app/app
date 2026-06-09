@@ -3,8 +3,8 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
 	entry: ['src/index.ts'],
 	format: ['esm'],
-	external: ['$env/static/public'],
 	clean: true,
+	external: ['@stream-kit/app/api', '@stream-kit/core', '$env/static/public'],
 	dts: {
 		compilerOptions: {
 			ignoreDeprecations: '6.0',

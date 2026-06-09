@@ -26,7 +26,7 @@ export const createAnnouncementHandler = (app: PluginAppApi) =>
 		execute: (_action, handler, context) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
 			const color = getFieldValue(handler.fields, 'color');
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (typeof message !== 'string' || !message.trim() || !broadcasterId) {
 				return;

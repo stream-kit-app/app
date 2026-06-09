@@ -17,7 +17,7 @@ export const createCommercialHandler = (app: PluginAppApi) =>
 		],
 		execute: (_action, handler, context) => {
 			const lengthValue = getFieldValue(handler.fields, 'length');
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const length = Number.parseInt(
 				typeof lengthValue === 'string' ? lengthValue : '30',
 				10

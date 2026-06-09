@@ -36,10 +36,10 @@ export const createPointsFulfillHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const { rewardId, redemptionId } = resolveRedemptionIds(
 				handler,
-				context as PointsRedemptionContext
+				context.data as PointsRedemptionContext
 			);
 
 			if (!broadcasterId || !rewardId || !redemptionId) {
@@ -67,10 +67,10 @@ export const createPointsCancelHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const { rewardId, redemptionId } = resolveRedemptionIds(
 				handler,
-				context as PointsRedemptionContext
+				context.data as PointsRedemptionContext
 			);
 
 			if (!broadcasterId || !rewardId || !redemptionId) {

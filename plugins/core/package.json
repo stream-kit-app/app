@@ -1,0 +1,28 @@
+{
+	"name": "@stream-kit/plugin-core",
+	"version": "0.1.0",
+	"type": "module",
+	"license": "MIT",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup",
+		"check": "tsc --noEmit",
+		"dev": "tsup --watch src"
+	},
+	"dependencies": {
+		"@stream-kit/core": "workspace:*"
+	},
+	"devDependencies": {
+		"@stream-kit/app": "workspace:*",
+		"tsup": "^8.5.0",
+		"typescript": "~6.0.3"
+	}
+}

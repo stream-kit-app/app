@@ -15,6 +15,11 @@ type HandlerFieldBase = {
 	required?: boolean;
 };
 
+export type HandlerFileFilter = {
+	name: string;
+	extensions: string[];
+};
+
 /** A selectable field definition for the Add Field dropdown on handlers. */
 export type HandlerFieldDefinition =
 	| (HandlerFieldBase & { type: 'text'; variables?: HandlerFieldVariable[] })
@@ -24,6 +29,16 @@ export type HandlerFieldDefinition =
 			type: 'select';
 			items: SelectItemsSource;
 			loadingPlaceholder?: string;
+	  })
+	| (HandlerFieldBase & {
+			type: 'select-file-or-folder';
+			mode: 'file' | 'folder';
+			filters?: HandlerFileFilter[];
+	  })
+	| (HandlerFieldBase & {
+			type: 'code';
+			language?: 'typescript';
+			defaultValue?: string;
 	  });
 
 export type ResolvedHandlerFieldDefinition = HandlerFieldDefinition & {

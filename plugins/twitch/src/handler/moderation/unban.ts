@@ -18,12 +18,9 @@ export const createUnbanHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
-			const { userName, userId } = resolveUserFromContext(
-				context as { user?: string; userId?: string },
-				fieldUser
-			);
+			const { userName, userId } = resolveUserFromContext(context, fieldUser);
 			const target = userId ?? userName;
 
 			if (!broadcasterId || !target) {

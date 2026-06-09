@@ -1,17 +1,22 @@
 import type { PluginAppApi } from '@stream-kit/app/api';
+import type { HandlerTriggerContext } from '@stream-kit/core';
 
 import { getYouTube } from './plugin-api';
 
 export function resolveLiveChatId(
-	context: { liveChatId?: string },
+	context: HandlerTriggerContext,
 	app: PluginAppApi
 ): string | undefined {
-	return context.liveChatId || getYouTube(app).liveChatId;
+	const data = context.data as { liveChatId?: string } | undefined;
+
+	return data?.liveChatId || getYouTube(app).liveChatId;
 }
 
 export function resolveChannelTitle(
-	context: { channel?: string },
+	context: HandlerTriggerContext,
 	app: PluginAppApi
 ): string | undefined {
-	return context.channel || getYouTube(app).channelTitle;
+	const data = context.data as { channel?: string } | undefined;
+
+	return data?.channel || getYouTube(app).channelTitle;
 }

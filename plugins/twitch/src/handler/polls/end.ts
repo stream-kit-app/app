@@ -21,12 +21,12 @@ export const createPollEndHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldPollId = getFieldValue(handler.fields, 'pollId');
 			const showResult = getFieldValue(handler.fields, 'showResult') === true;
 			const pollId =
 				(typeof fieldPollId === 'string' && fieldPollId.trim()) ||
-				(context as PollContext).pollId;
+				(context.data as PollContext).pollId;
 
 			if (!broadcasterId || !pollId) {
 				return;

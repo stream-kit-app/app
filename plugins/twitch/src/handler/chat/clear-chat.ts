@@ -9,9 +9,9 @@ export const createClearChatHandler = (app: PluginAppApi) =>
 	({
 		name: 'Clear Chat',
 		execute: (_action, _handler, context) => {
+			const triggerData = context.data as ChatMessageContext;
 			const broadcasterId =
-				(context as ChatMessageContext).msg?.channelId ??
-				resolveBroadcasterId(context as { broadcasterId?: string }, app);
+				triggerData.msg?.channelId ?? resolveBroadcasterId(context, app);
 
 			if (!broadcasterId) {
 				return;

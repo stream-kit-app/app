@@ -38,7 +38,7 @@ export const createPredictionStartHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const title = resolveFieldText(handler.fields, 'title', context);
 			const outcome1 = getFieldValue(handler.fields, 'outcome1');
 			const outcome2 = getFieldValue(handler.fields, 'outcome2');

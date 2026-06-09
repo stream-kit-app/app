@@ -18,7 +18,7 @@ export const createRaidStartHandler = (app: PluginAppApi) =>
 		],
 		execute: (_action, handler, context) => {
 			const target = getFieldValue(handler.fields, 'target');
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (typeof target !== 'string' || !target.trim() || !broadcasterId) {
 				return;

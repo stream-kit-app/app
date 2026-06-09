@@ -1,10 +1,10 @@
-import type { ConditionGroupNode } from './trigger/condition';
 import type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,
 	HandlerFieldValue,
 	ResolvedHandlerFieldDefinition
 } from './handler/field';
+import type { ConditionGroupNode } from './trigger/condition';
 
 export function createHandlerFields(
 	definitions: ResolvedHandlerFieldDefinition[] | undefined,
@@ -21,12 +21,19 @@ export function createHandlerFields(
 	});
 }
 
-export function initHandlerFieldValue(definition: ResolvedHandlerFieldDefinition): HandlerFieldValue {
+export function initHandlerFieldValue(
+	definition: ResolvedHandlerFieldDefinition
+): HandlerFieldValue {
 	if (definition.defaultValue !== undefined) {
 		return definition.defaultValue;
 	}
 
-	if (definition.type === 'text' || definition.type === 'select') {
+	if (
+		definition.type === 'text' ||
+		definition.type === 'select' ||
+		definition.type === 'select-file-or-folder' ||
+		definition.type === 'code'
+	) {
 		return '';
 	}
 
@@ -51,7 +58,12 @@ export function isHandlerFieldValueEmpty(
 	definition: ResolvedHandlerFieldDefinition,
 	value: HandlerFieldValue
 ): boolean {
-	if (definition.type === 'text' || definition.type === 'select') {
+	if (
+		definition.type === 'text' ||
+		definition.type === 'select' ||
+		definition.type === 'select-file-or-folder' ||
+		definition.type === 'code'
+	) {
 		return !String(value ?? '').trim();
 	}
 
@@ -75,9 +87,10 @@ function collectLegacyHandlerFields(group: ConditionGroupNode): LegacyHandlerFie
 }
 
 /** Converts legacy handler `config` condition trees to flat field instances. */
-export function migrateLegacyHandlerFields(
-	stored: { fields?: HandlerFieldInstance[]; config?: ConditionGroupNode }
-): HandlerFieldInstance[] {
+export function migrateLegacyHandlerFields(stored: {
+	fields?: HandlerFieldInstance[];
+	config?: ConditionGroupNode;
+}): HandlerFieldInstance[] {
 	if (stored.fields) {
 		return stored.fields;
 	}
@@ -89,8 +102,9 @@ export function migrateLegacyHandlerFields(
 	return collectLegacyHandlerFields(stored.config).map((leaf) => ({
 		id: leaf.id,
 		key: leaf.key,
-		value: typeof leaf.value === 'object' && leaf.value !== null && 'value' in leaf.value
-			? String(leaf.value.value)
-			: (leaf.value as HandlerFieldValue)
+		value:
+			typeof leaf.value === 'object' && leaf.value !== null && 'value' in leaf.value
+				? String(leaf.value.value)
+				: (leaf.value as HandlerFieldValue)
 	}));
 }

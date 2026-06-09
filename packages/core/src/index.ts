@@ -1,1 +1,3 @@
 export { interpolateVariables } from './interpolate-variables.js';
+export { getFieldValue, resolveFieldText } from './handler-field.js';
+export type { HandlerTriggerContext } from './handler-context.js';

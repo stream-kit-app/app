@@ -18,9 +18,9 @@ export const createVipAddHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
-			const { userName } = resolveUserFromContext(context as { user?: string }, fieldUser);
+			const { userName } = resolveUserFromContext(context, fieldUser);
 
 			if (!broadcasterId || !userName) {
 				return;
@@ -42,9 +42,9 @@ export const createVipRemoveHandler = (app: PluginAppApi) =>
 			}
 		],
 		execute: (_action, handler, context) => {
-			const broadcasterId = resolveBroadcasterId(context as { broadcasterId?: string }, app);
+			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
-			const { userName } = resolveUserFromContext(context as { user?: string }, fieldUser);
+			const { userName } = resolveUserFromContext(context, fieldUser);
 
 			if (!broadcasterId || !userName) {
 				return;
