@@ -7,7 +7,8 @@
 /*
  * Stream Kit palette
  * dark scale — neutral super-dark gray (minimal chroma)
- * primary scale — electric cerulean (hue 255), same L steps as dark
+ * primary scale — electric cerulean (hue 255) for UI
+ * brand scale — logo yellow (#fffa00 at 500) for logo/marketing only
  * Secondary: soft orchid — badges, secondary actions, highlights
  * success scale — vivid emerald (hue 152)
  * warning scale — warm amber (hue 85)
@@ -39,6 +40,19 @@
 	--color-primary-800: oklch(0.17 0.1 255);
 	--color-primary-900: oklch(0.11 0.08 255);
 	--color-primary-950: oklch(0.06 0.06 255);
+
+	/* brand scale — 500 is exactly #fffa00; shades derived via color-mix */
+	--color-brand-50: color-mix(in srgb, #fffa00 12%, white);
+	--color-brand-100: color-mix(in srgb, #fffa00 25%, white);
+	--color-brand-200: color-mix(in srgb, #fffa00 38%, white);
+	--color-brand-300: color-mix(in srgb, #fffa00 52%, white);
+	--color-brand-400: color-mix(in srgb, #fffa00 75%, white);
+	--color-brand-500: #fffa00;
+	--color-brand-600: color-mix(in srgb, #fffa00 88%, black);
+	--color-brand-700: color-mix(in srgb, #fffa00 72%, black);
+	--color-brand-800: color-mix(in srgb, #fffa00 56%, black);
+	--color-brand-900: color-mix(in srgb, #fffa00 40%, black);
+	--color-brand-950: color-mix(in srgb, #fffa00 24%, black);
 
 	/* success scale — chroma tapers at extremes, peaks around 300–400 */
 	--color-success-50: oklch(0.78 0.06 152);
@@ -84,6 +98,9 @@
 
 	--color-primary: var(--color-primary-200);
 	--color-primary-foreground: oklch(0.99 0.002 250);
+
+	--color-brand: var(--color-brand-500);
+	--color-brand-foreground: var(--color-dark-950);
 
 	--color-secondary: oklch(0.62 0.14 305);
 	--color-secondary-foreground: oklch(0.99 0.002 250);

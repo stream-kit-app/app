@@ -70,7 +70,7 @@
 						onclick={() => toggleExpanded(item.path)}
 						aria-expanded={isExpanded(item)}
 						class={cn(
-							'flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600',
+							'flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-700',
 							hasActiveChild(item) && 'bg-dark-600'
 						)}
 					>
@@ -92,12 +92,12 @@
 										<button
 											type="button"
 											onclick={child.onClick}
-											class="flex w-full rounded-xl px-4 py-2 ps-14 text-left font-normal hover:bg-dark-600"
+											class="flex w-full rounded-xl px-4 py-2 ps-14 text-left font-normal hover:bg-dark-700"
 										>
 											{getTitle(child)}
 										</button>
 									{:else}
-										<NavLink href={child.path} variant="sidebar" class="ps-14">
+										<NavLink href={child.path} variant="default" class="ps-14">
 											{getTitle(child)}
 										</NavLink>
 									{/if}

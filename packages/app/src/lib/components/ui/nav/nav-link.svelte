@@ -18,7 +18,8 @@
 		'font-medium',
 		'flex items-center gap-4 rounded-xl px-4 py-2',
 		{
-			' bg-dark-600 shadow-sm hover:bg-dark-700 not-[data-active]:hover:bg-dark-600':
+			'hover:bg-dark-700': variant === 'default',
+			' bg-dark-600 text-primary-50 shadow-sm hover:bg-dark-700 not-[data-active]:hover:bg-dark-600':
 				variant === 'default' && isActive,
 			'text-primary-50 hover:bg-dark-800 not-[data-active]:hover:bg-transparent':
 				variant === 'sidebar' && isActive
