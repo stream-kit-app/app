@@ -16,6 +16,7 @@
 {#snippet renderForm(block: PluginPageFormBlock)}
 	<PluginPageForm
 		plugin={entry.plugin}
+		scope={`${entry.plugin.key}.${entry.key}.${block.title ?? 'form'}`}
 		title={block.title}
 		description={block.description}
 		fields={block.fields}

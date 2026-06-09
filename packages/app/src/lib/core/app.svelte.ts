@@ -17,7 +17,6 @@ import { Opener } from './opener';
 import { Plugins } from './plugins';
 import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
 import { createPluginAppApi } from './plugins/app-api';
-import { resolvePluginRegistration } from './plugins/registration';
 import { Settings } from './settings';
 import { Toast } from './toast';
 
@@ -69,18 +68,7 @@ export class App extends Bootable {
 	public async use(plugin: Plugin, options: RegisterPluginOptions = {}): Promise<void> {
 		try {
 			const registration = await plugin(createPluginAppApi(this));
-			const resolved = resolvePluginRegistration(registration, options);
-
-			if (!resolved) {
-				this.toast.create({
-					title: translate('Plugin could not be loaded'),
-					description: translate('A plugin returned an invalid registration.'),
-					variant: 'warning'
-				});
-				return;
-			}
-
-			this.plugins.register(resolved, options);
+			this.plugins.register(registration, options);
 		} catch (error) {
 			console.warn('Failed to load plugin', error);
 			this.toast.create({

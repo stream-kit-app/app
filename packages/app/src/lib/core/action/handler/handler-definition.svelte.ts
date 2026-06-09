@@ -3,15 +3,20 @@ import type { ActionHandler } from '../action-handler.svelte';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
 import type { HandlerDefinitionProps } from './types';
 
+import { scopedSlug, slugify, uniqueSlug } from '$lib/utils';
+
 type HandlerDefinitionInput = HandlerDefinitionProps & { id?: string };
+type HandlerDefinitionAddOptions = {
+	idScope?: string;
+};
 
 export class HandlerDefinitions {
 	items: HandlerDefinition[] = $state.raw([]);
 
-	add(props: HandlerDefinitionInput): HandlerDefinition {
+	add(props: HandlerDefinitionInput, options: HandlerDefinitionAddOptions = {}): HandlerDefinition {
 		const normalizedProps = {
 			...props,
-			id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length),
+			id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length, options.idScope),
 			fields: resolveFieldDefinitions(props.fields)
 		};
 
@@ -53,7 +58,7 @@ export class HandlerDefinition {
 		this.fields = resolveFieldDefinitions(props.fields);
 		this.execute = props.execute;
 
-		props.children?.forEach((child) => this.children.add(child));
+		props.children?.forEach((child) => this.children.add(child, { idScope: this.id }));
 	}
 
 	get isGroup(): boolean {
@@ -83,33 +88,17 @@ function resolveFieldDefinitions(
 	const usedKeys = new Set<string>();
 
 	return fields?.map((field) => {
-		const baseKey =
-			'key' in field && typeof field.key === 'string'
-				? field.key
-				: createGeneratedDefinitionId(field.name, usedKeys.size);
-		let key = baseKey;
-		let suffix = 2;
-
-		while (usedKeys.has(key)) {
-			key = `${baseKey}-${suffix}`;
-			suffix += 1;
-		}
-
-		usedKeys.add(key);
-
 		return {
 			...field,
-			key
+			key:
+				'key' in field && typeof field.key === 'string'
+					? field.key
+					: uniqueSlug(field.name, usedKeys, 'field')
 		};
 	});
 }
 
-function createGeneratedDefinitionId(name: string, index: number): string {
-	const slug = name
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-	return `${slug || 'handler'}-${index + 1}`;
+function createGeneratedDefinitionId(name: string, index: number, scope?: string): string {
+	const id = `${slugify(name, 'handler')}-${index + 1}`;
+	return scope ? scopedSlug(scope, [id], 'handler') : id;
 }

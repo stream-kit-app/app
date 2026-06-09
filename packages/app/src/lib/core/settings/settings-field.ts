@@ -9,6 +9,8 @@ import type {
 	SettingsSelectItemsSource
 } from './field';
 
+import { slugify, uniqueSlug } from '$lib/utils';
+
 export function toSettingsSelectItemsSource(
 	items: SettingsSelectItemsSource,
 	context: SettingsContext
@@ -30,6 +32,17 @@ export function flattenSettingsFieldItems(
 	items: SettingsFieldItem[] | undefined
 ): SettingsFieldDefinition[] {
 	return (items ?? []).flatMap((item) => (isSettingsFieldSection(item) ? item.fields : [item]));
+}
+
+export function withGeneratedSettingsKeys(
+	items: unknown[] | undefined,
+	scope: string
+): SettingsFieldItem[] {
+	const used = new Set<string>();
+
+	return (items ?? []).map((item, index) =>
+		withGeneratedSettingsItemKey(item, `${scope}.${index}`, used)
+	);
 }
 
 export function isSettingsFieldVisible(
@@ -166,4 +179,44 @@ function normalizeLookupKey(value: string): string {
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '');
+}
+
+function withGeneratedSettingsItemKey(
+	item: unknown,
+	scope: string,
+	used: Set<string>
+): SettingsFieldItem {
+	const definition = item as Record<string, unknown>;
+
+	if (definition.type === 'section') {
+		return {
+			...definition,
+			fields: ((definition.fields as unknown[] | undefined) ?? []).map((field, index) =>
+				withGeneratedSettingsFieldKey(
+					field,
+					`${scope}.${String(definition.title ?? 'section')}.${index}`,
+					used
+				)
+			)
+		} as SettingsFieldItem;
+	}
+
+	return withGeneratedSettingsFieldKey(item, scope, used);
+}
+
+function withGeneratedSettingsFieldKey(
+	field: unknown,
+	scope: string,
+	used: Set<string>
+): SettingsFieldDefinition {
+	const definition = field as Record<string, unknown>;
+
+	return {
+		...definition,
+		key: `${createSettingsKeyPrefix(scope)}${uniqueSlug(String(definition.name ?? scope), used)}`
+	} as SettingsFieldDefinition;
+}
+
+function createSettingsKeyPrefix(scope: string): string {
+	return scope.includes('.') ? `${slugify(scope)}.` : '';
 }

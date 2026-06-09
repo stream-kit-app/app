@@ -3,15 +3,23 @@ import type { ActionTrigger } from '../action-trigger.svelte';
 import type { ConditionDefinition, ConditionGroupNode, ResolvedConditionDefinition } from './condition';
 import type { TriggerDefinitionProps } from './types';
 
+import { scopedSlug, slugify, uniqueSlug } from '$lib/utils';
+
 type TriggerDefinitionInput<TContext = unknown> = TriggerDefinitionProps<TContext> & { id?: string };
+type TriggerDefinitionAddOptions = {
+	idScope?: string;
+};
 
 export class TriggerDefinitions {
 	items: TriggerDefinition[] = $state.raw([]);
 
-	add<TContext = unknown>(props: TriggerDefinitionInput<TContext>): TriggerDefinition {
+	add<TContext = unknown>(
+		props: TriggerDefinitionInput<TContext>,
+		options: TriggerDefinitionAddOptions = {}
+	): TriggerDefinition {
 		const normalizedProps = {
 			...props,
-			id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length),
+			id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length, options.idScope),
 			conditions: resolveConditionDefinitions(props.conditions)
 		};
 
@@ -37,14 +45,9 @@ export class TriggerDefinitions {
 	}
 }
 
-function createGeneratedDefinitionId(name: string, index: number): string {
-	const slug = name
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-	return `${slug || 'trigger'}-${index + 1}`;
+function createGeneratedDefinitionId(name: string, index: number, scope?: string): string {
+	const id = `${slugify(name, 'trigger')}-${index + 1}`;
+	return scope ? scopedSlug(scope, [id], 'trigger') : id;
 }
 
 export class TriggerDefinition {
@@ -71,7 +74,7 @@ export class TriggerDefinition {
 		this.activate = props.activate;
 		this.deactivate = props.deactivate;
 
-		props.children?.forEach((child) => this.children.add(child));
+		props.children?.forEach((child) => this.children.add(child, { idScope: this.id }));
 	}
 
 	get isGroup(): boolean {
@@ -109,23 +112,12 @@ function resolveConditionDefinitions(
 	const usedKeys = new Set<string>();
 
 	return conditions?.map((condition) => {
-		const baseKey =
-			'key' in condition && typeof condition.key === 'string'
-				? condition.key
-				: createGeneratedDefinitionId(condition.name, usedKeys.size);
-		let key = baseKey;
-		let suffix = 2;
-
-		while (usedKeys.has(key)) {
-			key = `${baseKey}-${suffix}`;
-			suffix += 1;
-		}
-
-		usedKeys.add(key);
-
 		return {
 			...condition,
-			key
+			key:
+				'key' in condition && typeof condition.key === 'string'
+					? condition.key
+					: uniqueSlug(condition.name, usedKeys, 'condition')
 		};
 	});
 }

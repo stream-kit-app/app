@@ -1,10 +1,12 @@
 import type { MenuItem } from '../menu/types';
-import type {
-	ResolvedPluginMenuItemChildDefinition,
-	ResolvedPluginMenuItemDefinition
-} from './registration';
 import type { RegisteredPlugin } from './registered-plugin.svelte';
-import type { PluginPageDefinition } from './types';
+import type {
+	PluginMenuItemChildDefinition,
+	PluginMenuItemDefinition,
+	PluginPageDefinition
+} from './types';
+
+import { uniqueSlug } from '$lib/utils';
 
 export type PluginMenuPageEntry = {
 	plugin: RegisteredPlugin;
@@ -17,16 +19,18 @@ export type PluginMenuPageEntry = {
 export class PluginMenuPages {
 	entries = $state.raw<PluginMenuPageEntry[]>([]);
 
-	register(plugin: RegisteredPlugin, definitions: ResolvedPluginMenuItemDefinition[]): MenuItem[] {
+	register(plugin: RegisteredPlugin, definitions: PluginMenuItemDefinition[]): MenuItem[] {
 		const menuItems: MenuItem[] = [];
 		const entries: PluginMenuPageEntry[] = [];
+		const itemKeys = new Set<string>();
 
 		for (const definition of definitions) {
-			const itemKey = definition.key;
+			const itemKey = uniqueSlug(definition.title, itemKeys, 'page');
 			const hasChildren = (definition.children?.length ?? 0) > 0;
 			const path = this.createPath(plugin.key, itemKey);
+			const childKeys = new Set<string>();
 			const children = definition.children?.map((child) => {
-				const childKey = child.key;
+				const childKey = uniqueSlug(child.title, childKeys, 'page');
 				const childPath = this.createPath(plugin.key, itemKey, childKey);
 				entries.push(this.createEntry(plugin, child, childPath, `${itemKey}/${childKey}`));
 
@@ -79,7 +83,7 @@ export class PluginMenuPages {
 
 	private createEntry(
 		plugin: RegisteredPlugin,
-		definition: ResolvedPluginMenuItemDefinition | ResolvedPluginMenuItemChildDefinition,
+		definition: PluginMenuItemDefinition | PluginMenuItemChildDefinition,
 		path: string,
 		key: string
 	): PluginMenuPageEntry {

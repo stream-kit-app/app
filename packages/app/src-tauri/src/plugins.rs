@@ -153,26 +153,8 @@ fn install_key_base(manifest: &PluginManifest) -> String {
     key
 }
 
-fn unique_plugin_destination(
-    plugins_root: &Path,
-    base_key: &str,
-    replace_existing: bool,
-) -> Result<PathBuf, String> {
-    let base_destination = plugins_root.join(base_key);
-
-    if replace_existing || !base_destination.exists() {
-        return Ok(base_destination);
-    }
-
-    for suffix in 2.. {
-        let candidate = plugins_root.join(format!("{base_key}-{suffix}"));
-
-        if !candidate.exists() {
-            return Ok(candidate);
-        }
-    }
-
-    unreachable!("unbounded suffix search should always return a plugin destination")
+fn plugin_destination(plugins_root: &Path, base_key: &str) -> PathBuf {
+    plugins_root.join(base_key)
 }
 
 fn extract_zip_to_dir<R: Read + std::io::Seek>(
@@ -293,7 +275,7 @@ pub fn install_plugin_zip(
 
     let plugins_root = plugins_dir(&app)?;
     let install_key = install_key_base(&manifest);
-    let destination = unique_plugin_destination(&plugins_root, &install_key, replace_existing)?;
+    let destination = plugin_destination(&plugins_root, &install_key);
 
     if destination.exists() {
         if !replace_existing {

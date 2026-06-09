@@ -8,7 +8,8 @@
 	import {
 		createSettingsFields,
 		flattenSettingsFieldItems,
-		isPersistedSettingsField
+		isPersistedSettingsField,
+		withGeneratedSettingsKeys
 	} from '$lib/core/settings/settings-field';
 	import { validateSettingsFields, type SettingsFormErrors } from '$lib/core/settings/validate-settings';
 	import { useI18n } from '$lib/i18n';
@@ -17,6 +18,7 @@
 
 	type Props = {
 		plugin: RegisteredPlugin;
+		scope: string;
 		title?: string;
 		description?: string;
 		fields: PluginPageFormItem[];
@@ -26,6 +28,7 @@
 
 	let {
 		plugin,
+		scope,
 		title,
 		description,
 		fields,
@@ -34,7 +37,7 @@
 	}: Props = $props();
 	const { t } = useI18n();
 
-	const fieldItems = $derived(fields as SettingsFieldItem[]);
+	const fieldItems = $derived(withGeneratedSettingsKeys(fields, scope) as SettingsFieldItem[]);
 	let fieldInstances = $state<SettingsFieldInstance[]>([]);
 	let formErrors = $state<SettingsFormErrors | null>(null);
 	let isLoading = $state(true);

@@ -3,10 +3,10 @@ import { LazyStore } from '@tauri-apps/plugin-store';
 import type { App } from '../app.svelte';
 import type { RegisterPluginOptions } from './installed-plugin';
 import type { PluginPublicApi } from './types';
-import type { ResolvedPluginRegistration } from './registration';
 
 import { translate } from '$lib/i18n';
 
+import { parsePluginRegistration } from './registration';
 import { RegisteredPlugin } from './registered-plugin.svelte';
 
 const LEGACY_PLUGIN_STORE_PATHS: Record<string, string[]> = {
@@ -17,10 +17,19 @@ export class Plugins {
 	items: RegisteredPlugin[] = $state.raw([]);
 
 	register<TApi = PluginPublicApi>(
-		props: ResolvedPluginRegistration<TApi>,
+		props: unknown,
 		options: RegisterPluginOptions = {}
 	): RegisteredPlugin<TApi> {
-		const key = props.key;
+		const key = options.key;
+		const registration = parsePluginRegistration<TApi>(props);
+
+		if (!key) {
+			throw new Error('Plugin registration requires an install key');
+		}
+
+		if (!registration) {
+			throw new Error('A plugin returned an invalid registration.');
+		}
 
 		if (this.find(key)) {
 			throw new Error(`Plugin with key ${key} already exists`);
@@ -30,7 +39,13 @@ export class Plugins {
 		const legacyStores = (LEGACY_PLUGIN_STORE_PATHS[key] ?? []).map(
 			(path) => new LazyStore(path)
 		);
-		const plugin = new RegisteredPlugin<TApi>(props, store, legacyStores, options);
+		const plugin = new RegisteredPlugin<TApi>(
+			key,
+			registration,
+			store,
+			legacyStores,
+			options
+		);
 		this.items = [...this.items, plugin];
 
 		return plugin;

@@ -39,7 +39,8 @@ const plugin: Plugin = (app) => {
 									type: 'heading',
 									level: 2,
 									title: 'Heading block',
-									subtitle: 'Headings can include a subtitle and choose levels 1 through 6.'
+									subtitle:
+										'Headings can include a subtitle and choose levels 1 through 6.'
 								},
 								{
 									type: 'text',
@@ -48,7 +49,8 @@ const plugin: Plugin = (app) => {
 								{
 									type: 'alert',
 									title: 'Alert block',
-									description: 'Alerts support default, success, warning, and error variants.',
+									description:
+										'Alerts support default, success, warning, and error variants.',
 									variant: 'warning'
 								},
 								{
@@ -176,7 +178,8 @@ const plugin: Plugin = (app) => {
 										{
 											type: 'section',
 											title: 'Inputs',
-											description: 'This section renders every supported form input.',
+											description:
+												'This section renders every supported form input.',
 											fields: [
 												{
 													type: 'text',
@@ -240,7 +243,8 @@ const plugin: Plugin = (app) => {
 								{
 									type: 'form',
 									title: 'Greeting settings',
-									description: 'Save a message and a couple of simple preferences.',
+									description:
+										'Save a message and a couple of simple preferences.',
 									submitLabel: 'Save demo settings',
 									successMessage: 'Demo settings saved',
 									fields: [
