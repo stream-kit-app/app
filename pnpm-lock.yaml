@@ -32,6 +32,9 @@ importers:
       '@stream-kit/core':
         specifier: workspace:*
         version: link:../core
+      '@stream-kit/plugin-commands':
+        specifier: workspace:*
+        version: link:../../plugins/commands
       '@stream-kit/plugin-core':
         specifier: workspace:*
         version: link:../../plugins/core
@@ -272,6 +275,22 @@ importers:
       tailwind-variants:
         specifier: ^3.2.2
         version: 3.2.2(tailwind-merge@3.6.0)(tailwindcss@4.3.0)
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  plugins/commands:
+    dependencies:
+      '@stream-kit/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@stream-kit/app':
+        specifier: workspace:*
+        version: link:../../packages/app
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)
       typescript:
         specifier: ~6.0.3
         version: 6.0.3

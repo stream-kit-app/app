@@ -1,5 +1,7 @@
 import type { MenuItem, MenuItemChild } from './types';
 
+const SETTINGS_MENU_PATH = '/settings';
+
 export class Menu {
 	items = $state.raw<MenuItem[]>([]);
 
@@ -30,10 +32,14 @@ export class Menu {
 	}
 
 	private sortItems(): void {
-		const coreItems = this.items.filter((item) => !item.fromPlugin);
-		const pluginItems = this.items.filter((item) => item.fromPlugin);
+		const settingsItem = this.items.find((item) => item.path === SETTINGS_MENU_PATH);
+		const otherItems = this.items.filter((item) => item.path !== SETTINGS_MENU_PATH);
+		const coreItems = otherItems.filter((item) => !item.fromPlugin);
+		const pluginItems = otherItems.filter((item) => item.fromPlugin);
 
-		this.items = [...coreItems, ...pluginItems];
+		this.items = settingsItem
+			? [...coreItems, ...pluginItems, settingsItem]
+			: [...coreItems, ...pluginItems];
 	}
 
 	find(path: string): MenuItem | undefined {

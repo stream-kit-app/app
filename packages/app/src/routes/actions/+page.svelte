@@ -101,6 +101,26 @@
 		await app.actions.setEnabledBulk([...selectedIds], false);
 		clearSelection();
 	}
+
+	async function deleteSelected(): Promise<void> {
+		const count = selectedIds.size;
+
+		const confirmed = await app.confirm.ask({
+			title: t('Delete selected actions?'),
+			description: t(
+				'Are you sure you want to delete {count} actions? This cannot be undone.',
+				{ count }
+			),
+			confirmLabel: t('Delete')
+		});
+
+		if (!confirmed) {
+			return;
+		}
+
+		await app.actions.deleteBulk([...selectedIds]);
+		clearSelection();
+	}
 </script>
 
 <div class="p-4">
@@ -133,6 +153,14 @@
 					</Button>
 					<Button size="sm" variant="outline" onclick={() => void disableSelected()}>
 						{t('Disable selected')}
+					</Button>
+					<Button
+						size="sm"
+						variant="destructive"
+						icon="ri:delete-bin-line"
+						onclick={() => void deleteSelected()}
+					>
+						{t('Delete selected')}
 					</Button>
 					<Button size="sm" variant="ghost" onclick={clearSelection}>
 						{t('Clear selection')}

@@ -268,7 +268,16 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		if (enabled) {
 			this.registerDefinitions(app);
 			await this.boot(app);
+
+			if (this.key === 'commands') {
+				await app.commands.load();
+				app.commands.activate(app);
+			}
 		} else {
+			if (this.key === 'commands') {
+				app.commands.deactivate();
+			}
+
 			this.unregisterDefinitions(app);
 		}
 	}

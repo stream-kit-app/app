@@ -9,6 +9,7 @@ import { translate } from '$lib/i18n';
 import { Actions } from './action/action.svelte';
 import { Audio } from './audio';
 import { Bootable } from './bootable.svelte';
+import { Commands } from './commands';
 import { Confirm } from './confirm';
 import { Filesystem } from './filesystem';
 import { Menu } from './menu';
@@ -26,6 +27,7 @@ export class App extends Bootable {
 	public plugins = new Plugins();
 	public pluginMenuPages = new PluginMenuPages();
 	public actions = new Actions();
+	public commands = new Commands();
 	public settings = new Settings();
 	public oauth = new OAuth();
 	public opener = new Opener();

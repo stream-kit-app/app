@@ -145,6 +145,33 @@
 
 	html {
 		font-size: 16px;
+		color-scheme: dark;
+	}
+
+	input:autofill,
+	input:-webkit-autofill,
+	textarea:autofill,
+	textarea:-webkit-autofill,
+	select:autofill,
+	select:-webkit-autofill {
+		-webkit-text-fill-color: var(--color-dark-50);
+		caret-color: var(--color-dark-50);
+		font-family: inherit;
+		font-size: inherit;
+		line-height: inherit;
+		-webkit-box-shadow: 0 0 0 1000px var(--color-dark-700) inset;
+		box-shadow: 0 0 0 1000px var(--color-dark-700) inset;
+	}
+
+	input:autofill:focus,
+	input:-webkit-autofill:focus,
+	textarea:autofill:focus,
+	textarea:-webkit-autofill:focus,
+	select:autofill:focus,
+	select:-webkit-autofill:focus {
+		-webkit-text-fill-color: var(--color-dark-50);
+		-webkit-box-shadow: 0 0 0 1000px var(--color-dark-700) inset;
+		box-shadow: 0 0 0 1000px var(--color-dark-700) inset;
 	}
 
 	body {

@@ -91,6 +91,13 @@ export class PluginMenuPages {
 			throw new Error(`Plugin menu page "${key}" must define a page`);
 		}
 
+		const hasBlocks = 'blocks' in definition.page && Array.isArray(definition.page.blocks);
+		const hasCustomView = 'customView' in definition.page && definition.page.customView != null;
+
+		if (!hasBlocks && !hasCustomView) {
+			throw new Error(`Plugin menu page "${key}" must define blocks or customView`);
+		}
+
 		return {
 			plugin,
 			key,

@@ -1,4 +1,9 @@
 export type { HandlerTriggerContext } from './lib/core/action/handler-context';
+export type {
+	CommandPermissions,
+	CommandRecord,
+	CommandSource
+} from './lib/core/commands/stored-command';
 export type { Action } from './lib/core/action/action.svelte';
 export type { ActionTrigger } from './lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from './lib/core/action/action-handler.svelte';

@@ -1,6 +1,8 @@
 import type { HandlerDefinitionProps } from '../action/handler';
+import type { HandlerTriggerContext } from '../action/handler-context';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
+import type { CommandRuntimeFactory } from '../commands';
 import { createFilesystemApi } from '../filesystem/create-api';
 
 export type PluginDefinitionCollections = {
@@ -42,6 +44,23 @@ export function createPluginAppApi(app: App) {
 					app.actions.deactivate(action);
 					app.actions.activate(action);
 				}
+			},
+			runById: (id: number, context: HandlerTriggerContext) => app.commands.runById(id, context)
+		},
+		commands: {
+			registerRuntime: (factory: CommandRuntimeFactory) => {
+				app.commands.registerRuntime(factory);
+			},
+			getSnapshot: () => app.commands.getSnapshot(),
+			runById: (id: number, context: HandlerTriggerContext) => app.commands.runById(id, context),
+			findByTrigger: (trigger: string) => {
+				const command = app.commands.findByTrigger(trigger);
+
+				if (!command || command.id == null) {
+					return undefined;
+				}
+
+				return command.toRecord();
 			}
 		},
 		oauth: {

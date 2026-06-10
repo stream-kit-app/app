@@ -27,6 +27,16 @@ export const db = drizzle<typeof schema>(
 export { saveAction, getActions, getAction, getActionGroups } from './repositories/actions';
 export type { SaveActionInput } from './repositories/actions';
 export type { ActionRecord, NewActionRecord } from './schemas/actions';
+export {
+	saveCommand,
+	getCommands,
+	getCommand,
+	deleteCommand,
+	updateCommandEnabled,
+	updateCommandsEnabled
+} from './repositories/commands';
+export type { SaveCommandInput } from './repositories/commands';
+export type { CommandRecord, NewCommandRecord } from './schemas/commands';
 
 function returnsRows(sql: string): boolean {
 	return /^\s*select/i.test(sql) || /\breturning\b/i.test(sql);

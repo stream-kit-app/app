@@ -64,10 +64,10 @@ You can also install **external plugins** as `.zip` files from the Plugins page.
 
 ### Bot & commands
 
-For Twitch users, Stream Kit provides a **Bot** section with command management, among other features.
+Chat commands are managed by the **Commands** plugin. Enable it from the **Plugins** page, then open **Commands** in the sidebar to create commands that run your Actions.
 
 > [!NOTE]
-> Connect Twitch from the **Plugins** page before you can add and manage commands.
+> Connect Twitch or YouTube from the **Plugins** page before chat commands can listen in your channel.
 
 ### Settings & internationalization
 
@@ -108,7 +108,8 @@ stream-kit/
 ├── plugins/
 │   ├── twitch/           # Twitch plugin
 │   ├── youtube/          # YouTube plugin
-│   └── tts/              # Text-to-speech plugin
+│   ├── tts/              # Text-to-speech plugin
+│   └── commands/         # Chat commands plugin
 └── package.json          # Workspace root scripts
 ```
 
@@ -165,7 +166,7 @@ pnpm run dev:packages   # Run packages/plugins in watch mode only
 | Stable release    | Not yet available — APIs, database schemas, and UI may break between commits |
 | Plugin coverage   | Not all triggers and handlers are complete; plugins are still being expanded |
 | YouTube plugin    | Recently added, still in active development                                  |
-| Bot functionality | Limited to command management; broader bot features are planned              |
+| Bot functionality | Bot messages; chat commands via Commands plugin |
 | Documentation     | Minimal — this README and the plugin template README are the starting point  |
 | Distribution      | No public installer or release channel yet                                   |
 

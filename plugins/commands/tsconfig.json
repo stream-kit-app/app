@@ -1,0 +1,20 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"skipLibCheck": true,
+		"declaration": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"paths": {
+			"$db/*": ["../../packages/app/src/db/*"],
+			"$lib/*": ["../../packages/app/src/lib/*"],
+			"$env/static/public": ["../../packages/app/.svelte-kit/ambient.d.ts"]
+		}
+	},
+	"include": ["src"]
+}

@@ -109,5 +109,13 @@ export async function updateActionsEnabled(ids: number[], enabled: boolean): Pro
 }
 
 export async function deleteAction(id: number) {
-	return db.delete(actions).where(eq(actions.id, id));
+	return deleteActions([id]);
+}
+
+export async function deleteActions(ids: number[]): Promise<void> {
+	if (ids.length === 0) {
+		return;
+	}
+
+	await db.delete(actions).where(inArray(actions.id, ids));
 }

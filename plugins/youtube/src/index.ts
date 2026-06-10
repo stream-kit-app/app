@@ -76,7 +76,9 @@ const plugin: Plugin = (app) => {
 
 			await youtubeApi.disconnect();
 		},
-		subscribe: (listener) => youtubeApi?.subscribe(listener) ?? (() => {})
+		subscribe: (listener) => youtubeApi?.subscribe(listener) ?? (() => {}),
+		subscribeChatMessages: (filter, handler) =>
+			youtubeApi?.subscribeChatMessages(filter, handler) ?? (() => {})
 	};
 
 	return {

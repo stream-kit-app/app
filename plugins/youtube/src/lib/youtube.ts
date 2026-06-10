@@ -1,5 +1,6 @@
 import type { YouTubeApiClient } from './api-client';
 import type { YouTubeChannelInfo, YouTubeLiveStreamInfo } from './types';
+import type { ChatMessageContext } from '../contexts';
 import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
 
 import { YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET } from '../config';
@@ -9,7 +10,7 @@ import {
 	refreshAccessToken
 } from './api-client';
 import { startBroadcastMonitor } from './broadcast-setup';
-import { startChatMonitor } from './chat-setup';
+import { startChatMonitor, subscribeChatMessages } from './chat-setup';
 import { generateCodeChallenge, generateCodeVerifier } from './pkce';
 
 type YouTubeStateListener = () => void;
@@ -35,6 +36,10 @@ export type YouTubePluginApi = {
 	startOAuth(): Promise<void>;
 	disconnect(): Promise<void>;
 	subscribe(listener: YouTubeStateListener): () => void;
+	subscribeChatMessages(
+		filter: (context: ChatMessageContext) => boolean,
+		handler: (context: ChatMessageContext) => void
+	): () => void;
 };
 
 export type YouTubePluginController = YouTubePluginApi & {
@@ -352,6 +357,9 @@ export function createYouTubePluginApi(
 			return () => {
 				listeners.delete(listener);
 			};
+		},
+		subscribeChatMessages(filter, handler) {
+			return subscribeChatMessages(filter, handler);
 		},
 		async boot() {
 			const storedAccessToken = await store.get<string>(ACCESS_TOKEN_KEY);

@@ -9,6 +9,7 @@ import { DEFAULT_ACTION_GROUP } from './stored-action';
 
 import {
 	deleteAction,
+	deleteActions,
 	getActions,
 	normalizeActionGroup,
 	saveAction,
@@ -115,6 +116,36 @@ export class Actions {
 		}
 	}
 
+	async deleteBulk(ids: number[]): Promise<void> {
+		const toDelete = this.items.filter(
+			(action) => action.id != null && ids.includes(action.id)
+		);
+
+		if (toDelete.length === 0) {
+			return;
+		}
+
+		for (const action of toDelete) {
+			this.deactivate(action);
+			action.close();
+		}
+
+		await deleteActions(toDelete.map((action) => action.id!));
+
+		const deletedIds = new Set(toDelete.map((action) => action.id));
+		this.items = this.items.filter((item) => item.id == null || !deletedIds.has(item.id));
+
+		const app = getApp();
+
+		app.toast.create({
+			title: translate('Actions deleted'),
+			description: translate('{count} actions have been deleted.', {
+				count: toDelete.length
+			}),
+			variant: 'success'
+		});
+	}
+
 	async setEnabledBulk(ids: number[], enabled: boolean): Promise<void> {
 		const toUpdate = this.items.filter(
 			(action) => action.id != null && ids.includes(action.id) && action.enabled !== enabled
@@ -151,6 +182,18 @@ export class Actions {
 			),
 			variant: 'success'
 		});
+	}
+
+	runById(id: number, context: HandlerTriggerContext): boolean {
+		const action = this.items.find((item) => item.id === id);
+
+		if (!action) {
+			return false;
+		}
+
+		action.runHandlers(context.data, context.trigger);
+
+		return true;
 	}
 }
 
@@ -312,8 +355,16 @@ export class Action {
 			return;
 		}
 
+		this.runHandlers(data, trigger.definition.name);
+	}
+
+	runHandlers(data: unknown, triggerLabel = 'Command'): void {
+		if (!this.enabled) {
+			return;
+		}
+
 		const context: HandlerTriggerContext = {
-			trigger: trigger.definition.name,
+			trigger: triggerLabel,
 			data
 		};
 

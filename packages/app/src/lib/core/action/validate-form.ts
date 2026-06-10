@@ -116,6 +116,8 @@ function hasHandlerErrors(errors: HandlerFieldFormErrors): boolean {
 	return errors.missingFields.length > 0 || Object.keys(errors.fieldErrors).length > 0;
 }
 
+export { hasHandlerErrors, validateHandlerFields };
+
 export function validateActionForm(input: {
 	name: string;
 	triggers: Array<{

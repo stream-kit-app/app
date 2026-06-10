@@ -112,11 +112,23 @@ export type PageFormBlock = {
 	successMessage?: string;
 };
 
-export type PageDefinition = {
+export type PageCustomView = 'commands';
+
+export type PageBlocksDefinition = {
 	title?: string;
 	description?: string;
 	blocks: PageBlock[];
+	customView?: never;
 };
+
+export type PageCustomViewDefinition = {
+	title?: string;
+	description?: string;
+	customView: PageCustomView;
+	blocks?: never;
+};
+
+export type PageDefinition = PageBlocksDefinition | PageCustomViewDefinition;
 
 type PageFieldBase = {
 	name: string;

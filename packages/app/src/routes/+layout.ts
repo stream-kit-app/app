@@ -34,10 +34,6 @@ export const load = async () => {
 		icon: 'at-icons:bot',
 		children: [
 			{
-				path: '/bot/commands',
-				title: 'Commands'
-			},
-			{
 				path: '/bot/messages',
 				title: 'Messages'
 			}
