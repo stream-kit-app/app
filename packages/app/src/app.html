@@ -13,6 +13,27 @@
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover" class="bg-background text-foreground">
+		<div
+			id="boot-splash"
+			aria-hidden="true"
+			style="
+				position: fixed;
+				inset: 0;
+				z-index: 200;
+				overflow: hidden;
+				background: oklch(0.06 0.004 264);
+			"
+		>
+			<div
+				style="
+					position: absolute;
+					inset: -20%;
+					background:
+						radial-gradient(circle at 30% 35%, oklch(0.38 0.16 255 / 0.22), transparent 42%),
+						radial-gradient(circle at 70% 65%, oklch(0.85 0.18 95 / 0.12), transparent 38%);
+				"
+			></div>
+		</div>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

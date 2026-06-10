@@ -4,15 +4,17 @@ import { HandlerDefinition } from './handler/handler-definition.svelte';
 import { TriggerDefinitions } from './trigger';
 import { TriggerDefinition } from './trigger/trigger-definition.svelte';
 import type { ActionFormErrors } from './validate-form';
-import type { ActionRecord } from '$db/schemas/actions';
+import type { ActionRecord } from './stored-action';
+import { DEFAULT_ACTION_GROUP } from './stored-action';
 
 import {
 	deleteAction,
 	getActions,
 	normalizeActionGroup,
-	saveAction
+	saveAction,
+	updateActionEnabled,
+	updateActionsEnabled
 } from '$db/repositories/actions';
-import { DEFAULT_ACTION_GROUP } from '$db/schemas/actions';
 
 import ActionForm from '$lib/components/core/action/action-form.svelte';
 import { translate } from '$lib/i18n';
@@ -28,6 +30,7 @@ export type ActionProps = {
 	name?: string;
 	group?: string;
 	id?: number;
+	enabled?: boolean;
 	triggers?: ActionTrigger[];
 	handlers?: ActionHandler[];
 };
@@ -68,11 +71,18 @@ export class Actions {
 			}
 
 			this.add(action);
-			this.activate(action);
+
+			if (action.enabled) {
+				this.activate(action);
+			}
 		}
 	}
 
 	activate(action: Action): void {
+		if (!action.enabled) {
+			return;
+		}
+
 		const app = getApp();
 
 		for (const trigger of action.triggers) {
@@ -104,6 +114,44 @@ export class Actions {
 			trigger.definition.deactivate?.(action, trigger);
 		}
 	}
+
+	async setEnabledBulk(ids: number[], enabled: boolean): Promise<void> {
+		const toUpdate = this.items.filter(
+			(action) => action.id != null && ids.includes(action.id) && action.enabled !== enabled
+		);
+
+		if (toUpdate.length === 0) {
+			return;
+		}
+
+		for (const action of toUpdate) {
+			action.enabled = enabled;
+
+			if (enabled) {
+				this.activate(action);
+			} else {
+				this.deactivate(action);
+			}
+		}
+
+		await updateActionsEnabled(
+			toUpdate.map((action) => action.id!),
+			enabled
+		);
+
+		const app = getApp();
+
+		app.toast.create({
+			title: translate(enabled ? 'Actions enabled' : 'Actions disabled'),
+			description: translate(
+				enabled
+					? '{count} actions have been enabled.'
+					: '{count} actions have been disabled.',
+				{ count: toUpdate.length }
+			),
+			variant: 'success'
+		});
+	}
 }
 
 export class Action {
@@ -111,6 +159,7 @@ export class Action {
 	modalId?: string;
 	name: string = $state('');
 	group: string = $state(DEFAULT_ACTION_GROUP);
+	enabled: boolean = $state(true);
 	triggers: ActionTrigger[] = $state([]);
 	handlers: ActionHandler[] = $state([]);
 
@@ -120,6 +169,7 @@ export class Action {
 		this.id = props.id;
 		this.name = props.name ?? '';
 		this.group = normalizeActionGroup(props.group);
+		this.enabled = props.enabled ?? true;
 		this.triggers = props.triggers ?? [];
 		this.handlers = props.handlers ?? [];
 	}
@@ -167,6 +217,7 @@ export class Action {
 			id: record.id,
 			name: record.name,
 			group: record.group,
+			enabled: record.enabled ?? true,
 			triggers,
 			handlers
 		});
@@ -249,6 +300,10 @@ export class Action {
 	}
 
 	fire(trigger: ActionTrigger, data: unknown): void {
+		if (!this.enabled) {
+			return;
+		}
+
 		if (!trigger.definition.isAvailable) {
 			return;
 		}
@@ -300,6 +355,7 @@ export class Action {
 			{
 				name: this.name.trim(),
 				group: this.group,
+				enabled: this.enabled,
 				triggers: this.triggers.map((trigger) => trigger.toStored()),
 				handlers: this.handlers.map((handler) => handler.toStored())
 			},
@@ -309,11 +365,15 @@ export class Action {
 		if (row) {
 			this.id = row.id;
 			this.group = normalizeActionGroup(row.group);
+			this.enabled = row.enabled;
 		}
 
 		if (wasNew && row) {
 			app.actions.add(this);
-			app.actions.activate(this);
+
+			if (this.enabled) {
+				app.actions.activate(this);
+			}
 		}
 
 		app.toast.create({
@@ -325,5 +385,35 @@ export class Action {
 		this.close();
 
 		return true;
+	}
+
+	async setEnabled(enabled: boolean): Promise<void> {
+		if (this.enabled === enabled) {
+			return;
+		}
+
+		this.enabled = enabled;
+
+		if (this.id == null) {
+			return;
+		}
+
+		const app = getApp();
+
+		if (enabled) {
+			app.actions.activate(this);
+		} else {
+			app.actions.deactivate(this);
+		}
+
+		await updateActionEnabled(this.id, enabled);
+
+		app.toast.create({
+			title: translate(enabled ? 'Action enabled' : 'Action disabled'),
+			description: translate(enabled ? '{name} has been enabled.' : '{name} has been disabled.', {
+				name: this.name.trim() || translate('this action')
+			}),
+			variant: 'success'
+		});
 	}
 }

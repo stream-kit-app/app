@@ -1,1 +1,4 @@
-export type { HandlerTriggerContext } from '@stream-kit/core';
+export type HandlerTriggerContext = {
+	trigger: string;
+	data: unknown;
+};

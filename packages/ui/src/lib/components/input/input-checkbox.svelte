@@ -8,6 +8,7 @@
 
 	type Props = {
 		label?: string;
+		'aria-label'?: string;
 		checked?: boolean;
 		error?: string;
 		id?: string;
@@ -18,6 +19,7 @@
 
 	let {
 		label,
+		'aria-label': ariaLabel,
 		checked = $bindable(false),
 		error,
 		id = useId(),
@@ -31,6 +33,7 @@
 		<Checkbox.Root
 			{id}
 			bind:checked
+			aria-label={ariaLabel}
 			aria-labelledby={label ? `${id}-label` : undefined}
 			aria-invalid={error ? true : undefined}
 			class={cn(
@@ -66,6 +69,7 @@
 			<Checkbox.Root
 				{id}
 				bind:checked
+				aria-label={ariaLabel}
 				aria-labelledby={label ? `${id}-label` : undefined}
 				aria-invalid={error ? true : undefined}
 				class={cn(

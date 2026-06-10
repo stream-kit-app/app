@@ -10,19 +10,19 @@ importers:
     devDependencies:
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.7.1
-        version: 4.7.1(prettier@3.8.3)
+        version: 4.7.1(prettier@3.8.4)
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
       prettier:
-        specifier: ^3.8.3
-        version: 3.8.3
+        specifier: ^3.8.4
+        version: 3.8.4
       prettier-plugin-svelte:
         specifier: ^3.5.2
-        version: 3.5.2(prettier@3.8.3)(svelte@5.56.1(@typescript-eslint/types@8.60.1))
+        version: 3.5.2(prettier@3.8.4)(svelte@5.56.1(@typescript-eslint/types@8.60.1))
       prettier-plugin-tailwindcss:
         specifier: ^0.7.4
-        version: 0.7.4(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.3))(prettier-plugin-svelte@3.5.2(prettier@3.8.3)(svelte@5.56.1(@typescript-eslint/types@8.60.1)))(prettier@3.8.3)
+        version: 0.7.4(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.4))(prettier-plugin-svelte@3.5.2(prettier@3.8.4)(svelte@5.56.1(@typescript-eslint/types@8.60.1)))(prettier@3.8.4)
 
   packages/app:
     dependencies:
@@ -2740,6 +2740,11 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  prettier@3.8.4:
+    resolution: {integrity: sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   promise-limit@2.7.0:
     resolution: {integrity: sha512-7nJ6v5lnJsXwGprnGXga4wx6d1POjvi5Qmf1ivTRxTjH4Z/9Czja/UCMLVmB9N93GeWOU93XaFaEt6jbuoagNw==}
 
@@ -3672,6 +3677,17 @@ snapshots:
       '@babel/traverse': 7.29.7
       '@babel/types': 7.29.7
       prettier: 3.8.3
+      semver: 7.8.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.4)':
+    dependencies:
+      '@babel/generator': 7.29.7
+      '@babel/parser': 7.29.7
+      '@babel/traverse': 7.29.7
+      '@babel/types': 7.29.7
+      prettier: 3.8.4
       semver: 7.8.1
     transitivePeerDependencies:
       - supports-color
@@ -5117,6 +5133,11 @@ snapshots:
       prettier: 3.8.3
       svelte: 5.56.1(@typescript-eslint/types@8.60.1)
 
+  prettier-plugin-svelte@3.5.2(prettier@3.8.4)(svelte@5.56.1(@typescript-eslint/types@8.60.1)):
+    dependencies:
+      prettier: 3.8.4
+      svelte: 5.56.1(@typescript-eslint/types@8.60.1)
+
   prettier-plugin-tailwindcss@0.7.4(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.3))(prettier-plugin-svelte@3.5.2(prettier@3.8.3)(svelte@5.56.1(@typescript-eslint/types@8.60.1)))(prettier@3.8.3):
     dependencies:
       prettier: 3.8.3
@@ -5124,7 +5145,16 @@ snapshots:
       '@ianvs/prettier-plugin-sort-imports': 4.7.1(prettier@3.8.3)
       prettier-plugin-svelte: 3.5.2(prettier@3.8.3)(svelte@5.56.1(@typescript-eslint/types@8.60.1))
 
+  prettier-plugin-tailwindcss@0.7.4(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.4))(prettier-plugin-svelte@3.5.2(prettier@3.8.4)(svelte@5.56.1(@typescript-eslint/types@8.60.1)))(prettier@3.8.4):
+    dependencies:
+      prettier: 3.8.4
+    optionalDependencies:
+      '@ianvs/prettier-plugin-sort-imports': 4.7.1(prettier@3.8.4)
+      prettier-plugin-svelte: 3.5.2(prettier@3.8.4)(svelte@5.56.1(@typescript-eslint/types@8.60.1))
+
   prettier@3.8.3: {}
+
+  prettier@3.8.4: {}
 
   promise-limit@2.7.0: {}
 

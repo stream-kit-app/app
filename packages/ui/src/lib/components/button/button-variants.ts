@@ -26,7 +26,7 @@ export const buttonVariants = tv({
 		},
 		size: {
 			xs: 'h-7 rounded-lg px-2 text-xs [&_svg:not([class*="size-"])]:size-3',
-			sm: 'h-8 px-3 text-sm [&_svg:not([class*="size-"])]:size-3.5',
+			sm: 'h-8 px-3 text-sm font-normal [&_svg:not([class*="size-"])]:size-3.5',
 			default: 'h-10 px-4 text-sm [&_svg:not([class*="size-"])]:size-4',
 			lg: 'h-12 px-6 text-base [&_svg:not([class*="size-"])]:size-5',
 			icon: 'size-[37px] [&_svg:not([class*="size-"])]:size-4',

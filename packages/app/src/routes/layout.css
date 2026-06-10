@@ -129,6 +129,11 @@
 	--font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;
 }
 
+@utility text-cap {
+	line-height: 1;
+	text-box: trim-both cap alphabetic;
+}
+
 @layer base {
 	*,
 	::after,
@@ -144,5 +149,19 @@
 
 	body {
 		@apply bg-background font-sans text-foreground antialiased;
+	}
+
+	:where(
+		button,
+		[data-button-root],
+		[role='button'],
+		label,
+		legend,
+		summary,
+		th,
+		figcaption,
+		nav a
+	) {
+		@apply text-cap;
 	}
 }

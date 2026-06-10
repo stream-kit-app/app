@@ -26,6 +26,7 @@ async function createActionsTable(sqlite: Database): Promise<void> {
 			"group" TEXT NOT NULL DEFAULT 'default',
 			triggers TEXT NOT NULL,
 			handlers TEXT NOT NULL,
+			enabled INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER NOT NULL,
 			updated_at INTEGER NOT NULL
 		)
@@ -39,6 +40,14 @@ async function migrateAddGroupColumn(sqlite: Database): Promise<void> {
 		await sqlite.execute(
 			`ALTER TABLE actions ADD COLUMN "group" TEXT NOT NULL DEFAULT 'default'`
 		);
+	}
+}
+
+async function migrateAddEnabledColumn(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(actions)');
+
+	if (!columns.some((column) => column.name === 'enabled')) {
+		await sqlite.execute(`ALTER TABLE actions ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1`);
 	}
 }
 
@@ -104,4 +113,5 @@ export async function migrate(sqlite: Database): Promise<void> {
 	}
 
 	await migrateAddGroupColumn(sqlite);
+	await migrateAddEnabledColumn(sqlite);
 }

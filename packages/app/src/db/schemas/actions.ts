@@ -1,23 +1,18 @@
-import type { ConditionGroupNode } from '$lib/core/action/trigger/condition';
-import type { HandlerFieldInstance } from '$lib/core/action/handler/field';
+import {
+	DEFAULT_ACTION_GROUP,
+	type StoredActionHandler,
+	type StoredActionTrigger
+} from '$lib/core/action/stored-action';
 
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-export type StoredActionTrigger = {
-	id: string;
-	triggerTypeId: string;
-	conditions: ConditionGroupNode;
-};
-
-export type StoredActionHandler = {
-	id: string;
-	handlerTypeId: string;
-	fields: HandlerFieldInstance[];
-	/** @deprecated Legacy condition-tree config, migrated on load. */
-	config?: ConditionGroupNode;
-};
-
-export const DEFAULT_ACTION_GROUP = 'default';
+export {
+	DEFAULT_ACTION_GROUP,
+	type ActionRecord,
+	type NewActionRecord,
+	type StoredActionHandler,
+	type StoredActionTrigger
+} from '$lib/core/action/stored-action';
 
 /** User-configured actions saved to the local database. */
 export const actions = sqliteTable('actions', {
@@ -26,9 +21,7 @@ export const actions = sqliteTable('actions', {
 	group: text('group').notNull().default(DEFAULT_ACTION_GROUP),
 	triggers: text('triggers', { mode: 'json' }).$type<StoredActionTrigger[]>().notNull(),
 	handlers: text('handlers', { mode: 'json' }).$type<StoredActionHandler[]>().notNull(),
+	enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 });
-
-export type ActionRecord = typeof actions.$inferSelect;
-export type NewActionRecord = typeof actions.$inferInsert;

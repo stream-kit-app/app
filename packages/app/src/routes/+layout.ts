@@ -59,9 +59,5 @@ export const load = async () => {
 		icon: 'ri:settings-5-line'
 	});
 
-	await app.plugins.load(app);
-	await app.settings.load();
-	await app.actions.load();
-
 	return { i18n };
 };

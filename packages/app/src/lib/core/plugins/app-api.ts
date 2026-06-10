@@ -35,6 +35,10 @@ export function createPluginAppApi(app: App) {
 		actions: {
 			reactivateAll: () => {
 				for (const action of app.actions.items) {
+					if (!action.enabled) {
+						continue;
+					}
+
 					app.actions.deactivate(action);
 					app.actions.activate(action);
 				}

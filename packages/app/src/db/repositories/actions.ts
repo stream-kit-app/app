@@ -1,7 +1,11 @@
-import type { StoredActionHandler, StoredActionTrigger } from '../schemas/actions';
+import type {
+	ActionRecord,
+	StoredActionHandler,
+	StoredActionTrigger
+} from '../schemas/actions';
 import type { SelectItem } from '$lib/core/action/trigger/condition';
 
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '../index';
 import { actions, DEFAULT_ACTION_GROUP } from '../schemas/actions';
@@ -9,6 +13,7 @@ import { actions, DEFAULT_ACTION_GROUP } from '../schemas/actions';
 export type SaveActionInput = {
 	name: string;
 	group: string;
+	enabled: boolean;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 };
@@ -19,7 +24,7 @@ export function normalizeActionGroup(group: string | null | undefined): string {
 	return trimmed || DEFAULT_ACTION_GROUP;
 }
 
-export async function getAction(id: number) {
+export async function getAction(id: number): Promise<ActionRecord> {
 	const [row] = await db.select().from(actions).where(eq(actions.id, id)).limit(1);
 
 	if (!row) {
@@ -29,7 +34,7 @@ export async function getAction(id: number) {
 	return row;
 }
 
-export async function getActions() {
+export async function getActions(): Promise<ActionRecord[]> {
 	return db.select().from(actions);
 }
 
@@ -48,7 +53,7 @@ export async function getActionGroups(): Promise<SelectItem[]> {
 	return groups.map((group) => ({ value: group, label: group }));
 }
 
-export async function saveAction(input: SaveActionInput, id?: number) {
+export async function saveAction(input: SaveActionInput, id?: number): Promise<ActionRecord> {
 	const now = new Date();
 	const group = normalizeActionGroup(input.group);
 
@@ -58,6 +63,7 @@ export async function saveAction(input: SaveActionInput, id?: number) {
 			.set({
 				name: input.name,
 				group,
+				enabled: input.enabled,
 				triggers: input.triggers,
 				handlers: input.handlers,
 				updatedAt: now
@@ -73,6 +79,7 @@ export async function saveAction(input: SaveActionInput, id?: number) {
 		.values({
 			name: input.name,
 			group,
+			enabled: input.enabled,
 			triggers: input.triggers,
 			handlers: input.handlers,
 			createdAt: now,
@@ -81,6 +88,24 @@ export async function saveAction(input: SaveActionInput, id?: number) {
 		.returning();
 
 	return row;
+}
+
+export async function updateActionEnabled(id: number, enabled: boolean): Promise<void> {
+	await updateActionsEnabled([id], enabled);
+}
+
+export async function updateActionsEnabled(ids: number[], enabled: boolean): Promise<void> {
+	if (ids.length === 0) {
+		return;
+	}
+
+	await db
+		.update(actions)
+		.set({
+			enabled,
+			updatedAt: new Date()
+		})
+		.where(inArray(actions.id, ids));
 }
 
 export async function deleteAction(id: number) {
