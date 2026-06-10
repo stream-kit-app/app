@@ -1,0 +1,830 @@
+{
+  "voices": [
+    {
+      "id": "ca_ES-upc_ona-medium",
+      "name": "UPC_Ona",
+      "language": "Catalan (Spain)",
+      "quality": "medium",
+      "modelPath": "ca/ca_ES/upc_ona/medium/ca_ES-upc_ona-medium.onnx"
+    },
+    {
+      "id": "ca_ES-upc_ona-x_low",
+      "name": "UPC_Ona",
+      "language": "Catalan (Spain)",
+      "quality": "x_low",
+      "modelPath": "ca/ca_ES/upc_ona/x_low/ca_ES-upc_ona-x_low.onnx"
+    },
+    {
+      "id": "ca_ES-upc_pau-x_low",
+      "name": "UPC_Pau",
+      "language": "Catalan (Spain)",
+      "quality": "x_low",
+      "modelPath": "ca/ca_ES/upc_pau/x_low/ca_ES-upc_pau-x_low.onnx"
+    },
+    {
+      "id": "cs_CZ-jirka-low",
+      "name": "Jirka",
+      "language": "Czech (Czech Republic)",
+      "quality": "low",
+      "modelPath": "cs/cs_CZ/jirka/low/cs_CZ-jirka-low.onnx"
+    },
+    {
+      "id": "cs_CZ-jirka-medium",
+      "name": "Jirka",
+      "language": "Czech (Czech Republic)",
+      "quality": "medium",
+      "modelPath": "cs/cs_CZ/jirka/medium/cs_CZ-jirka-medium.onnx"
+    },
+    {
+      "id": "da_DK-talesyntese-medium",
+      "name": "Talesyntese",
+      "language": "Danish (Denmark)",
+      "quality": "medium",
+      "modelPath": "da/da_DK/talesyntese/medium/da_DK-talesyntese-medium.onnx"
+    },
+    {
+      "id": "ne_NP-google-x_low",
+      "name": "Nathalie",
+      "language": "Dutch (Belgium)",
+      "quality": "low",
+      "modelPath": "ne/ne_NP/google/x_low/ne_NP-google-x_low.onnx"
+    },
+    {
+      "id": "nl_BE-nathalie-medium",
+      "name": "Nathalie",
+      "language": "Dutch (Belgium)",
+      "quality": "medium",
+      "modelPath": "nl/nl_BE/nathalie/medium/nl_BE-nathalie-medium.onnx"
+    },
+    {
+      "id": "nl_BE-rdh-medium",
+      "name": "Rdh",
+      "language": "Dutch (Belgium)",
+      "quality": "medium",
+      "modelPath": "nl/nl_BE/rdh/medium/nl_BE-rdh-medium.onnx"
+    },
+    {
+      "id": "nl_BE-rdh-x_low",
+      "name": "Rdh",
+      "language": "Dutch (Belgium)",
+      "quality": "x_low",
+      "modelPath": "nl/nl_BE/rdh/x_low/nl_BE-rdh-x_low.onnx"
+    },
+    {
+      "id": "nl_NL-mls-medium",
+      "name": "Mls",
+      "language": "Dutch (Netherlands)",
+      "quality": "medium",
+      "modelPath": "nl/nl_NL/mls/medium/nl_NL-mls-medium.onnx"
+    },
+    {
+      "id": "nl_NL-mls_5809-low",
+      "name": "Mls_5809",
+      "language": "Dutch (Netherlands)",
+      "quality": "low",
+      "modelPath": "nl/nl_NL/mls_5809/low/nl_NL-mls_5809-low.onnx"
+    },
+    {
+      "id": "nl_NL-mls_7432-low",
+      "name": "Mls_7432",
+      "language": "Dutch (Netherlands)",
+      "quality": "low",
+      "modelPath": "nl/nl_NL/mls_7432/low/nl_NL-mls_7432-low.onnx"
+    },
+    {
+      "id": "en_GB-alan-low",
+      "name": "Alan",
+      "language": "English (British)",
+      "quality": "low",
+      "modelPath": "en/en_GB/alan/low/en_GB-alan-low.onnx"
+    },
+    {
+      "id": "en_GB-alan-medium",
+      "name": "Alan",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/alan/medium/en_GB-alan-medium.onnx"
+    },
+    {
+      "id": "en_GB-alba-medium",
+      "name": "Alba",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/alba/medium/en_GB-alba-medium.onnx"
+    },
+    {
+      "id": "en_GB-aru-medium",
+      "name": "Aru",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/aru/medium/en_GB-aru-medium.onnx"
+    },
+    {
+      "id": "en_GB-cori-high",
+      "name": "Cori",
+      "language": "English (British)",
+      "quality": "high",
+      "modelPath": "en/en_GB/cori/high/en_GB-cori-high.onnx"
+    },
+    {
+      "id": "en_GB-cori-medium",
+      "name": "Cori",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/cori/medium/en_GB-cori-medium.onnx"
+    },
+    {
+      "id": "en_GB-jenny_dioco-medium",
+      "name": "Jenny_Dioco",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/jenny_dioco/medium/en_GB-jenny_dioco-medium.onnx"
+    },
+    {
+      "id": "en_GB-northern_english_male-medium",
+      "name": "Northern_English_Male",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/northern_english_male/medium/en_GB-northern_english_male-medium.onnx"
+    },
+    {
+      "id": "en_GB-semaine-medium",
+      "name": "Semaine",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/semaine/medium/en_GB-semaine-medium.onnx"
+    },
+    {
+      "id": "en_GB-southern_english_female-low",
+      "name": "Southern_English_Female",
+      "language": "English (British)",
+      "quality": "low",
+      "modelPath": "en/en_GB/southern_english_female/low/en_GB-southern_english_female-low.onnx"
+    },
+    {
+      "id": "en_GB-vctk-medium",
+      "name": "Vctk",
+      "language": "English (British)",
+      "quality": "medium",
+      "modelPath": "en/en_GB/vctk/medium/en_GB-vctk-medium.onnx"
+    },
+    {
+      "id": "en_US-amy-low",
+      "name": "Amy",
+      "language": "English (United States)",
+      "quality": "low",
+      "modelPath": "en/en_US/amy/low/en_US-amy-low.onnx"
+    },
+    {
+      "id": "en_US-amy-medium",
+      "name": "Amy",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/amy/medium/en_US-amy-medium.onnx"
+    },
+    {
+      "id": "en_US-arctic-medium",
+      "name": "Arctic",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/arctic/medium/en_US-arctic-medium.onnx"
+    },
+    {
+      "id": "en_US-bryce-medium",
+      "name": "Bryce",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/bryce/medium/en_US-bryce-medium.onnx"
+    },
+    {
+      "id": "en_US-danny-low",
+      "name": "Danny",
+      "language": "English (United States)",
+      "quality": "low",
+      "modelPath": "en/en_US/danny/low/en_US-danny-low.onnx"
+    },
+    {
+      "id": "en_US-hfc_female-medium",
+      "name": "HFC_Female",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/hfc_female/medium/en_US-hfc_female-medium.onnx"
+    },
+    {
+      "id": "en_US-hfc_male-medium",
+      "name": "HFC_Male",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/hfc_male/medium/en_US-hfc_male-medium.onnx"
+    },
+    {
+      "id": "en_US-joe-medium",
+      "name": "Joe",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/joe/medium/en_US-joe-medium.onnx"
+    },
+    {
+      "id": "en_US-john-medium",
+      "name": "John",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/john/medium/en_US-john-medium.onnx"
+    },
+    {
+      "id": "en_US-kathleen-low",
+      "name": "Kathleen",
+      "language": "English (United States)",
+      "quality": "low",
+      "modelPath": "en/en_US/kathleen/low/en_US-kathleen-low.onnx"
+    },
+    {
+      "id": "en_US-kristin-medium",
+      "name": "Kristin",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/kristin/medium/en_US-kristin-medium.onnx"
+    },
+    {
+      "id": "en_US-kusal-medium",
+      "name": "Kusal",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/kusal/medium/en_US-kusal-medium.onnx"
+    },
+    {
+      "id": "en_US-l2arctic-medium",
+      "name": "L2arctic",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/l2arctic/medium/en_US-l2arctic-medium.onnx"
+    },
+    {
+      "id": "en_US-lessac-high",
+      "name": "Lessac",
+      "language": "English (United States)",
+      "quality": "high",
+      "modelPath": "en/en_US/lessac/high/en_US-lessac-high.onnx"
+    },
+    {
+      "id": "en_US-lessac-low",
+      "name": "Lessac",
+      "language": "English (United States)",
+      "quality": "low",
+      "modelPath": "en/en_US/lessac/low/en_US-lessac-low.onnx"
+    },
+    {
+      "id": "en_US-lessac-medium",
+      "name": "Lessac",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/lessac/medium/en_US-lessac-medium.onnx"
+    },
+    {
+      "id": "en_US-libritts-high",
+      "name": "Libritts",
+      "language": "English (United States)",
+      "quality": "high",
+      "modelPath": "en/en_US/libritts/high/en_US-libritts-high.onnx"
+    },
+    {
+      "id": "en_US-libritts_r-medium",
+      "name": "Libritts_R",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx"
+    },
+    {
+      "id": "en_US-ljspeech-high",
+      "name": "Ljspeech",
+      "language": "English (United States)",
+      "quality": "high",
+      "modelPath": "en/en_US/ljspeech/high/en_US-ljspeech-high.onnx"
+    },
+    {
+      "id": "en_US-ljspeech-medium",
+      "name": "Ljspeech",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx"
+    },
+    {
+      "id": "en_US-norman-medium",
+      "name": "Norman",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/norman/medium/en_US-norman-medium.onnx"
+    },
+    {
+      "id": "en_US-ryan-high",
+      "name": "Ryan",
+      "language": "English (United States)",
+      "quality": "high",
+      "modelPath": "en/en_US/ryan/high/en_US-ryan-high.onnx"
+    },
+    {
+      "id": "en_US-ryan-low",
+      "name": "Ryan",
+      "language": "English (United States)",
+      "quality": "low",
+      "modelPath": "en/en_US/ryan/low/en_US-ryan-low.onnx"
+    },
+    {
+      "id": "en_US-ryan-medium",
+      "name": "Ryan",
+      "language": "English (United States)",
+      "quality": "medium",
+      "modelPath": "en/en_US/ryan/medium/en_US-ryan-medium.onnx"
+    },
+    {
+      "id": "fi_FI-harri-low",
+      "name": "Harri",
+      "language": "Finnish (Finland)",
+      "quality": "low",
+      "modelPath": "fi/fi_FI/harri/low/fi_FI-harri-low.onnx"
+    },
+    {
+      "id": "fr_FR-gilles-low",
+      "name": "Gilles",
+      "language": "French (France)",
+      "quality": "low",
+      "modelPath": "fr/fr_FR/gilles/low/fr_FR-gilles-low.onnx"
+    },
+    {
+      "id": "fr_FR-mls-medium",
+      "name": "Mls",
+      "language": "French (France)",
+      "quality": "medium",
+      "modelPath": "fr/fr_FR/mls/medium/fr_FR-mls-medium.onnx"
+    },
+    {
+      "id": "fr_FR-mls_1840-low",
+      "name": "Mls_1840",
+      "language": "French (France)",
+      "quality": "low",
+      "modelPath": "fr/fr_FR/mls_1840/low/fr_FR-mls_1840-low.onnx"
+    },
+    {
+      "id": "fr_FR-siwis-low",
+      "name": "Siwis",
+      "language": "French (France)",
+      "quality": "low",
+      "modelPath": "fr/fr_FR/siwis/low/fr_FR-siwis-low.onnx"
+    },
+    {
+      "id": "fr_FR-siwis-medium",
+      "name": "Siwis",
+      "language": "French (France)",
+      "quality": "medium",
+      "modelPath": "fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx"
+    },
+    {
+      "id": "fr_FR-tom-medium",
+      "name": "Tom",
+      "language": "French (France)",
+      "quality": "medium",
+      "modelPath": "fr/fr_FR/tom/medium/fr_FR-tom-medium.onnx"
+    },
+    {
+      "id": "fr_FR-upmc-medium",
+      "name": "Upmc",
+      "language": "French (France)",
+      "quality": "medium",
+      "modelPath": "fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx"
+    },
+    {
+      "id": "ka_GE-natia-medium",
+      "name": "Natia",
+      "language": "Georgian (Georgia)",
+      "quality": "medium",
+      "modelPath": "ka/ka_GE/natia/medium/ka_GE-natia-medium.onnx"
+    },
+    {
+      "id": "de_DE-eva_k-x_low",
+      "name": "Eva_K",
+      "language": "German (Germany)",
+      "quality": "x_low",
+      "modelPath": "de/de_DE/eva_k/x_low/de_DE-eva_k-x_low.onnx"
+    },
+    {
+      "id": "de_DE-karlsson-low",
+      "name": "Karlsson",
+      "language": "German (Germany)",
+      "quality": "low",
+      "modelPath": "de/de_DE/karlsson/low/de_DE-karlsson-low.onnx"
+    },
+    {
+      "id": "de_DE-kerstin-low",
+      "name": "Kerstin",
+      "language": "German (Germany)",
+      "quality": "low",
+      "modelPath": "de/de_DE/kerstin/low/de_DE-kerstin-low.onnx"
+    },
+    {
+      "id": "de_DE-mls-medium",
+      "name": "Mls",
+      "language": "German (Germany)",
+      "quality": "medium",
+      "modelPath": "de/de_DE/mls/medium/de_DE-mls-medium.onnx"
+    },
+    {
+      "id": "de_DE-pavoque-low",
+      "name": "Pavoque",
+      "language": "German (Germany)",
+      "quality": "low",
+      "modelPath": "de/de_DE/pavoque/low/de_DE-pavoque-low.onnx"
+    },
+    {
+      "id": "de_DE-ramona-low",
+      "name": "Ramona",
+      "language": "German (Germany)",
+      "quality": "low",
+      "modelPath": "de/de_DE/ramona/low/de_DE-ramona-low.onnx"
+    },
+    {
+      "id": "de_DE-thorsten-high",
+      "name": "Thorsten",
+      "language": "German (Germany)",
+      "quality": "high",
+      "modelPath": "de/de_DE/thorsten/high/de_DE-thorsten-high.onnx"
+    },
+    {
+      "id": "de_DE-thorsten-low",
+      "name": "Thorsten",
+      "language": "German (Germany)",
+      "quality": "low",
+      "modelPath": "de/de_DE/thorsten/low/de_DE-thorsten-low.onnx"
+    },
+    {
+      "id": "de_DE-thorsten-medium",
+      "name": "Thorsten",
+      "language": "German (Germany)",
+      "quality": "medium",
+      "modelPath": "de/de_DE/thorsten/medium/de_DE-thorsten-medium.onnx"
+    },
+    {
+      "id": "de_DE-thorsten_emotional-medium",
+      "name": "Thorsten_Emotional",
+      "language": "German (Germany)",
+      "quality": "medium",
+      "modelPath": "de/de_DE/thorsten_emotional/medium/de_DE-thorsten_emotional-medium.onnx"
+    },
+    {
+      "id": "el_GR-rapunzelina-low",
+      "name": "Rapunzelina",
+      "language": "Greek (Greece)",
+      "quality": "low",
+      "modelPath": "el/el_GR/rapunzelina/low/el_GR-rapunzelina-low.onnx"
+    },
+    {
+      "id": "hu_HU-anna-medium",
+      "name": "Anna",
+      "language": "Hungarian (Hungary)",
+      "quality": "medium",
+      "modelPath": "hu/hu_HU/anna/medium/hu_HU-anna-medium.onnx"
+    },
+    {
+      "id": "hu_HU-berta-medium",
+      "name": "Berta",
+      "language": "Hungarian (Hungary)",
+      "quality": "medium",
+      "modelPath": "hu/hu_HU/berta/medium/hu_HU-berta-medium.onnx"
+    },
+    {
+      "id": "hu_HU-imre-medium",
+      "name": "Imre",
+      "language": "Hungarian (Hungary)",
+      "quality": "medium",
+      "modelPath": "hu/hu_HU/imre/medium/hu_HU-imre-medium.onnx"
+    },
+    {
+      "id": "is_IS-bui-medium",
+      "name": "Bui",
+      "language": "Icelandic (Iceland)",
+      "quality": "medium",
+      "modelPath": "is/is_IS/bui/medium/is_IS-bui-medium.onnx"
+    },
+    {
+      "id": "is_IS-salka-medium",
+      "name": "Salka",
+      "language": "Icelandic (Iceland)",
+      "quality": "medium",
+      "modelPath": "is/is_IS/salka/medium/is_IS-salka-medium.onnx"
+    },
+    {
+      "id": "is_IS-steinn-medium",
+      "name": "Steinn",
+      "language": "Icelandic (Iceland)",
+      "quality": "medium",
+      "modelPath": "is/is_IS/steinn/medium/is_IS-steinn-medium.onnx"
+    },
+    {
+      "id": "is_IS-ugla-medium",
+      "name": "Ugla",
+      "language": "Icelandic (Iceland)",
+      "quality": "medium",
+      "modelPath": "is/is_IS/ugla/medium/is_IS-ugla-medium.onnx"
+    },
+    {
+      "id": "it_IT-paola-medium",
+      "name": "Paola",
+      "language": "Italian (Italy)",
+      "quality": "medium",
+      "modelPath": "it/it_IT/paola/medium/it_IT-paola-medium.onnx"
+    },
+    {
+      "id": "it_IT-riccardo-x_low",
+      "name": "Riccardo",
+      "language": "Italian (Italy)",
+      "quality": "x_low",
+      "modelPath": "it/it_IT/riccardo/x_low/it_IT-riccardo-x_low.onnx"
+    },
+    {
+      "id": "kk_KZ-iseke-x_low",
+      "name": "Iseke",
+      "language": "Kazakh (Kazakhstan)",
+      "quality": "x_low",
+      "modelPath": "kk/kk_KZ/iseke/x_low/kk_KZ-iseke-x_low.onnx"
+    },
+    {
+      "id": "kk_KZ-issai-high",
+      "name": "Issai",
+      "language": "Kazakh (Kazakhstan)",
+      "quality": "high",
+      "modelPath": "kk/kk_KZ/issai/high/kk_KZ-issai-high.onnx"
+    },
+    {
+      "id": "kk_KZ-raya-x_low",
+      "name": "Raya",
+      "language": "Kazakh (Kazakhstan)",
+      "quality": "x_low",
+      "modelPath": "kk/kk_KZ/raya/x_low/kk_KZ-raya-x_low.onnx"
+    },
+    {
+      "id": "lb_LU-marylux-medium",
+      "name": "Marylux",
+      "language": "Luxembourgish (Luxembourg)",
+      "quality": "medium",
+      "modelPath": "lb/lb_LU/marylux/medium/lb_LU-marylux-medium.onnx"
+    },
+    {
+      "id": "ne_NP-google-medium",
+      "name": "Google",
+      "language": "Nepali (Nepal)",
+      "quality": "medium",
+      "modelPath": "ne/ne_NP/google/medium/ne_NP-google-medium.onnx"
+    },
+    {
+      "id": "no_NO-talesyntese-medium",
+      "name": "Talesyntese",
+      "language": "Norwegian (Norway)",
+      "quality": "medium",
+      "modelPath": "no/no_NO/talesyntese/medium/no_NO-talesyntese-medium.onnx"
+    },
+    {
+      "id": "fa_IR-amir-medium",
+      "name": "Amir",
+      "language": "Persian (Iran)",
+      "quality": "medium",
+      "modelPath": "fa/fa_IR/amir/medium/fa_IR-amir-medium.onnx"
+    },
+    {
+      "id": "fa_IR-gyro-medium",
+      "name": "Gyro",
+      "language": "Persian (Iran)",
+      "quality": "medium",
+      "modelPath": "fa/fa_IR/gyro/medium/fa_IR-gyro-medium.onnx"
+    },
+    {
+      "id": "pl_PL-darkman-medium",
+      "name": "Darkman",
+      "language": "Polish (Poland)",
+      "quality": "medium",
+      "modelPath": "pl/pl_PL/darkman/medium/pl_PL-darkman-medium.onnx"
+    },
+    {
+      "id": "pl_PL-gosia-medium",
+      "name": "Gosia",
+      "language": "Polish (Poland)",
+      "quality": "medium",
+      "modelPath": "pl/pl_PL/gosia/medium/pl_PL-gosia-medium.onnx"
+    },
+    {
+      "id": "pl_PL-mc_speech-medium",
+      "name": "McSpeech",
+      "language": "Polish (Poland)",
+      "quality": "medium",
+      "modelPath": "pl/pl_PL/mc_speech/medium/pl_PL-mc_speech-medium.onnx"
+    },
+    {
+      "id": "pl_PL-mls_6892-low",
+      "name": "Mls_6892",
+      "language": "Polish (Poland)",
+      "quality": "low",
+      "modelPath": "pl/pl_PL/mls_6892/low/pl_PL-mls_6892-low.onnx"
+    },
+    {
+      "id": "pt_BR-edresson-low",
+      "name": "Edresson",
+      "language": "Portuguese (Brazil)",
+      "quality": "low",
+      "modelPath": "pt/pt_BR/edresson/low/pt_BR-edresson-low.onnx"
+    },
+    {
+      "id": "pt_BR-faber-medium",
+      "name": "Faber",
+      "language": "Portuguese (Brazil)",
+      "quality": "medium",
+      "modelPath": "pt/pt_BR/faber/medium/pt_BR-faber-medium.onnx"
+    },
+    {
+      "id": "pt_PT-tug%C3%A3o-medium",
+      "name": "Tugao",
+      "language": "Portuguese (Portugal)",
+      "quality": "medium",
+      "modelPath": "pt/pt_PT/tug%C3%A3o/medium/pt_PT-tug%C3%A3o-medium.onnx"
+    },
+    {
+      "id": "ro_RO-mihai-medium",
+      "name": "Mihai",
+      "language": "Romanian (Romania)",
+      "quality": "medium",
+      "modelPath": "ro/ro_RO/mihai/medium/ro_RO-mihai-medium.onnx"
+    },
+    {
+      "id": "ru_RU-denis-medium",
+      "name": "Denis",
+      "language": "Russian (Russia)",
+      "quality": "medium",
+      "modelPath": "ru/ru_RU/denis/medium/ru_RU-denis-medium.onnx"
+    },
+    {
+      "id": "ru_RU-dmitri-medium",
+      "name": "Dmitri",
+      "language": "Russian (Russia)",
+      "quality": "medium",
+      "modelPath": "ru/ru_RU/dmitri/medium/ru_RU-dmitri-medium.onnx"
+    },
+    {
+      "id": "ru_RU-irina-medium",
+      "name": "Irina",
+      "language": "Russian (Russia)",
+      "quality": "medium",
+      "modelPath": "ru/ru_RU/irina/medium/ru_RU-irina-medium.onnx"
+    },
+    {
+      "id": "ru_RU-ruslan-medium",
+      "name": "Ruslan",
+      "language": "Russian (Russia)",
+      "quality": "medium",
+      "modelPath": "ru/ru_RU/ruslan/medium/ru_RU-ruslan-medium.onnx"
+    },
+    {
+      "id": "sr_RS-serbski_institut-medium",
+      "name": "Serbski_Institut",
+      "language": "Serbian (Serbia)",
+      "quality": "medium",
+      "modelPath": "sr/sr_RS/serbski_institut/medium/sr_RS-serbski_institut-medium.onnx"
+    },
+    {
+      "id": "sk_SK-lili-medium",
+      "name": "Lili",
+      "language": "Slovak (Slovakia)",
+      "quality": "medium",
+      "modelPath": "sk/sk_SK/lili/medium/sk_SK-lili-medium.onnx"
+    },
+    {
+      "id": "sl_SI-artur-medium",
+      "name": "Artur",
+      "language": "Slovenian (Slovenia)",
+      "quality": "medium",
+      "modelPath": "sl/sl_SI/artur/medium/sl_SI-artur-medium.onnx"
+    },
+    {
+      "id": "es_MX-ald-medium",
+      "name": "Ald",
+      "language": "Spanish (Mexico)",
+      "quality": "medium",
+      "modelPath": "es/es_MX/ald/medium/es_MX-ald-medium.onnx"
+    },
+    {
+      "id": "es_MX-claude-high",
+      "name": "Claude",
+      "language": "Spanish (Mexico)",
+      "quality": "high",
+      "modelPath": "es/es_MX/claude/high/es_MX-claude-high.onnx"
+    },
+    {
+      "id": "es_ES-carlfm-x_low",
+      "name": "Carlfm",
+      "language": "Spanish (Spain)",
+      "quality": "x_low",
+      "modelPath": "es/es_ES/carlfm/x_low/es_ES-carlfm-x_low.onnx"
+    },
+    {
+      "id": "es_ES-davefx-medium",
+      "name": "Davefx",
+      "language": "Spanish (Spain)",
+      "quality": "medium",
+      "modelPath": "es/es_ES/davefx/medium/es_ES-davefx-medium.onnx"
+    },
+    {
+      "id": "es_ES-mls_10246-low",
+      "name": "Mls_10246",
+      "language": "Spanish (Spain)",
+      "quality": "low",
+      "modelPath": "es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx"
+    },
+    {
+      "id": "es_ES-mls_9972-low",
+      "name": "Mls_9972",
+      "language": "Spanish (Spain)",
+      "quality": "low",
+      "modelPath": "es/es_ES/mls_9972/low/es_ES-mls_9972-low.onnx"
+    },
+    {
+      "id": "es_ES-sharvard-medium",
+      "name": "Sharvard",
+      "language": "Spanish (Spain)",
+      "quality": "medium",
+      "modelPath": "es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx"
+    },
+    {
+      "id": "sw_CD-lanfrica-medium",
+      "name": "Lanfrica",
+      "language": "Swahili (DR Congo)",
+      "quality": "medium",
+      "modelPath": "sw/sw_CD/lanfrica/medium/sw_CD-lanfrica-medium.onnx"
+    },
+    {
+      "id": "sv_SE-nst-medium",
+      "name": "NST",
+      "language": "Swedish (Sweden)",
+      "quality": "medium",
+      "modelPath": "sv/sv_SE/nst/medium/sv_SE-nst-medium.onnx"
+    },
+    {
+      "id": "tr_TR-dfki-medium",
+      "name": "Dfki",
+      "language": "Turkish (Turkey)",
+      "quality": "medium",
+      "modelPath": "tr/tr_TR/dfki/medium/tr_TR-dfki-medium.onnx"
+    },
+    {
+      "id": "tr_TR-fahrettin-medium",
+      "name": "Fahrettin",
+      "language": "Turkish (Turkey)",
+      "quality": "medium",
+      "modelPath": "tr/tr_TR/fahrettin/medium/tr_TR-fahrettin-medium.onnx"
+    },
+    {
+      "id": "tr_TR-fettah-medium",
+      "name": "Fettah",
+      "language": "Turkish (Turkey)",
+      "quality": "medium",
+      "modelPath": "tr/tr_TR/fettah/medium/tr_TR-fettah-medium.onnx"
+    },
+    {
+      "id": "uk_UA-lada-x_low",
+      "name": "Lada",
+      "language": "Ukrainian (Ukraine)",
+      "quality": "x_low",
+      "modelPath": "uk/uk_UA/lada/x_low/uk_UA-lada-x_low.onnx"
+    },
+    {
+      "id": "uk_UA-ukrainian_tts-medium",
+      "name": "Ukrainian_TTS",
+      "language": "Ukrainian (Ukraine)",
+      "quality": "medium",
+      "modelPath": "uk/uk_UA/ukrainian_tts/medium/uk_UA-ukrainian_tts-medium.onnx"
+    },
+    {
+      "id": "vi_VN-25hours_single-low",
+      "name": "25hours_single",
+      "language": "Vietnamese (Vietnam)",
+      "quality": "low",
+      "modelPath": "vi/vi_VN/25hours_single/low/vi_VN-25hours_single-low.onnx"
+    },
+    {
+      "id": "vi_VN-vais1000-medium",
+      "name": "Vais1000",
+      "language": "Vietnamese (Vietnam)",
+      "quality": "medium",
+      "modelPath": "vi/vi_VN/vais1000/medium/vi_VN-vais1000-medium.onnx"
+    },
+    {
+      "id": "vi_VN-vivos-x_low",
+      "name": "Vivos",
+      "language": "Vietnamese (Vietnam)",
+      "quality": "x_low",
+      "modelPath": "vi/vi_VN/vivos/x_low/vi_VN-vivos-x_low.onnx"
+    },
+    {
+      "id": "cy_GB-gwryw_gogleddol-medium",
+      "name": "Gwryw_Gogleddol",
+      "language": "Welsh (United Kingdom)",
+      "quality": "medium",
+      "modelPath": "cy/cy_GB/gwryw_gogleddol/medium/cy_GB-gwryw_gogleddol-medium.onnx"
+    }
+  ]
+}

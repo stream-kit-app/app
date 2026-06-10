@@ -26,6 +26,8 @@
 	} from '$lib/core/settings/settings-field';
 	import { cn } from '$lib/utils';
 
+	import SelectValuesSettingsField from './select-values-settings-field.svelte';
+
 	type Props = {
 		context: SettingsContext;
 		items: SettingsFieldItem[];
@@ -124,6 +126,8 @@
 				>
 					{config.name}
 				</Button>
+			{:else if config.type === 'select-values'}
+				<SelectValuesSettingsField {config} {context} />
 			{:else}
 				{@const field = getField(config.key)}
 				{#if field}

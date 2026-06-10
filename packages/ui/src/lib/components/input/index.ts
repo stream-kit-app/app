@@ -11,6 +11,7 @@ import InputTextSelect from './input-text-select.svelte';
 import InputTextVariables from './input-text-variables.svelte';
 import Label from './label.svelte';
 
+export { resolveSelectItems } from './resolve-select-items.svelte';
 export {
 	InputCheckbox,
 	InputCode,

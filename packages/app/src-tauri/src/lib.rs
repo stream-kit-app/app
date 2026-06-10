@@ -1,5 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod dev;
+mod local_tts;
 mod plugins;
 
 use std::io::Cursor;
@@ -61,6 +62,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             play_audio,
+            local_tts::list_local_tts_voices,
+            local_tts::get_local_tts_runtime_info,
+            local_tts::download_local_tts_runtime,
+            local_tts::download_local_tts_voice,
+            local_tts::delete_local_tts_voice,
+            local_tts::synthesize_local_speech,
             dev::watch_plugin_entry,
             dev::unwatch_plugin_entry,
             dev::open_devtools_if_needed,

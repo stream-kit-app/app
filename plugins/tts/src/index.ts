@@ -1,10 +1,14 @@
 import type { Plugin } from '@stream-kit/app/api';
 
 import { createElevenLabsSpeakHandler } from './handler/elevenlabs/speak';
+import { createLocalSpeakHandler } from './handler/local/speak';
 import { createStreamElementsSpeakHandler } from './handler/streamelements/speak';
 import { elevenlabs } from './lib/elevenlabs';
 import { elevenlabsModelSelectSettingsField } from './lib/elevenlabs/models';
 import { elevenlabsVoiceSelectSettingsField } from './lib/elevenlabs/voices';
+import { local } from './lib/local';
+import { createLocalTtsVoiceSelectField } from './lib/local/settings';
+import { localVoiceSelectSettingsField } from './lib/local/voices';
 import { streamelements } from './lib/streamelements';
 import { voiceSelectSettingsField } from './lib/streamelements/voices';
 
@@ -17,10 +21,118 @@ const plugin: Plugin = (app) => {
 		description: 'Configure the TTS engine and settings.',
 		icon: 'ri:speaker-3-line',
 		dependencies: ['twitch'],
+		api: {
+			subscribe: (listener: () => void) => local.subscribe(listener)
+		},
 		isConfigured: ({ getValue }) =>
 			Boolean(String(getValue('apiKey') ?? '').trim()) ||
-			Boolean(String(getValue('elevenlabsApiKey') ?? '').trim()),
+			Boolean(String(getValue('elevenlabsApiKey') ?? '').trim()) ||
+			local.isConfigured,
 		settings: [
+			{
+				type: 'section',
+				title: 'Local TTS',
+				description: 'Offline text-to-speech powered by Piper.',
+				fields: [
+					{
+						type: 'alert',
+						name: 'Piper runtime ready',
+						description: 'The Piper runtime is installed on this device.',
+						variant: 'success',
+						visible: () => local.runtimeInstalled
+					},
+					{
+						type: 'alert',
+						name: 'Piper runtime required',
+						description:
+							'Download the Piper runtime once before installing voices. Voice downloads will install it automatically.',
+						variant: 'warning',
+						visible: () => !local.runtimeInstalled
+					},
+					{
+						type: 'button',
+						name: 'Download Piper runtime',
+						variant: 'outline',
+						visible: () => !local.runtimeInstalled,
+						onClick: async () => {
+							app.toast.create({
+								title: 'Downloading Piper runtime',
+								description: 'This only needs to be done once.',
+								variant: 'default'
+							});
+
+							try {
+								await local.ensureRuntime();
+								app.toast.create({
+									title: 'Piper runtime installed',
+									description: 'You can now download voices.',
+									variant: 'success'
+								});
+							} catch (error) {
+								const message =
+									error instanceof Error ? error.message : String(error);
+								app.toast.create({
+									title: 'Runtime download failed',
+									description: message,
+									variant: 'error'
+								});
+							}
+						}
+					},
+					createLocalTtsVoiceSelectField(app),
+					localVoiceSelectSettingsField({
+						emptyLabel: 'Select a default voice',
+						visible: () => local.getInstalledVoices().length > 0
+					}),
+					{
+						type: 'slider',
+						name: 'Local TTS volume',
+						min: 0,
+						max: 100,
+						defaultValue: 100,
+						visible: () => local.getInstalledVoices().length > 0
+					},
+					{
+						type: 'button',
+						name: 'Test voice',
+						variant: 'outline',
+						visible: () => {
+							const voiceId = local.defaultVoice?.trim();
+							return Boolean(voiceId && local.isVoiceInstalled(voiceId));
+						},
+						onClick: async () => {
+							await local.syncFromStore();
+							const voiceId = local.defaultVoice?.trim();
+
+							if (!voiceId) {
+								app.toast.create({
+									title: 'Default voice required',
+									description: 'Select a default voice before testing.',
+									variant: 'error'
+								});
+								return;
+							}
+
+							try {
+								await local.testVoice(voiceId, 'This is a local text-to-speech test.');
+								app.toast.create({
+									title: 'Test started',
+									description: 'Playing the test phrase.',
+									variant: 'success'
+								});
+							} catch (error) {
+								const message =
+									error instanceof Error ? error.message : String(error);
+								app.toast.create({
+									title: 'Test failed',
+									description: message,
+									variant: 'error'
+								});
+							}
+						}
+					}
+				]
+			},
 			{
 				type: 'section',
 				title: 'StreamElements',
@@ -164,6 +276,10 @@ const plugin: Plugin = (app) => {
 				name: 'TTS',
 				children: [
 					{
+						name: 'Local',
+						children: [createLocalSpeakHandler()]
+					},
+					{
 						name: 'StreamElements',
 						children: [createStreamElementsSpeakHandler()]
 					},
@@ -177,14 +293,18 @@ const plugin: Plugin = (app) => {
 		onLoad: async () => {
 			await streamelements.syncFromStore();
 			await elevenlabs.syncFromStore();
+			await local.syncFromStore();
+			await local.refreshVoices();
 		},
 		onSave: async () => {
 			await streamelements.syncFromStore();
 			await elevenlabs.syncFromStore();
+			await local.syncFromStore();
 		},
 		onBoot: async ({ store }) => {
 			await streamelements.boot(app, store);
 			await elevenlabs.boot(app, store);
+			await local.boot(app, store);
 		}
 	};
 };
@@ -192,3 +312,4 @@ const plugin: Plugin = (app) => {
 export default plugin;
 export { streamelements } from './lib/streamelements';
 export { elevenlabs } from './lib/elevenlabs';
+export { local } from './lib/local';

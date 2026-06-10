@@ -82,12 +82,19 @@ export function filterVisibleFieldItems(
 	return visible;
 }
 
-type NonPersistedSettingsField = Extract<SettingsFieldDefinition, { type: 'alert' | 'button' }>;
+type NonPersistedSettingsField = Extract<
+	SettingsFieldDefinition,
+	{ type: 'alert' | 'button' | 'select-values' }
+>;
 
 export function isPersistedSettingsField(
 	definition: SettingsFieldDefinition
 ): definition is Exclude<SettingsFieldDefinition, NonPersistedSettingsField> {
-	return definition.type !== 'alert' && definition.type !== 'button';
+	return (
+		definition.type !== 'alert' &&
+		definition.type !== 'button' &&
+		definition.type !== 'select-values'
+	);
 }
 
 export function createSettingsFields(
@@ -108,7 +115,11 @@ export function createSettingsFields(
 }
 
 export function initSettingsFieldValue(definition: SettingsFieldDefinition): SettingsFieldValue {
-	if (definition.type === 'alert' || definition.type === 'button') {
+	if (
+		definition.type === 'alert' ||
+		definition.type === 'button' ||
+		definition.type === 'select-values'
+	) {
 		return false;
 	}
 
@@ -135,21 +146,25 @@ export function getSettingsFieldDefinition(
 	items: SettingsFieldItem[] | undefined,
 	key: string
 ): SettingsFieldDefinition | undefined {
-	return flattenSettingsFieldItems(items).find((field) => isMatchingKey(field.key, key));
+	return flattenSettingsFieldItems(items).find((field) => fieldKeyMatches(field.key, key));
 }
 
 export function getSettingsFieldValue(
 	fields: SettingsFieldInstance[],
 	key: string
 ): SettingsFieldValue | undefined {
-	return fields.find((field) => isMatchingKey(field.key, key))?.value;
+	return fields.find((field) => fieldKeyMatches(field.key, key))?.value;
 }
 
 export function isSettingsFieldValueEmpty(
 	definition: SettingsFieldDefinition,
 	value: SettingsFieldValue
 ): boolean {
-	if (definition.type === 'alert' || definition.type === 'button') {
+	if (
+		definition.type === 'alert' ||
+		definition.type === 'button' ||
+		definition.type === 'select-values'
+	) {
 		return false;
 	}
 
@@ -168,8 +183,14 @@ export function isSettingsFieldValueEmpty(
 	return false;
 }
 
-function isMatchingKey(left: string, right: string): boolean {
-	return normalizeLookupKey(left) === normalizeLookupKey(right);
+function fieldKeyMatches(fieldKey: string, lookupKey: string): boolean {
+	const normalizedFieldKey = normalizeLookupKey(fieldKey);
+	const normalizedLookupKey = normalizeLookupKey(lookupKey);
+
+	return (
+		normalizedFieldKey === normalizedLookupKey ||
+		normalizedFieldKey.endsWith(`-${normalizedLookupKey}`)
+	);
 }
 
 function normalizeLookupKey(value: string): string {

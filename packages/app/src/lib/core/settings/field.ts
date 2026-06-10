@@ -52,6 +52,25 @@ export type SettingsFieldDefinition =
 			description?: string;
 			variant?: SettingsAlertVariant;
 			visible?: (context: SettingsContext) => boolean;
+	  }
+	| {
+			type: 'select-values';
+			key: string;
+			name: string;
+			description?: string;
+			buttonLabel?: string;
+			dialogTitle?: string;
+			searchPlaceholder?: string;
+			loadingPlaceholder?: string;
+			emptySelectedLabel?: string;
+			visible?: (context: SettingsContext) => boolean;
+			items: SettingsSelectItemsSource;
+			itemsReload?: (context: SettingsContext) => unknown;
+			selectedItems?: SettingsSelectItemsSource;
+			selectedReload?: (context: SettingsContext) => unknown;
+			isChecked?: (context: SettingsContext, value: string) => boolean;
+			onCheck: (context: SettingsContext, value: string) => void | Promise<void>;
+			onUncheck?: (context: SettingsContext, value: string) => void | Promise<void>;
 	  };
 
 export type SettingsFieldSectionDefinition = {
