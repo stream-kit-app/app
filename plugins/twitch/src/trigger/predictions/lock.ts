@@ -3,6 +3,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribePredictionLock } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
+import { createTestPredictionContext } from '../../lib/test-contexts';
+import { createOnTest } from '../../lib/trigger-helpers';
 
 export const createPredictionLockTrigger = (app: PluginAppApi) =>
 	({
@@ -14,6 +16,7 @@ export const createPredictionLockTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestPredictionContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

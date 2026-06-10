@@ -3,6 +3,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribeHypeTrainProgress } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
+import { createTestHypeTrainContext } from '../../lib/test-contexts';
+import { createOnTest } from '../../lib/trigger-helpers';
 
 export const createHypeTrainProgressTrigger = (app: PluginAppApi) =>
 	({
@@ -14,6 +16,7 @@ export const createHypeTrainProgressTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestHypeTrainContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

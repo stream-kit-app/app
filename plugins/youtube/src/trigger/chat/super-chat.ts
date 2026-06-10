@@ -13,7 +13,8 @@ import {
 	userMatchCondition
 } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestSuperChatContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createSuperChatTrigger = (app: PluginAppApi) =>
 	({
@@ -34,6 +35,7 @@ export const createSuperChatTrigger = (app: PluginAppApi) =>
 				minAmountMicros: (value) => evaluateMinNumber(ctx.amountMicros, value)
 			});
 		},
+		onTest: createOnTest(() => createTestSuperChatContext()),
 		activate: createActivate(
 			app,
 			(handler) => subscribeYouTubeEvent<SuperChatContext>(YOUTUBE_EVENTS.SUPER_CHAT, handler),

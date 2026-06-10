@@ -5,7 +5,8 @@ import type { EventSubModerationContext } from '../../contexts';
 import { evaluateUserMatch, userMatchCondition } from '../../lib/conditions';
 import { subscribeChannelBan } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestEventSubModerationContext } from '../../lib/test-contexts';
 
 export const createChannelBanTrigger = (app: PluginAppApi) =>
 	({
@@ -25,6 +26,7 @@ export const createChannelBanTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestEventSubModerationContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

@@ -5,7 +5,8 @@ import type { ChannelUpdateContext } from '../../contexts';
 import { evaluateMessageMatch, messageMatchCondition } from '../../lib/conditions';
 import { subscribeChannelUpdate } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestChannelUpdateContext } from '../../lib/test-contexts';
 
 export const createChannelUpdateTrigger = (app: PluginAppApi) =>
 	({
@@ -29,6 +30,7 @@ export const createChannelUpdateTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestChannelUpdateContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

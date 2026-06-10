@@ -6,7 +6,8 @@ import { getBroadcasterId } from '../../lib/broadcaster';
 import { evaluateMinNumber, minNumberCondition } from '../../lib/conditions';
 import { subscribeSubs } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestCommunitySubContext } from '../../lib/test-contexts';
 
 export const createCommunitySubTrigger = (app: PluginAppApi) =>
 	({
@@ -41,6 +42,7 @@ export const createCommunitySubTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestCommunitySubContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

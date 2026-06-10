@@ -3,7 +3,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import type { OutputStateContext } from '../../contexts';
 import { OBS_EVENTS } from '../../lib/event-hub';
-import { createSimpleActivate, createDeactivate } from '../../lib/trigger-helpers';
+import { createTestOutputStateContext } from '../../lib/test-contexts';
+import { createOnTest, createSimpleActivate, createDeactivate } from '../../lib/trigger-helpers';
 import { subscribeObsEvent } from '../../lib/websocket-setup';
 
 export const createReplayBufferStartedTrigger = (_app: PluginAppApi) =>
@@ -12,6 +13,7 @@ export const createReplayBufferStartedTrigger = (_app: PluginAppApi) =>
 		activate: createSimpleActivate((handler) =>
 			subscribeObsEvent<OutputStateContext>(OBS_EVENTS.REPLAY_BUFFER_STARTED, handler)
 		),
+		onTest: createOnTest(() => createTestOutputStateContext()),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;
 
@@ -21,6 +23,7 @@ export const createReplayBufferStoppedTrigger = (_app: PluginAppApi) =>
 		activate: createSimpleActivate((handler) =>
 			subscribeObsEvent<OutputStateContext>(OBS_EVENTS.REPLAY_BUFFER_STOPPED, handler)
 		),
+		onTest: createOnTest(() => createTestOutputStateContext()),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;
 
@@ -30,5 +33,6 @@ export const createReplayBufferSavedTrigger = (_app: PluginAppApi) =>
 		activate: createSimpleActivate((handler) =>
 			subscribeObsEvent<OutputStateContext>(OBS_EVENTS.REPLAY_BUFFER_SAVED, handler)
 		),
+		onTest: createOnTest(() => createTestOutputStateContext()),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;

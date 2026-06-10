@@ -5,7 +5,8 @@ import type { ModerationContext } from '../../contexts';
 import { subscribeYouTubeEvent } from '../../lib/chat-setup';
 import { evaluateUserMatch, userMatchCondition } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestModerationContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createUserBannedTrigger = (app: PluginAppApi) =>
 	({
@@ -17,6 +18,7 @@ export const createUserBannedTrigger = (app: PluginAppApi) =>
 				user: (value) => evaluateUserMatch(user, value)
 			});
 		},
+		onTest: createOnTest(() => createTestModerationContext()),
 		activate: createActivate(
 			app,
 			(handler) => subscribeYouTubeEvent<ModerationContext>(YOUTUBE_EVENTS.USER_BANNED, handler),

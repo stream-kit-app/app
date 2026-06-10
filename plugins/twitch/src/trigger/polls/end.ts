@@ -3,6 +3,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribePollEnd } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
+import { createTestPollContext } from '../../lib/test-contexts';
+import { createOnTest } from '../../lib/trigger-helpers';
 
 export const createPollEndTrigger = (app: PluginAppApi) =>
 	({
@@ -14,6 +16,7 @@ export const createPollEndTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestPollContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

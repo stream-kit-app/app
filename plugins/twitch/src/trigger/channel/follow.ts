@@ -3,6 +3,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribeChannelFollow } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
+import { createTestFollowContext } from '../../lib/test-contexts';
+import { createOnTest } from '../../lib/trigger-helpers';
 
 export const createFollowTrigger = (app: PluginAppApi) =>
 	({
@@ -14,6 +16,7 @@ export const createFollowTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestFollowContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

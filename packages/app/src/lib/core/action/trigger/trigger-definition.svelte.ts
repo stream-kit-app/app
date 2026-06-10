@@ -1,7 +1,7 @@
 import type { Action } from '../action.svelte';
 import type { ActionTrigger } from '../action-trigger.svelte';
 import type { ConditionDefinition, ConditionGroupNode, ResolvedConditionDefinition } from './condition';
-import type { TriggerDefinitionProps } from './types';
+import type { TriggerDefinitionProps, TriggerTestFn } from './types';
 
 import { scopedSlug, slugify, uniqueSlug } from '$lib/utils';
 
@@ -60,6 +60,7 @@ export class TriggerDefinition {
 	validate?: (conditions: ConditionGroupNode, context: unknown) => boolean;
 	activate?: (action: Action, trigger: ActionTrigger) => void;
 	deactivate?: (action: Action, trigger: ActionTrigger) => void;
+	onTest?: TriggerTestFn;
 
 	children = new TriggerDefinitions();
 
@@ -73,6 +74,7 @@ export class TriggerDefinition {
 			| undefined;
 		this.activate = props.activate;
 		this.deactivate = props.deactivate;
+		this.onTest = props.onTest;
 
 		props.children?.forEach((child) => this.children.add(child, { idScope: this.id }));
 	}

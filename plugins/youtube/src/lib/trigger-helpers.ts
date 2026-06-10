@@ -1,5 +1,5 @@
-import type { Action, ActionTrigger, PluginAppApi } from '@stream-kit/app/api';
-import type { ConditionGroupNode } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/app/api';
+import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@stream-kit/core';
 
 import { evaluateConditionTree } from '../evaluate-conditions';
 import { resolveConditionValue } from '../resolve-condition-value';
@@ -37,6 +37,10 @@ export function createDeactivate() {
 	return (_action: Action, trigger: ActionTrigger) => {
 		disposeTriggerSubscription(trigger);
 	};
+}
+
+export function createOnTest<TContext>(factory: () => TContext): TriggerTestFn {
+	return (_action, _trigger) => factory();
 }
 
 export function evaluateWith(

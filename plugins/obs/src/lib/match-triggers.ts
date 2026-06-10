@@ -8,7 +8,12 @@ import {
 	inputMatchCondition,
 	transitionMatchCondition
 } from './conditions';
-import { createActivate, createDeactivate, evaluateWith } from './trigger-helpers';
+import {
+	createTestInputStateContext,
+	createTestMediaContext,
+	createTestTransitionContext
+} from './test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from './trigger-helpers';
 import { subscribeObsEvent } from './websocket-setup';
 
 export function createInputMatchTrigger(
@@ -32,7 +37,8 @@ export function createInputMatchTrigger(
 			(handler) => subscribeObsEvent<InputStateContext>(options.eventKey, handler),
 			validateInput
 		),
-		deactivate: createDeactivate()
+		deactivate: createDeactivate(),
+		onTest: createOnTest(() => createTestInputStateContext())
 	};
 }
 
@@ -57,7 +63,8 @@ export function createMediaMatchTrigger(
 			(handler) => subscribeObsEvent<MediaContext>(options.eventKey, handler),
 			validateInput
 		),
-		deactivate: createDeactivate()
+		deactivate: createDeactivate(),
+		onTest: createOnTest(() => createTestMediaContext())
 	};
 }
 
@@ -82,6 +89,7 @@ export function createTransitionMatchTrigger(
 			(handler) => subscribeObsEvent<TransitionContext>(options.eventKey, handler),
 			validateTransition
 		),
-		deactivate: createDeactivate()
+		deactivate: createDeactivate(),
+		onTest: createOnTest(() => createTestTransitionContext())
 	};
 }

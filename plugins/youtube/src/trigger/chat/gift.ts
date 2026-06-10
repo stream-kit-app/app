@@ -10,7 +10,8 @@ import {
 	userMatchCondition
 } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestGiftContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createGiftTrigger = (app: PluginAppApi) =>
 	({
@@ -24,6 +25,7 @@ export const createGiftTrigger = (app: PluginAppApi) =>
 				minJewels: (value) => evaluateMinNumber(ctx.jewelsAmount, value)
 			});
 		},
+		onTest: createOnTest(() => createTestGiftContext()),
 		activate: createActivate(
 			app,
 			(handler) => subscribeYouTubeEvent<GiftContext>(YOUTUBE_EVENTS.GIFT, handler),

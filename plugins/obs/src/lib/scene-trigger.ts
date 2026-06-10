@@ -4,7 +4,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 import type { SceneChangedContext } from '../contexts';
 import { evaluateSceneMatch, sceneMatchCondition } from './conditions';
 import { OBS_EVENTS } from './event-hub';
-import { createActivate, createDeactivate, evaluateWith } from './trigger-helpers';
+import { createTestSceneChangedContext } from './test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from './trigger-helpers';
 import { subscribeObsEvent } from './websocket-setup';
 
 export function createSceneMatchTrigger(
@@ -28,7 +29,8 @@ export function createSceneMatchTrigger(
 			(handler) => subscribeObsEvent<SceneChangedContext>(options.eventKey, handler),
 			validateScene
 		),
-		deactivate: createDeactivate()
+		deactivate: createDeactivate(),
+		onTest: createOnTest(() => createTestSceneChangedContext())
 	};
 }
 

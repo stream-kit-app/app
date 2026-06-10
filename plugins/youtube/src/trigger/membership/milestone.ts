@@ -12,7 +12,8 @@ import {
 	userMatchCondition
 } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestMemberMilestoneContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createMemberMilestoneTrigger = (app: PluginAppApi) =>
 	({
@@ -31,6 +32,7 @@ export const createMemberMilestoneTrigger = (app: PluginAppApi) =>
 				minMemberMonth: (value) => evaluateMinNumber(ctx.memberMonth, value)
 			});
 		},
+		onTest: createOnTest(() => createTestMemberMilestoneContext()),
 		activate: createActivate(
 			app,
 			(handler) =>

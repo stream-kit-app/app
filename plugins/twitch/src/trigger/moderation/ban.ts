@@ -6,7 +6,8 @@ import { getBroadcasterId } from '../../lib/broadcaster';
 import { evaluateUserMatch, userMatchCondition } from '../../lib/conditions';
 import { subscribeModeration } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestModerationContext } from '../../lib/test-contexts';
 
 export const createBanTrigger = (app: PluginAppApi) =>
 	({
@@ -34,6 +35,7 @@ export const createBanTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestModerationContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

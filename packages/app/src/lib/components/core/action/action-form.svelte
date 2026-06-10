@@ -67,9 +67,22 @@
 	function handleCancel() {
 		action.close();
 	}
+
+	async function handleTest() {
+		await action.test();
+	}
+
+	const canTest = $derived(
+		action.hasTestableTriggers &&
+			!action.execution.state.isRunning &&
+			action.handlers.length > 0
+	);
 </script>
 
-<form class="grid gap-6" onsubmit={(event: SubmitEvent) => event.preventDefault()}>
+<form
+	class={cn('grid gap-6 rounded-xl transition-colors duration-200')}
+	onsubmit={(event: SubmitEvent) => event.preventDefault()}
+>
 	<InputText
 		label={t('Name')}
 		required
@@ -105,8 +118,13 @@
 
 		{#each action.triggers as trigger (trigger.id)}
 			<div
-				class={cn('grid rounded-xl border px-4 pt-4 pb-4', {
-					'border-dark-600': trigger.definition.isAvailable,
+				class={cn('grid rounded-xl border px-4 pt-4 pb-4 transition-colors duration-200', {
+					'border-green-500 ring-1 ring-green-500/50':
+						trigger.definition.isAvailable &&
+						action.execution.state.activeTriggerId === trigger.id,
+					'border-dark-600':
+						trigger.definition.isAvailable &&
+						action.execution.state.activeTriggerId !== trigger.id,
 					'border-destructive-500 bg-destructive-800': !trigger.definition.isAvailable
 				})}
 			>
@@ -181,8 +199,18 @@
 
 		{#each action.handlers as handler (handler.id)}
 			<div
-				class={cn('grid gap-2 rounded-xl border px-4 py-4', {
-					'border-dark-600': handler.definition.isAvailable,
+				class={cn('grid gap-2 rounded-xl border px-4 py-4 transition-colors duration-200', {
+					'border-green-500 ring-1 ring-green-500/50':
+						handler.definition.isAvailable &&
+						action.execution.state.activeHandlerId === handler.id,
+					'border-green-600/70':
+						handler.definition.isAvailable &&
+						action.execution.state.activeHandlerId !== handler.id &&
+						action.execution.state.completedHandlerIds.includes(handler.id),
+					'border-dark-600':
+						handler.definition.isAvailable &&
+						action.execution.state.activeHandlerId !== handler.id &&
+						!action.execution.state.completedHandlerIds.includes(handler.id),
 					'border-destructive-500 bg-destructive-800': !handler.definition.isAvailable
 				})}
 			>
@@ -239,6 +267,15 @@
 				{t('Delete')}
 			</Button>
 		{/if}
+		<Button
+			type="button"
+			variant="outline"
+			disabled={!canTest}
+			onclick={() => void handleTest()}
+			icon="ri:play-line"
+		>
+			{t('Test')}
+		</Button>
 		<Button type="button" variant="ghost" onclick={() => void handleCancel()} class="ms-auto">
 			{t('Cancel')}
 		</Button>

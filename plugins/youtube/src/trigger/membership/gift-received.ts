@@ -5,7 +5,8 @@ import type { GiftMembershipReceivedContext } from '../../contexts';
 import { subscribeYouTubeEvent } from '../../lib/chat-setup';
 import { evaluateUserMatch, userMatchCondition } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestGiftMembershipReceivedContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createGiftMembershipReceivedTrigger = (app: PluginAppApi) =>
 	({
@@ -17,6 +18,7 @@ export const createGiftMembershipReceivedTrigger = (app: PluginAppApi) =>
 				user: (value) => evaluateUserMatch(user, value)
 			});
 		},
+		onTest: createOnTest(() => createTestGiftMembershipReceivedContext()),
 		activate: createActivate(
 			app,
 			(handler) =>

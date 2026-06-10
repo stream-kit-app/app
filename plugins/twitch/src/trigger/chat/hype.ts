@@ -5,7 +5,8 @@ import type { HypeChatContext } from '../../contexts';
 import { evaluateMinNumber, minNumberCondition } from '../../lib/conditions';
 import { subscribeMessages } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestHypeChatContext } from '../../lib/test-contexts';
 
 export const createHypeChatTrigger = (app: PluginAppApi) =>
 	({
@@ -32,6 +33,7 @@ export const createHypeChatTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestHypeChatContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

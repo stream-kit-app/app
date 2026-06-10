@@ -10,7 +10,8 @@ import {
 import { rewardSelectCondition } from '../../lib/rewards';
 import { subscribeRedemptionAdd } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestPointsRedemptionContext } from '../../lib/test-contexts';
 
 export const createPointsRedeemedTrigger = (app: PluginAppApi) =>
 	({
@@ -31,6 +32,7 @@ export const createPointsRedeemedTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestPointsRedemptionContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

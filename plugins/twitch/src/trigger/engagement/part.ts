@@ -4,6 +4,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 import { getBroadcasterId } from '../../lib/broadcaster';
 import { subscribeJoinPart } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
+import { createTestUserJoinPartContext } from '../../lib/test-contexts';
+import { createOnTest } from '../../lib/trigger-helpers';
 
 export const createUserPartTrigger = (app: PluginAppApi) =>
 	({
@@ -23,6 +25,7 @@ export const createUserPartTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestUserJoinPartContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

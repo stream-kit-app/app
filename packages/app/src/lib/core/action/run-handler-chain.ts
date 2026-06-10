@@ -2,12 +2,18 @@ import type { Action } from './action.svelte';
 import type { ActionHandler } from './action-handler.svelte';
 import type { HandlerTriggerContext } from './handler-context';
 
-export function runHandlerChain(
+export type HandlerChainCallbacks = {
+	onHandlerStart?: (handler: ActionHandler, index: number) => void;
+	onHandlerComplete?: (handler: ActionHandler, index: number) => void;
+};
+
+export async function runHandlerChain(
 	handlers: ActionHandler[],
 	action: Action,
-	context: HandlerTriggerContext
-): void {
-	const run = (index: number): void => {
+	context: HandlerTriggerContext,
+	callbacks?: HandlerChainCallbacks
+): Promise<void> {
+	const run = async (index: number): Promise<void> => {
 		if (index >= handlers.length) {
 			return;
 		}
@@ -15,32 +21,48 @@ export function runHandlerChain(
 		const handler = handlers[index];
 
 		if (!handler.definition.isAvailable || !handler.definition.execute) {
-			run(index + 1);
+			await run(index + 1);
 			return;
 		}
 
 		let called = false;
+		let resolveNext: (() => void) | undefined;
+
 		const next = (): void => {
 			if (called) {
 				return;
 			}
 
 			called = true;
-			run(index + 1);
+			callbacks?.onHandlerComplete?.(handler, index);
+			resolveNext?.();
 		};
+
+		const nextPromise = new Promise<void>((resolve) => {
+			resolveNext = resolve;
+		});
+
+		callbacks?.onHandlerStart?.(handler, index);
 
 		try {
 			const result = handler.definition.execute(action, handler, context, next);
 
 			if (result instanceof Promise) {
-				void result.catch((error: unknown) => {
-					console.error('Handler execution failed', error);
-				});
+				await result;
 			}
+
+			if (!called) {
+				callbacks?.onHandlerComplete?.(handler, index);
+				return;
+			}
+
+			await nextPromise;
+			await run(index + 1);
 		} catch (error) {
+			callbacks?.onHandlerComplete?.(handler, index);
 			console.error('Handler execution failed', error);
 		}
 	};
 
-	run(0);
+	await run(0);
 }

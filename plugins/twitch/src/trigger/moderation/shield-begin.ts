@@ -3,6 +3,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribeShieldModeBegin } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
+import { createTestEventSubModerationContext } from '../../lib/test-contexts';
+import { createOnTest } from '../../lib/trigger-helpers';
 
 export const createShieldModeBeginTrigger = (app: PluginAppApi) =>
 	({
@@ -14,6 +16,7 @@ export const createShieldModeBeginTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestEventSubModerationContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

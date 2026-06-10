@@ -6,7 +6,8 @@ import { getBroadcasterId } from '../../lib/broadcaster';
 import { evaluateMinNumber, minNumberCondition } from '../../lib/conditions';
 import { subscribeRaids } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestRaidContext } from '../../lib/test-contexts';
 
 export const createIncomingRaidTrigger = (app: PluginAppApi) =>
 	({
@@ -31,6 +32,7 @@ export const createIncomingRaidTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestRaidContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

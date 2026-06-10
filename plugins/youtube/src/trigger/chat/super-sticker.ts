@@ -10,7 +10,8 @@ import {
 	userMatchCondition
 } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestSuperStickerContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createSuperStickerTrigger = (app: PluginAppApi) =>
 	({
@@ -24,6 +25,7 @@ export const createSuperStickerTrigger = (app: PluginAppApi) =>
 				minTier: (value) => evaluateMinTier(ctx.tier, value)
 			});
 		},
+		onTest: createOnTest(() => createTestSuperStickerContext()),
 		activate: createActivate(
 			app,
 			(handler) => subscribeYouTubeEvent<SuperStickerContext>(YOUTUBE_EVENTS.SUPER_STICKER, handler),

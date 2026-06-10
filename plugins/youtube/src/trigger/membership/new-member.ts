@@ -5,7 +5,8 @@ import type { NewMemberContext } from '../../contexts';
 import { subscribeYouTubeEvent } from '../../lib/chat-setup';
 import { evaluateUserMatch, userMatchCondition } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestNewMemberContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createNewMemberTrigger = (app: PluginAppApi) =>
 	({
@@ -17,6 +18,7 @@ export const createNewMemberTrigger = (app: PluginAppApi) =>
 				user: (value) => evaluateUserMatch(user, value)
 			});
 		},
+		onTest: createOnTest(() => createTestNewMemberContext()),
 		activate: createActivate(
 			app,
 			(handler) => subscribeYouTubeEvent<NewMemberContext>(YOUTUBE_EVENTS.NEW_MEMBER, handler),

@@ -13,7 +13,8 @@ import {
 } from '../../lib/conditions';
 import { subscribeSubs } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestSubContext } from '../../lib/test-contexts';
 
 export const createResubTrigger = (app: PluginAppApi) =>
 	({
@@ -56,6 +57,7 @@ export const createResubTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestSubContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

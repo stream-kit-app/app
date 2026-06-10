@@ -9,7 +9,11 @@ export type {
 	SelectItem,
 	SelectItemsSource
 } from './condition';
-export type { ResolvedTriggerDefinitionProps, TriggerDefinitionProps } from './types';
+export type {
+	ResolvedTriggerDefinitionProps,
+	TriggerDefinitionProps,
+	TriggerTestFn
+} from './types';
 
 import { TriggerDefinition, TriggerDefinitions } from './trigger-definition.svelte';
 

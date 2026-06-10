@@ -7,7 +7,7 @@ export type {
 export type { Action } from './lib/core/action/action.svelte';
 export type { ActionTrigger } from './lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from './lib/core/action/action-handler.svelte';
-export type { TriggerDefinitionProps } from './lib/core/action/trigger/types';
+export type { TriggerDefinitionProps, TriggerTestFn } from './lib/core/action/trigger/types';
 export type {
 	HandlerDefinitionProps,
 	HandlerExecuteFn,

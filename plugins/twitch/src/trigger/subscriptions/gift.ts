@@ -11,7 +11,8 @@ import {
 } from '../../lib/conditions';
 import { subscribeSubs } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestGiftSubContext } from '../../lib/test-contexts';
 
 export const createGiftSubTrigger = (app: PluginAppApi) =>
 	({
@@ -49,6 +50,7 @@ export const createGiftSubTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestGiftSubContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

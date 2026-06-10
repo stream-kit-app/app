@@ -10,7 +10,8 @@ import {
 import { rewardSelectCondition } from '../../lib/rewards';
 import { subscribeMessages } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestRedemptionContext } from '../../lib/test-contexts';
 
 export const createRedemptionTrigger = (app: PluginAppApi) =>
 	({
@@ -38,6 +39,7 @@ export const createRedemptionTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestRedemptionContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

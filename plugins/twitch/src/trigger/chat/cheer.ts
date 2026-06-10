@@ -10,7 +10,8 @@ import {
 } from '../../lib/conditions';
 import { subscribeMessages } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestCheerContext } from '../../lib/test-contexts';
 
 export const createCheerTrigger = (app: PluginAppApi) =>
 	({
@@ -35,6 +36,7 @@ export const createCheerTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestCheerContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

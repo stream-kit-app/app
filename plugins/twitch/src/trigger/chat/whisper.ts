@@ -6,7 +6,8 @@ import { evaluateMessageMatch, messageMatchCondition } from '../../lib/condition
 import { getBroadcasterId, getBroadcasterName } from '../../lib/broadcaster';
 import { subscribeWhispers } from '../../lib/irc-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestWhisperContext } from '../../lib/test-contexts';
 
 export const createWhisperTrigger = (app: PluginAppApi) =>
 	({
@@ -29,6 +30,7 @@ export const createWhisperTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestWhisperContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

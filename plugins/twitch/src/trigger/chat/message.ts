@@ -20,7 +20,8 @@ import {
 import { subscribeMessages } from '../../lib/irc-setup';
 import { rewardSelectCondition } from '../../lib/rewards';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { evaluateWith } from '../../lib/trigger-helpers';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestChatMessageContext } from '../../lib/test-contexts';
 
 export const createChatMessageTrigger = (app: PluginAppApi) =>
 	({
@@ -75,6 +76,7 @@ export const createChatMessageTrigger = (app: PluginAppApi) =>
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
+		onTest: createOnTest(() => createTestChatMessageContext(app)),
 		deactivate: (_action, trigger) => {
 			disposeTriggerSubscription(trigger);
 		}

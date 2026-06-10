@@ -3,7 +3,8 @@ import type { TriggerDefinitionProps } from '@stream-kit/core';
 
 import { subscribeYouTubeEvent } from '../../lib/chat-setup';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createSimpleActivate, createDeactivate } from '../../lib/trigger-helpers';
+import { createTestChatEndedContext, createTestSponsorsOnlyContext } from '../../lib/test-contexts';
+import { createOnTest, createSimpleActivate, createDeactivate } from '../../lib/trigger-helpers';
 
 export const createSponsorsOnlyStartedTrigger = (_app: PluginAppApi) =>
 	({
@@ -11,6 +12,7 @@ export const createSponsorsOnlyStartedTrigger = (_app: PluginAppApi) =>
 		activate: createSimpleActivate((handler) =>
 			subscribeYouTubeEvent(YOUTUBE_EVENTS.SPONSORS_ONLY_STARTED, handler)
 		),
+		onTest: createOnTest(() => createTestSponsorsOnlyContext()),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;
 
@@ -20,6 +22,7 @@ export const createSponsorsOnlyEndedTrigger = (_app: PluginAppApi) =>
 		activate: createSimpleActivate((handler) =>
 			subscribeYouTubeEvent(YOUTUBE_EVENTS.SPONSORS_ONLY_ENDED, handler)
 		),
+		onTest: createOnTest(() => createTestSponsorsOnlyContext()),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;
 
@@ -29,5 +32,6 @@ export const createChatEndedTrigger = (_app: PluginAppApi) =>
 		activate: createSimpleActivate((handler) =>
 			subscribeYouTubeEvent(YOUTUBE_EVENTS.CHAT_ENDED, handler)
 		),
+		onTest: createOnTest(() => createTestChatEndedContext()),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;

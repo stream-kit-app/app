@@ -10,7 +10,8 @@ import {
 	userMatchCondition
 } from '../../lib/conditions';
 import { YOUTUBE_EVENTS } from '../../lib/event-hub';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestMembershipGiftContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createMembershipGiftTrigger = (app: PluginAppApi) =>
 	({
@@ -24,6 +25,7 @@ export const createMembershipGiftTrigger = (app: PluginAppApi) =>
 				minGiftCount: (value) => evaluateMinNumber(ctx.giftCount, value)
 			});
 		},
+		onTest: createOnTest(() => createTestMembershipGiftContext()),
 		activate: createActivate(
 			app,
 			(handler) =>

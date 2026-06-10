@@ -24,6 +24,7 @@ import { getApp } from '../registry';
 import { ActionHandler } from './action-handler.svelte';
 import { ActionTrigger } from './action-trigger.svelte';
 import { migrateLegacyHandlerFields } from './handler-field';
+import { ActionExecution } from './action-execution.svelte';
 import type { HandlerTriggerContext } from './handler-context';
 import { runHandlerChain } from './run-handler-chain';
 import { validateActionForm } from './validate-form';
@@ -192,7 +193,7 @@ export class Actions {
 			return false;
 		}
 
-		action.runHandlers(context.data, context.trigger);
+		void action.runHandlers(context.data, context.trigger);
 
 		return true;
 	}
@@ -208,6 +209,7 @@ export class Action {
 	handlers: ActionHandler[] = $state([]);
 
 	formErrors: ActionFormErrors | null = $state(null);
+	execution = new ActionExecution();
 
 	constructor(props: ActionProps = {}) {
 		this.id = props.id;
@@ -222,6 +224,16 @@ export class Action {
 		return (
 			this.triggers.some((trigger) => !trigger.definition.isAvailable) ||
 			this.handlers.some((handler) => !handler.definition.isAvailable)
+		);
+	}
+
+	get isFormOpen(): boolean {
+		return this.modalId != null;
+	}
+
+	get hasTestableTriggers(): boolean {
+		return this.triggers.some(
+			(trigger) => trigger.definition.isAvailable && trigger.definition.onTest != null
 		);
 	}
 
@@ -348,19 +360,99 @@ export class Action {
 			return;
 		}
 
+		void this.dispatchTrigger(trigger, data, { bypassEnabled: false });
+	}
+
+	async test(): Promise<void> {
+		if (!this.hasTestableTriggers) {
+			getApp().toast.create({
+				title: translate('No testable triggers'),
+				description: translate('Add a trigger that supports testing before running a test.'),
+				variant: 'warning'
+			});
+			return;
+		}
+
+		this.execution.begin();
+
+		try {
+			let testedCount = 0;
+
+			for (const trigger of this.triggers) {
+				if (await this.testTrigger(trigger)) {
+					testedCount += 1;
+				}
+			}
+
+			getApp().toast.create({
+				title: translate('Action test completed'),
+				description: translate('Ran {count} trigger test(s).', { count: testedCount }),
+				variant: 'success'
+			});
+		} finally {
+			await this.execution.end();
+		}
+	}
+
+	async testTrigger(trigger: ActionTrigger): Promise<boolean> {
+		if (!trigger.definition.isAvailable || !trigger.definition.onTest) {
+			return false;
+		}
+
+		const data = trigger.definition.onTest(this, trigger);
+		await this.dispatchTrigger(trigger, data, { bypassEnabled: true });
+		return true;
+	}
+
+	async dispatchTrigger(
+		trigger: ActionTrigger,
+		data: unknown,
+		options: { bypassEnabled: boolean }
+	): Promise<void> {
+		if (!options.bypassEnabled && !this.enabled) {
+			return;
+		}
+
 		if (!trigger.definition.isAvailable) {
 			return;
 		}
 
+		const showVisual = this.isFormOpen;
+
+		if (showVisual) {
+			if (!this.execution.state.isRunning) {
+				this.execution.begin();
+			}
+
+			this.execution.markTriggerActive(trigger.id);
+		}
+
 		if (!trigger.evaluate(data)) {
+			if (showVisual && !options.bypassEnabled) {
+				await this.execution.end();
+			}
+
 			return;
 		}
 
-		this.runHandlers(data, trigger.definition.name);
+		await this.runHandlers(data, trigger.definition.name, {
+			bypassEnabled: options.bypassEnabled,
+			showVisual
+		});
+
+		if (showVisual && !options.bypassEnabled) {
+			await this.execution.end();
+		}
 	}
 
-	runHandlers(data: unknown, triggerLabel = 'Command'): void {
-		if (!this.enabled) {
+	async runHandlers(
+		data: unknown,
+		triggerLabel = 'Command',
+		options: { bypassEnabled?: boolean; showVisual?: boolean } = {}
+	): Promise<void> {
+		const { bypassEnabled = false, showVisual = false } = options;
+
+		if (!bypassEnabled && !this.enabled) {
 			return;
 		}
 
@@ -369,7 +461,18 @@ export class Action {
 			data
 		};
 
-		runHandlerChain(this.handlers, this, context);
+		await runHandlerChain(this.handlers, this, context, {
+			onHandlerStart: (handler) => {
+				if (showVisual) {
+					this.execution.markHandlerActive(handler.id);
+				}
+			},
+			onHandlerComplete: (handler) => {
+				if (showVisual) {
+					this.execution.markHandlerCompleted(handler.id);
+				}
+			}
+		});
 	}
 
 	validateForm(): boolean {

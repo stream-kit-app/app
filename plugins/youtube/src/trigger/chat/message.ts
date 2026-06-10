@@ -11,7 +11,8 @@ import {
 	userMatchCondition
 } from '../../lib/conditions';
 import { subscribeChatMessages } from '../../lib/chat-setup';
-import { createActivate, createDeactivate, evaluateWith } from '../../lib/trigger-helpers';
+import { createTestChatMessageContext } from '../../lib/test-contexts';
+import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createChatMessageTrigger = (_app: PluginAppApi) =>
 	({
@@ -27,6 +28,7 @@ export const createChatMessageTrigger = (_app: PluginAppApi) =>
 				role: (value) => evaluateRole(role, value)
 			});
 		},
+		onTest: createOnTest(() => createTestChatMessageContext()),
 		activate: createActivate(
 			_app,
 			(handler) => subscribeChatMessages(() => true, handler),
