@@ -4,7 +4,6 @@ import type { Plugin } from '@stream-kit/app/api';
 import { createDeleteMessageHandler } from './handler/chat/delete-message';
 import { createSendMessageHandler } from './handler/chat/send-message';
 import { createYouTubePluginApi } from './lib/youtube';
-import { createCommandTrigger } from './trigger/chat/command';
 import { createGiftTrigger } from './trigger/chat/gift';
 import { createChatMessageTrigger } from './trigger/chat/message';
 import {
@@ -139,7 +138,6 @@ const plugin: Plugin = (app) => {
 						name: 'Chat',
 						children: [
 							createChatMessageTrigger(app),
-							createCommandTrigger(app),
 							createSuperChatTrigger(app),
 							createSuperStickerTrigger(app),
 							createGiftTrigger(app),

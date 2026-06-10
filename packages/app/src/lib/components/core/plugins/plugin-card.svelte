@@ -12,7 +12,6 @@
 	import { app } from '$lib/core';
 	import { setPluginDevMode } from '$lib/core/plugins/plugin-dev-watcher';
 	import { uninstallInstalledPlugin } from '$lib/core/plugins/plugin-loader';
-	import { settings } from '$lib/core/settings';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
@@ -44,8 +43,8 @@
 		return plugin.isConfigured(app);
 	});
 	const hasDependencyIssues = $derived(hasMissingDependencies || hasDisabledDependencies);
-	const showDevMode = $derived(settings.developerMode && plugin.source === 'installed');
-	const isDevMode = $derived(settings.isPluginDevMode(plugin.key));
+	const showDevMode = $derived(app.settings.developerMode && plugin.source === 'installed');
+	const isDevMode = $derived(app.settings.isPluginDevMode(plugin.key));
 
 	$effect(() => {
 		const api = plugin.api as { subscribe?: (listener: () => void) => () => void } | undefined;

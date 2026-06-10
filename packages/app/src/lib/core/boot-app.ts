@@ -1,5 +1,6 @@
-import corePlugin from '@stream-kit/plugin-core';
-import commandsPlugin from '@stream-kit/plugin-commands';
+import corePlugin from '@stream-kit/plugin-handlers';
+import { Commands, createCommandsPlugin } from '@stream-kit/plugin-commands/register-builtin';
+import obsPlugin from '@stream-kit/plugin-obs';
 import ttsPlugin from '@stream-kit/plugin-tts';
 import twitchPlugin from '@stream-kit/plugin-twitch';
 import youtubePlugin from '@stream-kit/plugin-youtube';
@@ -9,10 +10,11 @@ import {
 	syncPluginDevWatchers
 } from './plugins/plugin-dev-watcher';
 import { discoverAndLoadInstalledPlugins } from './plugins/plugin-loader';
-import { settings } from './settings';
 import { app } from './app-init';
 
 let bootPromise: Promise<void> | null = null;
+
+const commands = new Commands();
 
 export function bootApp(): Promise<void> {
 	if (!bootPromise) {
@@ -20,15 +22,14 @@ export function bootApp(): Promise<void> {
 			await app.use(corePlugin, { key: 'core', source: 'builtin' });
 			await app.use(twitchPlugin, { key: 'twitch', source: 'builtin' });
 			await app.use(youtubePlugin, { key: 'youtube', source: 'builtin' });
+			await app.use(obsPlugin, { key: 'obs', source: 'builtin' });
 			await app.use(ttsPlugin, { key: 'tts', source: 'builtin' });
-			await app.use(commandsPlugin, { key: 'commands', source: 'builtin' });
+			await app.use(createCommandsPlugin(commands), { key: 'commands', source: 'builtin' });
 			await discoverAndLoadInstalledPlugins(app);
 			await app.plugins.load(app);
 			await app.boot();
 			await app.actions.load();
-			await app.commands.load();
-			await app.commands.activate(app);
-			await settings.load();
+			await app.settings.load();
 			await initPluginDevWatcher();
 			await syncPluginDevWatchers(app);
 		})();

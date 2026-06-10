@@ -6,7 +6,7 @@ import { ActionTrigger } from './action-trigger.svelte';
 
 export { Action, Actions, ActionHandler, ActionTrigger, type ActionProps };
 export { HandlerDefinition, HandlerDefinitions } from './handler';
-export { interpolateVariables } from './interpolate-variables';
+export { interpolateVariables } from '@stream-kit/core';
 export type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,

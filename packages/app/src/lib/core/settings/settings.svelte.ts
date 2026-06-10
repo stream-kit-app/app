@@ -48,5 +48,3 @@ export class Settings {
 		await removePluginDevMode(pluginKey);
 	}
 }
-
-export const settings = new Settings();

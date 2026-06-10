@@ -5,10 +5,6 @@
 	import { PageBlocks } from '@stream-kit/ui/blocks';
 
 	import { isPageBlocksDefinition, isPageCustomViewDefinition } from '$lib/core/plugins/page-definition';
-	import {
-		isRegisteredCustomView,
-		pluginCustomViewRegistry
-	} from '$lib/core/plugins/plugin-custom-view-registry';
 
 	import PluginPageForm from './plugin-page-form.svelte';
 
@@ -22,9 +18,7 @@
 		isPageCustomViewDefinition(entry.page) ? entry.page.customView : undefined
 	);
 	const CustomViewComponent = $derived(
-		customView && isRegisteredCustomView(customView)
-			? pluginCustomViewRegistry[customView]
-			: undefined
+		customView ? entry.plugin.getCustomView(customView) : undefined
 	);
 </script>
 

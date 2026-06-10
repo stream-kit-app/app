@@ -1,13 +1,10 @@
 import type { HandlerDefinition } from './handler/handler-definition.svelte';
 import type { HandlerFieldInstance } from './handler/field';
+import type { StoredActionHandler } from './stored-action';
 
 import { createHandlerFields, getHandlerFieldDefinition } from './handler-field';
 
-export type StoredActionHandler = {
-	id: string;
-	handlerTypeId: string;
-	fields: HandlerFieldInstance[];
-};
+export type { StoredActionHandler };
 
 export class ActionHandler {
 	id: string;

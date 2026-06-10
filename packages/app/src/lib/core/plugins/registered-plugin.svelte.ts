@@ -12,6 +12,7 @@ import type { PluginSource, RegisterPluginOptions } from './installed-plugin';
 import type { PluginStore } from './store';
 import type { PluginMenuItemDefinition, PluginPublicApi, PluginRegistration } from './types';
 import type { LazyStore } from '@tauri-apps/plugin-store';
+import type { Component } from 'svelte';
 
 import {
 	createSettingsFields,
@@ -48,6 +49,9 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	private onLoad?: PluginRegistration<TApi>['onLoad'];
 	private onSave?: PluginRegistration<TApi>['onSave'];
 	private onBoot?: PluginRegistration<TApi>['onBoot'];
+	private onEnable?: PluginRegistration<TApi>['onEnable'];
+	private onDisable?: PluginRegistration<TApi>['onDisable'];
+	private customViews: Record<string, Component> = {};
 	private storeFacade: PluginStore;
 	private legacyStores: LazyStore[];
 	private hasBooted = false;
@@ -82,6 +86,9 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.onLoad = props.onLoad;
 		this.onSave = props.onSave;
 		this.onBoot = props.onBoot;
+		this.onEnable = props.onEnable;
+		this.onDisable = props.onDisable;
+		this.customViews = props.customViews ?? {};
 		this.store = store;
 		this.legacyStores = legacyStores;
 		this.storeFacade = createPluginStore(store);
@@ -118,6 +125,10 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 	getFieldError(fieldId: string, errors?: SettingsFormErrors | null): string | undefined {
 		return errors?.fieldErrors[fieldId];
+	}
+
+	getCustomView(key: string): Component | undefined {
+		return this.customViews[key];
 	}
 
 	createContext(app: App): PluginSettingsContext {
@@ -268,16 +279,9 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		if (enabled) {
 			this.registerDefinitions(app);
 			await this.boot(app);
-
-			if (this.key === 'commands') {
-				await app.commands.load();
-				app.commands.activate(app);
-			}
+			await this.onEnable?.(this.createContext(app));
 		} else {
-			if (this.key === 'commands') {
-				app.commands.deactivate();
-			}
-
+			await this.onDisable?.(this.createContext(app));
 			this.unregisterDefinitions(app);
 		}
 	}

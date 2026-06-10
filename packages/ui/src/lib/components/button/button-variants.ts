@@ -21,7 +21,7 @@ export const buttonVariants = tv({
 				'border border-border bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground',
 			ghost: 'hover:bg-accent hover:text-accent-foreground',
 			destructive:
-				'border-destructive-600 bg-destructive-800 text-white shadow-sm hover:bg-destructive-900 focus-visible:ring-destructive-700 dark:bg-destructive-500 dark:hover:bg-destructive-500/90',
+				'bg-destructive-200/5 text-destructive-100 shadow-sm hover:bg-destructive-200/10 focus-visible:ring-destructive-700 dark:bg-destructive-500 dark:hover:bg-destructive-500/90',
 			link: 'text-primary underline-offset-4 hover:underline'
 		},
 		size: {

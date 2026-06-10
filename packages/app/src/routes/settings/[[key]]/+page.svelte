@@ -3,14 +3,14 @@
 
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
-	import { InputCheckbox, InputSelect } from '@stream-kit/ui/input';
+	import { SettingsFieldGroup } from '$lib/components/core/settings';
 	import { app } from '$lib/core';
 	import { saveLocale } from '$lib/core/locale/store';
+	import type { SettingsFieldItem } from '$lib/core/settings/field';
 	import {
 		stopAllPluginDevWatchers,
 		syncPluginDevWatchers
 	} from '$lib/core/plugins/plugin-dev-watcher';
-	import { settings } from '$lib/core/settings';
 	import { useI18n } from '$lib/i18n';
 
 	const { t, getLocale, setLocale } = useI18n();
@@ -20,21 +20,63 @@
 		{ value: 'nl', label: t('Dutch') }
 	]);
 
-	let selectedLocale = $state(getLocale() as SupportedLocale);
-	let developerMode = $state(false);
+	const appearanceFields = $derived<SettingsFieldItem[]>([
+		{
+			type: 'section',
+			title: t('Appearance'),
+			fields: [
+				{
+					key: 'locale',
+					name: t('Language'),
+					type: 'select',
+					items: localeItems
+				}
+			]
+		},
+		{
+			type: 'section',
+			title: t('Developer'),
+			fields: [
+				{
+					key: 'developerMode',
+					name: t('Developer mode'),
+					type: 'checkbox'
+				},
+				{
+					type: 'alert',
+					key: 'developerModeHelp',
+					name: t('Enable developer tools and plugin hot-reload')
+				}
+			]
+		}
+	]);
+
+	let fieldValues = $state<Record<string, string | boolean>>({
+		locale: getLocale(),
+		developerMode: false
+	});
 	let hasLoadedSettings = $state(false);
 
+	const settingsContext = $derived({
+		app,
+		settings: app.settings,
+		getValue: (key: string) => fieldValues[key]
+	});
+
 	$effect(() => {
-		void settings.ensureLoaded().then(() => {
-			developerMode = settings.developerMode;
+		void app.settings.ensureLoaded().then(() => {
+			fieldValues = {
+				locale: getLocale(),
+				developerMode: app.settings.developerMode
+			};
 			hasLoadedSettings = true;
 		});
 	});
 
 	$effect(() => {
-		const locale = selectedLocale;
+		const locale = fieldValues.locale as SupportedLocale | undefined;
 
-		if (locale === getLocale()) {
+		if (!locale || locale === getLocale()) {
 			return;
 		}
 
@@ -47,14 +89,14 @@
 			return;
 		}
 
-		const enabled = developerMode;
+		const enabled = Boolean(fieldValues.developerMode);
 
-		if (enabled === settings.developerMode) {
+		if (enabled === app.settings.developerMode) {
 			return;
 		}
 
 		void (async () => {
-			await settings.setDeveloperMode(enabled);
+			await app.settings.setDeveloperMode(enabled);
 
 			if (!enabled) {
 				await stopAllPluginDevWatchers(app);
@@ -64,27 +106,28 @@
 			await syncPluginDevWatchers(app);
 		})();
 	});
+
+	function getField(key: string) {
+		return {
+			id: key,
+			key,
+			get value() {
+				return fieldValues[key];
+			},
+			set value(next: string | boolean) {
+				fieldValues = { ...fieldValues, [key]: next };
+			}
+		};
+	}
 </script>
 
-<Container class="px-6 py-6">
+<Container class="px-6 py-6" size="md">
 	<Heading level="1">{t('Settings')}</Heading>
 
-	<section class="mt-6 flex max-w-xl flex-col gap-4">
-		<Heading level="3">{t('Appearance')}</Heading>
-
-		<InputSelect
-			type="single"
-			label={t('Language')}
-			items={localeItems}
-			bind:value={selectedLocale}
-		/>
-	</section>
-
-	<section class="mt-8 flex max-w-xl flex-col gap-4">
-		<Heading level="3">{t('Developer')}</Heading>
-
-		<InputCheckbox inline label={t('Developer mode')} bind:checked={developerMode} />
-
-		<p class="text-sm text-dark-100">{t('Enable developer tools and plugin hot-reload')}</p>
-	</section>
+	<SettingsFieldGroup
+		class="mt-6 max-w-xl"
+		context={settingsContext}
+		items={appearanceFields}
+		getField={(key) => getField(key)}
+	/>
 </Container>

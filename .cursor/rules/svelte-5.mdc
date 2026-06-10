@@ -35,7 +35,7 @@ Use `bits-ui` for headless, accessible components instead of building from scrat
 | Scroll area         | `ScrollArea`          |
 | IDs / merging props | `useId`, `mergeProps` |
 
-Wrap bits-ui in `$lib/components/ui/` with project styling (`cn`, Tailwind). Use `WithoutChildren` / `WithoutChild` types when forwarding props. Follow existing patterns in `input-*`, `dropdown/`, and `modal.svelte`.
+Wrap `bits-ui` in `@stream-kit/ui/` with project styling (`cn`, Tailwind). Use `WithoutChildren` / `WithoutChild` types when forwarding props. Follow existing patterns in `@stream-kit/ui` input components, dropdown menus, and app modal shell.
 
 ```svelte
 <script lang="ts">
@@ -56,7 +56,7 @@ Wrap bits-ui in `$lib/components/ui/` with project styling (`cn`, Tailwind). Use
 </Select.Root>
 ```
 
-Check `$lib/components/ui/` before creating new interactive UI.
+Check `@stream-kit/ui` and `$lib/components/core/` before creating new interactive UI.
 
 ## runed (preferred for reactive utilities)
 

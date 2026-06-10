@@ -5,9 +5,12 @@
 		"skipLibCheck": true,
 		"strict": true,
 		"paths": {
+			"@stream-kit/core": ["./src/index.ts"],
 			"$db": ["../app/src/db"],
 			"$db/*": ["../app/src/db/*"],
 			"$lib": ["../app/src/lib"],
+			"$lib/locales/en.json": ["./stubs/locale-en.d.ts"],
+			"$lib/locales/nl.json": ["./stubs/locale-nl.d.ts"],
 			"$lib/*": ["../app/src/lib/*"],
 			"$env/static/public": ["./env-stub.d.ts"]
 		}

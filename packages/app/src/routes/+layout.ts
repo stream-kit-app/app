@@ -31,13 +31,7 @@ export const load = async () => {
 	app.menu.add({
 		path: '/bot',
 		title: 'Bot',
-		icon: 'at-icons:bot',
-		children: [
-			{
-				path: '/bot/messages',
-				title: 'Messages'
-			}
-		]
+		icon: 'at-icons:bot'
 	});
 	app.menu.add({
 		path: '/actions',

@@ -1,4 +1,4 @@
-type CooldownState = {
+export type CooldownState = {
 	globalLastRun: Map<number, number>;
 	userLastRun: Map<string, number>;
 };

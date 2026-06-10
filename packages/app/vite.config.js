@@ -38,10 +38,12 @@ export default defineConfig(async () => ({
 		noExternal: [
 			'@stream-kit/app',
 			'@stream-kit/ui',
+			'@stream-kit/plugin-commands',
+			'@stream-kit/plugin-obs',
 			'@stream-kit/plugin-twitch',
 			'@stream-kit/plugin-youtube',
 			'@stream-kit/plugin-tts',
-			'@stream-kit/plugin-core'
+			'@stream-kit/plugin-handlers',
 		]
 	}
 }));

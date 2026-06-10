@@ -6,7 +6,6 @@ import { listen } from '@tauri-apps/api/event';
 
 import { translate } from '$lib/i18n';
 
-import { settings } from '../settings';
 import { resolveEntryPath } from './plugin-loader';
 
 let listenerInitialized = false;
@@ -68,9 +67,9 @@ export async function stopAllPluginDevWatchers(app: App): Promise<void> {
 }
 
 export async function syncPluginDevWatchers(app: App): Promise<void> {
-	await settings.ensureLoaded();
+	await app.settings.ensureLoaded();
 
-	if (!settings.developerMode) {
+	if (!app.settings.developerMode) {
 		await stopAllPluginDevWatchers(app);
 		return;
 	}
@@ -89,7 +88,7 @@ export async function syncPluginDevWatchers(app: App): Promise<void> {
 			continue;
 		}
 
-		if (settings.isPluginDevMode(plugin.key)) {
+		if (app.settings.isPluginDevMode(plugin.key)) {
 			await startPluginDevWatcher(plugin.key, manifest);
 		} else {
 			await stopPluginDevWatcher(plugin.key);
@@ -103,8 +102,8 @@ export async function setPluginDevMode(
 	enabled: boolean,
 	manifest: Pick<InstalledPluginManifest, 'installPath' | 'entry'> | undefined
 ): Promise<void> {
-	if (!settings.developerMode || !enabled) {
-		await settings.setPluginDevMode(pluginKey, enabled);
+	if (!app.settings.developerMode || !enabled) {
+		await app.settings.setPluginDevMode(pluginKey, enabled);
 		await stopPluginDevWatcher(pluginKey);
 		return;
 	}
@@ -118,7 +117,7 @@ export async function setPluginDevMode(
 		return;
 	}
 
-	await settings.setPluginDevMode(pluginKey, enabled);
+	await app.settings.setPluginDevMode(pluginKey, enabled);
 
 	const started = await startPluginDevWatcher(pluginKey, manifest);
 
@@ -128,6 +127,6 @@ export async function setPluginDevMode(
 			description: translate('Plugin entry file not found.'),
 			variant: 'warning'
 		});
-		await settings.setPluginDevMode(pluginKey, false);
+		await app.settings.setPluginDevMode(pluginKey, false);
 	}
 }

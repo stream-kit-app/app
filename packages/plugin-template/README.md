@@ -32,10 +32,11 @@ plugin.zip
 
 ## Authoring rules
 
-- Use `import type` from `@stream-kit/app/api` for plugin types.
-- Use `@stream-kit/core` for handler/trigger prop types, `getFieldValue`, `resolveFieldText`, and `interpolateVariables`.
+- Use `import type` from `@stream-kit/app/api` or `@stream-kit/app-types` for plugin types.
+- Use `@stream-kit/core` for handler/trigger prop types, `getFieldValue`, `resolveFieldText`, `interpolateVariables`, and `parseCommand`.
 - Register plugin menu pages with declarative page definitions from `@stream-kit/app/api`.
-- Do not pass Svelte components, compiled HTML, raw HTML, or `{@html}` for plugin menu pages.
+- Do not pass Svelte components, compiled HTML, raw HTML, or `{@html}` for **external zip** plugin menu pages.
+- Built-in npm plugins may register `customViews` with Svelte components; zip plugins must stay blocks-only.
 - Button blocks may define an `onClick` handler when they need plugin-owned behavior.
 - Bundle all other runtime dependencies into `dist/index.js`.
 - Stream Kit generates a unique installed plugin key from the manifest name and adds a suffix if needed.

@@ -1,8 +1,5 @@
-import type { Store } from './store.svelte';
-
 import { bootApp } from './boot-app';
 import { app } from './app-init';
-import { store } from './store.svelte';
 
 export type { App } from './app.svelte';
 export type { Plugin } from './plugins';
@@ -46,4 +43,4 @@ export type {
 	WriteFileOptions
 } from './filesystem';
 export { Audio } from './audio';
-export { app, bootApp, store, type Store };
+export { app, bootApp };

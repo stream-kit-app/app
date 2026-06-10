@@ -51,6 +51,8 @@ Stream Kit is built around plugins. Each plugin can register triggers, handlers,
 
 | Plugin                          | Status         | Description                                                                                  |
 | ------------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
+| [**Handlers**](plugins/core/) | In development | Audio playback and custom script handlers                                                    |
+| [**Commands**](plugins/commands/) | In development | Chat commands with dedicated handlers (plugin-owned DB, UI, and runtime)                |
 | [**Twitch**](plugins/twitch/)   | In development | OAuth, EventSub, chat, moderation, polls, predictions, raids, subs, channel points, and more |
 | [**YouTube**](plugins/youtube/) | In development | Live chat, memberships, super chats/stickers, moderation, and stream status                  |
 | [**TTS**](plugins/tts/)         | In development | Text-to-speech via StreamElements or ElevenLabs                                              |
@@ -64,7 +66,9 @@ You can also install **external plugins** as `.zip` files from the Plugins page.
 
 ### Bot & commands
 
-Chat commands are managed by the **Commands** plugin. Enable it from the **Plugins** page, then open **Commands** in the sidebar to create commands that run your Actions.
+Chat commands are managed by the **Commands** plugin (`@stream-kit/plugin-commands`). The plugin owns its database table, UI, and chat runtime. Enable it from the **Plugins** page, then open **Commands** in the sidebar.
+
+Use **Actions** for event-driven automation (triggers, conditions, handlers). Use **Commands** for chat-triggered shortcuts with their own handler lists.
 
 > [!NOTE]
 > Connect Twitch or YouTube from the **Plugins** page before chat commands can listen in your channel.
@@ -104,12 +108,15 @@ stream-kit/
 ├── packages/
 │   ├── app/              # Main application (SvelteKit + Tauri)
 │   ├── core/             # Shared utilities (e.g. variable interpolation)
+│   ├── ui/               # Shared UI primitives
+│   ├── app-types/        # Type-only exports for plugin authors
 │   └── plugin-template/  # Template for external plugins
 ├── plugins/
+│   ├── core/             # Handlers plugin (audio, scripts) — npm: @stream-kit/plugin-handlers
+│   ├── commands/         # Chat commands plugin
 │   ├── twitch/           # Twitch plugin
 │   ├── youtube/          # YouTube plugin
-│   ├── tts/              # Text-to-speech plugin
-│   └── commands/         # Chat commands plugin
+│   └── tts/              # Text-to-speech plugin
 └── package.json          # Workspace root scripts
 ```
 

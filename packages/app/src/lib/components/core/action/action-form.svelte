@@ -3,12 +3,13 @@
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { getActionGroups } from '$db/repositories/actions';
-	import { cn } from 'tailwind-variants';
 
 	import { Button } from '@stream-kit/ui/button';
 	import { InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
+
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
+	import { cn } from '$lib/utils';
 
 	import ConditionGroup from './condition-group.svelte';
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
@@ -61,6 +62,10 @@
 		if (confirmed) {
 			await action.delete();
 		}
+	}
+
+	function handleCancel() {
+		action.close();
 	}
 </script>
 
@@ -223,18 +228,20 @@
 		{/each}
 	</section>
 
-	<div class="flex flex-wrap items-center justify-between gap-2">
-		<Button type="submit" onclick={() => void handleSave()}>{t('Save')}</Button>
+	<div class="flex flex-wrap items-center gap-2">
 		{#if action.id != null}
 			<Button
 				type="button"
-				variant="ghost"
-				class="text-destructive-50 hover:text-destructive-50"
+				variant="destructive"
 				onclick={() => void handleDelete()}
 				icon="ri:delete-bin-line"
 			>
 				{t('Delete')}
 			</Button>
 		{/if}
+		<Button type="button" variant="ghost" onclick={() => void handleCancel()} class="ms-auto">
+			{t('Cancel')}
+		</Button>
+		<Button type="submit" onclick={() => void handleSave()}>{t('Save')}</Button>
 	</div>
 </form>

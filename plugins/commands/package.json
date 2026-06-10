@@ -7,10 +7,23 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
-		}
+		},
+		"./register-builtin": "./src/register-builtin.ts",
+		"./app/db/migrate": "./src/app/db/migrate.ts",
+		"./app/db/schema": "./src/app/db/schema.ts",
+		"./app/db/repository": "./src/app/db/repository.ts",
+		"./app/domain/commands.svelte": "./src/app/domain/commands.svelte.ts",
+		"./app/domain/command.svelte": "./src/app/domain/command.svelte.ts",
+		"./app/domain/get-commands": "./src/app/domain/get-commands.ts",
+		"./app/domain/stored-command": "./src/app/domain/stored-command.ts",
+		"./app/domain/validate-form": "./src/app/domain/validate-form.ts",
+		"./app/ui/commands-page.svelte": "./src/app/ui/commands-page.svelte",
+		"./app/ui/command-card.svelte": "./src/app/ui/command-card.svelte",
+		"./app/ui/command-form.svelte": "./src/app/ui/command-form.svelte"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"src"
 	],
 	"scripts": {
 		"build": "tsup",
@@ -22,6 +35,10 @@
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
+		"@stream-kit/ui": "workspace:*",
+		"@iconify/svelte": "^5.2.1",
+		"@tauri-apps/plugin-sql": "~2.4.0",
+		"drizzle-orm": "^0.45.2",
 		"tsup": "^8.5.0",
 		"typescript": "~6.0.3"
 	}

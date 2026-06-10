@@ -6,7 +6,6 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 
 import { translate } from '$lib/i18n';
 
-import { settings } from '../settings';
 import { stopPluginDevWatcher } from './plugin-dev-watcher';
 
 let importMapReady = false;
@@ -140,7 +139,7 @@ export async function uninstallInstalledPlugin(app: App, key: string): Promise<v
 	}
 
 	await stopPluginDevWatcher(key);
-	await settings.clearPluginDevMode(key);
+	await app.settings.clearPluginDevMode(key);
 
 	await invoke('uninstall_plugin', { key });
 	app.plugins.remove(key);

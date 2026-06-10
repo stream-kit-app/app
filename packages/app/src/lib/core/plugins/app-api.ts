@@ -2,13 +2,31 @@ import type { HandlerDefinitionProps } from '../action/handler';
 import type { HandlerTriggerContext } from '../action/handler-context';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
-import type { CommandRuntimeFactory } from '../commands';
+import type { CommandRecord } from '$lib/types/command-types';
 import { createFilesystemApi } from '../filesystem/create-api';
+import { registerPluginMigrations, type PluginMigration } from '$db/plugin-migrations';
+
+export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
+
+export type CommandsPluginApi = {
+	commands: {
+		registerRuntime: (factory: CommandRuntimeFactory) => void;
+		getSnapshot: () => CommandRecord[];
+		runById: (id: number, context: HandlerTriggerContext) => boolean;
+		findByTrigger: (
+			trigger: string
+		) => { id: number; toRecord: () => Record<string, unknown> } | undefined;
+	};
+};
 
 export type PluginDefinitionCollections = {
 	triggers?: TriggerDefinitionProps[];
 	handlers?: HandlerDefinitionProps[];
 };
+
+function getCommandsApi(app: App) {
+	return app.plugins.tryGet<CommandsPluginApi>('commands')?.commands;
+}
 
 export function createPluginAppApi(app: App) {
 	return {
@@ -34,6 +52,11 @@ export function createPluginAppApi(app: App) {
 		audio: {
 			play: app.audio.play.bind(app.audio)
 		},
+		db: {
+			registerMigrations: (pluginKey: string, migrations: PluginMigration[]) => {
+				registerPluginMigrations(pluginKey, migrations);
+			}
+		},
 		actions: {
 			reactivateAll: () => {
 				for (const action of app.actions.items) {
@@ -45,16 +68,17 @@ export function createPluginAppApi(app: App) {
 					app.actions.activate(action);
 				}
 			},
-			runById: (id: number, context: HandlerTriggerContext) => app.commands.runById(id, context)
+			runById: (id: number, context: HandlerTriggerContext) => app.actions.runById(id, context)
 		},
 		commands: {
 			registerRuntime: (factory: CommandRuntimeFactory) => {
-				app.commands.registerRuntime(factory);
+				getCommandsApi(app)?.registerRuntime(factory);
 			},
-			getSnapshot: () => app.commands.getSnapshot(),
-			runById: (id: number, context: HandlerTriggerContext) => app.commands.runById(id, context),
+			getSnapshot: () => getCommandsApi(app)?.getSnapshot() ?? [],
+			runById: (id: number, context: HandlerTriggerContext) =>
+				getCommandsApi(app)?.runById(id, context) ?? false,
 			findByTrigger: (trigger: string) => {
-				const command = app.commands.findByTrigger(trigger);
+				const command = getCommandsApi(app)?.findByTrigger(trigger);
 
 				if (!command || command.id == null) {
 					return undefined;

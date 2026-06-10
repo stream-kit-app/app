@@ -1,2 +1,2 @@
 export * from './actions';
-export * from './commands';
+export { commands } from '@stream-kit/plugin-commands/app/db/schema';

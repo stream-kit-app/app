@@ -3,7 +3,7 @@ export type {
 	CommandPermissions,
 	CommandRecord,
 	CommandSource
-} from './lib/core/commands/stored-command';
+} from './lib/types/command-types';
 export type { Action } from './lib/core/action/action.svelte';
 export type { ActionTrigger } from './lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from './lib/core/action/action-handler.svelte';
@@ -83,7 +83,7 @@ export type {
 	SelectItem,
 	SelectItemsSource
 } from './lib/core/action/trigger/condition';
-export { interpolateVariables } from './lib/core/action/interpolate-variables';
+export { getFieldValue, interpolateVariables, parseCommand, resolveFieldText } from '@stream-kit/core';
 export type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,

@@ -1,11 +1,11 @@
 import type { I18nInstance } from '@svelte-i18n/core';
 import { createContext } from 'svelte';
 
-import type enDictionary from '$lib/locales/en.json';
+type LocaleDictionary = Record<string, string>;
 
 export type I18nContext = I18nInstance<
 	'en' | 'nl',
-	{ en: () => Promise<typeof enDictionary>; nl: () => Promise<typeof enDictionary> }
+	{ en: () => Promise<LocaleDictionary>; nl: () => Promise<LocaleDictionary> }
 >;
 
 const [getContext, setContext] = createContext<I18nContext>();

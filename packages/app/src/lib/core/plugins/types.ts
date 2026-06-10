@@ -1,3 +1,5 @@
+import type { Component } from 'svelte';
+
 import type { HandlerDefinitionProps } from '../action/handler';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type {
@@ -73,9 +75,12 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 	handlers?: HandlerDefinitionProps[];
 	menuItems?: PluginMenuItemDefinition[];
 	settings?: PluginSettingsFieldItem[];
+	customViews?: Record<string, Component>;
 	api?: TApi;
 	isConfigured?: (context: PluginSettingsContext) => boolean;
 	onLoad?: (context: PluginSettingsContext) => void | Promise<void>;
 	onSave?: (context: PluginSettingsContext) => void | Promise<void>;
 	onBoot?: (context: PluginSettingsContext) => void | Promise<void>;
+	onEnable?: (context: PluginSettingsContext) => void | Promise<void>;
+	onDisable?: (context: PluginSettingsContext) => void | Promise<void>;
 };

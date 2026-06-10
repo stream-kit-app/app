@@ -148,6 +148,7 @@
 	"Command": "Command",
 	"Command is required": "Command is required",
 	"Command may only contain letters, numbers, underscores, and hyphens": "Command may only contain letters, numbers, underscores, and hyphens",
+	"Command names must be unique": "Command names must be unique",
 	"Create chat commands that trigger your Actions.": "Create chat commands that trigger your Actions.",
 	"Everyone": "Everyone",
 	"Mod": "Mod",

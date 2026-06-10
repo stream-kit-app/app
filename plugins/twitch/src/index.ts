@@ -29,7 +29,6 @@ import { createTwitchPluginApi } from './lib/twitch';
 import { createFollowTrigger } from './trigger/channel/follow';
 import { createChannelUpdateTrigger } from './trigger/channel/update';
 import { createCheerTrigger } from './trigger/chat/cheer';
-import { createCommandTrigger } from './trigger/chat/command';
 import { createHypeChatTrigger } from './trigger/chat/hype';
 import { createChatMessageTrigger } from './trigger/chat/message';
 import { createRedemptionTrigger } from './trigger/chat/redemption';
@@ -161,7 +160,6 @@ const plugin: Plugin = (app) => {
 							createCheerTrigger(app),
 							createWhisperTrigger(app),
 							createRedemptionTrigger(app),
-							createCommandTrigger(app),
 							createHypeChatTrigger(app)
 						]
 					},

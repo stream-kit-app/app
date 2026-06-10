@@ -148,6 +148,7 @@
 	"Command": "Commando",
 	"Command is required": "Commando is verplicht",
 	"Command may only contain letters, numbers, underscores, and hyphens": "Commando mag alleen letters, cijfers, underscores en streepjes bevatten",
+	"Command names must be unique": "Commandonamen moeten uniek zijn",
 	"Create chat commands that trigger your Actions.": "Maak chatcommando's die je acties starten.",
 	"Everyone": "Iedereen",
 	"Mod": "Mod",
