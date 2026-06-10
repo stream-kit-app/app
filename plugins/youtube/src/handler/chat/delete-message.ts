@@ -15,7 +15,7 @@ export const createDeleteMessageHandler = (app: PluginAppApi) =>
 				placeholder: 'Leave empty to use trigger message'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const fieldMessageId = getFieldValue(handler.fields, 'messageId');
 			const triggerData = context.data as ChatMessageContext;
 			const messageId =
@@ -29,5 +29,6 @@ export const createDeleteMessageHandler = (app: PluginAppApi) =>
 			}
 
 			void client.deleteLiveChatMessage(messageId);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

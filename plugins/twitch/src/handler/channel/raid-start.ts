@@ -16,7 +16,7 @@ export const createRaidStartHandler = (app: PluginAppApi) =>
 				placeholder: 'Channel to raid'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const target = getFieldValue(handler.fields, 'target');
 			const broadcasterId = resolveBroadcasterId(context, app);
 
@@ -25,5 +25,6 @@ export const createRaidStartHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.raids.startRaid(broadcasterId, target.trim());
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

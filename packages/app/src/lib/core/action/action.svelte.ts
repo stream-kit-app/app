@@ -25,6 +25,7 @@ import { ActionHandler } from './action-handler.svelte';
 import { ActionTrigger } from './action-trigger.svelte';
 import { migrateLegacyHandlerFields } from './handler-field';
 import type { HandlerTriggerContext } from './handler-context';
+import { runHandlerChain } from './run-handler-chain';
 import { validateActionForm } from './validate-form';
 
 export type ActionProps = {
@@ -368,13 +369,7 @@ export class Action {
 			data
 		};
 
-		for (const handler of this.handlers) {
-			if (!handler.definition.isAvailable) {
-				continue;
-			}
-
-			handler.definition.execute?.(this, handler, context);
-		}
+		runHandlerChain(this.handlers, this, context);
 	}
 
 	validateForm(): boolean {

@@ -8,7 +8,7 @@ import { getTwitch } from '../../lib/plugin-api';
 export const createClearChatHandler = (app: PluginAppApi) =>
 	({
 		name: 'Clear Chat',
-		execute: (_action, _handler, context) => {
+		execute: (_action, _handler, context, next) => {
 			const triggerData = context.data as ChatMessageContext;
 			const broadcasterId =
 				triggerData.msg?.channelId ?? resolveBroadcasterId(context, app);
@@ -18,5 +18,6 @@ export const createClearChatHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.moderation.deleteChatMessages(broadcasterId);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -24,7 +24,7 @@ export const createSendMessageHandler = (app: PluginAppApi) => {
 				placeholder: 'Send message as bot'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
 			const asBot = getFieldValue(handler.fields, 'as-bot') === true;
 			const channel = resolveChannel(context, app);
@@ -40,10 +40,12 @@ export const createSendMessageHandler = (app: PluginAppApi) => {
 					broadcasterId,
 					message.trim()
 				);
+				next();
 				return;
 			}
 
 			void getTwitch(app).chat?.say(channel, message.trim());
+			next();
 		}
 	} satisfies HandlerDefinitionProps;
 };

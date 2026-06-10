@@ -9,7 +9,7 @@ export const createTriggerHotkeyHandler = (app: PluginAppApi) =>
 	({
 		name: 'Trigger Hotkey',
 		fields: [hotkeySelectField(app, { name: 'Hotkey' })],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const hotkeyName = resolveFieldText(handler.fields, 'hotkey', context);
 
 			if (typeof hotkeyName !== 'string' || !hotkeyName.trim()) {
@@ -22,5 +22,6 @@ export const createTriggerHotkeyHandler = (app: PluginAppApi) =>
 				{ hotkeyName: hotkeyName.trim() },
 				{ label: 'Trigger Hotkey' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

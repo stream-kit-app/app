@@ -15,7 +15,7 @@ export const createShieldModeHandler = (app: PluginAppApi) =>
 				required: true
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const enabled = getFieldValue(handler.fields, 'enabled') === true;
 
@@ -24,5 +24,6 @@ export const createShieldModeHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.moderation.updateShieldModeStatus(broadcasterId, enabled);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -35,7 +35,7 @@ export const createPointsFulfillHandler = (app: PluginAppApi) =>
 				placeholder: 'Leave empty to use trigger redemption'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const { rewardId, redemptionId } = resolveRedemptionIds(
 				handler,
@@ -52,6 +52,7 @@ export const createPointsFulfillHandler = (app: PluginAppApi) =>
 				[redemptionId],
 				'FULFILLED'
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -66,7 +67,7 @@ export const createPointsCancelHandler = (app: PluginAppApi) =>
 				placeholder: 'Leave empty to use trigger redemption'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const { rewardId, redemptionId } = resolveRedemptionIds(
 				handler,
@@ -83,5 +84,6 @@ export const createPointsCancelHandler = (app: PluginAppApi) =>
 				[redemptionId],
 				'CANCELED'
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

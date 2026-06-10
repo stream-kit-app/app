@@ -17,7 +17,7 @@ export const createModAddHandler = (app: PluginAppApi) =>
 				variables: TARGET_USER_VARIABLES
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const { userName } = resolveUserFromContext(context, fieldUser);
@@ -27,6 +27,7 @@ export const createModAddHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.moderation.addModerator(broadcasterId, userName);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -41,7 +42,7 @@ export const createModRemoveHandler = (app: PluginAppApi) =>
 				variables: TARGET_USER_VARIABLES
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const { userName } = resolveUserFromContext(context, fieldUser);
@@ -51,5 +52,6 @@ export const createModRemoveHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.moderation.removeModerator(broadcasterId, userName);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

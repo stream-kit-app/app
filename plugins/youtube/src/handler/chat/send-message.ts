@@ -18,7 +18,7 @@ export const createSendMessageHandler = (app: PluginAppApi) =>
 				variables: CHAT_TEXT_VARIABLES
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
 			const liveChatId = resolveLiveChatId(context, app);
 			const client = getYouTube(app).client;
@@ -28,5 +28,6 @@ export const createSendMessageHandler = (app: PluginAppApi) =>
 			}
 
 			void client.insertLiveChatMessage(liveChatId, message.trim());
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

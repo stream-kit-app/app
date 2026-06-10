@@ -7,7 +7,7 @@ import { getTwitch } from '../../lib/plugin-api';
 export const createRaidCancelHandler = (app: PluginAppApi) =>
 	({
 		name: 'Cancel Raid',
-		execute: (_action, _handler, context) => {
+		execute: (_action, _handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (!broadcasterId) {
@@ -15,5 +15,6 @@ export const createRaidCancelHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.raids.cancelRaid(broadcasterId);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -3,11 +3,20 @@ import type { ActionHandler } from '../action-handler.svelte';
 import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
 
+export type HandlerNext = () => void;
+
+export type HandlerExecuteFn = (
+	action: Action,
+	handler: ActionHandler,
+	context: HandlerTriggerContext,
+	next: HandlerNext
+) => void | Promise<void>;
+
 export type HandlerDefinitionProps = {
 	name: string;
 	children?: HandlerDefinitionProps[];
 	fields?: HandlerFieldDefinition[];
-	execute?: (action: Action, handler: ActionHandler, context: HandlerTriggerContext) => void;
+	execute?: HandlerExecuteFn;
 };
 
 export type ResolvedHandlerDefinitionProps = Omit<HandlerDefinitionProps, 'children' | 'fields'> & {

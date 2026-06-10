@@ -27,7 +27,7 @@ export const createChatSettingsHandler = (app: PluginAppApi) =>
 				placeholder: '0'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (!broadcasterId) {
@@ -62,5 +62,6 @@ export const createChatSettingsHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.chat.updateSettings(broadcasterId, settings);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

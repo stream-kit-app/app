@@ -2,7 +2,7 @@ import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
 import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
-import type { HandlerDefinitionProps } from './types';
+import type { HandlerDefinitionProps, HandlerExecuteFn } from './types';
 
 import { scopedSlug, slugify, uniqueSlug } from '$lib/utils';
 
@@ -49,7 +49,7 @@ export class HandlerDefinition {
 	isAvailable: boolean = $state(true);
 
 	fields?: ResolvedHandlerFieldDefinition[];
-	execute?: (action: Action, handler: ActionHandler, context: HandlerTriggerContext) => void;
+	execute?: HandlerExecuteFn;
 
 	children = new HandlerDefinitions();
 

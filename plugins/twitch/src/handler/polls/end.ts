@@ -20,7 +20,7 @@ export const createPollEndHandler = (app: PluginAppApi) =>
 				name: 'Show result'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldPollId = getFieldValue(handler.fields, 'pollId');
 			const showResult = getFieldValue(handler.fields, 'showResult') === true;
@@ -33,5 +33,6 @@ export const createPollEndHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.polls.endPoll(broadcasterId, pollId, showResult);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

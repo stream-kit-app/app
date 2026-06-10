@@ -23,7 +23,7 @@ export const createAnnouncementHandler = (app: PluginAppApi) =>
 				placeholder: 'primary, blue, green, orange, purple'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
 			const color = getFieldValue(handler.fields, 'color');
 			const broadcasterId = resolveBroadcasterId(context, app);
@@ -41,5 +41,6 @@ export const createAnnouncementHandler = (app: PluginAppApi) =>
 					| 'orange'
 					| 'purple'
 			});
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

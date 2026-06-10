@@ -8,7 +8,11 @@ export type { Action } from './lib/core/action/action.svelte';
 export type { ActionTrigger } from './lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from './lib/core/action/action-handler.svelte';
 export type { TriggerDefinitionProps } from './lib/core/action/trigger/types';
-export type { HandlerDefinitionProps } from './lib/core/action/handler/types';
+export type {
+	HandlerDefinitionProps,
+	HandlerExecuteFn,
+	HandlerNext
+} from './lib/core/action/handler/types';
 export type { MenuItem, MenuItemChild } from './lib/core/menu/types';
 export type {
 	SettingsButtonVariant,

@@ -18,7 +18,7 @@ export const createElevenLabsSpeakHandler = () => {
 			},
 			elevenlabsVoiceSelectField({ required: false })
 		],
-		execute: (_action, handler, context) => {
+		execute: async (_action, handler, context, next) => {
 			const text = resolveFieldText(handler.fields, 'text', context);
 			const voiceField = getFieldValue(handler.fields, 'voice');
 			const voiceId =
@@ -34,7 +34,8 @@ export const createElevenLabsSpeakHandler = () => {
 				return;
 			}
 
-			void elevenlabs.speak(text.trim(), voiceId);
+			await elevenlabs.speak(text.trim(), voiceId);
+			next();
 		}
 	} satisfies HandlerDefinitionProps;
 };

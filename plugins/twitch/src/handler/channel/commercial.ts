@@ -15,7 +15,7 @@ export const createCommercialHandler = (app: PluginAppApi) =>
 				placeholder: '30, 60, 90, 120, 150, or 180'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const lengthValue = getFieldValue(handler.fields, 'length');
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const length = Number.parseInt(
@@ -28,5 +28,6 @@ export const createCommercialHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.channels.startChannelCommercial(broadcasterId, length);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

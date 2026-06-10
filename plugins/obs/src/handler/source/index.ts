@@ -18,7 +18,7 @@ export const createMuteInputHandler = (app: PluginAppApi) =>
 	({
 		name: 'Mute Input',
 		fields: [inputSelectField(app, { name: 'Input' })],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'input', context);
 
 			if (typeof inputName !== 'string' || !inputName.trim()) {
@@ -31,6 +31,7 @@ export const createMuteInputHandler = (app: PluginAppApi) =>
 				{ inputName: inputName.trim(), inputMuted: true },
 				{ label: 'Mute Input' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -38,7 +39,7 @@ export const createUnmuteInputHandler = (app: PluginAppApi) =>
 	({
 		name: 'Unmute Input',
 		fields: [inputSelectField(app, { name: 'Input' })],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'input', context);
 
 			if (typeof inputName !== 'string' || !inputName.trim()) {
@@ -51,6 +52,7 @@ export const createUnmuteInputHandler = (app: PluginAppApi) =>
 				{ inputName: inputName.trim(), inputMuted: false },
 				{ label: 'Unmute Input' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -58,7 +60,7 @@ export const createToggleInputMuteHandler = (app: PluginAppApi) =>
 	({
 		name: 'Toggle Input Mute',
 		fields: [inputSelectField(app, { name: 'Input' })],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'input', context);
 
 			if (typeof inputName !== 'string' || !inputName.trim()) {
@@ -71,6 +73,7 @@ export const createToggleInputMuteHandler = (app: PluginAppApi) =>
 				{ inputName: inputName.trim() },
 				{ label: 'Toggle Input Mute' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -81,7 +84,7 @@ export const createSetInputVolumeHandler = (app: PluginAppApi) =>
 			inputSelectField(app, { name: 'Input' }),
 			volumeDbField({ name: 'Volume (dB)', placeholder: '0.0' })
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'input', context);
 			const volumeText = resolveFieldText(handler.fields, 'volume-db', context);
 			const inputVolumeDb = Number(volumeText);
@@ -108,6 +111,7 @@ export const createSetInputVolumeHandler = (app: PluginAppApi) =>
 				},
 				{ label: 'Set Input Volume' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -115,7 +119,7 @@ export const createSetInputTextHandler = (app: PluginAppApi) =>
 	({
 		name: 'Set Input Text',
 		fields: [inputSelectField(app, { name: 'Input' }), textContentField({ name: 'Text' })],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'input', context);
 			const text = resolveFieldText(handler.fields, 'text', context);
 
@@ -133,6 +137,7 @@ export const createSetInputTextHandler = (app: PluginAppApi) =>
 				},
 				{ label: 'Set Input Text' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -140,7 +145,7 @@ export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 	({
 		name: 'Trigger Media Action',
 		fields: [inputSelectField(app, { name: 'Input' }), mediaActionField()],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'input', context);
 			const mediaAction = getFieldValue(handler.fields, 'media-action');
 
@@ -157,6 +162,7 @@ export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 				},
 				{ label: 'Trigger Media Action' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -167,7 +173,7 @@ export const createShowSceneItemHandler = (app: PluginAppApi) =>
 			sceneSelectField(app, { name: 'Scene' }),
 			inputSelectField(app, { name: 'Source' })
 		],
-		execute: async (_action, handler, context) => {
+		execute: async (_action, handler, context, next) => {
 			const sceneName = resolveFieldText(handler.fields, 'scene', context);
 			const sourceName = resolveFieldText(handler.fields, 'source', context);
 
@@ -201,6 +207,7 @@ export const createShowSceneItemHandler = (app: PluginAppApi) =>
 				},
 				{ label: 'Show Scene Item' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -211,7 +218,7 @@ export const createHideSceneItemHandler = (app: PluginAppApi) =>
 			sceneSelectField(app, { name: 'Scene' }),
 			inputSelectField(app, { name: 'Source' })
 		],
-		execute: async (_action, handler, context) => {
+		execute: async (_action, handler, context, next) => {
 			const sceneName = resolveFieldText(handler.fields, 'scene', context);
 			const sourceName = resolveFieldText(handler.fields, 'source', context);
 
@@ -245,6 +252,7 @@ export const createHideSceneItemHandler = (app: PluginAppApi) =>
 				},
 				{ label: 'Hide Scene Item' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
 
@@ -252,7 +260,7 @@ export const createToggleFilterHandler = (app: PluginAppApi) =>
 	({
 		name: 'Toggle Filter',
 		fields: [inputSelectField(app, { name: 'Input' }), filterNameField()],
-		execute: async (_action, handler, context) => {
+		execute: async (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'input', context);
 			const filterName = resolveFieldText(handler.fields, 'filter-name', context);
 
@@ -292,6 +300,7 @@ export const createToggleFilterHandler = (app: PluginAppApi) =>
 					},
 					{ label: 'Toggle Filter' }
 				);
+				next();
 			} catch (error) {
 				const message =
 					error instanceof Error ? error.message : 'Unknown OBS WebSocket error.';

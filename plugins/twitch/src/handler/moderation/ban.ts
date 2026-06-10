@@ -28,7 +28,7 @@ export const createBanHandler = (app: PluginAppApi) =>
 				placeholder: '0'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const reason = resolveFieldText(handler.fields, 'reason', context);
@@ -52,5 +52,6 @@ export const createBanHandler = (app: PluginAppApi) =>
 				duration: timeoutDuration,
 				reason: typeof reason === 'string' ? reason : undefined
 			});
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

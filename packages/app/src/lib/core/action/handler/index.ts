@@ -6,4 +6,9 @@ export type {
 	HandlerFieldVariable,
 	ResolvedHandlerFieldDefinition
 } from './field';
-export type { HandlerDefinitionProps, ResolvedHandlerDefinitionProps } from './types';
+export type {
+	HandlerDefinitionProps,
+	HandlerExecuteFn,
+	HandlerNext,
+	ResolvedHandlerDefinitionProps
+} from './types';

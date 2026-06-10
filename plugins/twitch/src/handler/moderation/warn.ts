@@ -24,7 +24,7 @@ export const createWarnHandler = (app: PluginAppApi) =>
 				variables: MESSAGE_TEXT_VARIABLES
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const reason = resolveFieldText(handler.fields, 'reason', context);
@@ -39,5 +39,6 @@ export const createWarnHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.moderation.warnUser(broadcasterId, target, reason.trim());
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

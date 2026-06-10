@@ -16,7 +16,7 @@ export const createPredictionCancelHandler = (app: PluginAppApi) =>
 				placeholder: 'Leave empty to use trigger prediction'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldPredictionId = getFieldValue(handler.fields, 'predictionId');
 			const predictionId =
@@ -28,5 +28,6 @@ export const createPredictionCancelHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.predictions.cancelPrediction(broadcasterId, predictionId);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

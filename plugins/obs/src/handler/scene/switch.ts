@@ -9,7 +9,7 @@ export const createSwitchSceneHandler = (app: PluginAppApi) =>
 	({
 		name: 'Switch Scene',
 		fields: [sceneSelectField(app, { name: 'Scene' })],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const sceneName = resolveFieldText(handler.fields, 'scene', context);
 
 			if (typeof sceneName !== 'string' || !sceneName.trim()) {
@@ -22,5 +22,6 @@ export const createSwitchSceneHandler = (app: PluginAppApi) =>
 				{ sceneName: sceneName.trim() },
 				{ label: 'Switch Scene' }
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

@@ -17,7 +17,7 @@ export const createUnbanHandler = (app: PluginAppApi) =>
 				variables: TARGET_USER_VARIABLES
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const { userName, userId } = resolveUserFromContext(context, fieldUser);
@@ -28,5 +28,6 @@ export const createUnbanHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.moderation.unbanUser(broadcasterId, target);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

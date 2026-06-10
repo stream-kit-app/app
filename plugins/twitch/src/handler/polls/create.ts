@@ -36,7 +36,7 @@ export const createPollStartHandler = (app: PluginAppApi) =>
 				placeholder: 'Leave empty to disable point voting'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const title = resolveFieldText(handler.fields, 'title', context);
 			const choices = parseListField(getFieldValue(handler.fields, 'choices'));
@@ -60,5 +60,6 @@ export const createPollStartHandler = (app: PluginAppApi) =>
 				duration,
 				...(channelPointsPerVote != null ? { channelPointsPerVote } : {})
 			});
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

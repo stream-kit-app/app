@@ -22,7 +22,7 @@ export const createPredictionEndHandler = (app: PluginAppApi) =>
 				placeholder: 'Outcome ID to resolve as winner'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const fieldPredictionId = getFieldValue(handler.fields, 'predictionId');
 			const winningOutcomeId = getFieldValue(handler.fields, 'winningOutcomeId');
@@ -44,5 +44,6 @@ export const createPredictionEndHandler = (app: PluginAppApi) =>
 				predictionId,
 				winningOutcomeId.trim()
 			);
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

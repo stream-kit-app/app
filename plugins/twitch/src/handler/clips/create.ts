@@ -7,7 +7,7 @@ import { getTwitch } from '../../lib/plugin-api';
 export const createClipHandler = (app: PluginAppApi) =>
 	({
 		name: 'Create Clip',
-		execute: (_action, _handler, context) => {
+		execute: (_action, _handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 
 			if (!broadcasterId) {
@@ -15,5 +15,6 @@ export const createClipHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.clips.createClip({ channel: broadcasterId });
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

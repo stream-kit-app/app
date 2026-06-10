@@ -15,7 +15,7 @@ export const createPlayAudioFolderHandler = (app: PluginAppApi) => {
 				required: true
 			}
 		],
-		execute: (_action, handler, _context) => {
+		execute: (_action, handler, _context, next) => {
 			const folderPath = getFieldValue(handler.fields, 'folder');
 
 			if (typeof folderPath !== 'string' || !folderPath.trim()) {
@@ -23,6 +23,7 @@ export const createPlayAudioFolderHandler = (app: PluginAppApi) => {
 			}
 
 			void playAudioFilesFromFolder(app, folderPath.trim());
+			next();
 		}
 	} satisfies HandlerDefinitionProps;
 };

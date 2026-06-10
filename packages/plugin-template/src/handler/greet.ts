@@ -10,7 +10,7 @@ export const createGreetHandler = (): HandlerDefinitionProps => ({
 			placeholder: 'Hello from Stream Kit!'
 		}
 	],
-	execute: (_action, handler, _context) => {
+	execute: (_action, handler, _context, next) => {
 		const messageField = handler.fields[0];
 		const message =
 			typeof messageField?.value === 'string' && messageField.value.trim()
@@ -18,5 +18,6 @@ export const createGreetHandler = (): HandlerDefinitionProps => ({
 				: 'Hello from Stream Kit!';
 
 		console.info(`[hello-world] ${message}`);
+		next();
 	}
 });

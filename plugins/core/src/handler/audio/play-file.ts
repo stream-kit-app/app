@@ -23,7 +23,7 @@ export const createPlayAudioFileHandler = (app: PluginAppApi) => {
 				required: true
 			}
 		],
-		execute: (_action, handler, _context) => {
+		execute: (_action, handler, _context, next) => {
 			const filePath = getFieldValue(handler.fields, 'audio-file');
 
 			if (typeof filePath !== 'string' || !filePath.trim()) {
@@ -31,6 +31,7 @@ export const createPlayAudioFileHandler = (app: PluginAppApi) => {
 			}
 
 			void playAudioFile(app, filePath.trim());
+			next();
 		}
 	} satisfies HandlerDefinitionProps;
 };

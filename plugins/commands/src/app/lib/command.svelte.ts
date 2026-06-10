@@ -1,6 +1,7 @@
 import type { Modal } from '$lib/core/modal';
 import type { Action } from '$lib/core/action/action.svelte';
 import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
+import { runHandlerChain } from '$lib/core/action/run-handler-chain';
 import { ActionHandler } from '$lib/core/action/action-handler.svelte';
 import { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
 import { migrateLegacyHandlerFields } from '$lib/core/action/handler-field';
@@ -194,13 +195,7 @@ export class Command {
 
 		const actionProxy = this as unknown as Action;
 
-		for (const handler of this.handlers) {
-			if (!handler.definition.isAvailable) {
-				continue;
-			}
-
-			handler.definition.execute?.(actionProxy, handler, context);
-		}
+		runHandlerChain(this.handlers, actionProxy, context);
 	}
 
 	validateForm(): boolean {

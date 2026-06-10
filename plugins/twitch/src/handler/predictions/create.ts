@@ -37,7 +37,7 @@ export const createPredictionStartHandler = (app: PluginAppApi) =>
 				placeholder: '120'
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const broadcasterId = resolveBroadcasterId(context, app);
 			const title = resolveFieldText(handler.fields, 'title', context);
 			const outcome1 = getFieldValue(handler.fields, 'outcome1');
@@ -61,5 +61,6 @@ export const createPredictionStartHandler = (app: PluginAppApi) =>
 				outcomes: [outcome1.trim(), outcome2.trim()],
 				autoLockAfter
 			});
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

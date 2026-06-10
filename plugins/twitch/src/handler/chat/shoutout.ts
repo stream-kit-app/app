@@ -18,7 +18,7 @@ export const createShoutoutHandler = (app: PluginAppApi) =>
 				variables: TARGET_USER_VARIABLES
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const user = resolveFieldText(handler.fields, 'user', context);
 			const broadcasterId = resolveBroadcasterId(context, app);
 
@@ -27,5 +27,6 @@ export const createShoutoutHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.chat.shoutoutUser(broadcasterId, user.trim());
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;

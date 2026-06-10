@@ -182,4 +182,4 @@ pnpm run dev:packages   # Run packages/plugins in watch mode only
 
 ## License
 
-[Source Available](LICENSE) — the source code is publicly visible for transparency and reference, but may not be used or distributed by others without explicit written permission from the copyright holder.
+[Source Available](LICENSE) — the source code is publicly visible for human reference only. It may not be used, distributed, scraped, or processed by automated systems or AI tools. See [LICENSE](LICENSE) and [robots.txt](robots.txt).

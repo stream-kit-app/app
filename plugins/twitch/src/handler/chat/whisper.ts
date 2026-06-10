@@ -24,7 +24,7 @@ export const createWhisperHandler = (app: PluginAppApi) =>
 				variables: MESSAGE_TEXT_VARIABLES
 			}
 		],
-		execute: (_action, handler, context) => {
+		execute: (_action, handler, context, next) => {
 			const message = resolveFieldText(handler.fields, 'message', context);
 			const fieldUser = resolveFieldText(handler.fields, 'user', context);
 			const fromUserId = getTwitch(app).userId;
@@ -43,5 +43,6 @@ export const createWhisperHandler = (app: PluginAppApi) =>
 			}
 
 			void getTwitch(app).client?.whispers.sendWhisper(fromUserId, userName, message.trim());
+			next();
 		}
 	}) satisfies HandlerDefinitionProps;
