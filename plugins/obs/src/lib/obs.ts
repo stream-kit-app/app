@@ -1,6 +1,7 @@
 import type { PluginAppApi } from '@stream-kit/app/api';
 import { OBSWebSocket } from 'obs-websocket-js';
 
+import { invalidateObsCatalog } from './catalog';
 import { bindObsWebSocket } from './websocket-setup';
 
 type ObsStateListener = () => void;
@@ -87,6 +88,8 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 			clearTimeout(reconnectTimer);
 			reconnectTimer = undefined;
 		}
+
+		invalidateObsCatalog();
 
 		unbindEvents?.();
 		unbindEvents = undefined;

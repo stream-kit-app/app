@@ -1,5 +1,5 @@
 import corePlugin from '@stream-kit/plugin-handlers';
-import { Commands, createCommandsPlugin } from '@stream-kit/plugin-commands/register-builtin';
+import { Commands, commandsPlugin } from '@stream-kit/plugin-commands';
 import obsPlugin from '@stream-kit/plugin-obs';
 import ttsPlugin from '@stream-kit/plugin-tts';
 import twitchPlugin from '@stream-kit/plugin-twitch';
@@ -24,7 +24,7 @@ export function bootApp(): Promise<void> {
 			await app.use(youtubePlugin, { key: 'youtube', source: 'builtin' });
 			await app.use(obsPlugin, { key: 'obs', source: 'builtin' });
 			await app.use(ttsPlugin, { key: 'tts', source: 'builtin' });
-			await app.use(createCommandsPlugin(commands), { key: 'commands', source: 'builtin' });
+			await app.use(commandsPlugin(commands), { key: 'commands', source: 'builtin' });
 			await discoverAndLoadInstalledPlugins(app);
 			await app.plugins.load(app);
 			await app.boot();

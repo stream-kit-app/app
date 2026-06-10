@@ -14,7 +14,7 @@
 		"lint": "eslint .",
 		"format": "prettier --write ."
 	},
-	"license": "MIT",
+	"license": "SEE LICENSE IN LICENSE",
 	"exports": {
 		"./api": {
 			"types": "./src/api.ts",

@@ -1,7 +1,23 @@
 export const OBS_EVENTS = {
 	SCENE_CHANGED: 'obs:scene-changed',
+	PREVIEW_SCENE_CHANGED: 'obs:preview-scene-changed',
+	TRANSITION_STARTED: 'obs:transition-started',
+	TRANSITION_ENDED: 'obs:transition-ended',
 	STREAM_STARTED: 'obs:stream-started',
 	STREAM_STOPPED: 'obs:stream-stopped',
 	RECORDING_STARTED: 'obs:recording-started',
-	RECORDING_STOPPED: 'obs:recording-stopped'
+	RECORDING_STOPPED: 'obs:recording-stopped',
+	REPLAY_BUFFER_STARTED: 'obs:replay-buffer-started',
+	REPLAY_BUFFER_STOPPED: 'obs:replay-buffer-stopped',
+	REPLAY_BUFFER_SAVED: 'obs:replay-buffer-saved',
+	VIRTUALCAM_STARTED: 'obs:virtualcam-started',
+	VIRTUALCAM_STOPPED: 'obs:virtualcam-stopped',
+	INPUT_MUTED: 'obs:input-muted',
+	INPUT_UNMUTED: 'obs:input-unmuted',
+	INPUT_SHOWN: 'obs:input-shown',
+	INPUT_HIDDEN: 'obs:input-hidden',
+	MEDIA_STARTED: 'obs:media-started',
+	MEDIA_ENDED: 'obs:media-ended',
+	STUDIO_MODE_ENABLED: 'obs:studio-mode-enabled',
+	STUDIO_MODE_DISABLED: 'obs:studio-mode-disabled'
 } as const;

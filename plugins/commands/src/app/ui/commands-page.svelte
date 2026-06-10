@@ -9,8 +9,8 @@
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
-	import { Command } from '../domain/command.svelte';
-	import { tryGetCommandsService } from '../domain/get-commands';
+	import { Command } from '../lib/command.svelte';
+	import { tryGetCommandsService } from '../lib/get-commands';
 	import CommandCard from './command-card.svelte';
 
 	type Props = {
@@ -29,9 +29,7 @@
 	const selectableCommands = $derived(
 		(commands?.items ?? []).filter((command) => command.id != null)
 	);
-	const orderedSelectableIds = $derived(
-		selectableCommands.map((command) => command.id!)
-	);
+	const orderedSelectableIds = $derived(selectableCommands.map((command) => command.id!));
 	const allSelected = $derived(
 		selectableCommands.length > 0 &&
 			selectableCommands.every((command) => selectedIds.has(command.id!))

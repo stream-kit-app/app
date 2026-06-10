@@ -2,13 +2,9 @@
 	"name": "@stream-kit/plugin-commands",
 	"version": "0.1.0",
 	"type": "module",
-	"license": "MIT",
+	"license": "SEE LICENSE IN LICENSE",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		},
-		"./register-builtin": "./src/register-builtin.ts",
+		".": "./src/index.ts",
 		"./app/db/migrate": "./src/app/db/migrate.ts",
 		"./app/db/schema": "./src/app/db/schema.ts",
 		"./app/db/repository": "./src/app/db/repository.ts",
@@ -22,13 +18,12 @@
 		"./app/ui/command-form.svelte": "./src/app/ui/command-form.svelte"
 	},
 	"files": [
-		"dist",
 		"src"
 	],
 	"scripts": {
-		"build": "tsup",
+		"build": "tsc --noEmit",
 		"check": "tsc --noEmit",
-		"dev": "tsup --watch src"
+		"dev": "tsc --noEmit --watch --preserveWatchOutput"
 	},
 	"dependencies": {
 		"@stream-kit/core": "workspace:*"
@@ -39,7 +34,6 @@
 		"@iconify/svelte": "^5.2.1",
 		"@tauri-apps/plugin-sql": "~2.4.0",
 		"drizzle-orm": "^0.45.2",
-		"tsup": "^8.5.0",
 		"typescript": "~6.0.3"
 	}
 }

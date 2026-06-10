@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Command } from '../domain/command.svelte';
+	import type { Command } from '../lib/command.svelte';
 
 	import Icon from '@iconify/svelte';
 

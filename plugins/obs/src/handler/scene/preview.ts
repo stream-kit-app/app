@@ -5,9 +5,9 @@ import { resolveFieldText } from '../../get-field-value';
 import { sceneSelectField } from '../../lib/field-builders';
 import { callObs } from '../../lib/obs-call';
 
-export const createSwitchSceneHandler = (app: PluginAppApi) =>
+export const createSetPreviewSceneHandler = (app: PluginAppApi) =>
 	({
-		name: 'Switch Scene',
+		name: 'Set Preview Scene',
 		fields: [sceneSelectField(app, { name: 'Scene' })],
 		execute: (_action, handler, context) => {
 			const sceneName = resolveFieldText(handler.fields, 'scene', context);
@@ -18,9 +18,9 @@ export const createSwitchSceneHandler = (app: PluginAppApi) =>
 
 			void callObs(
 				app,
-				'SetCurrentProgramScene',
+				'SetCurrentPreviewScene',
 				{ sceneName: sceneName.trim() },
-				{ label: 'Switch Scene' }
+				{ label: 'Set Preview Scene' }
 			);
 		}
 	}) satisfies HandlerDefinitionProps;

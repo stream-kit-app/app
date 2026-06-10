@@ -28,3 +28,31 @@ export function evaluateSceneMatch(sceneName: string, value: FieldValue): boolea
 
 	return matchText(sceneName, match.type, match.value);
 }
+
+export function inputMatchCondition(name = 'Input name'): ConditionDefinition {
+	return {
+		type: 'select-text',
+		name,
+		placeholder: 'Input name',
+		defaultValue: { type: 'equals', value: '' },
+		items: [...sceneMatchOperators]
+	};
+}
+
+export function transitionMatchCondition(name = 'Transition name'): ConditionDefinition {
+	return {
+		type: 'select-text',
+		name,
+		placeholder: 'Transition name',
+		defaultValue: { type: 'equals', value: '' },
+		items: [...sceneMatchOperators]
+	};
+}
+
+export function evaluateInputMatch(inputName: string, value: FieldValue): boolean {
+	return evaluateSceneMatch(inputName, value);
+}
+
+export function evaluateTransitionMatch(transitionName: string, value: FieldValue): boolean {
+	return evaluateSceneMatch(transitionName, value);
+}

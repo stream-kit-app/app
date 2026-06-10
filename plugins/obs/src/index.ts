@@ -1,19 +1,97 @@
 import type { ObsPluginApi, ObsPluginController } from './lib/obs';
 import type { Plugin } from '@stream-kit/app/api';
 
-import { createStartRecordingHandler } from './handler/recording/start';
-import { createStopRecordingHandler } from './handler/recording/stop';
+import {
+	createPauseRecordHandler,
+	createResumeRecordHandler,
+	createSplitRecordHandler,
+	createStartRecordingHandler,
+	createStopRecordingHandler,
+	createToggleRecordHandler
+} from './handler/recording/index';
+import {
+	createStartReplayBufferHandler,
+	createStopReplayBufferHandler,
+	createSaveReplayBufferHandler,
+	createToggleReplayBufferHandler
+} from './handler/replay-buffer/index';
+import { createSetPreviewSceneHandler } from './handler/scene/preview';
 import { createSwitchSceneHandler } from './handler/scene/switch';
-import { createStartStreamHandler } from './handler/stream/start';
-import { createStopStreamHandler } from './handler/stream/stop';
+import {
+	createHideSceneItemHandler,
+	createMuteInputHandler,
+	createSetInputTextHandler,
+	createSetInputVolumeHandler,
+	createShowSceneItemHandler,
+	createToggleFilterHandler,
+	createToggleInputMuteHandler,
+	createTriggerMediaActionHandler,
+	createUnmuteInputHandler
+} from './handler/source/index';
+import {
+	createStartStreamHandler,
+	createStopStreamHandler,
+	createToggleStreamHandler
+} from './handler/stream/index';
+import {
+	createSetTransitionDurationHandler,
+	createSetTransitionHandler,
+	createTriggerStudioTransitionHandler
+} from './handler/transition/index';
+import {
+	createDisableStudioModeHandler,
+	createEnableStudioModeHandler
+} from './handler/studio-mode/index';
+import { createTriggerHotkeyHandler } from './handler/hotkey/trigger';
+import {
+	createStartVirtualCamHandler,
+	createStopVirtualCamHandler,
+	createToggleVirtualCamHandler
+} from './handler/virtualcam/index';
 import { createObsPluginApi } from './lib/obs';
 import { createRecordingStartedTrigger } from './trigger/recording/started';
 import { createRecordingStoppedTrigger } from './trigger/recording/stopped';
-import { createSceneChangedTrigger } from './trigger/scene/changed';
+import {
+	createReplayBufferSavedTrigger,
+	createReplayBufferStartedTrigger,
+	createReplayBufferStoppedTrigger
+} from './trigger/replay-buffer/index';
+import {
+	createSceneChangedTrigger,
+	createPreviewSceneChangedTrigger
+} from './trigger/scene/changed';
+import {
+	createInputHiddenTrigger,
+	createInputMutedTrigger,
+	createInputShownTrigger,
+	createInputUnmutedTrigger,
+	createMediaEndedTrigger,
+	createMediaStartedTrigger
+} from './trigger/source/index';
 import { createStreamStartedTrigger } from './trigger/stream/started';
 import { createStreamStoppedTrigger } from './trigger/stream/stopped';
+import {
+	createStudioModeDisabledTrigger,
+	createStudioModeEnabledTrigger
+} from './trigger/studio-mode/index';
+import {
+	createTransitionEndedTrigger,
+	createTransitionStartedTrigger
+} from './trigger/transition/index';
+import {
+	createVirtualCamStartedTrigger,
+	createVirtualCamStoppedTrigger
+} from './trigger/virtualcam/index';
 
-export type { ObsContext, OutputStateContext, SceneChangedContext } from './contexts';
+export type {
+	ObsContext,
+	InputStateContext,
+	MediaContext,
+	OutputStateContext,
+	SceneChangedContext,
+	StudioModeContext,
+	TransitionContext
+} from './contexts';
 export type { ObsPluginApi } from './lib/obs';
 
 const plugin: Plugin = (app) => {
@@ -197,7 +275,17 @@ const plugin: Plugin = (app) => {
 				children: [
 					{
 						name: 'Scene',
-						children: [createSceneChangedTrigger(app)]
+						children: [
+							createSceneChangedTrigger(app),
+							createPreviewSceneChangedTrigger(app)
+						]
+					},
+					{
+						name: 'Transition',
+						children: [
+							createTransitionStartedTrigger(app),
+							createTransitionEndedTrigger(app)
+						]
 					},
 					{
 						name: 'Stream',
@@ -209,6 +297,39 @@ const plugin: Plugin = (app) => {
 							createRecordingStartedTrigger(app),
 							createRecordingStoppedTrigger(app)
 						]
+					},
+					{
+						name: 'Replay Buffer',
+						children: [
+							createReplayBufferStartedTrigger(app),
+							createReplayBufferStoppedTrigger(app),
+							createReplayBufferSavedTrigger(app)
+						]
+					},
+					{
+						name: 'Virtual Cam',
+						children: [
+							createVirtualCamStartedTrigger(app),
+							createVirtualCamStoppedTrigger(app)
+						]
+					},
+					{
+						name: 'Source',
+						children: [
+							createInputMutedTrigger(app),
+							createInputUnmutedTrigger(app),
+							createInputShownTrigger(app),
+							createInputHiddenTrigger(app),
+							createMediaStartedTrigger(app),
+							createMediaEndedTrigger(app)
+						]
+					},
+					{
+						name: 'Studio Mode',
+						children: [
+							createStudioModeEnabledTrigger(app),
+							createStudioModeDisabledTrigger(app)
+						]
 					}
 				]
 			}
@@ -219,15 +340,79 @@ const plugin: Plugin = (app) => {
 				children: [
 					{
 						name: 'Scene',
-						children: [createSwitchSceneHandler(app)]
+						children: [createSwitchSceneHandler(app), createSetPreviewSceneHandler(app)]
+					},
+					{
+						name: 'Transition',
+						children: [
+							createSetTransitionHandler(app),
+							createSetTransitionDurationHandler(app),
+							createTriggerStudioTransitionHandler(app)
+						]
 					},
 					{
 						name: 'Stream',
-						children: [createStartStreamHandler(app), createStopStreamHandler(app)]
+						children: [
+							createStartStreamHandler(app),
+							createStopStreamHandler(app),
+							createToggleStreamHandler(app)
+						]
 					},
 					{
 						name: 'Recording',
-						children: [createStartRecordingHandler(app), createStopRecordingHandler(app)]
+						children: [
+							createStartRecordingHandler(app),
+							createStopRecordingHandler(app),
+							createToggleRecordHandler(app),
+							createPauseRecordHandler(app),
+							createResumeRecordHandler(app),
+							createSplitRecordHandler(app)
+						]
+					},
+					{
+						name: 'Replay Buffer',
+						children: [
+							createStartReplayBufferHandler(app),
+							createStopReplayBufferHandler(app),
+							createToggleReplayBufferHandler(app),
+							createSaveReplayBufferHandler(app)
+						]
+					},
+					{
+						name: 'Virtual Cam',
+						children: [
+							createStartVirtualCamHandler(app),
+							createStopVirtualCamHandler(app),
+							createToggleVirtualCamHandler(app)
+						]
+					},
+					{
+						name: 'Source',
+						children: [
+							createMuteInputHandler(app),
+							createUnmuteInputHandler(app),
+							createToggleInputMuteHandler(app),
+							createSetInputVolumeHandler(app),
+							createSetInputTextHandler(app),
+							createTriggerMediaActionHandler(app),
+							createShowSceneItemHandler(app),
+							createHideSceneItemHandler(app)
+						]
+					},
+					{
+						name: 'Filter',
+						children: [createToggleFilterHandler(app)]
+					},
+					{
+						name: 'Studio Mode',
+						children: [
+							createEnableStudioModeHandler(app),
+							createDisableStudioModeHandler(app)
+						]
+					},
+					{
+						name: 'Hotkey',
+						children: [createTriggerHotkeyHandler(app)]
 					}
 				]
 			}

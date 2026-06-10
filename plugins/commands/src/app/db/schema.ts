@@ -1,7 +1,4 @@
-import type {
-	CommandPermissions,
-	CommandSource
-} from '../domain/stored-command';
+import type { CommandPermissions, CommandSource } from '../lib/stored-command';
 import type { StoredActionHandler } from '$lib/core/action/stored-action';
 
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
@@ -11,7 +8,7 @@ export {
 	type CommandPermissions,
 	type CommandSource,
 	type NewCommandRecord
-} from '../domain/stored-command';
+} from '../lib/stored-command';
 
 /** User-configured chat commands saved to the local database. */
 export const commands = sqliteTable('commands', {

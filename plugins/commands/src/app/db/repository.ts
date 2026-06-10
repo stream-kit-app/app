@@ -1,18 +1,10 @@
-import type {
-	CommandPermissions,
-	CommandRecord,
-	CommandSource
-} from '../domain/stored-command';
-
-import { eq, inArray } from 'drizzle-orm';
-
+import type { CommandPermissions, CommandRecord, CommandSource } from '../lib/stored-command';
 import type { StoredActionHandler } from '$lib/core/action/stored-action';
-import {
-	DEFAULT_COMMAND_PERMISSIONS,
-	DEFAULT_COMMAND_SOURCES
-} from '../domain/stored-command';
 
 import { db } from '$db/index';
+import { eq, inArray } from 'drizzle-orm';
+
+import { DEFAULT_COMMAND_PERMISSIONS, DEFAULT_COMMAND_SOURCES } from '../lib/stored-command';
 import { commands } from './schema';
 
 export type SaveCommandInput = {

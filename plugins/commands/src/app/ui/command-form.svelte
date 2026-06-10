@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Command } from '../domain/command.svelte';
-	import type { CommandSource } from '../domain/stored-command';
+	import type { Command } from '../lib/command.svelte';
+	import type { CommandSource } from '../lib/stored-command';
 
 	import { Button } from '@stream-kit/ui/button';
 	import {

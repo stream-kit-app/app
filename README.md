@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/stream-kit-app/app)
 [![Status](https://img.shields.io/badge/status-work%20in%20progress-orange)](#current-status)
-[![License](https://img.shields.io/badge/license-MIT-green)](#license)
+[![License](https://img.shields.io/badge/license-Source%20Available-orange)](#license)
 
 > [!WARNING]
 > **Work in progress**
@@ -182,4 +182,4 @@ pnpm run dev:packages   # Run packages/plugins in watch mode only
 
 ## License
 
-MIT — see the `package.json` files in the workspace for details.
+[Source Available](LICENSE) — the source code is publicly visible for transparency and reference, but may not be used or distributed by others without explicit written permission from the copyright holder.
