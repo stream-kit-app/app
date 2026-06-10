@@ -3,7 +3,6 @@
 	import { Checkbox, useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
-
 	import Label from './label.svelte';
 
 	type Props = {
@@ -38,7 +37,7 @@
 			aria-invalid={error ? true : undefined}
 			class={cn(
 				'peer inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded border transition-colors outline-none',
-				'data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-dark-50',
+				'data-[state=checked]:border-primary data-[state=checked]:bg-primary/15 data-[state=checked]:text-primary',
 				'data-[state=unchecked]:bg-dark-700',
 				error
 					? 'border-red-500'

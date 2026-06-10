@@ -2,7 +2,6 @@
 	import { Switch, useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
-
 	import Label from './label.svelte';
 
 	type Props = {
@@ -31,7 +30,7 @@
 			aria-invalid={error ? true : undefined}
 			class={cn(
 				'inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors outline-none',
-				'data-[state=checked]:bg-primary-100',
+				'data-[state=checked]:bg-primary/15',
 				error
 					? 'data-[state=unchecked]:bg-red-500/30'
 					: 'data-[state=unchecked]:bg-dark-600',
@@ -43,7 +42,7 @@
 				class={cn(
 					'pointer-events-none block size-5 shrink-0 rounded-full bg-white transition-transform',
 					'data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0',
-					'data-[state=checked]:bg-dark-800'
+					'data-[state=checked]:bg-primary'
 				)}
 			/>
 		</Switch.Root>

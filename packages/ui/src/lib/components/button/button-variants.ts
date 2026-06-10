@@ -13,10 +13,8 @@ export const buttonVariants = tv({
 	],
 	variants: {
 		variant: {
-			default:
-				'border-primary bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
-			secondary:
-				'border-secondary bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/90',
+			default: 'bg-primary/15 text-primary shadow-sm hover:bg-primary/25',
+			secondary: 'bg-secondary/15 text-secondary shadow-sm hover:bg-secondary/25',
 			outline:
 				'border border-border bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground',
 			ghost: 'hover:bg-accent hover:text-accent-foreground',
