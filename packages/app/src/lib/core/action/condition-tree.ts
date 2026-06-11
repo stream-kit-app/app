@@ -44,6 +44,10 @@ export function initConditionValue(definition: ResolvedConditionDefinition): Fie
 		return true;
 	}
 
+	if (definition.type === 'cron-expression') {
+		return '';
+	}
+
 	return '';
 }
 

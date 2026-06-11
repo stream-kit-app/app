@@ -489,7 +489,8 @@ export class Action {
 			triggers: this.triggers.map((trigger) => ({
 				id: trigger.id,
 				conditions: $state.snapshot(trigger.conditions),
-				definitions: trigger.definition.conditions
+				definitions: trigger.definition.conditions,
+				validateForm: trigger.definition.validateForm
 			})),
 			handlers: this.handlers.map((handler) => ({
 				id: handler.id,
@@ -531,6 +532,8 @@ export class Action {
 			if (this.enabled) {
 				app.actions.activate(this);
 			}
+		} else if (row && this.enabled) {
+			app.actions.activate(this);
 		}
 
 		app.toast.create({

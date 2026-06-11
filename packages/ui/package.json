@@ -102,13 +102,16 @@
 			"import": "./src/lib/types.ts"
 		}
 	},
-	"files": ["src"],
+	"files": [
+		"src"
+	],
 	"scripts": {
 		"build": "svelte-check --tsconfig ./tsconfig.json",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"dev": "svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"dependencies": {
+		"@stream-kit/core": "workspace:*",
 		"monaco-editor": "^0.55.1"
 	},
 	"peerDependencies": {

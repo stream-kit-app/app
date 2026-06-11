@@ -24,13 +24,36 @@ function collectLeafNodes(group: ConditionGroupNode): ConditionLeafNode[] {
 	return leaves;
 }
 
-export function findConditionValue(
+export function findConditionLeaf(
 	conditions: ConditionGroupNode,
 	key: string
-): ConditionLeafNode['value'] | undefined {
+): ConditionLeafNode | undefined {
 	const normalizedKey = normalizeLookupKey(key);
 
 	return collectLeafNodes(conditions).find(
 		(leaf) => normalizeLookupKey(leaf.key) === normalizedKey
-	)?.value;
+	);
+}
+
+export function findConditionValue(
+	conditions: ConditionGroupNode,
+	key: string
+): ConditionLeafNode['value'] | undefined {
+	return findConditionLeaf(conditions, key)?.value;
+}
+
+export function findConditionTextValue(conditions: ConditionGroupNode, key: string): string {
+	const value = findConditionValue(conditions, key);
+
+	return typeof value === 'string' ? value.trim() : '';
+}
+
+export function findConditionSelectValue(conditions: ConditionGroupNode, key: string): string {
+	const value = findConditionValue(conditions, key);
+
+	if (typeof value === 'string') {
+		return value.trim();
+	}
+
+	return '';
 }

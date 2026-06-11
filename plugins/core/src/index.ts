@@ -13,8 +13,11 @@ import type { CorePluginContext } from './lib/core-context';
 import { ActionLogService } from './lib/logs/action-log';
 import { isProcessWatcherEnabled, shouldRunProcessWatcher } from './lib/process-settings';
 import type { CorePluginApi } from './lib/plugin-api';
+import { ScheduleService } from './lib/schedule-service';
 import { VariableStore } from './lib/variables/variable-store';
+import { createCronTrigger } from './trigger/cron-trigger';
 import { createProcessTrigger } from './trigger/process-trigger';
+import { createScheduledTrigger } from './trigger/scheduled-trigger';
 
 export type {
 	ActionLogAppendInput,
@@ -40,9 +43,15 @@ async function syncWatcherFromContext(context: PluginSettingsContext): Promise<v
 	}
 }
 
+async function syncSchedulesFromContext(context: PluginSettingsContext): Promise<void> {
+	await syncWatcherFromContext(context);
+	context.app.actions.reactivateAll();
+}
+
 const plugin: Plugin = (app) => {
 	const variables = new VariableStore();
 	const logs = new ActionLogService();
+	const scheduleService = new ScheduleService();
 
 	const ctx: CorePluginContext = { app, variables, logs };
 
@@ -67,7 +76,7 @@ const plugin: Plugin = (app) => {
 	return {
 		name: 'Core',
 		description:
-			'Core handlers and system triggers for audio playback, delays, scripts, process events, variables, and logging.',
+			'Core handlers and system triggers for audio playback, delays, scripts, process events, schedules, variables, and logging.',
 		icon: 'ri:settings-3-line',
 		isConfigured: () => true,
 		api,
@@ -87,6 +96,13 @@ const plugin: Plugin = (app) => {
 			}
 		],
 		triggers: [
+			{
+				name: 'Core',
+				children: [
+					createCronTrigger(app, scheduleService),
+					createScheduledTrigger(app, scheduleService)
+				]
+			},
 			{
 				name: 'Processes',
 				children: [
@@ -135,10 +151,11 @@ const plugin: Plugin = (app) => {
 			await variables.load();
 			await logs.load(app.fs);
 		},
-		onEnable: syncWatcherFromContext,
+		onEnable: syncSchedulesFromContext,
 		onReady: syncWatcherFromContext,
 		onSave: syncWatcherFromContext,
 		onDisable: async ({ app: pluginApp }) => {
+			scheduleService.stop();
 			await pluginApp.process.sync(false);
 		}
 	};

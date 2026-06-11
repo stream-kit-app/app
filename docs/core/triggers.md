@@ -1,6 +1,8 @@
 # Process triggers
 
-The Core plugin provides two system triggers under **Processes**:
+The Core plugin provides system triggers under **Core** and **Processes**. For cron and date/time triggers, see [Schedule triggers](./schedule-triggers.md).
+
+## Processes
 
 | Trigger | Event |
 |---------|-------|

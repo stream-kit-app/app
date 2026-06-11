@@ -98,3 +98,6 @@ watch(
 - Always use the i18n internationalization system whenever displaying user-facing strings.
 - When introducing new strings, ensure they are added to the appropriate translation files, so all languages remain up-to-date.
 - Do not hardcode visible text. Instead, wrap strings in the translation function (e.g., `t('Your string here')`) and register those keys for translation management.
+- Before creating a new interactive or visual component, always search for and use existing components from the UI library (such as `@stream-kit/ui` or, where appropriate, `$lib/components/core/`). This promotes design consistency and minimizes unnecessary duplication.
+- When adding new UI elements, adhere strictly to the established color palette and style tokens for indicating status: use the predefined success, warning, and danger/destructive color classes provided by the UI system.
+- If a required component does not exist, consider extending an existing one to preserve consistent UX patterns. Only implement a custom solution when no suitable UI library component is available, and consult with the design system documentation if unsure about color or style usage.

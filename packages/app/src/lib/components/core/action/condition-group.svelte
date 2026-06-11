@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
 	import type { ConditionEditor } from '$lib/core/action/condition-editor';
 	import type {
 		ConditionGroupNode,
@@ -14,6 +15,7 @@
 	import * as Dropdown from '@stream-kit/ui/dropdown';
 	import {
 		InputCheckbox,
+		InputCronExpression,
 		InputSelect,
 		InputSelectText,
 		InputText,
@@ -68,6 +70,24 @@
 		(event) => {
 			node.value = event.currentTarget.value;
 		};
+
+	function translateSelectItems(items: SelectItemsSource): SelectItemsSource {
+		if (typeof items === 'function') {
+			return async () => {
+				const resolved = await items();
+
+				return resolved.map((item) => ({
+					...item,
+					label: t(item.label)
+				}));
+			};
+		}
+
+		return items.map((item) => ({
+			...item,
+			label: t(item.label)
+		}));
+	}
 </script>
 
 {#snippet conditionField(config: ResolvedConditionDefinition, node: ConditionLeafNode, error?: string)}
@@ -89,6 +109,34 @@
 				oninput={onConditionTextInput(node)}
 			/>
 		{/if}
+	{:else if config.type === 'cron-expression'}
+		<InputCronExpression
+			placeholder={config.placeholder}
+			required={config.required}
+			presets={Array.isArray(config.presets)
+				? config.presets.map((preset) => ({
+						...preset,
+						label: t(preset.label)
+					}))
+				: undefined}
+			fieldLabels={{
+				minute: t('Minute'),
+				hour: t('Hour'),
+				day: t('Day'),
+				month: t('Month'),
+				weekday: t('Weekday')
+			}}
+			validLabel={t('Valid expression')}
+			invalidLabel={t('Invalid cron expression')}
+			nextRunLabel={t('Next run')}
+			presetsPlaceholder={t('Presets')}
+			editorTitle={t('Cron expression')}
+			emptyLabel={t('Configure cron expression')}
+			editAriaLabel={t('Edit cron expression')}
+			value={(node.value as string) ?? ''}
+			error={error ? t(error) : undefined}
+			oninput={onConditionTextInput(node)}
+		/>
 	{:else if config.type === 'checkbox'}
 		<div
 			class={cn(
@@ -100,14 +148,14 @@
 			<span class="truncate">{config.name}</span>
 		</div>
 		{#if error}
-			<p class="text-sm text-red-400">{error}</p>
+			<p class="text-sm text-red-400">{t(error)}</p>
 		{/if}
 	{:else if config.type === 'select'}
 		<InputSelect
 			type="single"
 			placeholder={config.placeholder}
 			loadingPlaceholder={config.loadingPlaceholder}
-			items={config.items}
+			items={translateSelectItems(config.items)}
 			{error}
 			bind:value={node.value as string}
 		/>

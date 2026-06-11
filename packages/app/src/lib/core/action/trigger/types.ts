@@ -1,8 +1,13 @@
 import type { Action } from '../action.svelte';
 import type { ActionTrigger } from '../action-trigger.svelte';
+import type { TriggerFormErrors } from '../validate-form';
 import type { ConditionDefinition, ConditionGroupNode, ResolvedConditionDefinition } from './condition';
 
 export type TriggerTestFn = (action: Action, trigger: ActionTrigger) => unknown;
+
+export type TriggerValidateFormFn = (
+	conditions: ConditionGroupNode
+) => TriggerFormErrors | undefined;
 
 export type TriggerDefinitionProps<TContext = unknown> = {
 	name: string;
@@ -14,6 +19,7 @@ export type TriggerDefinitionProps<TContext = unknown> = {
 		context: TContext,
 		trigger?: ActionTrigger
 	) => boolean;
+	validateForm?: TriggerValidateFormFn;
 	activate?: (action: Action, trigger: ActionTrigger) => void;
 	deactivate?: (action: Action, trigger: ActionTrigger) => void;
 	onTest?: TriggerTestFn;

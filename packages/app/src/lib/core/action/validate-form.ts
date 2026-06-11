@@ -41,7 +41,7 @@ export function isFieldValueEmpty(
 		return false;
 	}
 
-	if (definition.type === 'text' || definition.type === 'select') {
+	if (definition.type === 'text' || definition.type === 'select' || definition.type === 'cron-expression') {
 		return !String(value ?? '').trim();
 	}
 
@@ -117,10 +117,24 @@ function validateHandlerFields(
 	return errors;
 }
 
-function hasTriggerErrors(errors: TriggerFormErrors): boolean {
+export function hasTriggerErrors(errors: TriggerFormErrors): boolean {
 	return (
 		errors.missingConditions.length > 0 || Object.keys(errors.conditionFields).length > 0
 	);
+}
+
+function mergeTriggerErrors(
+	base: TriggerFormErrors,
+	extra: TriggerFormErrors | undefined
+): TriggerFormErrors {
+	if (!extra) {
+		return base;
+	}
+
+	return {
+		missingConditions: [...base.missingConditions, ...extra.missingConditions],
+		conditionFields: { ...base.conditionFields, ...extra.conditionFields }
+	};
 }
 
 function hasHandlerErrors(errors: HandlerFieldFormErrors): boolean {
@@ -135,6 +149,7 @@ export function validateActionForm(input: {
 		id: string;
 		conditions: ConditionGroupNode;
 		definitions?: ResolvedConditionDefinition[];
+		validateForm?: (conditions: ConditionGroupNode) => TriggerFormErrors | undefined;
 	}>;
 	handlers: Array<{
 		id: string;
@@ -160,7 +175,8 @@ export function validateActionForm(input: {
 	}
 
 	for (const trigger of input.triggers) {
-		const triggerErrors = validateConditionTree(trigger.conditions, trigger.definitions);
+		let triggerErrors = validateConditionTree(trigger.conditions, trigger.definitions);
+		triggerErrors = mergeTriggerErrors(triggerErrors, trigger.validateForm?.(trigger.conditions));
 
 		if (hasTriggerErrors(triggerErrors)) {
 			errors.triggerErrors[trigger.id] = triggerErrors;

@@ -203,6 +203,10 @@ importers:
         version: link:../app
 
   packages/core:
+    dependencies:
+      croner:
+        specifier: ^10.0.1
+        version: 10.0.1
     devDependencies:
       '@stream-kit/app':
         specifier: workspace:*
@@ -256,6 +260,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@stream-kit/core':
+        specifier: workspace:*
+        version: link:../core
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1
@@ -292,31 +299,6 @@ importers:
         version: 6.0.3
 
   plugins/bot:
-    dependencies:
-      '@stream-kit/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-    devDependencies:
-      '@iconify/svelte':
-        specifier: ^5.2.1
-        version: 5.2.1(svelte@5.56.1(@typescript-eslint/types@8.60.1))
-      '@stream-kit/app':
-        specifier: workspace:*
-        version: link:../../packages/app
-      '@stream-kit/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@tauri-apps/plugin-sql':
-        specifier: ~2.4.0
-        version: 2.4.0
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(@libsql/client@0.17.3)
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-
-  plugins/commands:
     dependencies:
       '@stream-kit/core':
         specifier: workspace:*
@@ -2058,6 +2040,10 @@ packages:
   cookie@0.6.0:
     resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
     engines: {node: '>= 0.6'}
+
+  croner@10.0.1:
+    resolution: {integrity: sha512-ixNtAJndqh173VQ4KodSdJEI6nuioBWI0V1ITNKhZZsO0pEMoDxz539T4FTTbSZ/xIOSuDnzxLVRqBVSvPNE2g==}
+    engines: {node: '>=18.0'}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -4615,6 +4601,8 @@ snapshots:
   consola@3.4.2: {}
 
   cookie@0.6.0: {}
+
+  croner@10.0.1: {}
 
   cross-spawn@7.0.6:
     dependencies:

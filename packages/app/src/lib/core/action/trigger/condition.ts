@@ -16,6 +16,10 @@ type ConditionBase = {
 /** A selectable condition definition for the Add Condition dropdown. */
 export type ConditionDefinition =
 	| (ConditionBase & { type: 'text'; variables?: HandlerFieldVariable[] })
+	| (ConditionBase & {
+			type: 'cron-expression';
+			presets?: SelectItemsSource;
+	  })
 	| (ConditionBase & { type: 'checkbox' })
 	| (ConditionBase & { type: 'select'; items: SelectItemsSource })
 	| (ConditionBase & {

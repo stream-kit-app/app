@@ -9,7 +9,7 @@ Source: `plugins/core/`
 The Core plugin provides general building blocks for actions:
 
 - **Handlers** — audio, scripts, programs, variables, logging, and delays
-- **Triggers** — process started/stopped events
+- **Triggers** — process started/stopped events and schedule triggers (cron, scheduled)
 - **Variables** — global, per-user, and per-action-run scopes
 - **Action logs** — in-memory ring buffer with disk persistence
 - **Plugin API** — `CorePluginApi` for other parts of the app
@@ -49,6 +49,7 @@ Core
 - [Variables](./variables.md) — scopes, interpolation, and storage
 - [Logging](./logging.md) — action logs and the LogViewer
 - [Triggers](./triggers.md) — process started/stopped
+- [Schedule triggers](./schedule-triggers.md) — cron and scheduled date/time triggers
 - [API](./api.md) — `CorePluginApi` for developers
 
 ## Lifecycle

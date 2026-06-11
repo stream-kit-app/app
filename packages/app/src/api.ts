@@ -14,7 +14,7 @@ export type {
 export type { Action } from './lib/core/action/action.svelte';
 export type { ActionTrigger } from './lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from './lib/core/action/action-handler.svelte';
-export type { TriggerDefinitionProps, TriggerTestFn } from './lib/core/action/trigger/types';
+export type { TriggerDefinitionProps, TriggerTestFn, TriggerValidateFormFn } from './lib/core/action/trigger/types';
 export type {
 	HandlerDefinitionProps,
 	HandlerExecuteFn,
@@ -109,3 +109,17 @@ export type {
 	HandlerFileFilter,
 	KeyValueEntry
 } from './lib/core/action/handler/field';
+export type { CronFieldKey, CronPreset } from '../../core/src/cron';
+export {
+	computeCronNextRun,
+	CRON_FIELD_COUNT,
+	CRON_FIELD_KEYS,
+	DEFAULT_CRON_PRESETS,
+	getCronFieldCount,
+	getCronNextRunLabel,
+	getCronValidationError,
+	getLocalTimezone,
+	isValidCronExpression,
+	normalizeCronExpression,
+	splitCronParts
+} from '../../core/src/cron';
