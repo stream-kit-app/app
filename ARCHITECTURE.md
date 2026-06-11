@@ -65,18 +65,20 @@ External plugins load through Tauri (`plugins.rs`) and browser import maps point
 ## Actions vs Commands
 
 - **Actions** — first-party app feature. Trigger → condition → handler rules stored in the `actions` table.
-- **Commands** — owned end-to-end by `@stream-kit/plugin-commands` (DB schema, domain, UI, chat runtime). Commands reuse the action handler system for execution but manage their own `commands` table.
+- **Bot / Commands** — owned by `@stream-kit/plugin-bot` (DB schema, domain, UI, chat runtime). Chat commands reuse the action handler system for execution but manage their own `commands` table. Timers and moderation rules use `bot_timers` and `bot_mod_rules`.
 
-Chat messages matching `!command` are handled only by the Commands plugin runtime. Platform plugins no longer expose a separate "Chat Command" action trigger.
+Chat messages matching `{prefix}{command}` are handled by the Bot plugin runtime. Platform plugins no longer expose a separate "Chat Command" action trigger.
 
 ## Database ownership
 
 | Table | Owner |
 | --- | --- |
 | `actions` | App (`packages/app/src/db`) |
-| `commands` | Commands plugin (`plugins/commands/src/app/db`) |
+| `commands` | Bot plugin (`plugins/bot/src/commands/app/db`) |
+| `bot_timers` | Bot plugin (`plugins/bot/src/timers/app/db`) |
+| `bot_mod_rules` | Bot plugin (`plugins/bot/src/moderation/app/db`) |
 
-Migrations for the commands table live in the plugin (`migrateCommandsTable`) and are invoked from the app migration runner during startup.
+Migrations for bot tables live in the plugin (`migrateBotTables`) and are invoked from the app migration runner during startup.
 
 ## Plugin DB API
 

@@ -14,7 +14,7 @@ import type {
 
 export type { CommandRuntimeFactory, PluginAppApi } from './plugin-app-api.types';
 
-export type CommandsPluginApi = {
+export type BotPluginApi = {
 	commands: {
 		registerRuntime: (factory: CommandRuntimeFactory) => void;
 		getSnapshot: () => CommandRecord[];
@@ -25,13 +25,16 @@ export type CommandsPluginApi = {
 	};
 };
 
+/** @deprecated Use BotPluginApi */
+export type CommandsPluginApi = BotPluginApi;
+
 export type PluginDefinitionCollections = {
 	triggers?: TriggerDefinitionProps[];
 	handlers?: HandlerDefinitionProps[];
 };
 
 function getCommandsApi(app: App) {
-	return app.plugins.tryGet<CommandsPluginApi>('commands')?.commands;
+	return app.plugins.tryGet<BotPluginApi>('bot')?.commands;
 }
 
 export function createPluginAppApi(app: App): PluginAppApi {

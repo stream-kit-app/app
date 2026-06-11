@@ -11,8 +11,11 @@ import { translate } from '$lib/i18n';
 import type { HandlerFieldFormErrors } from './action-handler.svelte';
 import { isHandlerFieldValueEmpty } from './handler-field';
 
-export type TriggerFormErrors = {
+export type ConditionFormErrors = {
 	conditionFields: Record<string, string>;
+};
+
+export type TriggerFormErrors = ConditionFormErrors & {
 	missingConditions: string[];
 };
 
@@ -40,6 +43,14 @@ export function isFieldValueEmpty(
 
 	if (definition.type === 'text' || definition.type === 'select') {
 		return !String(value ?? '').trim();
+	}
+
+	if (definition.type === 'text-select-text') {
+		const compound = value as { path: string; type: string; value: string };
+
+		return (
+			!compound.path.trim() || !compound.type.trim() || !compound.value.trim()
+		);
 	}
 
 	const compound = value as { type: string; value: string };

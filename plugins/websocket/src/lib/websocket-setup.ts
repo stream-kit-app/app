@@ -1,5 +1,7 @@
-import type { WsConnectionStateContext, WsMessageContext } from '../contexts';
+import type { WsConnectionStateContext } from '../contexts';
+
 import { WS_EVENTS } from './event-hub';
+import { createPooledContext, type BoundConnection } from './pooled-context';
 
 type WsEventHandler = (context: unknown) => void;
 
@@ -52,76 +54,73 @@ function parseMessage(raw: string): { message: string; isJson: boolean; data?: u
 	}
 }
 
-export type BoundConnection = {
-	id: string;
-	name: string;
-};
+export type { BoundConnection };
 
-export function emitWsConnected(connections: BoundConnection[], url: string): void {
-	for (const connection of connections) {
-		const context: WsConnectionStateContext = {
-			connectionId: connection.id,
-			connectionName: connection.name,
-			url
-		};
+function emitConnectionState(
+	eventKey: string,
+	connections: BoundConnection[],
+	url: string,
+	activeConnectionId?: string
+): void {
+	const context = createPooledContext(connections, url, activeConnectionId);
 
-		emit(WS_EVENTS.CONNECTED, context);
+	if (context) {
+		emit(eventKey, context);
 	}
 }
 
-export function emitWsDisconnected(connections: BoundConnection[], url: string): void {
-	for (const connection of connections) {
-		const context: WsConnectionStateContext = {
-			connectionId: connection.id,
-			connectionName: connection.name,
-			url
-		};
-
-		emit(WS_EVENTS.DISCONNECTED, context);
-	}
+export function emitWsConnected(
+	connections: BoundConnection[],
+	url: string,
+	activeConnectionId?: string
+): void {
+	emitConnectionState(WS_EVENTS.CONNECTED, connections, url, activeConnectionId);
 }
 
+export function emitWsDisconnected(
+	connections: BoundConnection[],
+	url: string,
+	activeConnectionId?: string
+): void {
+	emitConnectionState(WS_EVENTS.DISCONNECTED, connections, url, activeConnectionId);
+}
+
+/**
+ * Attach listeners to an already-open socket. The caller must wait for `open` before binding.
+ */
 export function bindWebSocket(
 	socket: WebSocket,
 	connections: BoundConnection[],
-	url: string
+	url: string,
+	activeConnectionId?: string
 ): () => void {
-	const onOpen = () => {
-		emitWsConnected(connections, url);
-	};
+	emitWsConnected(connections, url, activeConnectionId);
 
 	const onClose = () => {
-		emitWsDisconnected(connections, url);
+		emitWsDisconnected(connections, url, activeConnectionId);
 	};
 
 	const onMessage = (event: MessageEvent) => {
 		const raw = typeof event.data === 'string' ? event.data : String(event.data);
 		const parsed = parseMessage(raw);
+		const context = createPooledContext(connections, url, activeConnectionId);
 
-		for (const connection of connections) {
-			const context: WsMessageContext = {
-				connectionId: connection.id,
-				connectionName: connection.name,
-				url,
-				message: parsed.message,
-				isJson: parsed.isJson,
-				data: parsed.data
-			};
-
-			emit(WS_EVENTS.MESSAGE, context);
+		if (!context) {
+			return;
 		}
+
+		emit(WS_EVENTS.MESSAGE, {
+			...context,
+			message: parsed.message,
+			isJson: parsed.isJson,
+			data: parsed.data
+		});
 	};
 
-	socket.addEventListener('open', onOpen);
 	socket.addEventListener('close', onClose);
 	socket.addEventListener('message', onMessage);
 
-	if (socket.readyState === WebSocket.OPEN) {
-		onOpen();
-	}
-
 	return () => {
-		socket.removeEventListener('open', onOpen);
 		socket.removeEventListener('close', onClose);
 		socket.removeEventListener('message', onMessage);
 	};

@@ -31,30 +31,33 @@ export function messageMatchCondition(): ConditionDefinition {
 	};
 }
 
-export function jsonPathCondition(): ConditionDefinition {
+export function jsonFieldCondition(): ConditionDefinition {
 	return {
-		type: 'text',
-		name: 'JSON path',
-		placeholder: 'data.type'
-	};
-}
-
-export function jsonValueMatchCondition(): ConditionDefinition {
-	return {
-		type: 'select-text',
-		name: 'JSON value',
-		placeholder: 'Value at JSON path',
-		defaultValue: { type: 'equals', value: '' },
+		type: 'text-select-text',
+		name: 'JSON field',
+		pathPlaceholder: 'data.topic',
+		valuePlaceholder: 'game.lobby.joined',
+		defaultValue: { path: '', type: 'equals', value: '' },
 		items: [...messageMatchOperators]
 	};
 }
 
-export function evaluateConnectionMatch(actualId: string, value: FieldValue): boolean {
+export function evaluateConnectionMatch(
+	actualId: string,
+	value: FieldValue,
+	affectedConnectionIds?: string[]
+): boolean {
 	if (typeof value !== 'string' || !value.trim()) {
 		return true;
 	}
 
-	return actualId === value.trim();
+	const selected = value.trim();
+
+	if (affectedConnectionIds?.includes(selected)) {
+		return true;
+	}
+
+	return actualId === selected;
 }
 
 export function evaluateMessageMatch(message: string, value: FieldValue): boolean {
@@ -71,13 +74,28 @@ export function evaluateMessageMatch(message: string, value: FieldValue): boolea
 	return matchText(message, match.type, match.value);
 }
 
-export function evaluateJsonPathMatch(
-	isJson: boolean,
-	data: unknown,
-	jsonPath: FieldValue,
-	jsonMatch: FieldValue
-): boolean {
-	if (typeof jsonPath !== 'string' || !jsonPath.trim()) {
+function isTextSelectTextValue(
+	value: FieldValue
+): value is { path: string; type: string; value: string } {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'path' in value &&
+		'type' in value &&
+		'value' in value
+	);
+}
+
+export function evaluateJsonFieldMatch(isJson: boolean, data: unknown, value: FieldValue): boolean {
+	console.log('evaluateJsonFieldMatch', isJson, data, value);
+
+	if (!isTextSelectTextValue(value)) {
+		return true;
+	}
+
+	const path = value.path.trim();
+
+	if (!path) {
 		return true;
 	}
 
@@ -85,11 +103,11 @@ export function evaluateJsonPathMatch(
 		return false;
 	}
 
-	const resolved = getValueAtPath(data, jsonPath);
+	const resolved = getValueAtPath(data, path);
 
 	if (resolved === undefined) {
 		return false;
 	}
 
-	return evaluateMessageMatch(resolved, jsonMatch);
+	return evaluateMessageMatch(resolved, { type: value.type, value: value.value });
 }

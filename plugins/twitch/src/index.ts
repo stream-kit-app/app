@@ -110,7 +110,9 @@ const plugin: Plugin = (app) => {
 
 			await twitchApi.disconnect();
 		},
-		subscribe: (listener) => twitchApi?.subscribe(listener) ?? (() => {})
+		subscribe: (listener) => twitchApi?.subscribe(listener) ?? (() => {}),
+		subscribeChatMessages: (filter, handler) =>
+			twitchApi?.subscribeChatMessages(filter, handler) ?? (() => {})
 	};
 
 	return {

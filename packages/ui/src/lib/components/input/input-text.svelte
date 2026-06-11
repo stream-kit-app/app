@@ -5,7 +5,12 @@
 	import { useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
-	import { inputSizeClasses, type InputSize } from './input-size-classes';
+	import {
+		inputAdornmentSizeClasses,
+		inputIconSizeClasses,
+		inputSizeClasses,
+		type InputSize
+	} from './input-size-classes';
 	import Label from './label.svelte';
 
 	type Props = {
@@ -47,16 +52,12 @@
 	>
 		{#if prependIcon}
 			<span
-				class="grid h-full min-w-10 place-items-center rounded-l-xl border border-dark-500 bg-dark-700 text-dark-50"
+				class={cn(
+					'grid h-full place-items-center rounded-l-xl border border-dark-500 bg-dark-700 text-dark-50',
+					inputAdornmentSizeClasses[size]
+				)}
 			>
-				<Icon
-					icon={prependIcon}
-					class={cn({
-						'size-4': size === 'sm',
-						'size-5': size === 'md',
-						'size-6': size === 'lg'
-					})}
-				/>
+				<Icon icon={prependIcon} class={inputIconSizeClasses[size]} />
 			</span>
 		{/if}
 		<input
@@ -78,26 +79,30 @@
 		{#if appendIcon}
 			<span
 				class={cn(
-					'grid h-full min-w-10 place-items-center text-dark-50',
+					'grid h-full place-items-center text-dark-50',
+					inputAdornmentSizeClasses[size],
 					isPasswordField
 						? 'border-y border-r-0 border-l border-dark-500'
 						: 'rounded-r-xl border border-l-0 border-dark-500'
 				)}
 			>
-				<Icon icon={appendIcon} />
+				<Icon icon={appendIcon} class={inputIconSizeClasses[size]} />
 			</span>
 		{/if}
 		{#if isPasswordField}
 			<button
 				type="button"
-				class="grid h-full min-w-10 place-items-center rounded-r-xl border border-dark-500 border-l-dark-600 bg-dark-700 text-dark-50"
+				class={cn(
+					'grid h-full place-items-center rounded-r-xl border border-dark-500 border-l-dark-600 bg-dark-700 text-dark-50',
+					inputAdornmentSizeClasses[size]
+				)}
 				aria-label={showPassword ? 'Hide password' : 'Show password'}
 				aria-pressed={showPassword}
 				onclick={() => (showPassword = !showPassword)}
 			>
 				<Icon
 					icon={showPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'}
-					class="size-5"
+					class={inputIconSizeClasses[size]}
 				/>
 			</button>
 		{/if}

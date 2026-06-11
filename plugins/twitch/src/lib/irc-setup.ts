@@ -2,6 +2,7 @@ import type { PluginAppApi } from '@stream-kit/app/api';
 import type { ChatMessage } from '@twurple/chat';
 
 import type { ChatMessageContext } from '../contexts';
+import { getBroadcasterId } from './broadcaster';
 import { resolveUserRole } from './role';
 import { getTwitch } from './plugin-api';
 
@@ -10,14 +11,20 @@ type RawMessageHandler = (context: ChatMessageContext) => void;
 const messageHandlers = new Set<RawMessageHandler>();
 let messageListener: { unbind(): void } | undefined;
 
+export function resetChatListener(): void {
+	messageListener?.unbind();
+	messageListener = undefined;
+}
+
 function buildMessageContext(
+	app: PluginAppApi,
 	channel: string,
 	user: string,
 	text: string,
 	msg: ChatMessage
 ): ChatMessageContext {
 	return {
-		broadcasterId: msg.channelId ?? '',
+		broadcasterId: msg.channelId ?? getBroadcasterId(app) ?? '',
 		channel,
 		user,
 		userId: msg.userInfo.userId ?? '',
@@ -28,17 +35,33 @@ function buildMessageContext(
 }
 
 function ensureMessageListener(app: PluginAppApi): void {
-	if (messageListener || !getTwitch(app).chat) {
+	const chat = getTwitch(app).chat;
+
+	if (!chat) {
+		resetChatListener();
 		return;
 	}
 
-	messageListener = getTwitch(app).chat.onMessage((channel, user, text, msg) => {
-		const context = buildMessageContext(channel, user, text, msg);
+	if (messageListener) {
+		return;
+	}
+
+	messageListener = chat.onMessage((channel, user, text, msg) => {
+		const context = buildMessageContext(app, channel, user, text, msg);
 
 		for (const handler of messageHandlers) {
 			handler(context);
 		}
 	});
+}
+
+export function rebindExistingMessageHandlers(app: PluginAppApi): void {
+	if (messageHandlers.size === 0) {
+		return;
+	}
+
+	resetChatListener();
+	ensureMessageListener(app);
 }
 
 export function subscribeMessages(

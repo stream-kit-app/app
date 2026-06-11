@@ -6,13 +6,15 @@ import {
 	connectionSelectCondition,
 	evaluateConnectionMatch
 } from '../lib/conditions';
+import {
+	activateConnectionStateTrigger,
+	deactivateConnectionStateTrigger
+} from '../lib/connection-trigger';
 import { WS_EVENTS } from '../lib/event-hub';
 import { getWebSocket } from '../lib/plugin-api';
-import { disposeTriggerSubscription, setTriggerSubscription } from '../lib/subscription';
 import { createOnTest, evaluateWith } from '../lib/trigger-helpers';
 import { getConnectionIdFromConditions } from '../lib/trigger-condition';
 import { createTestConnectionStateContext } from '../lib/test-contexts';
-import { subscribeWsEvent } from '../lib/websocket-setup';
 
 export const createDisconnectedTrigger = (app: PluginAppApi) =>
 	({
@@ -31,38 +33,15 @@ export const createDisconnectedTrigger = (app: PluginAppApi) =>
 			const ctx = context as WsConnectionStateContext;
 
 			return evaluateWith(conditions, context, {
-				connection: (value) => evaluateConnectionMatch(ctx.connectionId, value)
+				connection: (value) =>
+					evaluateConnectionMatch(ctx.connectionId, value, ctx.affectedConnectionIds)
 			});
 		},
 		activate: (action, trigger) => {
-			const ws = getWebSocket(app);
-			const connectionId = getConnectionIdFromConditions(trigger.conditions);
-
-			if (connectionId) {
-				ws.addTriggerRef(connectionId);
-			}
-
-			const unsubscribe = subscribeWsEvent<WsConnectionStateContext>(
-				WS_EVENTS.DISCONNECTED,
-				(context) => {
-					if (trigger.definition.validate?.(trigger.conditions, context)) {
-						action.fire(trigger, context);
-					}
-				}
-			);
-
-			setTriggerSubscription(trigger, {
-				dispose: () => {
-					unsubscribe();
-
-					if (connectionId) {
-						ws.removeTriggerRef(connectionId);
-					}
-				}
+			activateConnectionStateTrigger(app, action, trigger, WS_EVENTS.DISCONNECTED, {
+				connectionId: getConnectionIdFromConditions(trigger.conditions)
 			});
 		},
-		deactivate: (_action, trigger) => {
-			disposeTriggerSubscription(trigger);
-		},
+		deactivate: deactivateConnectionStateTrigger,
 		onTest: createOnTest(() => createTestConnectionStateContext())
 	}) satisfies TriggerDefinitionProps;

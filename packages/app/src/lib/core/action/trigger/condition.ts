@@ -23,14 +23,25 @@ export type ConditionDefinition =
 			items: SelectItemsSource;
 			selectPlaceholder?: string;
 			variables?: HandlerFieldVariable[];
+	  })
+	| (ConditionBase & {
+			type: 'text-select-text';
+			items: SelectItemsSource;
+			pathPlaceholder?: string;
+			valuePlaceholder?: string;
+			selectPlaceholder?: string;
+			variables?: HandlerFieldVariable[];
 	  });
 
 export type ResolvedConditionDefinition = ConditionDefinition & {
 	key: string;
 };
 
-/** Runtime value for a condition field. `select-text` produces the compound value. */
-export type FieldValue = string | boolean | { type: string; value: string };
+export type SelectTextFieldValue = { type: string; value: string };
+export type TextSelectTextFieldValue = { path: string; type: string; value: string };
+
+/** Runtime value for a condition field. Compound types produce structured values. */
+export type FieldValue = string | boolean | SelectTextFieldValue | TextSelectTextFieldValue;
 
 export type Operator = 'and' | 'or';
 

@@ -45,8 +45,8 @@
 					'group-data-[state=closed]:animate-out group-data-[state=closed]:slide-out-to-right-4',
 					{
 						'max-w-md': modal.size === 'sm',
-						'max-w-xl': modal.size === 'md',
-						'max-w-2xl': modal.size === 'lg',
+						'max-w-2xl': modal.size === 'md',
+						'max-w-3xl': modal.size === 'lg',
 						'max-w-full': modal.size === 'full'
 					}
 				)}

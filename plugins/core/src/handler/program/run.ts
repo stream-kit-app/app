@@ -1,7 +1,7 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
 import type { HandlerDefinitionProps } from '@stream-kit/core';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
+import type { CorePluginContext } from '../../lib/core-context';
 import { resolveKeyValueField } from '../../lib/resolve-key-value-field';
 
 const PROGRAM_FILTERS = [
@@ -9,7 +9,7 @@ const PROGRAM_FILTERS = [
 	{ name: 'All files', extensions: ['*'] }
 ];
 
-export const createRunProgramHandler = (app: PluginAppApi) =>
+export const createRunProgramHandler = ({ app, variables }: CorePluginContext) =>
 	({
 		name: 'Run program',
 		fields: [
@@ -53,7 +53,7 @@ export const createRunProgramHandler = (app: PluginAppApi) =>
 			}
 
 			const workingDirectory = getFieldValue(handler.fields, 'working-directory');
-			const argumentsText = resolveFieldText(handler.fields, 'arguments', context)?.trim();
+			const argumentsText = resolveFieldText(variables, handler.fields, 'arguments', context)?.trim();
 			const hideWindow = getFieldValue(handler.fields, 'hide-window') === true;
 			const useShell = getFieldValue(handler.fields, 'run-in-shell') === true;
 
@@ -67,6 +67,7 @@ export const createRunProgramHandler = (app: PluginAppApi) =>
 					arguments: argumentsText || undefined,
 					waitSeconds: 0,
 					environment: resolveKeyValueField(
+						variables,
 						handler.fields,
 						'environment-variables',
 						context,

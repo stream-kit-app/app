@@ -6,7 +6,7 @@
 		ConditionNode,
 		ResolvedConditionDefinition
 	} from '$lib/core/action/trigger';
-	import type { TriggerFormErrors } from '$lib/core/action/validate-form';
+	import type { ConditionFormErrors } from '$lib/core/action/validate-form';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { tooltip } from '@stream-kit/ui/attachments';
@@ -17,6 +17,7 @@
 		InputSelect,
 		InputSelectText,
 		InputText,
+		InputTextSelectText,
 		InputTextVariables,
 		Label
 	} from '@stream-kit/ui/input';
@@ -28,7 +29,7 @@
 	type Props = {
 		editor: ConditionEditor;
 		group: ConditionGroupNode;
-		fieldErrors?: TriggerFormErrors;
+		fieldErrors?: ConditionFormErrors;
 		root?: boolean;
 	};
 
@@ -39,6 +40,28 @@
 		{ value: 'and', label: t('AND') },
 		{ value: 'or', label: t('OR') }
 	]);
+
+	const renderableChildCount = $derived(
+		group.children.filter((child) => {
+			if (child.kind === 'group') {
+				return true;
+			}
+
+			return !!editor.getConditionDefinition(child.key);
+		}).length
+	);
+
+	function renderableIndexAt(index: number): number {
+		return group.children
+			.slice(0, index + 1)
+			.filter((child) => {
+				if (child.kind === 'group') {
+					return true;
+				}
+
+				return !!editor.getConditionDefinition(child.key);
+			}).length - 1;
+	}
 
 	const onConditionTextInput =
 		(node: ConditionLeafNode): FormEventHandler<HTMLInputElement> =>
@@ -100,6 +123,19 @@
 			{error}
 			bind:value={node.value as { type: string; value: string }}
 		/>
+	{:else if config.type === 'text-select-text'}
+		<InputTextSelectText
+			items={config.items}
+			pathPlaceholder={config.pathPlaceholder}
+			valuePlaceholder={config.valuePlaceholder}
+			loadingPlaceholder={config.loadingPlaceholder}
+			selectPlaceholder={config.selectPlaceholder}
+			variables={config.variables}
+			selectClass="w-32"
+			contentProps={{ align: 'start' }}
+			{error}
+			bind:value={node.value as { path: string; type: string; value: string }}
+		/>
 	{/if}
 {/snippet}
 
@@ -118,10 +154,13 @@
 		{#if child.kind === 'condition'}
 			{@const config = editor.getConditionDefinition(child.key)}
 			{#if config}
+				{@const renderableIndex = renderableIndexAt(index)}
 				<div class="grid gap-2">
 					<Label class="flex flex-wrap items-baseline gap-x-1.5 font-mono text-base">
 						<span class="font-bold text-green-500 uppercase">
-							{child.operator ? child.operator : t('if')}
+							{renderableIndex === 0
+								? t('if')
+								: (child.operator ?? 'and')}
 						</span>
 						<span class="text-primary-100 italic">{config.name.toLowerCase()}</span>
 						{#if child.negate}
@@ -132,7 +171,7 @@
 						{/if}
 					</Label>
 					<div class="flex items-start gap-2">
-						{#if index > 0}
+						{#if renderableChildCount > 1 && renderableIndex > 0}
 							<div class="flex h-10 w-24 shrink-0 items-center">
 								{@render operatorSelect(child)}
 							</div>
@@ -173,7 +212,8 @@
 				</div>
 			{/if}
 		{:else}
-			{#if index > 0}
+			{@const renderableIndex = renderableIndexAt(index)}
+			{#if renderableChildCount > 1 && renderableIndex > 0}
 				<div class="flex items-center">
 					{@render operatorSelect(child)}
 				</div>

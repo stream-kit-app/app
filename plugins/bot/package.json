@@ -1,0 +1,30 @@
+{
+	"name": "@stream-kit/plugin-bot",
+	"version": "0.1.0",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"exports": {
+		".": "./src/index.ts",
+		"./app/db/migrate": "./src/app/db/migrate.ts",
+		"./app/db/schema": "./src/app/db/schema.ts"
+	},
+	"files": [
+		"src"
+	],
+	"scripts": {
+		"build": "tsc --noEmit",
+		"check": "tsc --noEmit",
+		"dev": "tsc --noEmit --watch --preserveWatchOutput"
+	},
+	"dependencies": {
+		"@stream-kit/core": "workspace:*"
+	},
+	"devDependencies": {
+		"@stream-kit/app": "workspace:*",
+		"@stream-kit/ui": "workspace:*",
+		"@iconify/svelte": "^5.2.1",
+		"@tauri-apps/plugin-sql": "~2.4.0",
+		"drizzle-orm": "^0.45.2",
+		"typescript": "~6.0.3"
+	}
+}

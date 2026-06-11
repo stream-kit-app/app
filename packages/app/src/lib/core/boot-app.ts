@@ -1,4 +1,9 @@
-import { Commands, commandsPlugin } from '@stream-kit/plugin-commands';
+import botPlugin, {
+	BotSettings,
+	Commands,
+	ModerationRules,
+	Timers
+} from '@stream-kit/plugin-bot';
 import corePlugin from '@stream-kit/plugin-handlers';
 import obsPlugin from '@stream-kit/plugin-obs';
 import ttsPlugin from '@stream-kit/plugin-tts';
@@ -13,6 +18,9 @@ import { discoverAndLoadInstalledPlugins } from './plugins/plugin-loader';
 let bootPromise: Promise<void> | null = null;
 
 const commands = new Commands();
+const timers = new Timers();
+const moderation = new ModerationRules();
+const botSettings = new BotSettings();
 
 export function bootApp(): Promise<void> {
 	if (!bootPromise) {
@@ -22,7 +30,10 @@ export function bootApp(): Promise<void> {
 			await app.use(youtubePlugin, { key: 'youtube', source: 'builtin' });
 			await app.use(obsPlugin, { key: 'obs', source: 'builtin' });
 			await app.use(ttsPlugin, { key: 'tts', source: 'builtin' });
-			await app.use(commandsPlugin(commands), { key: 'commands', source: 'builtin' });
+			await app.use(botPlugin(commands, timers, moderation, botSettings), {
+				key: 'bot',
+				source: 'builtin'
+			});
 			await app.use(websocketPlugin, { key: 'websocket', source: 'builtin' });
 
 			await discoverAndLoadInstalledPlugins(app);

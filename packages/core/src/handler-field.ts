@@ -1,9 +1,14 @@
 import { interpolateVariables } from './interpolate-variables.js';
 import type { HandlerTriggerContext } from './handler-context.js';
 
-type HandlerFieldValue = string | boolean;
+export type KeyValueEntry = {
+	key: string;
+	value: string;
+};
 
-type HandlerFieldInstance = {
+export type HandlerFieldValue = string | boolean | KeyValueEntry[];
+
+export type HandlerFieldInstance = {
 	key: string;
 	value: HandlerFieldValue;
 };

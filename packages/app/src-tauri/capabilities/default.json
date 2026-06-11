@@ -14,7 +14,9 @@
 		"sql:allow-load",
 		"sql:allow-close",
 		"dialog:default",
-		"fs:default",
+		"fs:write-all",
+		"fs:read-all",
+		"fs:allow-create",
 		"allow-app-commands",
 		{
 			"identifier": "fs:scope",

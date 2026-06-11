@@ -45,6 +45,7 @@
 					description: t('{name} has been saved successfully', { name: plugin.name }),
 					variant: 'success'
 				});
+				app.modals.get(`plugin-settings-${plugin.key}`)?.close();
 			}
 		} finally {
 			isSaving = false;

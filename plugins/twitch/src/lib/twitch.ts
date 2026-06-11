@@ -10,6 +10,8 @@ import { ChatClient as TwurpleChatClient } from '@twurple/chat';
 import { EventSubWsListener as TwurpleEventSubWsListener } from '@twurple/eventsub-ws';
 import { PUBLIC_TWITCH_CLIENT_ID } from '$env/static/public';
 
+import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
+
 export type ValidatedTokenInfo = TokenInfo & { userId: string };
 
 type TwitchStateListener = () => void;
@@ -28,6 +30,10 @@ export type TwitchPluginApi = {
 	startOAuth(): Promise<void>;
 	disconnect(): Promise<void>;
 	subscribe(listener: TwitchStateListener): () => void;
+	subscribeChatMessages: (
+		filter: (context: import('../contexts').ChatMessageContext) => boolean,
+		handler: (context: import('../contexts').ChatMessageContext) => void
+	) => () => void;
 };
 
 export type TwitchPluginController = TwitchPluginApi & {
@@ -129,6 +135,7 @@ export function createTwitchPluginApi(
 
 	async function connect(nextAccessToken: string): Promise<void> {
 		await stopClients();
+		resetChatListener();
 		accessToken = nextAccessToken;
 		isConnected = true;
 
@@ -152,6 +159,7 @@ export function createTwitchPluginApi(
 			console.error(error);
 		}
 
+		rebindExistingMessageHandlers(app);
 		notify();
 	}
 
@@ -230,6 +238,7 @@ export function createTwitchPluginApi(
 				listeners.delete(listener);
 			};
 		},
+		subscribeChatMessages: (filter, handler) => subscribeMessages(app, filter, handler),
 		async boot() {
 			const storedAccessToken = await store.get<string>(ACCESS_TOKEN_KEY);
 

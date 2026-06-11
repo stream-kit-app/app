@@ -62,6 +62,21 @@
 			"svelte": "./src/lib/components/input/index.ts",
 			"import": "./src/lib/components/input/index.ts"
 		},
+		"./log-viewer": {
+			"types": "./src/lib/components/log-viewer/index.ts",
+			"svelte": "./src/lib/components/log-viewer/index.ts",
+			"import": "./src/lib/components/log-viewer/index.ts"
+		},
+		"./popover": {
+			"types": "./src/lib/components/popover/index.ts",
+			"svelte": "./src/lib/components/popover/index.ts",
+			"import": "./src/lib/components/popover/index.ts"
+		},
+		"./variable-popover": {
+			"types": "./src/lib/components/variable-popover/index.ts",
+			"svelte": "./src/lib/components/variable-popover/index.ts",
+			"import": "./src/lib/components/variable-popover/index.ts"
+		},
 		"./logo": {
 			"types": "./src/lib/components/logo/index.ts",
 			"svelte": "./src/lib/components/logo/index.ts",

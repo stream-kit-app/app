@@ -24,7 +24,7 @@
 	"dependencies": {
 		"@fabianlars/tauri-plugin-oauth": "^2.0.0",
 		"@stream-kit/core": "workspace:*",
-		"@stream-kit/plugin-commands": "workspace:*",
+		"@stream-kit/plugin-bot": "workspace:*",
 		"@stream-kit/plugin-websocket": "workspace:*",
 		"@stream-kit/plugin-handlers": "workspace:*",
 		"@stream-kit/plugin-obs": "workspace:*",

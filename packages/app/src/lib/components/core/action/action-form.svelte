@@ -6,7 +6,9 @@
 
 	import { Button } from '@stream-kit/ui/button';
 	import { InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
+	import { VariablePopover } from '@stream-kit/ui/variable-popover';
 
+	import { getTriggerVariables, getGlobalVariables } from '$lib/core/action/variable-helpers';
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
@@ -77,6 +79,8 @@
 			!action.execution.state.isRunning &&
 			action.handlers.length > 0
 	);
+
+	const globalVariables = $derived(getGlobalVariables(getApp()));
 </script>
 
 <form
@@ -100,7 +104,16 @@
 
 	<section class="grid gap-3">
 		<div class="flex flex-wrap items-center justify-between gap-2">
-			<Label>{t('Triggers')}</Label>
+			<div class="flex items-center gap-1">
+				<Label>{t('Triggers')}</Label>
+				<VariablePopover
+					variables={globalVariables}
+					title={t('Global variables')}
+					emptyLabel={t('No global variables defined yet.')}
+					ariaLabel={t('Show global variables')}
+					copiedLabel={t('Copied')}
+				/>
+			</div>
 			<DefinitionPickerDropdown
 				label={t('Add Trigger')}
 				definitions={getApp().actions.triggers.items}
@@ -136,13 +149,22 @@
 					{/if}
 				</div>
 				<div class="flex items-center justify-between gap-2">
-					<span class="flex items-center gap-2 font-mono font-medium text-dark-50">
-						<span class={cn('font-bold text-green-500')}>
-							{t('ON')}
+					<span class="flex items-center gap-1 font-mono font-medium text-dark-50">
+						<span class="flex items-center gap-2">
+							<span class={cn('font-bold text-green-500')}>
+								{t('ON')}
+							</span>
+							<span class="text-dark-50 italic">
+								{trigger.definition.name.toLowerCase()}
+							</span>
 						</span>
-						<span class="text-dark-50 italic">
-							{trigger.definition.name.toLowerCase()}
-						</span>
+						<VariablePopover
+							variables={getTriggerVariables(action, trigger)}
+							title={t('Trigger variables')}
+							emptyLabel={t('No variables available for this trigger.')}
+							ariaLabel={t('Show trigger variables')}
+							copiedLabel={t('Copied')}
+						/>
 					</span>
 					<Button
 						variant="ghost"

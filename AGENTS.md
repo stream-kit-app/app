@@ -27,3 +27,7 @@ After completing the code, ask the user if they want a playground link. Only cal
 - This project is currently under active development. Backward compatibility with previous versions is **not required** when performing refactors or major changes.
 - If components, features, or plugins break due to a refactor, it is expected that they be updated or rewritten to match the new architecture or patterns.
 - Prioritize modern best practices and project improvements over maintaining legacy code compatibility. Use this freedom to iterate quickly and keep the codebase clean and current.
+
+### 6. Important: Separation of Tauri Logic
+
+Do **not** include any Tauri-specific logic directly inside plugin packages. All Tauri API usage and logic should be handled exclusively within the main app layer (e.g., in `@stream-kit/app`). Plugins should only interact with Tauri or platform-specific features by calling app-provided APIs or interfaces. For example, if a plugin needs filesystem access, it should use an abstraction like `app.fs` rather than importing or using Tauri APIs directly. This ensures plugins remain portable, testable, and decoupled from Tauri, while keeping all platform logic centralized in the app itself.

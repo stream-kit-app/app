@@ -465,7 +465,8 @@ export class Action {
 
 		const context: HandlerTriggerContext = {
 			trigger: triggerLabel,
-			data
+			data,
+			actionVariables: {}
 		};
 
 		await runHandlerChain(this.handlers, this, context, {

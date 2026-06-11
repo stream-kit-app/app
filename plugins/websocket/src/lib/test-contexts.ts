@@ -5,9 +5,12 @@ export function createTestMessageContext(): WsMessageContext {
 		connectionId: 'test-connection',
 		connectionName: 'Test Connection',
 		url: 'ws://localhost:8080',
-		message: JSON.stringify({ event: 'alert', data: { type: 'follow' } }),
+		message: JSON.stringify({
+			event: 'alert',
+			data: { type: 'topic', topic: 'game.lobby.joined' }
+		}),
 		isJson: true,
-		data: { event: 'alert', data: { type: 'follow' } }
+		data: { event: 'alert', data: { type: 'follow', topic: 'game.lobby.joined' } }
 	};
 }
 

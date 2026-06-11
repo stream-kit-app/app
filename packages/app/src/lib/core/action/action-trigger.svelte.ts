@@ -7,7 +7,7 @@ import type {
 } from './trigger/condition';
 
 import type { ConditionEditor } from './condition-editor';
-import type { TriggerFormErrors } from './validate-form';
+import type { ConditionFormErrors } from './validate-form';
 import {
 	addConditionToGroup,
 	addGroupToRoot,
@@ -53,7 +53,7 @@ export class ActionTrigger implements ConditionEditor {
 		return getConditionDefinition(this.definition.conditions, key);
 	}
 
-	getFieldError(nodeId: string, errors?: TriggerFormErrors): string | undefined {
+	getFieldError(nodeId: string, errors?: ConditionFormErrors): string | undefined {
 		return errors?.conditionFields[nodeId];
 	}
 
@@ -82,7 +82,7 @@ export class ActionTrigger implements ConditionEditor {
 			return true;
 		}
 
-		return this.definition.validate($state.snapshot(this.conditions), context);
+		return this.definition.validate($state.snapshot(this.conditions), context, this);
 	}
 
 	toStored(): StoredActionTrigger {

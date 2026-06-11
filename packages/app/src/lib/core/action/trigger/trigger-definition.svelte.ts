@@ -57,7 +57,7 @@ export class TriggerDefinition {
 	isAvailable: boolean = $state(true);
 
 	conditions?: ResolvedConditionDefinition[];
-	validate?: (conditions: ConditionGroupNode, context: unknown) => boolean;
+	validate?: (conditions: ConditionGroupNode, context: unknown, trigger?: ActionTrigger) => boolean;
 	activate?: (action: Action, trigger: ActionTrigger) => void;
 	deactivate?: (action: Action, trigger: ActionTrigger) => void;
 	onTest?: TriggerTestFn;
@@ -70,7 +70,7 @@ export class TriggerDefinition {
 		this.pluginName = props.pluginName;
 		this.conditions = resolveConditionDefinitions(props.conditions);
 		this.validate = props.validate as
-			| ((conditions: ConditionGroupNode, context: unknown) => boolean)
+			| ((conditions: ConditionGroupNode, context: unknown, trigger?: ActionTrigger) => boolean)
 			| undefined;
 		this.activate = props.activate;
 		this.deactivate = props.deactivate;

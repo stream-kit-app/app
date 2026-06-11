@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+# Documentation
+
+Whenever you add a new feature or plugin, make sure to create a corresponding documentation file or update the relevant entry in the `/docs` folder. This helps ensure that all features and changes are properly documented, making it easier for the team to track updates and keep user-facing documentation current. Documentation should always be in English.

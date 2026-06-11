@@ -52,7 +52,7 @@ Stream Kit is built around plugins. Each plugin can register triggers, handlers,
 | Plugin                          | Status         | Description                                                                                  |
 | ------------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
 | [**Handlers**](plugins/core/) | In development | Audio playback and custom script handlers                                                    |
-| [**Commands**](plugins/commands/) | In development | Chat commands with dedicated handlers (plugin-owned DB, UI, and runtime)                |
+| [**Bot**](plugins/bot/) | In development | Chat bot: commands, timers, moderation, built-in commands |
 | [**Twitch**](plugins/twitch/)   | In development | OAuth, EventSub, chat, moderation, polls, predictions, raids, subs, channel points, and more |
 | [**YouTube**](plugins/youtube/) | In development | Live chat, memberships, super chats/stickers, moderation, and stream status                  |
 | [**TTS**](plugins/tts/)         | In development | Text-to-speech via StreamElements or ElevenLabs                                              |
@@ -66,9 +66,9 @@ You can also install **external plugins** as `.zip` files from the Plugins page.
 
 ### Bot & commands
 
-Chat commands are managed by the **Commands** plugin (`@stream-kit/plugin-commands`). The plugin owns its database table, UI, and chat runtime. Enable it from the **Plugins** page, then open **Commands** in the sidebar.
+Chat bot features are managed by the **Bot** plugin (`@stream-kit/plugin-bot`): custom commands, timers, moderation, and built-in system commands. Open **Bot** in the sidebar (Overview, Commands, Timers, Moderation).
 
-Use **Actions** for event-driven automation (triggers, conditions, handlers). Use **Commands** for chat-triggered shortcuts with their own handler lists.
+Use **Actions** for event-driven automation (triggers, conditions, handlers). Use **Bot → Commands** for chat-triggered shortcuts with their own handler lists.
 
 > [!NOTE]
 > Connect Twitch or YouTube from the **Plugins** page before chat commands can listen in your channel.
@@ -173,7 +173,7 @@ pnpm run dev:packages   # Run packages/plugins in watch mode only
 | Stable release    | Not yet available — APIs, database schemas, and UI may break between commits |
 | Plugin coverage   | Not all triggers and handlers are complete; plugins are still being expanded |
 | YouTube plugin    | Recently added, still in active development                                  |
-| Bot functionality | Bot messages; chat commands via Commands plugin |
+| Bot functionality | Bot plugin: commands, timers, moderation, built-in commands |
 | Documentation     | Minimal — this README and the plugin template README are the starting point  |
 | Distribution      | No public installer or release channel yet                                   |
 

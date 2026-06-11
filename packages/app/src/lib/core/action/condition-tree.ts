@@ -14,11 +14,26 @@ export function emptyConditionGroup(): ConditionGroupNode {
 	};
 }
 
+function isCompoundConditionValue(
+	definition: ResolvedConditionDefinition,
+	value: FieldValue
+): value is Exclude<FieldValue, string | boolean> {
+	return (
+		(definition.type === 'select-text' || definition.type === 'text-select-text') &&
+		typeof value === 'object' &&
+		value !== null
+	);
+}
+
 export function initConditionValue(definition: ResolvedConditionDefinition): FieldValue {
 	if (definition.defaultValue !== undefined) {
-		return definition.type === 'select-text' && typeof definition.defaultValue === 'object'
+		return isCompoundConditionValue(definition, definition.defaultValue)
 			? { ...definition.defaultValue }
 			: definition.defaultValue;
+	}
+
+	if (definition.type === 'text-select-text') {
+		return { path: '', type: 'equals', value: '' };
 	}
 
 	if (definition.type === 'select-text') {
@@ -72,8 +87,23 @@ export function addGroupToRoot(group: ConditionGroupNode): void {
 	});
 }
 
+export function normalizeConditionGroupOperators(group: ConditionGroupNode): void {
+	for (const [index, child] of group.children.entries()) {
+		if (index === 0) {
+			delete child.operator;
+		} else if (!child.operator) {
+			child.operator = 'and';
+		}
+
+		if (child.kind === 'group') {
+			normalizeConditionGroupOperators(child);
+		}
+	}
+}
+
 export function removeConditionChild(group: ConditionGroupNode, index: number): void {
 	group.children.splice(index, 1);
+	normalizeConditionGroupOperators(group);
 }
 
 export function setConditionOperator(node: ConditionNode, operator: Operator): void {

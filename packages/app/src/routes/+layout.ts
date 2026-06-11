@@ -29,14 +29,14 @@ export const load = async () => {
 		icon: 'material-symbols:dashboard'
 	});
 	app.menu.add({
-		path: '/bot',
-		title: 'Bot',
-		icon: 'at-icons:bot'
-	});
-	app.menu.add({
 		path: '/actions',
 		title: 'Actions',
 		icon: 'carbon:trigger'
+	});
+	app.menu.add({
+		path: '/logs',
+		title: 'Logs',
+		icon: 'ri:file-list-3-line'
 	});
 	app.menu.add({
 		path: '/plugins',

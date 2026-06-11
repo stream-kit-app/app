@@ -9,6 +9,7 @@ import InputSwitch from './input-switch.svelte';
 import InputText from './input-text.svelte';
 import InputTextList from './input-text-list.svelte';
 import InputTextSelect from './input-text-select.svelte';
+import InputTextSelectText from './input-text-select-text.svelte';
 import InputTextVariables from './input-text-variables.svelte';
 import Label from './label.svelte';
 
@@ -25,6 +26,7 @@ export {
 	InputText,
 	InputTextList,
 	InputTextSelect,
+	InputTextSelectText,
 	InputTextVariables,
 	Label
 };

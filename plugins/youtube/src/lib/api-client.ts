@@ -84,7 +84,8 @@ export class YouTubeApiClient {
 		return {
 			broadcastId: broadcast.id,
 			liveChatId,
-			title: broadcast.snippet.title
+			title: broadcast.snippet.title,
+			actualStartTime: broadcast.snippet.actualStartTime
 		};
 	}
 
@@ -144,6 +145,33 @@ export class YouTubeApiClient {
 		}
 
 		return response.ok;
+	}
+
+	async banLiveChatUser(
+		liveChatId: string,
+		bannedUserChannelId: string,
+		banDurationSeconds?: number
+	): Promise<boolean> {
+		const snippet: Record<string, unknown> = {
+			liveChatId,
+			bannedUserDetails: {
+				channelId: bannedUserChannelId
+			}
+		};
+
+		if (banDurationSeconds != null && banDurationSeconds > 0) {
+			snippet.type = 'temporary';
+			snippet.banDurationSeconds = String(banDurationSeconds);
+		} else {
+			snippet.type = 'permanent';
+		}
+
+		const result = await this.request<{ id?: string }>('/liveChat/bans?part=snippet', {
+			method: 'POST',
+			body: JSON.stringify({ snippet })
+		});
+
+		return result != null;
 	}
 }
 

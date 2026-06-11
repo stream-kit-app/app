@@ -32,6 +32,7 @@ export type YouTubePluginApi = {
 	readonly channelTitle: string | undefined;
 	readonly liveChatId: string | undefined;
 	readonly liveStream: YouTubeLiveStreamInfo | undefined;
+	readonly isLive: boolean;
 	readonly client: YouTubeApiClient | undefined;
 	startOAuth(): Promise<void>;
 	disconnect(): Promise<void>;
@@ -40,6 +41,9 @@ export type YouTubePluginApi = {
 		filter: (context: ChatMessageContext) => boolean,
 		handler: (context: ChatMessageContext) => void
 	): () => void;
+	sendMessage(text: string): Promise<boolean>;
+	deleteMessage(messageId: string): Promise<boolean>;
+	banUser(userId: string, durationSec?: number): Promise<boolean>;
 };
 
 export type YouTubePluginController = YouTubePluginApi & {
@@ -270,6 +274,9 @@ export function createYouTubePluginApi(
 		get liveStream() {
 			return liveStream;
 		},
+		get isLive() {
+			return liveStream?.liveChatId != null;
+		},
 		get client() {
 			return client;
 		},
@@ -360,6 +367,32 @@ export function createYouTubePluginApi(
 		},
 		subscribeChatMessages(filter, handler) {
 			return subscribeChatMessages(filter, handler);
+		},
+		async sendMessage(text: string): Promise<boolean> {
+			const trimmed = text.trim();
+			const chatId = liveStream?.liveChatId;
+
+			if (!trimmed || !chatId || !client) {
+				return false;
+			}
+
+			return client.insertLiveChatMessage(chatId, trimmed);
+		},
+		async deleteMessage(messageId: string): Promise<boolean> {
+			if (!messageId || !client) {
+				return false;
+			}
+
+			return client.deleteLiveChatMessage(messageId);
+		},
+		async banUser(userId: string, durationSec?: number): Promise<boolean> {
+			const chatId = liveStream?.liveChatId;
+
+			if (!userId || !chatId || !client) {
+				return false;
+			}
+
+			return client.banLiveChatUser(chatId, userId, durationSec);
 		},
 		async boot() {
 			const storedAccessToken = await store.get<string>(ACCESS_TOKEN_KEY);

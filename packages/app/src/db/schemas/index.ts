@@ -1,2 +1,2 @@
 export * from './actions';
-export { commands } from '@stream-kit/plugin-commands/app/db/schema';
+export { botModRules, botTimers, commands } from '@stream-kit/plugin-bot/app/db/schema';

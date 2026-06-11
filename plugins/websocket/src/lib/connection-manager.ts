@@ -8,6 +8,7 @@ import {
 } from './connections';
 import { createConnectionLogStore, type WsConnectionLogEntry } from './connection-logs';
 import { WS_EVENTS } from './event-hub';
+import type { BoundConnection } from './pooled-context';
 import { getConnectionReconnectSettings, type WsReconnectSettings } from './settings';
 import { bindWebSocket, emitWsDisconnected, subscribeWsEvent } from './websocket-setup';
 
@@ -30,6 +31,7 @@ type PoolEntry = {
 	connectAttempts: number;
 	retriesExhausted: boolean;
 	activeConnectionId: string | undefined;
+	connectPromise: Promise<void> | undefined;
 };
 
 export type WebSocketPluginApi = {
@@ -73,7 +75,8 @@ function createPoolEntry(url: string): PoolEntry {
 		intentionalClose: false,
 		connectAttempts: 0,
 		retriesExhausted: false,
-		activeConnectionId: undefined
+		activeConnectionId: undefined,
+		connectPromise: undefined
 	};
 }
 
@@ -149,7 +152,7 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 		}
 	}
 
-	function getBoundConnections(entry: PoolEntry): Array<{ id: string; name: string }> {
+	function getBoundConnections(entry: PoolEntry): BoundConnection[] {
 		return [...entry.connectionIds].map((id) => {
 			const connection = getConnection(id);
 			return {
@@ -308,7 +311,7 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 		entry.intentionalClose = false;
 
 		if (wasOpen) {
-			emitWsDisconnected(boundConnections, url);
+			emitWsDisconnected(boundConnections, url, entry.activeConnectionId);
 		}
 
 		if (!entry.retriesExhausted) {
@@ -388,33 +391,67 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 		}
 	}
 
-	async function openSocket(url: string, connectionId: string, manual: boolean): Promise<void> {
-		const connection = getConnection(connectionId);
-
-		if (!connection) {
-			throw new Error('Connection not found.');
+	function waitForSocketOpen(socket: WebSocket, url: string): Promise<void> {
+		if (socket.readyState === WebSocket.OPEN) {
+			return Promise.resolve();
 		}
+
+		if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+			return Promise.reject(new Error(`Failed to connect to ${url}.`));
+		}
+
+		return new Promise<void>((resolve, reject) => {
+			const onOpen = () => {
+				cleanup();
+				resolve();
+			};
+
+			const onError = () => {
+				cleanup();
+				reject(new Error(`Failed to connect to ${url}.`));
+			};
+
+			const cleanup = () => {
+				socket.removeEventListener('open', onOpen);
+				socket.removeEventListener('error', onError);
+			};
+
+			socket.addEventListener('open', onOpen);
+			socket.addEventListener('error', onError);
+		});
+	}
+
+	function handleSocketClose(entry: PoolEntry, url: string): void {
+		if (entry.intentionalClose) {
+			return;
+		}
+
+		entry.socket = undefined;
+		entry.unbind?.();
+		entry.unbind = undefined;
+
+		if (shouldKeepAlive(entry)) {
+			setEntryStatus(
+				entry,
+				'connecting',
+				`Reconnecting in ${getEntrySettings(entry).reconnectDelaySec}s…`
+			);
+			scheduleReconnect(url);
+			return;
+		}
+
+		setEntryStatus(entry, 'disconnected', undefined);
+	}
+
+	async function connectEntry(
+		url: string,
+		connectionId: string,
+		manual: boolean,
+		connection: WsConnection
+	): Promise<void> {
+		await teardownEntry(url);
 
 		let entry = ensurePoolEntry(url, connection);
-		entry.activeConnectionId = connectionId;
-
-		if (manual) {
-			entry.manualIds.add(connectionId);
-		}
-
-		if (entry.socket?.readyState === WebSocket.OPEN) {
-			resetAttempts(entry);
-			setEntryStatus(entry, 'connected');
-			return;
-		}
-
-		if (entry.socket?.readyState === WebSocket.CONNECTING) {
-			setEntryStatus(entry, 'connecting', entry.error);
-			return;
-		}
-
-		await teardownEntry(url);
-		entry = ensurePoolEntry(url, connection);
 		entry.activeConnectionId = connectionId;
 
 		if (manual) {
@@ -428,28 +465,13 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 		);
 
 		const socket = new WebSocket(url);
+		entry.socket = socket;
 
 		try {
-			await new Promise<void>((resolve, reject) => {
-				const onOpen = () => {
-					cleanup();
-					resolve();
-				};
-
-				const onError = () => {
-					cleanup();
-					reject(new Error(`Failed to connect to ${url}.`));
-				};
-
-				const cleanup = () => {
-					socket.removeEventListener('open', onOpen);
-					socket.removeEventListener('error', onError);
-				};
-
-				socket.addEventListener('open', onOpen);
-				socket.addEventListener('error', onError);
-			});
+			await waitForSocketOpen(socket, url);
 		} catch (error) {
+			entry.socket = undefined;
+
 			try {
 				socket.close();
 			} catch {
@@ -459,35 +481,50 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 			throw error;
 		}
 
-		entry.socket = socket;
-		entry.unbind = bindWebSocket(socket, getBoundConnections(entry), url);
-
-		const onClose = () => {
-			if (entry.intentionalClose) {
-				return;
-			}
-
-			entry.socket = undefined;
-			entry.unbind?.();
-			entry.unbind = undefined;
-
-			if (shouldKeepAlive(entry)) {
-				setEntryStatus(
-					entry,
-					'connecting',
-					`Reconnecting in ${getEntrySettings(entry).reconnectDelaySec}s…`
-				);
-				scheduleReconnect(url);
-				return;
-			}
-
-			setEntryStatus(entry, 'disconnected', undefined);
-		};
-
-		socket.addEventListener('close', onClose);
+		entry.unbind = bindWebSocket(socket, getBoundConnections(entry), url, connectionId);
+		socket.addEventListener('close', () => handleSocketClose(entry, url));
 
 		resetAttempts(entry);
 		setEntryStatus(entry, 'connected');
+	}
+
+	async function openSocket(url: string, connectionId: string, manual: boolean): Promise<void> {
+		const connection = getConnection(connectionId);
+
+		if (!connection) {
+			throw new Error('Connection not found.');
+		}
+
+		const entry = ensurePoolEntry(url, connection);
+		entry.activeConnectionId = connectionId;
+
+		if (manual) {
+			entry.manualIds.add(connectionId);
+		}
+
+		if (entry.socket?.readyState === WebSocket.OPEN) {
+			resetAttempts(entry);
+			setEntryStatus(entry, 'connected');
+			return;
+		}
+
+		if (entry.connectPromise) {
+			await entry.connectPromise;
+			return;
+		}
+
+		entry.connectPromise = connectEntry(url, connectionId, manual, connection);
+		const connectTask = entry.connectPromise;
+
+		try {
+			await connectTask;
+		} finally {
+			const current = pool.get(url);
+
+			if (current?.connectPromise === connectTask) {
+				current.connectPromise = undefined;
+			}
+		}
 	}
 
 	async function connectId(id: string, manual: boolean): Promise<void> {

@@ -57,6 +57,9 @@ const plugin: Plugin = (app) => {
 		get liveStream() {
 			return youtubeApi?.liveStream;
 		},
+		get isLive() {
+			return youtubeApi?.isLive ?? false;
+		},
 		get client() {
 			return youtubeApi?.client;
 		},
@@ -77,7 +80,10 @@ const plugin: Plugin = (app) => {
 		},
 		subscribe: (listener) => youtubeApi?.subscribe(listener) ?? (() => {}),
 		subscribeChatMessages: (filter, handler) =>
-			youtubeApi?.subscribeChatMessages(filter, handler) ?? (() => {})
+			youtubeApi?.subscribeChatMessages(filter, handler) ?? (() => {}),
+		sendMessage: async (text) => youtubeApi?.sendMessage(text) ?? false,
+		deleteMessage: async (messageId) => youtubeApi?.deleteMessage(messageId) ?? false,
+		banUser: async (userId, durationSec) => youtubeApi?.banUser(userId, durationSec) ?? false
 	};
 
 	return {

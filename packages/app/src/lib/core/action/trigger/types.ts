@@ -9,7 +9,11 @@ export type TriggerDefinitionProps<TContext = unknown> = {
 	pluginName?: string;
 	children?: TriggerDefinitionProps<any>[];
 	conditions?: ConditionDefinition[];
-	validate?: (conditions: ConditionGroupNode, context: TContext) => boolean;
+	validate?: (
+		conditions: ConditionGroupNode,
+		context: TContext,
+		trigger?: ActionTrigger
+	) => boolean;
 	activate?: (action: Action, trigger: ActionTrigger) => void;
 	deactivate?: (action: Action, trigger: ActionTrigger) => void;
 	onTest?: TriggerTestFn;

@@ -1,5 +1,12 @@
 export type { HandlerTriggerContext } from './lib/core/action/handler-context';
 export type {
+	ActionLogAppendInput,
+	ActionLogEntry,
+	ActionLogLevel,
+	CorePluginApi,
+	VariableScope
+} from '@stream-kit/plugin-handlers';
+export type {
 	CommandPermissions,
 	CommandRecord,
 	CommandSource

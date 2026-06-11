@@ -5,19 +5,20 @@ import type { WsMessageContext } from '../contexts';
 import {
 	connectionSelectCondition,
 	evaluateConnectionMatch,
-	evaluateJsonPathMatch,
+	evaluateJsonFieldMatch,
 	evaluateMessageMatch,
-	jsonPathCondition,
-	jsonValueMatchCondition,
+	jsonFieldCondition,
 	messageMatchCondition
 } from '../lib/conditions';
-import { getWebSocket } from '../lib/plugin-api';
-import { disposeTriggerSubscription, setTriggerSubscription } from '../lib/subscription';
-import { createOnTest, evaluateWith } from '../lib/trigger-helpers';
-import { getConnectionIdFromConditions, findConditionValue } from '../lib/trigger-condition';
-import { createTestMessageContext } from '../lib/test-contexts';
+import {
+	activateConnectionStateTrigger,
+	deactivateConnectionStateTrigger
+} from '../lib/connection-trigger';
 import { WS_EVENTS } from '../lib/event-hub';
-import { subscribeWsEvent } from '../lib/websocket-setup';
+import { getWebSocket } from '../lib/plugin-api';
+import { createOnTest, evaluateWith } from '../lib/trigger-helpers';
+import { getConnectionIdFromConditions } from '../lib/trigger-condition';
+import { createTestMessageContext } from '../lib/test-contexts';
 
 export const createMessageReceivedTrigger = (app: PluginAppApi) =>
 	({
@@ -32,49 +33,24 @@ export const createMessageReceivedTrigger = (app: PluginAppApi) =>
 				}));
 			}),
 			messageMatchCondition(),
-			jsonPathCondition(),
-			jsonValueMatchCondition()
+			jsonFieldCondition()
 		],
 		validate: (conditions, context) => {
 			const ctx = context as WsMessageContext;
-			const jsonPath = findConditionValue(conditions, 'json-path');
-			const jsonMatch =
-				findConditionValue(conditions, 'json-value') ?? ({ type: 'equals', value: '' } as const);
 
 			return evaluateWith(conditions, context, {
-				connection: (value) => evaluateConnectionMatch(ctx.connectionId, value),
+				connection: (value) =>
+					evaluateConnectionMatch(ctx.connectionId, value, ctx.affectedConnectionIds),
 				message: (value) => evaluateMessageMatch(ctx.message, value),
-				'json-path': () => evaluateJsonPathMatch(ctx.isJson, ctx.data, jsonPath ?? '', jsonMatch),
-				'json-value': (value) => evaluateJsonPathMatch(ctx.isJson, ctx.data, jsonPath ?? '', value)
+				'json-field': (value) => evaluateJsonFieldMatch(ctx.isJson, ctx.data, value)
 			});
 		},
 		activate: (action, trigger) => {
-			const ws = getWebSocket(app);
-			const connectionId = getConnectionIdFromConditions(trigger.conditions);
-
-			if (connectionId) {
-				ws.addTriggerRef(connectionId);
-				void ws.ensureConnected(connectionId);
-			}
-
-			const unsubscribe = subscribeWsEvent<WsMessageContext>(WS_EVENTS.MESSAGE, (context) => {
-				if (trigger.definition.validate?.(trigger.conditions, context)) {
-					action.fire(trigger, context);
-				}
-			});
-
-			setTriggerSubscription(trigger, {
-				dispose: () => {
-					unsubscribe();
-
-					if (connectionId) {
-						ws.removeTriggerRef(connectionId);
-					}
-				}
+			activateConnectionStateTrigger<WsMessageContext>(app, action, trigger, WS_EVENTS.MESSAGE, {
+				connectionId: getConnectionIdFromConditions(trigger.conditions),
+				ensureConnected: true
 			});
 		},
-		deactivate: (_action, trigger) => {
-			disposeTriggerSubscription(trigger);
-		},
+		deactivate: deactivateConnectionStateTrigger,
 		onTest: createOnTest(() => createTestMessageContext())
 	}) satisfies TriggerDefinitionProps;

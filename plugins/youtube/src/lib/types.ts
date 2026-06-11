@@ -169,4 +169,5 @@ export type YouTubeLiveStreamInfo = {
 	broadcastId: string;
 	liveChatId: string;
 	title: string;
+	actualStartTime?: string;
 };
