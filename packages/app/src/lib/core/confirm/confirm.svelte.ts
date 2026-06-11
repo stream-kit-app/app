@@ -1,9 +1,26 @@
 import { translate } from '$lib/i18n';
 
+/**
+ * Options for {@link Confirm.ask} and `app.confirm.ask`.
+ *
+ * @example
+ * ```ts
+ * const confirmed = await app.confirm.ask({
+ *   title: 'Delete item?',
+ *   description: 'This action cannot be undone.',
+ *   confirmLabel: 'Delete',
+ *   cancelLabel: 'Keep'
+ * });
+ * ```
+ */
 export type ConfirmOptions = {
+	/** Dialog title. */
 	title: string;
+	/** Optional body text shown below the title. */
 	description?: string;
+	/** Label for the confirm button. Defaults to a translated "Confirm". */
 	confirmLabel?: string;
+	/** Label for the cancel button. Defaults to a translated "Cancel". */
 	cancelLabel?: string;
 };
 

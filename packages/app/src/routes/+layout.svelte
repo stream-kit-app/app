@@ -41,34 +41,42 @@
 <BootScreen visible={!isAppReady} />
 
 {#if isAppReady}
-	<TooltipProvider>
-		<div class="flex h-screen w-screen items-stretch p-4">
-			<aside
-				class="flex h-full w-64 flex-col rounded-xl border border-dark-600 bg-dark-800 shadow-sm"
-			>
-				<section class="mt-4 mb-4 p-2.5">
-					<Logo />
-				</section>
-				<section class="p-2.5">
-					<Nav.Root items={app.menu.items} activePath={page.url.pathname} {translateTitle} />
-				</section>
-			</aside>
-			<main class="flex min-h-0 flex-1 flex-col">
-				<ScrollArea
-					orientation="vertical"
-					class="h-full min-h-0 overflow-hidden"
-					viewportClasses="h-full"
+	<div class="relative isolate h-screen w-screen overflow-hidden">
+		<div class="boot-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true"></div>
+
+		<TooltipProvider>
+			<div class="flex h-full w-full items-stretch p-4">
+				<aside
+					class="flex h-full w-64 flex-col rounded-xl border border-dark-600 bg-dark-800 shadow-sm"
 				>
-					{@render children()}
-				</ScrollArea>
-			</main>
-		</div>
-	</TooltipProvider>
+					<section class="mt-4 mb-4 p-2.5">
+						<Logo />
+					</section>
+					<section class="p-2.5">
+						<Nav.Root
+							items={app.menu.items}
+							activePath={page.url.pathname}
+							{translateTitle}
+						/>
+					</section>
+				</aside>
+				<main class="flex min-h-0 flex-1 flex-col">
+					<ScrollArea
+						orientation="vertical"
+						class="h-full min-h-0 overflow-hidden"
+						viewportClasses="h-full"
+					>
+						{@render children()}
+					</ScrollArea>
+				</main>
+			</div>
+		</TooltipProvider>
 
-	{#each app.modals.entries() as [, modal]}
-		<Modal {modal} />
-	{/each}
+		{#each app.modals.entries() as [, modal]}
+			<Modal {modal} />
+		{/each}
 
-	<ConfirmDialog confirm={app.confirm} />
-	<Toast toast={app.toast} />
+		<ConfirmDialog confirm={app.confirm} />
+		<Toast toast={app.toast} />
+	</div>
 {/if}

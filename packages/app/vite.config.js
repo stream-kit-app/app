@@ -44,6 +44,7 @@ export default defineConfig(async () => ({
 			'@stream-kit/plugin-youtube',
 			'@stream-kit/plugin-tts',
 			'@stream-kit/plugin-handlers',
+			'@stream-kit/plugin-websocket',
 		]
 	}
 }));

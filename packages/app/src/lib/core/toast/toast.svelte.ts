@@ -6,13 +6,32 @@ import { SvelteMap } from 'svelte/reactivity';
 
 import { ToastItem } from './toast-item.svelte';
 
+/**
+ * Options for `app.toast.create`.
+ *
+ * @example
+ * ```ts
+ * app.toast.create({
+ *   title: 'Hello World',
+ *   description: 'Triggered from a plugin page button.',
+ *   variant: 'success'
+ * });
+ * ```
+ */
 export type ToastCreateProps = {
+	/** Optional stable id. A UUID is generated when omitted. */
 	id?: string;
+	/** Primary toast message. */
 	title: string;
+	/** Optional secondary message shown below the title. */
 	description?: string;
+	/** Visual style. Defaults to `'default'`. */
 	variant?: ToastVariant;
+	/** Auto-dismiss delay in milliseconds. Use `0` to keep the toast until manually dismissed. Defaults to `5000`. */
 	duration?: number;
+	/** Optional custom Svelte content. Typically used by built-in npm plugins only. */
 	content?: Component<any>;
+	/** Props passed to the custom `content` component. */
 	props?: Record<string, unknown>;
 };
 

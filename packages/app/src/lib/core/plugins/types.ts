@@ -20,6 +20,23 @@ import type {
 
 export type PluginPublicApi = unknown;
 
+/**
+ * Plugin entry point. Receives the app API and returns a registration object.
+ *
+ * @example
+ * ```ts
+ * import type { Plugin } from '@stream-kit/app/api';
+ *
+ * const plugin: Plugin = (app) => ({
+ *   name: 'My Plugin',
+ *   onBoot: async ({ store }) => {
+ *     await store.set('initialized', true);
+ *   }
+ * });
+ *
+ * export default plugin;
+ * ```
+ */
 export type Plugin = (
 	app: PluginAppApi
 ) => PluginRegistration | Promise<PluginRegistration>;
@@ -77,10 +94,97 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 	settings?: PluginSettingsFieldItem[];
 	customViews?: Record<string, Component>;
 	api?: TApi;
+
+	/**
+	 * Called when the app checks whether required settings are filled in.
+	 * Return `true` when the plugin is ready to use.
+	 *
+	 * @example
+	 * ```ts
+	 * isConfigured: ({ getValue }) => Boolean(getValue('apiKey'))
+	 * ```
+	 */
 	isConfigured?: (context: PluginSettingsContext) => boolean;
+
+	/**
+	 * Called after plugin settings are read from the plugin store during app startup.
+	 * Runs before {@link PluginRegistration.onBoot}. Use this to hydrate in-memory state from persisted settings.
+	 *
+	 * @example
+	 * ```ts
+	 * onLoad: async ({ app }) => {
+	 *   await commands.load();
+	 * }
+	 * ```
+	 */
 	onLoad?: (context: PluginSettingsContext) => void | Promise<void>;
+
+	/**
+	 * Called after plugin settings are written to the plugin store.
+	 * Use this to apply new configuration (reconnect, sync state, etc.).
+	 *
+	 * @example
+	 * ```ts
+	 * onSave: async ({ app, getValue }) => {
+	 *   await reconnect(getValue('host'));
+	 *   app.toast.create({ title: 'Settings saved', variant: 'success' });
+	 * }
+	 * ```
+	 */
 	onSave?: (context: PluginSettingsContext) => void | Promise<void>;
+
+	/**
+	 * Called the first time the plugin starts while enabled and all dependencies are satisfied.
+	 * Use this to initialize services, register runtimes, and connect to external systems.
+	 *
+	 * @example
+	 * ```ts
+	 * onBoot: async ({ store, getValue }) => {
+	 *   controller = createController(app);
+	 *   await controller.boot(store);
+	 *   syncGetValue(getValue);
+	 * }
+	 * ```
+	 */
 	onBoot?: (context: PluginSettingsContext) => void | Promise<void>;
+
+	/**
+	 * Called after all plugins have booted and actions are loaded.
+	 * Use this for work that depends on the full app being ready (e.g. auto-connect).
+	 *
+	 * @example
+	 * ```ts
+	 * onReady: async () => {
+	 *   await controller?.connectAutoConnect();
+	 * }
+	 * ```
+	 */
+	onReady?: (context: PluginSettingsContext) => void | Promise<void>;
+
+	/**
+	 * Called when the user enables the plugin.
+	 * Runs after {@link PluginRegistration.onBoot} on first enable, or on subsequent toggles after boot.
+	 *
+	 * @example
+	 * ```ts
+	 * onEnable: async ({ getValue }) => {
+	 *   syncGetValue(getValue);
+	 *   await api?.connect();
+	 * }
+	 * ```
+	 */
 	onEnable?: (context: PluginSettingsContext) => void | Promise<void>;
+
+	/**
+	 * Called when the user disables the plugin, before triggers and handlers are unregistered.
+	 * Use this to disconnect, stop listeners, and release resources.
+	 *
+	 * @example
+	 * ```ts
+	 * onDisable: async () => {
+	 *   await controller?.disconnectAll();
+	 * }
+	 * ```
+	 */
 	onDisable?: (context: PluginSettingsContext) => void | Promise<void>;
 };

@@ -47,6 +47,9 @@ importers:
       '@stream-kit/plugin-twitch':
         specifier: workspace:*
         version: link:../../plugins/twitch
+      '@stream-kit/plugin-websocket':
+        specifier: workspace:*
+        version: link:../../plugins/websocket
       '@stream-kit/plugin-youtube':
         specifier: workspace:*
         version: link:../../plugins/youtube
@@ -309,9 +312,6 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@libsql/client@0.17.3)
-      tsup:
-        specifier: ^8.5.0
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -397,6 +397,25 @@ importers:
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  plugins/websocket:
+    dependencies:
+      '@stream-kit/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@iconify/svelte':
+        specifier: ^5.2.1
+        version: 5.2.1(svelte@5.56.1(@typescript-eslint/types@8.60.1))
+      '@stream-kit/app':
+        specifier: workspace:*
+        version: link:../../packages/app
+      '@stream-kit/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       typescript:
         specifier: ~6.0.3
         version: 6.0.3

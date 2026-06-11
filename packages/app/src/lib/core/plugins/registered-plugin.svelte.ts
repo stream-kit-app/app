@@ -49,12 +49,14 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	private onLoad?: PluginRegistration<TApi>['onLoad'];
 	private onSave?: PluginRegistration<TApi>['onSave'];
 	private onBoot?: PluginRegistration<TApi>['onBoot'];
+	private onReady?: PluginRegistration<TApi>['onReady'];
 	private onEnable?: PluginRegistration<TApi>['onEnable'];
 	private onDisable?: PluginRegistration<TApi>['onDisable'];
 	private customViews: Record<string, Component> = {};
 	private storeFacade: PluginStore;
 	private legacyStores: LazyStore[];
 	private hasBooted = false;
+	private hasReadied = false;
 	private hasLoaded = false;
 	private triggers: TriggerDefinitionProps<any>[];
 	private handlers: HandlerDefinitionProps[];
@@ -86,6 +88,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.onLoad = props.onLoad;
 		this.onSave = props.onSave;
 		this.onBoot = props.onBoot;
+		this.onReady = props.onReady;
 		this.onEnable = props.onEnable;
 		this.onDisable = props.onDisable;
 		this.customViews = props.customViews ?? {};
@@ -270,6 +273,15 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 		await this.onBoot?.(this.createContext(app));
 		this.hasBooted = true;
+	}
+
+	async ready(app: App): Promise<void> {
+		if (this.hasReadied || !this.canBoot(app)) {
+			return;
+		}
+
+		await this.onReady?.(this.createContext(app));
+		this.hasReadied = true;
 	}
 
 	async setEnabled(app: App, enabled: boolean): Promise<void> {

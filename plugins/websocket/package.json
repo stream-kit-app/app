@@ -1,0 +1,32 @@
+{
+	"name": "@stream-kit/plugin-websocket",
+	"version": "0.1.0",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"exports": {
+		".": "./src/index.ts",
+		"./app/lib/connection.svelte": "./src/app/lib/connection.svelte.ts",
+		"./app/lib/connections.svelte": "./src/app/lib/connections.svelte.ts",
+		"./app/lib/get-connections": "./src/app/lib/get-connections.ts",
+		"./app/ui/connections-page.svelte": "./src/app/ui/connections-page.svelte",
+		"./app/ui/connection-card.svelte": "./src/app/ui/connection-card.svelte",
+		"./app/ui/connection-form.svelte": "./src/app/ui/connection-form.svelte"
+	},
+	"files": [
+		"src"
+	],
+	"scripts": {
+		"build": "tsc --noEmit",
+		"check": "tsc --noEmit",
+		"dev": "tsc --noEmit --watch --preserveWatchOutput"
+	},
+	"dependencies": {
+		"@stream-kit/core": "workspace:*"
+	},
+	"devDependencies": {
+		"@stream-kit/app": "workspace:*",
+		"@stream-kit/ui": "workspace:*",
+		"@iconify/svelte": "^5.2.1",
+		"typescript": "~6.0.3"
+	}
+}

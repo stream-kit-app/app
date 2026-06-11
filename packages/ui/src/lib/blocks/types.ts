@@ -112,7 +112,7 @@ export type PageFormBlock = {
 	successMessage?: string;
 };
 
-export type PageCustomView = 'commands';
+export type PageCustomView = 'commands' | 'connections';
 
 export type PageBlocksDefinition = {
 	title?: string;

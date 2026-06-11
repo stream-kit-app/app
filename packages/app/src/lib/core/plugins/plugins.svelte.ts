@@ -121,4 +121,19 @@ export class Plugins {
 			}
 		}
 	}
+
+	async ready(app: App): Promise<void> {
+		for (const plugin of this.items) {
+			try {
+				await plugin.ready(app);
+			} catch (error) {
+				console.warn(`Failed to ready plugin ${plugin.key}`, error);
+				app.toast.create({
+					title: translate('Plugin could not be started'),
+					description: translate('{name} could not finish starting.', { name: plugin.name }),
+					variant: 'warning'
+				});
+			}
+		}
+	}
 }

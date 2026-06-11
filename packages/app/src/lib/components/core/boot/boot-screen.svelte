@@ -50,26 +50,6 @@
 {/if}
 
 <style>
-	.boot-ambient {
-		position: absolute;
-		inset: -20%;
-		background:
-			radial-gradient(circle at 30% 35%, oklch(0.38 0.16 255 / 0.22), transparent 42%),
-			radial-gradient(circle at 70% 65%, oklch(0.85 0.18 95 / 0.12), transparent 38%);
-		animation: boot-ambient-drift 8s ease-in-out infinite alternate;
-	}
-
-	.boot-grid {
-		position: absolute;
-		inset: 0;
-		background-image:
-			linear-gradient(oklch(0.98 0.002 264 / 0.03) 1px, transparent 1px),
-			linear-gradient(90deg, oklch(0.98 0.002 264 / 0.03) 1px, transparent 1px);
-		background-size: 48px 48px;
-		mask-image: radial-gradient(circle at center, black 20%, transparent 72%);
-		animation: boot-grid-pulse 4s ease-in-out infinite;
-	}
-
 	.boot-logo-shell {
 		position: relative;
 		display: grid;
@@ -106,27 +86,6 @@
 
 	.boot-dot-delay-2 {
 		animation-delay: 0.3s;
-	}
-
-	@keyframes boot-ambient-drift {
-		from {
-			transform: translate3d(-2%, -1%, 0) scale(1);
-		}
-
-		to {
-			transform: translate3d(2%, 1%, 0) scale(1.05);
-		}
-	}
-
-	@keyframes boot-grid-pulse {
-		0%,
-		100% {
-			opacity: 0.45;
-		}
-
-		50% {
-			opacity: 0.75;
-		}
 	}
 
 	@keyframes boot-logo-glow {

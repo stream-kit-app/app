@@ -6,7 +6,12 @@ import type { CommandRecord } from '$lib/types/command-types';
 import { createFilesystemApi } from '../filesystem/create-api';
 import { registerPluginMigrations, type PluginMigration } from '$db/plugin-migrations';
 
-export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
+import type {
+	CommandRuntimeFactory,
+	PluginAppApi
+} from './plugin-app-api.types';
+
+export type { CommandRuntimeFactory, PluginAppApi } from './plugin-app-api.types';
 
 export type CommandsPluginApi = {
 	commands: {
@@ -28,7 +33,7 @@ function getCommandsApi(app: App) {
 	return app.plugins.tryGet<CommandsPluginApi>('commands')?.commands;
 }
 
-export function createPluginAppApi(app: App) {
+export function createPluginAppApi(app: App): PluginAppApi {
 	return {
 		plugins: {
 			get: app.plugins.get.bind(app.plugins),
@@ -95,7 +100,5 @@ export function createPluginAppApi(app: App) {
 		opener: {
 			openUrl: app.opener.openUrl.bind(app.opener)
 		}
-	};
+	} satisfies PluginAppApi;
 }
-
-export type PluginAppApi = ReturnType<typeof createPluginAppApi>;

@@ -1,16 +1,14 @@
-import corePlugin from '@stream-kit/plugin-handlers';
 import { Commands, commandsPlugin } from '@stream-kit/plugin-commands';
+import corePlugin from '@stream-kit/plugin-handlers';
 import obsPlugin from '@stream-kit/plugin-obs';
 import ttsPlugin from '@stream-kit/plugin-tts';
 import twitchPlugin from '@stream-kit/plugin-twitch';
+import websocketPlugin from '@stream-kit/plugin-websocket';
 import youtubePlugin from '@stream-kit/plugin-youtube';
 
-import {
-	initPluginDevWatcher,
-	syncPluginDevWatchers
-} from './plugins/plugin-dev-watcher';
-import { discoverAndLoadInstalledPlugins } from './plugins/plugin-loader';
 import { app } from './app-init';
+import { initPluginDevWatcher, syncPluginDevWatchers } from './plugins/plugin-dev-watcher';
+import { discoverAndLoadInstalledPlugins } from './plugins/plugin-loader';
 
 let bootPromise: Promise<void> | null = null;
 
@@ -25,11 +23,16 @@ export function bootApp(): Promise<void> {
 			await app.use(obsPlugin, { key: 'obs', source: 'builtin' });
 			await app.use(ttsPlugin, { key: 'tts', source: 'builtin' });
 			await app.use(commandsPlugin(commands), { key: 'commands', source: 'builtin' });
+			await app.use(websocketPlugin, { key: 'websocket', source: 'builtin' });
+
 			await discoverAndLoadInstalledPlugins(app);
+
 			await app.plugins.load(app);
 			await app.boot();
 			await app.actions.load();
+			await app.plugins.ready(app);
 			await app.settings.load();
+
 			await initPluginDevWatcher();
 			await syncPluginDevWatchers(app);
 		})();

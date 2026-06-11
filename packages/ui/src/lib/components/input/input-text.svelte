@@ -5,7 +5,6 @@
 	import { useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
-
 	import Label from './label.svelte';
 
 	type Props = {
@@ -13,13 +12,28 @@
 		prependIcon?: string;
 		appendIcon?: string;
 		error?: string;
-	} & HTMLInputAttributes;
+		size?: 'sm' | 'md' | 'lg';
+	} & Omit<HTMLInputAttributes, 'size'>;
 
-	const { label, id = useId(), prependIcon, appendIcon, error, ...props }: Props = $props();
+	const {
+		label,
+		id = useId(),
+		prependIcon,
+		appendIcon,
+		error,
+		size = 'md',
+		...props
+	}: Props = $props();
 	let showPassword = $state(false);
 
 	const isPasswordField = $derived(props.type === 'password');
 	const hasRightAdornment = $derived(Boolean(appendIcon) || isPasswordField);
+
+	const sizeClasses = {
+		sm: 'px-3 py-2 text-xs',
+		md: 'px-4 py-2 text-sm',
+		lg: 'px-5 py-3 text-base'
+	};
 </script>
 
 <div class={cn('relative grid w-full gap-2')}>
@@ -36,15 +50,23 @@
 	>
 		{#if prependIcon}
 			<span
-				class="grid h-full min-w-10 place-items-center rounded-l-xl border border-dark-700 text-dark-50"
+				class="grid h-full min-w-10 place-items-center rounded-l-xl border border-dark-500 bg-dark-700 text-dark-50"
 			>
-				<Icon icon={prependIcon} class="size-6" />
+				<Icon
+					icon={prependIcon}
+					class={cn({
+						'size-4': size === 'sm',
+						'size-5': size === 'md',
+						'size-6': size === 'lg'
+					})}
+				/>
 			</span>
 		{/if}
 		<input
 			{id}
 			class={cn(
-				'w-full border bg-dark-700 px-4 py-2 text-dark-50 outline-none',
+				'w-full border bg-dark-700 text-dark-50 outline-none',
+				sizeClasses[size],
 				error ? 'border-red-500' : 'border-dark-500',
 				{
 					'rounded-l-none rounded-r-xl border-l-0': prependIcon,
