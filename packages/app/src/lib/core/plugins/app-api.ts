@@ -4,6 +4,7 @@ import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
 import type { CommandRecord } from '$lib/types/command-types';
 import { createFilesystemApi } from '../filesystem/create-api';
+import { getSettingsFieldValue } from '../settings/settings-field';
 import { registerPluginMigrations, type PluginMigration } from '$db/plugin-migrations';
 
 import type {
@@ -37,7 +38,16 @@ export function createPluginAppApi(app: App): PluginAppApi {
 	return {
 		plugins: {
 			get: app.plugins.get.bind(app.plugins),
-			tryGet: app.plugins.tryGet.bind(app.plugins)
+			tryGet: app.plugins.tryGet.bind(app.plugins),
+			getSettingValue: (pluginKey, settingKey) => {
+				const plugin = app.plugins.find(pluginKey);
+
+				if (!plugin) {
+					return undefined;
+				}
+
+				return getSettingsFieldValue(plugin.fields, settingKey);
+			}
 		},
 		toast: {
 			create: app.toast.create.bind(app.toast),
@@ -57,6 +67,15 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		audio: {
 			play: app.audio.play.bind(app.audio)
 		},
+		process: {
+			get running() {
+				return app.process.running;
+			},
+			sync: app.process.sync.bind(app.process),
+			onStarted: app.process.onStarted.bind(app.process),
+			onStopped: app.process.onStopped.bind(app.process),
+			run: app.process.run.bind(app.process)
+		},
 		db: {
 			registerMigrations: (pluginKey: string, migrations: PluginMigration[]) => {
 				registerPluginMigrations(pluginKey, migrations);
@@ -73,6 +92,7 @@ export function createPluginAppApi(app: App): PluginAppApi {
 					app.actions.activate(action);
 				}
 			},
+			hasEnabledProcessTrigger: () => app.actions.hasEnabledProcessTrigger(),
 			runById: (id: number, context: HandlerTriggerContext) => app.actions.runById(id, context)
 		},
 		commands: {

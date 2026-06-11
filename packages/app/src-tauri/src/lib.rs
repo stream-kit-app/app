@@ -2,6 +2,8 @@
 mod dev;
 mod local_tts;
 mod plugins;
+mod process_watcher;
+mod run_program;
 
 use std::io::Cursor;
 
@@ -74,12 +76,16 @@ pub fn run() {
             plugins::get_plugins_dir,
             plugins::list_installed_plugins,
             plugins::install_plugin_zip,
-            plugins::uninstall_plugin
+            plugins::uninstall_plugin,
+            process_watcher::start_process_watcher,
+            process_watcher::stop_process_watcher,
+            run_program::run_program
         ])
         .setup(|app| {
             app.manage(dev::PluginWatchers(std::sync::Mutex::new(
                 std::collections::HashMap::new(),
             )));
+            app.manage(process_watcher::ProcessWatcherState::new());
 
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window("main") {

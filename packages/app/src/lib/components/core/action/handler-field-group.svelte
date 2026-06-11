@@ -5,7 +5,8 @@
 	} from '$lib/core/action/action-handler.svelte';
 	import type {
 		HandlerFieldDefinition,
-		HandlerFieldInstance
+		HandlerFieldInstance,
+		KeyValueEntry
 	} from '$lib/core/action/handler/field';
 	import type { FormEventHandler } from 'svelte/elements';
 
@@ -13,6 +14,7 @@
 		InputCheckbox,
 		InputCode,
 		InputFilePath,
+		InputKeyValueList,
 		InputSelect,
 		InputSwitch,
 		InputText,
@@ -44,6 +46,14 @@
 		(event) => {
 			field.value = event.currentTarget.value;
 		};
+
+	function getKeyValueEntries(field: HandlerFieldInstance): KeyValueEntry[] {
+		return Array.isArray(field.value) ? field.value : [];
+	}
+
+	function setKeyValueEntries(field: HandlerFieldInstance, entries: KeyValueEntry[]): void {
+		field.value = entries;
+	}
 </script>
 
 {#snippet fieldInput(config: HandlerFieldDefinition, field: HandlerFieldInstance, error?: string)}
@@ -107,6 +117,16 @@
 					type: config.mode,
 					filters: config.filters
 				})}
+			{error}
+		/>
+	{:else if config.type === 'key-value-list'}
+		<InputKeyValueList
+			label={config.name}
+			keyPlaceholder={config.keyPlaceholder}
+			valuePlaceholder={config.valuePlaceholder}
+			bind:entries={() => getKeyValueEntries(field), (entries) => setKeyValueEntries(field, entries)}
+			addLabel={t('Add')}
+			removeLabel={t('Remove')}
 			{error}
 		/>
 	{:else if config.type === 'code'}

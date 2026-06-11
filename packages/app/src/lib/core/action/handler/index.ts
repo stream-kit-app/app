@@ -4,6 +4,7 @@ export type {
 	HandlerFieldInstance,
 	HandlerFieldValue,
 	HandlerFieldVariable,
+	KeyValueEntry,
 	ResolvedHandlerFieldDefinition
 } from './field';
 export type {

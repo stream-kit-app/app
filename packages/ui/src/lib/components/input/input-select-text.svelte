@@ -14,6 +14,7 @@
 	import { cn } from '../../utils';
 
 	import { Button } from '../button';
+	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
 
@@ -215,7 +216,8 @@
 		<Select.Root type="single" items={resolvedItems.items} bind:value={value.type}>
 			<Select.Trigger
 				class={cn(
-					'flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-xl border border-r-0 bg-dark-700 px-4 py-2 text-dark-50 outline-none',
+					'flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-xl border border-r-0 bg-dark-700 text-dark-50 outline-none',
+					inputSizeClasses.md,
 					error ? 'border-red-500' : 'border-dark-500',
 					selectClass
 				)}
@@ -279,7 +281,8 @@
 			{placeholder}
 			bind:value={value.value}
 			class={cn(
-				'w-full rounded-r-xl border bg-dark-700 px-4 py-2 text-dark-50 outline-none',
+				'w-full rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+				inputSizeClasses.md,
 				error ? 'border-red-500' : 'border-dark-500'
 			)}
 			aria-invalid={error ? true : undefined}

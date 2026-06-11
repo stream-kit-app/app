@@ -8,6 +8,7 @@
 
 	import { cn } from '../../utils';
 
+	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
 	import { DropdownScroll } from './use-dropdown-scroll.svelte';
@@ -123,7 +124,8 @@
 			{/if}
 			<span
 				class={cn(
-					'flex w-full items-center justify-between gap-2 border bg-dark-700 px-4 py-2 text-dark-50 outline-none',
+					'flex w-full items-center justify-between gap-2 border bg-dark-700 text-dark-50 outline-none',
+					inputSizeClasses.md,
 					error ? 'border-red-500' : 'border-dark-500',
 					{
 						'rounded-l-none rounded-r-xl border-l-0': prependIcon,

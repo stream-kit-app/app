@@ -1,6 +1,11 @@
 import type { SelectItemsSource } from '../trigger/condition';
 
-export type HandlerFieldValue = string | boolean;
+export type KeyValueEntry = {
+	key: string;
+	value: string;
+};
+
+export type HandlerFieldValue = string | boolean | KeyValueEntry[];
 
 /** A variable that can be inserted into a text field as `{key}`. */
 export type HandlerFieldVariable = {
@@ -39,6 +44,11 @@ export type HandlerFieldDefinition =
 			type: 'code';
 			language?: 'typescript';
 			defaultValue?: string;
+	  })
+	| (HandlerFieldBase & {
+			type: 'key-value-list';
+			keyPlaceholder?: string;
+			valuePlaceholder?: string;
 	  });
 
 export type ResolvedHandlerFieldDefinition = HandlerFieldDefinition & {

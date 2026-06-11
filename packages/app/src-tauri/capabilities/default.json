@@ -15,6 +15,7 @@
 		"sql:allow-close",
 		"dialog:default",
 		"fs:default",
+		"allow-app-commands",
 		{
 			"identifier": "fs:scope",
 			"allow": [{ "path": "**" }]

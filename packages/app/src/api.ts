@@ -77,6 +77,12 @@ export type {
 	WriteFileOptions
 } from './lib/core/filesystem';
 export { Audio } from './lib/core/audio';
+export { isUrlCommand, ProcessWatcher } from './lib/core/process';
+export type {
+	ProcessEventContext,
+	RunProgramOptions,
+	RunProgramResult
+} from './lib/core/process';
 export type {
 	ConditionDefinition,
 	ConditionGroupNode,
@@ -93,5 +99,6 @@ export type {
 	HandlerFieldInstance,
 	HandlerFieldValue,
 	HandlerFieldVariable,
-	HandlerFileFilter
+	HandlerFileFilter,
+	KeyValueEntry
 } from './lib/core/action/handler/field';

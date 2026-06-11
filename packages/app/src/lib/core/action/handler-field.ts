@@ -28,6 +28,10 @@ export function initHandlerFieldValue(
 		return definition.defaultValue;
 	}
 
+	if (definition.type === 'key-value-list') {
+		return [];
+	}
+
 	if (
 		definition.type === 'text' ||
 		definition.type === 'select' ||
@@ -58,6 +62,14 @@ export function isHandlerFieldValueEmpty(
 	definition: ResolvedHandlerFieldDefinition,
 	value: HandlerFieldValue
 ): boolean {
+	if (definition.type === 'key-value-list') {
+		if (!Array.isArray(value) || value.length === 0) {
+			return true;
+		}
+
+		return value.every((entry) => !entry.key.trim());
+	}
+
 	if (
 		definition.type === 'text' ||
 		definition.type === 'select' ||

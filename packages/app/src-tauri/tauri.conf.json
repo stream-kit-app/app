@@ -12,6 +12,7 @@
 	"app": {
 		"windows": [
 			{
+				"label": "main",
 				"title": "Stream Kit",
 				"width": 1680,
 				"height": 800,

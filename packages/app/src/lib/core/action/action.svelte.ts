@@ -27,6 +27,7 @@ import { migrateLegacyHandlerFields } from './handler-field';
 import { ActionExecution } from './action-execution.svelte';
 import type { HandlerTriggerContext } from './handler-context';
 import { runHandlerChain } from './run-handler-chain';
+import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
 import { validateActionForm } from './validate-form';
 
 export type ActionProps = {
@@ -81,10 +82,16 @@ export class Actions {
 		}
 	}
 
+	hasEnabledProcessTrigger(): boolean {
+		return hasEnabledProcessTrigger(this.items);
+	}
+
 	activate(action: Action): void {
 		if (!action.enabled) {
 			return;
 		}
+
+		this.deactivate(action);
 
 		const app = getApp();
 

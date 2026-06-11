@@ -8,6 +8,7 @@ import { translate } from '$lib/i18n';
 
 import { Actions } from './action/action.svelte';
 import { Audio } from './audio';
+import { ProcessWatcher } from './process';
 import { Bootable } from './bootable.svelte';
 import { Confirm } from './confirm';
 import { Filesystem } from './filesystem';
@@ -31,6 +32,7 @@ export class App extends Bootable {
 	public opener = new Opener();
 	public fs = new Filesystem();
 	public audio = new Audio();
+	public process = new ProcessWatcher();
 
 	public modals = new SvelteMap<string, Modal>();
 	public confirm = new Confirm();

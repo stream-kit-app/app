@@ -5,6 +5,7 @@
 	import { useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
+	import { inputSizeClasses, type InputSize } from './input-size-classes';
 	import Label from './label.svelte';
 
 	type Props = {
@@ -12,7 +13,7 @@
 		prependIcon?: string;
 		appendIcon?: string;
 		error?: string;
-		size?: 'sm' | 'md' | 'lg';
+		size?: InputSize;
 	} & Omit<HTMLInputAttributes, 'size'>;
 
 	const {
@@ -29,11 +30,7 @@
 	const isPasswordField = $derived(props.type === 'password');
 	const hasRightAdornment = $derived(Boolean(appendIcon) || isPasswordField);
 
-	const sizeClasses = {
-		sm: 'px-3 py-2 text-xs',
-		md: 'px-4 py-2 text-sm',
-		lg: 'px-5 py-3 text-base'
-	};
+	const sizeClasses = inputSizeClasses;
 </script>
 
 <div class={cn('relative grid w-full gap-2')}>

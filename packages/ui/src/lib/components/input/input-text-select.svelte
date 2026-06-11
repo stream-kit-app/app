@@ -10,6 +10,7 @@
 
 	import { cn } from '../../utils';
 
+	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
 	import { filterSelectItems } from './select-dropdown-limits';
@@ -154,7 +155,8 @@
 			placeholder: resolvedItems.loading ? resolvedLoadingPlaceholder : resolvedPlaceholder,
 			autocomplete: 'off',
 			class: cn(
-				'w-full rounded-l-xl border border-r-0 bg-dark-700 px-4 py-2 text-dark-50 outline-none',
+				'w-full rounded-l-xl border border-r-0 bg-dark-700 text-dark-50 outline-none',
+				inputSizeClasses.md,
 				error ? 'border-red-500' : 'border-dark-500'
 			),
 			'aria-invalid': error ? true : undefined,
@@ -223,7 +225,8 @@
 				disabled={!!props.disabled}
 				onclick={handleTriggerClick}
 				class={cn(
-					'flex shrink-0 cursor-pointer items-center justify-center rounded-r-xl border bg-dark-700 px-3 py-2 text-dark-50 outline-none',
+					'flex shrink-0 cursor-pointer items-center justify-center rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+					inputSizeClasses.md,
 					error ? 'border-red-500' : 'border-dark-500',
 					selectClass
 				)}

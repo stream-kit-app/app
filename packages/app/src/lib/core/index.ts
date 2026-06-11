@@ -43,4 +43,6 @@ export type {
 	WriteFileOptions
 } from './filesystem';
 export { Audio } from './audio';
+export { ProcessWatcher } from './process';
+export type { ProcessEventContext } from './process';
 export { app, bootApp };

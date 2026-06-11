@@ -11,6 +11,7 @@
 	import { cn } from '../../utils';
 
 	import { Button } from '../button';
+	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 
 	type Props = {
@@ -195,7 +196,8 @@
 			{placeholder}
 			bind:value
 			class={cn(
-				'w-full rounded-xl border bg-dark-700 px-4 py-2 text-dark-50 outline-none',
+				'w-full rounded-xl border bg-dark-700 text-dark-50 outline-none',
+				inputSizeClasses.md,
 				error ? 'border-red-500' : 'border-dark-500'
 			)}
 			aria-invalid={error ? true : undefined}

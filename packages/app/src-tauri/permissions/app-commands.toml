@@ -1,0 +1,23 @@
+[[permission]]
+identifier = "allow-app-commands"
+description = "Allows all built-in application IPC commands."
+commands.allow = [
+	"greet",
+	"play_audio",
+	"list_local_tts_voices",
+	"get_local_tts_runtime_info",
+	"download_local_tts_runtime",
+	"download_local_tts_voice",
+	"delete_local_tts_voice",
+	"synthesize_local_speech",
+	"watch_plugin_entry",
+	"unwatch_plugin_entry",
+	"open_devtools_if_needed",
+	"get_plugins_dir",
+	"list_installed_plugins",
+	"install_plugin_zip",
+	"uninstall_plugin",
+	"start_process_watcher",
+	"stop_process_watcher",
+	"run_program"
+]

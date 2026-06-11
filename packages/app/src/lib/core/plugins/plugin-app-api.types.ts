@@ -28,6 +28,9 @@ import type { CommandRecord } from '$lib/types/command-types';
 import type { PluginMigration } from '$db/plugin-migrations';
 import type { DirEntry, FileHandle, FileInfo, UnwatchFn } from '@tauri-apps/plugin-fs';
 import type { UnlistenFn } from '@tauri-apps/api/event';
+import type { SettingsFieldValue } from '../settings';
+import type { ProcessEventContext } from '../process/types';
+import type { RunProgramOptions, RunProgramResult } from '../process/run-program';
 
 /**
  * Factory registered by the Commands plugin to activate chat command handling.
@@ -137,6 +140,16 @@ export interface PluginAppPluginsApi {
 	 * ```
 	 */
 	tryGet<TApi>(key: string): TApi | undefined;
+
+	/**
+	 * Read a plugin setting from the in-memory settings form (no save required).
+	 *
+	 * @example
+	 * ```ts
+	 * const enabled = app.plugins.getSettingValue('core', 'process-watcher') === true;
+	 * ```
+	 */
+	getSettingValue(pluginKey: string, settingKey: string): SettingsFieldValue | undefined;
 }
 
 /**
@@ -259,6 +272,45 @@ export interface PluginAppFsApi {
 }
 
 /**
+ * OS process lifecycle events (start/stop).
+ */
+export interface PluginAppProcessApi {
+	/** Whether the Rust process watcher is currently polling. */
+	readonly running: boolean;
+
+	/**
+	 * Start or stop the OS process watcher.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.process.sync(getValue('process-watcher') === true);
+	 * ```
+	 */
+	sync(enabled: boolean): Promise<void>;
+
+	/** Subscribe to process-started events. Returns an unsubscribe function. */
+	onStarted(handler: (context: ProcessEventContext) => void): () => void;
+
+	/** Subscribe to process-stopped events. Returns an unsubscribe function. */
+	onStopped(handler: (context: ProcessEventContext) => void): () => void;
+
+	/**
+	 * Run an external program, script, or shell command.
+	 *
+	 * @example
+	 * ```ts
+	 * const result = await app.process.run({
+	 *   command: 'C:\\Tools\\node.exe',
+	 *   workingDirectory: 'C:\\Scripts',
+	 *   arguments: 'hello.js {user}',
+	 *   waitSeconds: 5
+	 * });
+	 * ```
+	 */
+	run(options: RunProgramOptions): Promise<RunProgramResult>;
+}
+
+/**
  * Audio playback helpers.
  */
 export interface PluginAppAudioApi {
@@ -308,6 +360,9 @@ export interface PluginAppActionsApi {
 	 * ```
 	 */
 	reactivateAll(): void;
+
+	/** Whether any enabled action uses a Process Started or Process Stopped trigger. */
+	hasEnabledProcessTrigger(): boolean;
 
 	/**
 	 * Run a stored action by database id with trigger context.
@@ -438,6 +493,9 @@ export interface PluginAppApi {
 
 	/** Play audio blobs. */
 	audio: PluginAppAudioApi;
+
+	/** Watch OS process start/stop events. */
+	process: PluginAppProcessApi;
 
 	/** Register plugin database migrations. */
 	db: PluginAppDbApi;
