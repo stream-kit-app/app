@@ -32,6 +32,8 @@ export type ModalProps = {
 	content: Component<any>;
 	/** Props forwarded to the `content` component. */
 	props?: Record<string, unknown>;
+	/** Called when the modal is closed (cancel, escape, close button, or `close()`). */
+	onClose?: () => void;
 };
 
 export class Modal {
@@ -43,6 +45,7 @@ export class Modal {
 	public description?: string;
 	public content: Component;
 	public props: Record<string, unknown>;
+	public onClose?: () => void;
 
 	constructor(props: ModalProps) {
 		this.id = props.id;
@@ -51,6 +54,7 @@ export class Modal {
 		this.description = props.description ?? undefined;
 		this.content = props.content;
 		this.props = props.props ?? {};
+		this.onClose = props.onClose;
 	}
 
 	public open(): void {
@@ -58,6 +62,11 @@ export class Modal {
 	}
 
 	public close(): void {
+		if (!this.isOpen) {
+			return;
+		}
+
 		this.isOpen = false;
+		this.onClose?.();
 	}
 }

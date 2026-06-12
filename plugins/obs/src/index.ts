@@ -49,6 +49,7 @@ import {
 	createToggleVirtualCamHandler
 } from './handler/virtualcam/index';
 import { createObsPluginApi } from './lib/obs';
+import { configureFieldValueResolver } from './get-field-value';
 import { createRecordingStartedTrigger } from './trigger/recording/started';
 import { createRecordingStoppedTrigger } from './trigger/recording/stopped';
 import {
@@ -95,6 +96,7 @@ export type {
 export type { ObsPluginApi } from './lib/obs';
 
 const plugin: Plugin = (app) => {
+	configureFieldValueResolver(app);
 	let obsApi: ObsPluginController | undefined;
 	const warnUnavailable = () => {
 		app.toast.create({

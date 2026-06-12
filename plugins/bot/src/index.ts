@@ -35,7 +35,7 @@ const commandsPage = {
 const timersPage = {
 	customView: 'timers',
 	title: 'Timers',
-	description: 'Schedule automatic chat messages.'
+	description: 'Schedule automatic actions on an interval.'
 } satisfies PluginPageDefinition;
 
 const moderationPageDef = {
@@ -136,13 +136,27 @@ export function botPlugin(
 			await Promise.all([commands.load(), timers.load(), moderation.load()]);
 		},
 		onBoot: async (context) => {
-			timerScheduler = new TimerScheduler(context.app, botSettings, () => timers.getSnapshot());
+			timerScheduler = new TimerScheduler(
+				context.app,
+				botSettings,
+				() => timers.getSnapshot(),
+				(id, data) => {
+					timers.runById(id, { trigger: 'Timer', data });
+				}
+			);
 			await moderation.load();
 			activateRuntime(context.app);
 		},
 		onEnable: async (context) => {
 			await Promise.all([commands.load(), timers.load(), moderation.load()]);
-			timerScheduler = new TimerScheduler(context.app, botSettings, () => timers.getSnapshot());
+			timerScheduler = new TimerScheduler(
+				context.app,
+				botSettings,
+				() => timers.getSnapshot(),
+				(id, data) => {
+					timers.runById(id, { trigger: 'Timer', data });
+				}
+			);
 			activateRuntime(context.app);
 		},
 		onReady: (context) => {

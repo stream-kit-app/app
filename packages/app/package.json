@@ -22,14 +22,16 @@
 		}
 	},
 	"dependencies": {
+		"@dnd-kit-svelte/svelte": "^0.1.6",
+		"@dnd-kit/helpers": "^0.5.0",
 		"@fabianlars/tauri-plugin-oauth": "^2.0.0",
 		"@stream-kit/core": "workspace:*",
 		"@stream-kit/plugin-bot": "workspace:*",
-		"@stream-kit/plugin-websocket": "workspace:*",
 		"@stream-kit/plugin-handlers": "workspace:*",
 		"@stream-kit/plugin-obs": "workspace:*",
 		"@stream-kit/plugin-tts": "workspace:*",
 		"@stream-kit/plugin-twitch": "workspace:*",
+		"@stream-kit/plugin-websocket": "workspace:*",
 		"@stream-kit/plugin-youtube": "workspace:*",
 		"@stream-kit/ui": "workspace:*",
 		"@svelte-i18n/core": "^2.0.1",

@@ -26,6 +26,8 @@ async function createActionsTable(sqlite: Database): Promise<void> {
 			id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 			name TEXT NOT NULL,
 			"group" TEXT NOT NULL DEFAULT 'default',
+			group_sort_order INTEGER NOT NULL DEFAULT 0,
+			sort_order INTEGER NOT NULL DEFAULT 0,
 			triggers TEXT NOT NULL,
 			handlers TEXT NOT NULL,
 			enabled INTEGER NOT NULL DEFAULT 1,
@@ -50,6 +52,59 @@ async function migrateAddEnabledColumn(sqlite: Database): Promise<void> {
 
 	if (!columns.some((column) => column.name === 'enabled')) {
 		await sqlite.execute(`ALTER TABLE actions ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1`);
+	}
+}
+
+type ActionSortRow = {
+	id: number;
+	group: string;
+};
+
+async function migrateAddSortOrderColumns(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(actions)');
+	const hasGroupSortOrder = columns.some((column) => column.name === 'group_sort_order');
+	const hasSortOrder = columns.some((column) => column.name === 'sort_order');
+
+	if (!hasGroupSortOrder) {
+		await sqlite.execute(
+			`ALTER TABLE actions ADD COLUMN group_sort_order INTEGER NOT NULL DEFAULT 0`
+		);
+	}
+
+	if (!hasSortOrder) {
+		await sqlite.execute(`ALTER TABLE actions ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`);
+	}
+
+	if (hasGroupSortOrder && hasSortOrder) {
+		return;
+	}
+
+	const rows = await sqlite.select<ActionSortRow[]>(
+		`SELECT id, "group" as "group" FROM actions ORDER BY id ASC`
+	);
+
+	const groupSortOrderByName = new Map<string, number>();
+	let nextGroupSortOrder = 0;
+
+	for (const row of rows) {
+		if (!groupSortOrderByName.has(row.group)) {
+			groupSortOrderByName.set(row.group, nextGroupSortOrder);
+			nextGroupSortOrder += 1;
+		}
+	}
+
+	const sortOrderByGroup = new Map<string, number>();
+
+	for (const row of rows) {
+		const groupSortOrder = groupSortOrderByName.get(row.group) ?? 0;
+		const sortOrder = sortOrderByGroup.get(row.group) ?? 0;
+
+		await sqlite.execute(
+			`UPDATE actions SET group_sort_order = $1, sort_order = $2 WHERE id = $3`,
+			[groupSortOrder, sortOrder, row.id]
+		);
+
+		sortOrderByGroup.set(row.group, sortOrder + 1);
 	}
 }
 
@@ -116,6 +171,7 @@ async function migrateActionsTable(sqlite: Database): Promise<void> {
 
 	await migrateAddGroupColumn(sqlite);
 	await migrateAddEnabledColumn(sqlite);
+	await migrateAddSortOrderColumns(sqlite);
 }
 
 export async function migrate(sqlite: Database): Promise<void> {

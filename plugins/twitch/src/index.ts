@@ -26,6 +26,7 @@ import { createPredictionStartHandler } from './handler/predictions/create';
 import { createPredictionEndHandler } from './handler/predictions/end';
 import { createPredictionLockHandler } from './handler/predictions/lock';
 import { createTwitchPluginApi } from './lib/twitch';
+import { configureFieldValueResolver } from './get-field-value';
 import { createFollowTrigger } from './trigger/channel/follow';
 import { createChannelUpdateTrigger } from './trigger/channel/update';
 import { createCheerTrigger } from './trigger/chat/cheer';
@@ -62,6 +63,7 @@ export type { ChatMessageContext, TwitchContext } from './contexts';
 export type { TwitchPluginApi } from './lib/twitch';
 
 const plugin: Plugin = (app) => {
+	configureFieldValueResolver(app);
 	let twitchApi: TwitchPluginController | undefined;
 	const warnUnavailable = () => {
 		app.toast.create({

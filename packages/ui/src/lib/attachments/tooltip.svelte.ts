@@ -4,10 +4,19 @@ import { untrack } from 'svelte';
 
 import { tether } from '../tooltip';
 
+import {
+	resolveTooltipContent,
+	type TooltipContent,
+	type TooltipPayload
+} from './tooltip-content';
+
 export type TooltipAttachmentOptions = {
 	disabled?: boolean | (() => boolean);
 	delayDuration?: number;
 };
+
+export type { TooltipContent, TooltipPayload, TooltipSnippetPayload } from './tooltip-content';
+export { tooltipSnippet } from './tooltip-content';
 
 function resolve<T>(value: T | (() => T)): T {
 	return typeof value === 'function' ? (value as () => T)() : value;
@@ -38,7 +47,7 @@ function syncRegistry(fn: () => void) {
 }
 
 function createAttachment(
-	getContent: () => string,
+	getContent: () => TooltipPayload,
 	options?: TooltipAttachmentOptions
 ): Attachment<HTMLElement> {
 	return (element) => {
@@ -174,9 +183,10 @@ function canCache(options?: TooltipAttachmentOptions): boolean {
  * @example
  * <button {@attach tooltip('Save changes')}>Save</button>
  * <Button {@attach tooltip(() => `Triggers: ${summary}`)}>...</Button>
+ * <Button {@attach tooltip(() => tooltipSnippet(details, item))}>...</Button>
  */
 export function tooltip(
-	content: string | (() => string),
+	content: TooltipContent,
 	options?: TooltipAttachmentOptions
 ): Attachment<HTMLElement> {
 	if (typeof content === 'string' && canCache(options)) {
@@ -185,11 +195,11 @@ export function tooltip(
 
 		if (cached) return cached;
 
-		const attachment = createAttachment(() => content, options);
+		const attachment = createAttachment(() => resolveTooltipContent(content), options);
 		staticAttachmentCache.set(key, attachment);
 		return attachment;
 	}
 
-	const getContent = typeof content === 'function' ? content : () => content;
+	const getContent = () => resolveTooltipContent(content);
 	return createAttachment(getContent, options);
 }

@@ -33,15 +33,11 @@ export const createLogHandler = ({ app, variables, logs }: CorePluginContext) =>
 		fields: [
 
 			{
-
 				type: 'text',
-
 				name: 'Message',
-
 				placeholder: 'e.g. {username} joined',
-
-				required: true
-
+				required: true,
+				useContextVariables: true
 			},
 
 			{

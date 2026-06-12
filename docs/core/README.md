@@ -8,9 +8,10 @@ Source: `plugins/core/`
 
 The Core plugin provides general building blocks for actions:
 
-- **Handlers** — audio, scripts, programs, variables, logging, and delays
-- **Triggers** — process started/stopped events and schedule triggers (cron, scheduled)
+- **Handlers** — audio, scripts, programs, variables, maps, logging, and delays
+- **Triggers** — process started/stopped events, app start/exit, map events, and schedule triggers (cron, scheduled)
 - **Variables** — global, per-user, and per-action-run scopes
+- **Maps** — session and persistent key-value stores with change triggers
 - **Action logs** — in-memory ring buffer with disk persistence
 - **Plugin API** — `CorePluginApi` for other parts of the app
 
@@ -38,6 +39,15 @@ Core
 ├── Variables
 │   ├── Set variable
 │   └── Get variable
+├── Map
+│   ├── Create map
+│   ├── Set value
+│   ├── Update value
+│   ├── Get value
+│   ├── Has key
+│   ├── Delete key
+│   ├── Clear map
+│   └── Delete map
 ├── Utility
 │   └── Log
 └── Delay
@@ -45,10 +55,13 @@ Core
 
 ## Further documentation
 
+- [Actions](./actions.md) — list page, groups, and drag-and-drop order
 - [Handlers](./handlers.md) — all handlers and their fields
 - [Variables](./variables.md) — scopes, interpolation, and storage
+- [Maps](./maps.md) — session and persistent key-value stores
 - [Logging](./logging.md) — action logs and the LogViewer
 - [Triggers](./triggers.md) — process started/stopped
+- [App triggers](./app-triggers.md) — app started and app exit
 - [Schedule triggers](./schedule-triggers.md) — cron and scheduled date/time triggers
 - [API](./api.md) — `CorePluginApi` for developers
 
@@ -56,7 +69,7 @@ Core
 
 | Hook | Behavior |
 |------|----------|
-| `onBoot` | Binds `VariableStore` to `PluginStore`, configures audio, loads variables and logs |
+| `onBoot` | Binds `VariableStore` and `MapStore` to `PluginStore`, configures audio, loads variables, maps, and logs |
 | `onEnable` / `onReady` / `onSave` | Syncs process watcher based on settings and active triggers |
 | `onDisable` | Stops process watcher |
 

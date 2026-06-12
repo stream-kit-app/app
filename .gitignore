@@ -2,8 +2,10 @@
 node_modules
 /build
 /packages/app/build
+/site/build
 /.svelte-kit
 /packages/app/.svelte-kit
+/site/.svelte-kit
 /packages/*/dist
 /plugins/*/dist
 /package

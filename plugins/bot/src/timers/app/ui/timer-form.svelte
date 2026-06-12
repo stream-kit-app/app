@@ -7,12 +7,14 @@
 		InputCheckbox,
 		InputSwitch,
 		InputText,
-		InputTextList,
 		Label
 	} from '@stream-kit/ui/input';
 
+	import DefinitionPickerDropdown from '$lib/components/core/action/definition-picker-dropdown.svelte';
+	import HandlerFieldGroup from '$lib/components/core/action/handler-field-group.svelte';
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
+	import { cn } from '$lib/utils';
 
 	type Props = {
 		timer: Timer;
@@ -20,6 +22,16 @@
 
 	let { timer }: Props = $props();
 	const { t } = useI18n();
+
+	function addHandler(definition: { id: string }) {
+		const found = getApp().actions.actions.find(definition.id);
+
+		if (!found || found.isGroup || !found.isAvailable) {
+			return;
+		}
+
+		timer.addHandler(found);
+	}
 </script>
 
 <form class="grid gap-6" onsubmit={(event: SubmitEvent) => event.preventDefault()}>
@@ -33,20 +45,79 @@
 		}}
 	/>
 
-	<InputTextList
-		label={t('Messages')}
-		bind:values={timer.messages}
-		placeholder={t('Follow on social media!')}
-		addLabel={t('Add message')}
-		removeLabel={t('Remove')}
-		error={timer.formErrors?.messages}
-	/>
+	<section class="grid gap-3">
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<Label>{t('Handlers')}</Label>
+			<DefinitionPickerDropdown
+				label={t('Add Handler')}
+				definitions={getApp().actions.actions.items}
+				onSelect={addHandler}
+			/>
+		</div>
+
+		{#if timer.formErrors?.handlers}
+			<p class="text-sm text-destructive-50">{timer.formErrors.handlers}</p>
+		{/if}
+
+		{#if timer.handlers.length === 0}
+			<p class="text-sm text-dark-300">{t('No handlers added yet.')}</p>
+		{/if}
+
+		{#each timer.handlers as handler (handler.id)}
+			<div
+				class={cn('grid gap-2 rounded-xl border px-4 py-4', {
+					'border-dark-600': handler.definition.isAvailable,
+					'border-destructive-500 bg-destructive-800': !handler.definition.isAvailable
+				})}
+			>
+				<div class="flex items-center justify-between gap-2">
+					<p class="font-medium text-dark-50">
+						{handler.definition.name}
+						{#if !handler.definition.isAvailable}
+							<span class="ml-2 text-sm font-normal text-destructive-50"
+								>{t('Unavailable')}</span
+							>
+						{/if}
+					</p>
+					<Button
+						variant="ghost"
+						size="icon"
+						icon="ri:close-line"
+						aria-label={t('Remove')}
+						onclick={() => timer.removeHandler(handler.id)}
+					/>
+				</div>
+
+				{#if !handler.definition.isAvailable}
+					<p class="text-sm text-destructive-50">
+						{t('This handler is not available. The plugin may be disabled or missing.')}
+					</p>
+				{/if}
+
+				{#if timer.formErrors?.handlerErrors[handler.id]?.missingFields.length}
+					<ul class="grid gap-1 text-sm text-destructive-50">
+						{#each timer.formErrors.handlerErrors[handler.id].missingFields as name (name)}
+							<li>{t('{field} is required', { field: name })}</li>
+						{/each}
+					</ul>
+				{/if}
+
+				{#if handler.fieldDefinitions?.length}
+					<HandlerFieldGroup
+						{handler}
+						fieldErrors={timer.formErrors?.handlerErrors[handler.id]}
+					/>
+				{/if}
+			</div>
+		{/each}
+	</section>
 
 	<div class="grid gap-4 sm:grid-cols-2">
 		<InputText
 			label={t('Min interval (seconds)')}
 			type="number"
 			value={String(timer.intervalMinSec)}
+			error={timer.formErrors?.interval}
 			oninput={(event) => {
 				timer.intervalMinSec = Number((event.currentTarget as HTMLInputElement).value) || 30;
 			}}
@@ -62,7 +133,7 @@
 	</div>
 
 	<InputText
-		label={t('Minimum chat lines between messages')}
+		label={t('Minimum chat messages between runs')}
 		type="number"
 		value={String(timer.minChatLines)}
 		oninput={(event) => {
@@ -102,6 +173,9 @@
 				}
 			/>
 		</div>
+		{#if timer.formErrors?.platforms}
+			<p class="text-sm text-destructive-50">{timer.formErrors.platforms}</p>
+		{/if}
 	</section>
 
 	<InputSwitch label={t('Only when live')} bind:checked={timer.onlineOnly} />

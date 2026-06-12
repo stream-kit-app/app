@@ -1,4 +1,16 @@
+export function isTextEmpty(value: string): boolean {
+	return !value.trim();
+}
+
 export function matchText(message: string, type: string, needle: string): boolean {
+	if (type === 'isEmpty') {
+		return isTextEmpty(message);
+	}
+
+	if (type === 'isNotEmpty') {
+		return !isTextEmpty(message);
+	}
+
 	if (!needle) {
 		return true;
 	}

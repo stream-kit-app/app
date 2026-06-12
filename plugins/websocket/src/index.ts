@@ -13,6 +13,7 @@ import { loadConnections } from './lib/connections';
 import { createConnectedTrigger } from './trigger/connected';
 import { createDisconnectedTrigger } from './trigger/disconnected';
 import { createMessageReceivedTrigger } from './trigger/message-received';
+import { configureFieldValueResolver } from './get-field-value';
 
 export type { WsMessageContext, WsConnectionStateContext } from './contexts';
 export type { WebSocketPluginApi } from './lib/connection-manager';
@@ -25,6 +26,7 @@ const connectionsPage: PluginPageDefinition = {
 };
 
 const plugin: Plugin = (app) => {
+	configureFieldValueResolver(app);
 	let controller: WebSocketPluginController | undefined;
 	let connectionsService: Connections | undefined;
 

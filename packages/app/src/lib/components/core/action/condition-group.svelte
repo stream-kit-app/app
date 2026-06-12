@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
 	import type { ConditionEditor } from '$lib/core/action/condition-editor';
 	import type {
 		ConditionGroupNode,
@@ -7,6 +6,7 @@
 		ConditionNode,
 		ResolvedConditionDefinition
 	} from '$lib/core/action/trigger';
+	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
 	import type { ConditionFormErrors } from '$lib/core/action/validate-form';
 	import type { FormEventHandler } from 'svelte/elements';
 
@@ -23,6 +23,7 @@
 		InputTextVariables,
 		Label
 	} from '@stream-kit/ui/input';
+
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
@@ -54,15 +55,15 @@
 	);
 
 	function renderableIndexAt(index: number): number {
-		return group.children
-			.slice(0, index + 1)
-			.filter((child) => {
+		return (
+			group.children.slice(0, index + 1).filter((child) => {
 				if (child.kind === 'group') {
 					return true;
 				}
 
 				return !!editor.getConditionDefinition(child.key);
-			}).length - 1;
+			}).length - 1
+		);
 	}
 
 	const onConditionTextInput =
@@ -90,7 +91,11 @@
 	}
 </script>
 
-{#snippet conditionField(config: ResolvedConditionDefinition, node: ConditionLeafNode, error?: string)}
+{#snippet conditionField(
+	config: ResolvedConditionDefinition,
+	node: ConditionLeafNode,
+	error?: string
+)}
 	{#if config.type === 'text'}
 		{#if config.variables && config.variables.length > 0}
 			<InputTextVariables
@@ -155,6 +160,8 @@
 			type="single"
 			placeholder={config.placeholder}
 			loadingPlaceholder={config.loadingPlaceholder}
+			searchPlaceholder={t('Search ...')}
+			noResultsLabel={t('No matches found')}
 			items={translateSelectItems(config.items)}
 			{error}
 			bind:value={node.value as string}
@@ -206,9 +213,7 @@
 				<div class="grid gap-2">
 					<Label class="flex flex-wrap items-baseline gap-x-1.5 font-mono text-base">
 						<span class="font-bold text-green-500 uppercase">
-							{renderableIndex === 0
-								? t('if')
-								: (child.operator ?? 'and')}
+							{renderableIndex === 0 ? t('if') : (child.operator ?? 'and')}
 						</span>
 						<span class="text-primary-100 italic">{config.name.toLowerCase()}</span>
 						{#if child.negate}

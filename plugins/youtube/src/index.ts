@@ -4,6 +4,7 @@ import type { Plugin } from '@stream-kit/app/api';
 import { createDeleteMessageHandler } from './handler/chat/delete-message';
 import { createSendMessageHandler } from './handler/chat/send-message';
 import { createYouTubePluginApi } from './lib/youtube';
+import { configureFieldValueResolver } from './get-field-value';
 import { createGiftTrigger } from './trigger/chat/gift';
 import { createChatMessageTrigger } from './trigger/chat/message';
 import {
@@ -27,6 +28,7 @@ export type { ChatMessageContext, YouTubeContext } from './contexts';
 export type { YouTubePluginApi } from './lib/youtube';
 
 const plugin: Plugin = (app) => {
+	configureFieldValueResolver(app);
 	let youtubeApi: YouTubePluginController | undefined;
 	const warnUnavailable = () => {
 		app.toast.create({

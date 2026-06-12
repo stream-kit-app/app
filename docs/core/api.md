@@ -10,6 +10,7 @@ import type {
   ActionLogEntry,
   ActionLogAppendInput,
   ActionLogLevel,
+  MapLifetime,
   VariableScope
 } from '@stream-kit/plugin-handlers';
 ```
@@ -51,6 +52,40 @@ core.variables.listKeys(
 ```
 
 Returns all keys in a scope. User scope requires `context` with a username.
+
+## Maps API
+
+Read-only access to map data. Mutations happen through action handlers.
+
+```typescript
+core.maps.get(mapName: string, key: string): string | undefined
+```
+
+Reads a value from a map. Returns `undefined` when the map or key does not exist.
+
+```typescript
+core.maps.has(mapName: string, key: string): boolean
+```
+
+Returns whether a key exists in a map.
+
+```typescript
+core.maps.getLifetime(mapName: string): MapLifetime | undefined
+```
+
+Returns the lifetime of a map by name, or `undefined` when the map does not exist.
+
+```typescript
+core.maps.listMapNames(): string[]
+```
+
+Returns all map names. Names are globally unique across session and persistent maps.
+
+```typescript
+core.maps.listEntries(mapName: string): MapEntry[]
+```
+
+Returns all key → value pairs in a map, sorted by key. Returns an empty array when the map does not exist.
 
 ## Logs API
 
@@ -120,6 +155,7 @@ plugins/core/
 │   └── lib/
 │       ├── plugin-api.ts     # CorePluginApi types
 │       ├── variables/        # VariableStore
+│       ├── maps/             # MapStore
 │       └── logs/             # ActionLogService
 ```
 

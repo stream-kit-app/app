@@ -1,4 +1,4 @@
-export type { ProcessEventContext } from '@stream-kit/app/api';
+export type { ProcessEventContext, AppLifecycleContext, AppLifecycleEvent } from '@stream-kit/app/api';
 
 export type ScheduleRepeat = 'once' | 'daily' | 'weekly';
 

@@ -24,6 +24,7 @@
 		loadingPlaceholder?: string;
 		selectAriaLabel?: string;
 		allowCustomValue?: boolean;
+		required?: boolean;
 		reloadKey?: () => unknown;
 		id?: string;
 		class?: string;
@@ -40,6 +41,7 @@
 		loadingPlaceholder,
 		selectAriaLabel,
 		allowCustomValue = true,
+		required,
 		reloadKey,
 		id = useId(),
 		class: className,
@@ -191,7 +193,12 @@
 
 <div class={cn('relative grid w-full gap-2', className)}>
 	{#if label}
-		<Label for={id}>{label}</Label>
+		<Label for={id}>
+			{label}
+			{#if required}
+				<span class="text-red-400">*</span>
+			{/if}
+		</Label>
 	{/if}
 	<Combobox.Root
 		type="single"

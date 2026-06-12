@@ -15,9 +15,18 @@
 
 	const { modal }: Props = $props();
 	const { t } = useI18n();
+
+	function handleOpenChange(open: boolean): void {
+		if (open) {
+			modal.open();
+			return;
+		}
+
+		modal.close();
+	}
 </script>
 
-<Dialog.Root bind:open={modal.isOpen}>
+<Dialog.Root open={modal.isOpen} onOpenChange={handleOpenChange}>
 	<Dialog.Portal>
 		<Dialog.Overlay
 			class={cn(

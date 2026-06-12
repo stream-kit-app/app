@@ -8,8 +8,10 @@ bun.lockb
 # Build output
 /build
 /packages/app/build
+/site/build
 /.svelte-kit
 /packages/app/.svelte-kit
+/site/.svelte-kit
 /node_modules
 /packages/*/dist
 /plugins/*/dist

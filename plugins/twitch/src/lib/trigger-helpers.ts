@@ -3,7 +3,7 @@ import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@
 
 import { getTwitch } from './plugin-api';
 
-import { evaluateConditionTree } from '../evaluate-conditions';
+import { evaluateConditionTree, normalizeLookupKey } from '../evaluate-conditions';
 import { resolveConditionValue } from '../resolve-condition-value';
 import { subscribe } from './event-hub';
 import { disposeTriggerSubscription, setTriggerSubscription } from './subscription';
@@ -47,13 +47,32 @@ export function createOnTest<TContext>(factory: () => TContext): TriggerTestFn {
 	return (_action, _trigger) => factory();
 }
 
+function buildEvaluatorLookup(
+	evaluators: Record<string, (value: import('@stream-kit/core').FieldValue) => boolean>
+): Record<string, (value: import('@stream-kit/core').FieldValue) => boolean> {
+	const lookup: Record<string, (value: import('@stream-kit/core').FieldValue) => boolean> = {};
+
+	for (const [key, evaluate] of Object.entries(evaluators)) {
+		lookup[normalizeLookupKey(key)] = evaluate;
+	}
+
+	// Reward conditions saved before an explicit key used slug "reward".
+	if (lookup['reward-id'] && !lookup['reward']) {
+		lookup['reward'] = lookup['reward-id'];
+	}
+
+	return lookup;
+}
+
 export function evaluateWith(
 	conditions: ConditionGroupNode,
 	context: unknown,
 	evaluators: Record<string, (value: import('@stream-kit/core').FieldValue) => boolean>
 ): boolean {
+	const lookup = buildEvaluatorLookup(evaluators);
+
 	return evaluateConditionTree(conditions, (key, value) => {
-		const evaluate = evaluators[key];
+		const evaluate = lookup[key];
 
 		if (!evaluate) {
 			return false;

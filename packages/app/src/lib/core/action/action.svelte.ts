@@ -4,7 +4,12 @@ import { HandlerDefinition } from './handler/handler-definition.svelte';
 import { TriggerDefinitions } from './trigger';
 import { TriggerDefinition } from './trigger/trigger-definition.svelte';
 import type { ActionFormErrors } from './validate-form';
-import type { ActionRecord } from './stored-action';
+import type {
+	ActionLayoutUpdate,
+	ActionRecord,
+	StoredActionHandler,
+	StoredActionTrigger
+} from './stored-action';
 import { DEFAULT_ACTION_GROUP } from './stored-action';
 
 import {
@@ -12,6 +17,7 @@ import {
 	deleteActions,
 	getActions,
 	normalizeActionGroup,
+	reorderActionsLayout,
 	saveAction,
 	updateActionEnabled,
 	updateActionsEnabled
@@ -29,10 +35,20 @@ import type { HandlerTriggerContext } from './handler-context';
 import { runHandlerChain } from './run-handler-chain';
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
 import { validateActionForm } from './validate-form';
+import { applyLayoutUpdates, compareActionsByLayout } from './action-layout';
+
+type ActionFormSnapshot = {
+	name: string;
+	group: string;
+	triggers: StoredActionTrigger[];
+	handlers: StoredActionHandler[];
+};
 
 export type ActionProps = {
 	name?: string;
 	group?: string;
+	groupSortOrder?: number;
+	sortOrder?: number;
 	id?: number;
 	enabled?: boolean;
 	triggers?: ActionTrigger[];
@@ -49,7 +65,16 @@ export class Actions {
 			return;
 		}
 
-		this.items = [...this.items, action];
+		this.items = [...this.items, action].sort(compareActionsByLayout);
+	}
+
+	async applyLayout(updates: ActionLayoutUpdate[]): Promise<void> {
+		if (updates.length === 0) {
+			return;
+		}
+
+		this.items = applyLayoutUpdates(this.items, updates);
+		await reorderActionsLayout(updates);
 	}
 
 	async delete(id: number): Promise<void> {
@@ -66,6 +91,7 @@ export class Actions {
 
 	async load(): Promise<void> {
 		const rows = await getActions();
+		const loaded: Action[] = [];
 
 		for (const row of rows) {
 			const action = Action.fromRecord(row);
@@ -74,12 +100,14 @@ export class Actions {
 				continue;
 			}
 
-			this.add(action);
+			loaded.push(action);
 
 			if (action.enabled) {
 				this.activate(action);
 			}
 		}
+
+		this.items = loaded;
 	}
 
 	hasEnabledProcessTrigger(): boolean {
@@ -136,6 +164,7 @@ export class Actions {
 
 		for (const action of toDelete) {
 			this.deactivate(action);
+			action.commitFormChanges();
 			action.close();
 		}
 
@@ -211,17 +240,22 @@ export class Action {
 	modalId?: string;
 	name: string = $state('');
 	group: string = $state(DEFAULT_ACTION_GROUP);
+	groupSortOrder: number = $state(0);
+	sortOrder: number = $state(0);
 	enabled: boolean = $state(true);
 	triggers: ActionTrigger[] = $state([]);
 	handlers: ActionHandler[] = $state([]);
 
 	formErrors: ActionFormErrors | null = $state(null);
 	execution = new ActionExecution();
+	private _formSnapshot: ActionFormSnapshot | null = null;
 
 	constructor(props: ActionProps = {}) {
 		this.id = props.id;
 		this.name = props.name ?? '';
 		this.group = normalizeActionGroup(props.group);
+		this.groupSortOrder = props.groupSortOrder ?? 0;
+		this.sortOrder = props.sortOrder ?? 0;
 		this.enabled = props.enabled ?? true;
 		this.triggers = props.triggers ?? [];
 		this.handlers = props.handlers ?? [];
@@ -280,6 +314,8 @@ export class Action {
 			id: record.id,
 			name: record.name,
 			group: record.group,
+			groupSortOrder: record.groupSortOrder,
+			sortOrder: record.sortOrder,
 			enabled: record.enabled ?? true,
 			triggers,
 			handlers
@@ -306,10 +342,82 @@ export class Action {
 		return definition;
 	}
 
+	captureFormSnapshot(): void {
+		this._formSnapshot = {
+			name: this.name,
+			group: this.group,
+			triggers: this.triggers.map((trigger) => structuredClone(trigger.toStored())),
+			handlers: this.handlers.map((handler) => structuredClone(handler.toStored()))
+		};
+	}
+
+	commitFormChanges(): void {
+		this._formSnapshot = null;
+	}
+
+	discardFormChanges(): void {
+		const snapshot = this._formSnapshot;
+
+		if (!snapshot) {
+			return;
+		}
+
+		const app = getApp();
+		const shouldReactivate = this.id != null && this.enabled;
+
+		if (shouldReactivate) {
+			app.actions.deactivate(this);
+		}
+
+		this.name = snapshot.name;
+		this.group = snapshot.group;
+		this.triggers = this.triggersFromStored(snapshot.triggers);
+		this.handlers = this.handlersFromStored(snapshot.handlers);
+		this.formErrors = null;
+
+		if (shouldReactivate) {
+			app.actions.activate(this);
+		}
+
+		this._formSnapshot = null;
+	}
+
+	private triggersFromStored(stored: StoredActionTrigger[]): ActionTrigger[] {
+		const app = getApp();
+
+		return stored.map((item) => {
+			const definition =
+				app.actions.triggers.find(item.triggerTypeId) ??
+				Action.createUnavailableTriggerDefinition(item.triggerTypeId);
+
+			return new ActionTrigger(definition, {
+				id: item.id,
+				conditions: structuredClone(item.conditions)
+			});
+		});
+	}
+
+	private handlersFromStored(stored: StoredActionHandler[]): ActionHandler[] {
+		const app = getApp();
+
+		return stored.map((item) => {
+			const definition =
+				app.actions.actions.find(item.handlerTypeId) ??
+				Action.createUnavailableHandlerDefinition(item.handlerTypeId);
+
+			return new ActionHandler(definition, {
+				id: item.id,
+				fields: structuredClone(item.fields)
+			});
+		});
+	}
+
 	open(): Modal {
 		this.modalId =
 			this.id != null ? `action-${this.id}` : `action-draft-${crypto.randomUUID()}`;
 		const app = getApp();
+
+		this.captureFormSnapshot();
 
 		const modal =
 			app.modals.get(this.modalId) ??
@@ -320,9 +428,11 @@ export class Action {
 						? translate('Edit {name}', { name: this.name })
 						: translate('New Action'),
 				content: ActionForm,
-				props: { action: this }
+				props: { action: this },
+				onClose: () => this.discardFormChanges()
 			});
 
+		modal.onClose = () => this.discardFormChanges();
 		modal.open();
 		this.formErrors = null;
 
@@ -335,6 +445,7 @@ export class Action {
 		}
 
 		await getApp().actions.delete(this.id);
+		this.commitFormChanges();
 		this.close();
 	}
 
@@ -424,18 +535,21 @@ export class Action {
 			return;
 		}
 
-		const showVisual = this.isFormOpen;
+		const showFormVisual = this.isFormOpen;
+		const trackExecution = !options.bypassEnabled;
 
-		if (showVisual) {
+		if (trackExecution || showFormVisual) {
 			if (!this.execution.state.isRunning) {
 				this.execution.begin();
 			}
+		}
 
+		if (showFormVisual) {
 			this.execution.markTriggerActive(trigger.id);
 		}
 
 		if (!trigger.evaluate(data)) {
-			if (showVisual && !options.bypassEnabled) {
+			if (trackExecution) {
 				await this.execution.end();
 			}
 
@@ -444,10 +558,10 @@ export class Action {
 
 		await this.runHandlers(data, trigger.definition.name, {
 			bypassEnabled: options.bypassEnabled,
-			showVisual
+			showVisual: showFormVisual
 		});
 
-		if (showVisual && !options.bypassEnabled) {
+		if (trackExecution) {
 			await this.execution.end();
 		}
 	}
@@ -523,6 +637,8 @@ export class Action {
 		if (row) {
 			this.id = row.id;
 			this.group = normalizeActionGroup(row.group);
+			this.groupSortOrder = row.groupSortOrder;
+			this.sortOrder = row.sortOrder;
 			this.enabled = row.enabled;
 		}
 
@@ -532,8 +648,19 @@ export class Action {
 			if (this.enabled) {
 				app.actions.activate(this);
 			}
-		} else if (row && this.enabled) {
-			app.actions.activate(this);
+		} else if (row) {
+			app.actions.items = applyLayoutUpdates(app.actions.items, [
+				{
+					id: row.id,
+					group: row.group,
+					groupSortOrder: row.groupSortOrder,
+					sortOrder: row.sortOrder
+				}
+			]);
+
+			if (this.enabled) {
+				app.actions.activate(this);
+			}
 		}
 
 		app.toast.create({
@@ -542,6 +669,7 @@ export class Action {
 			variant: 'success'
 		});
 
+		this.commitFormChanges();
 		this.close();
 
 		return true;

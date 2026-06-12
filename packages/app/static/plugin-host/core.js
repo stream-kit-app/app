@@ -9,6 +9,7 @@ function interpolateVariables(template, variables) {
     return String(value);
   });
 }
+var W = 30 * 1e3;
 function normalizeLookupKey(value) {
   return value.trim().replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }

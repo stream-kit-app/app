@@ -1,6 +1,7 @@
+import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
 import type { TimerRecord } from './stored-timer';
 
-import { deleteTimers, getTimers, saveTimer, updateTimersEnabled } from '../db/repository';
+import { deleteTimers, getTimers, updateTimersEnabled } from '../db/repository';
 
 import { translate } from '$lib/i18n';
 
@@ -50,6 +51,18 @@ export class Timers {
 		return this.items
 			.filter((timer): timer is Timer & { id: number } => timer.id != null)
 			.map((timer) => timer.toRecord());
+	}
+
+	runById(id: number, context: HandlerTriggerContext): boolean {
+		const timer = this.items.find((item) => item.id === id);
+
+		if (!timer) {
+			return false;
+		}
+
+		timer.runHandlers(context.data, context.trigger);
+
+		return true;
 	}
 
 	async setEnabledBulk(ids: number[], enabled: boolean): Promise<void> {

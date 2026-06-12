@@ -85,13 +85,15 @@
 							>
 								<div class="flex min-w-0 flex-1 items-center gap-2.5">
 									<span
-										class="shrink-0 rounded border border-primary-500/10 bg-primary-500/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary-300 transition-all duration-150 group-hover:border-primary-500/20 group-hover:bg-primary-500/15"
-										>{`{${variable.key}}`}</span
+										class="shrink-0 rounded border border-primary-300 bg-primary/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary transition-all duration-150 group-hover:border-primary-500/20 group-hover:bg-primary-500/15"
 									>
+										{`{${variable.key}}`}
+									</span>
 									<span
 										class="min-w-0 truncate text-dark-300 transition-colors duration-150 group-hover:text-dark-100"
-										>{variable.label}</span
 									>
+										{variable.label}
+									</span>
 								</div>
 								<div class="flex size-4 shrink-0 items-center justify-center">
 									{#if copiedKey === variable.key}

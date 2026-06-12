@@ -3,6 +3,7 @@
 
 	import { Tooltip } from 'bits-ui';
 
+	import type { TooltipPayload } from '../../attachments/tooltip-content';
 	import { tether } from '../../tooltip';
 	import { cn } from '../../utils';
 
@@ -17,7 +18,7 @@
 	{@render children?.()}
 
 	<Tooltip.Root {tether}>
-		{#snippet children({ payload, open })}
+		{#snippet children({ payload, open }: { payload: TooltipPayload | null; open: boolean })}
 			{#if open && payload != null}
 				<Tooltip.Portal>
 					<Tooltip.Content
@@ -29,7 +30,15 @@
 							'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95'
 						)}
 					>
-						{@html payload}
+						{#if payload.kind === 'snippet'}
+							{#if payload.mode === 'none'}
+								{@render payload.snippet()}
+							{:else}
+								{@render payload.snippet(payload.arg)}
+							{/if}
+						{:else}
+							{@html payload.content}
+						{/if}
 					</Tooltip.Content>
 				</Tooltip.Portal>
 			{/if}

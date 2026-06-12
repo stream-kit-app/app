@@ -11,3 +11,4 @@ Rules for changes in this package:
 - Prefer typed Svelte 5 props and snippets.
 - Keep components theme-token based; the app provides Tailwind tokens and global styles.
 - Attachments such as `tooltip` belong here when they are useful to shared app UI.
+- Tooltip content should use Svelte snippets via `tooltipSnippet(snippet, arg)`, not HTML strings built in JavaScript. Pass a single object when the snippet needs multiple values (`{@render}` does not support spread). Reserve string/`{@html}` tooltips for trivial one-line text only.

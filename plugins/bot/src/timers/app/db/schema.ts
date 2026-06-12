@@ -1,12 +1,13 @@
+import type { StoredActionHandler } from '$lib/core/action/stored-action';
 import type { TimerPlatform } from '../lib/stored-timer';
 
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-/** Scheduled chat messages sent by the bot. */
+/** Scheduled bot timers with handler chains. */
 export const botTimers = sqliteTable('bot_timers', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').notNull(),
-	messages: text('messages', { mode: 'json' }).$type<string[]>().notNull(),
+	handlers: text('handlers', { mode: 'json' }).$type<StoredActionHandler[]>().notNull(),
 	intervalMinSec: integer('interval_min_sec').notNull(),
 	intervalMaxSec: integer('interval_max_sec').notNull(),
 	minChatLines: integer('min_chat_lines').notNull().default(0),

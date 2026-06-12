@@ -1,5 +1,5 @@
 import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
-import type { PluginAppApi } from '$lib/core/plugins/app-api';
+import type { PluginAppApi } from '@stream-kit/app/api';
 import type { CommandRecord } from './stored-command';
 
 import {

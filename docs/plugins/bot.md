@@ -15,7 +15,7 @@ Open **Bot** in the sidebar (under plugin menu items):
 |------|-------------|
 | **Overview** | Connection status, bot settings, summary counts |
 | **Commands** | Custom chat commands with handler chains |
-| **Timers** | Automatic chat messages on an interval |
+| **Timers** | Scheduled actions on an interval with handler chains |
 | **Moderation** | Custom auto-mod rules with a condition builder |
 
 ## Bot settings
@@ -47,11 +47,18 @@ Custom commands with the same name override built-ins.
 
 ## Timers
 
-Timers send rotating messages to Twitch and/or YouTube chat:
+Timers run handler chains on a random interval, similar to commands:
 
+- Handler chain (Twitch Send Message, OBS, variables, etc.)
 - Random interval between min/max seconds (minimum 30s)
-- Optional minimum chat lines between messages
-- Optional online-only mode (live on any selected platform)
+- Optional minimum chat messages between runs
+- Platform selection and optional online-only mode (live on any selected platform)
+
+When a timer fires, handlers receive trigger context with `timerId`, `name`, `platforms`, and `firedAt`. Twitch and YouTube Send Message handlers work without chat context — they fall back to the connected channel.
+
+### Migration from message-only timers
+
+Existing timers with chat messages are migrated automatically to Send Message handlers on startup. Timers that had multiple rotating messages become multiple handlers in the chain (all run each tick). Review migrated timers and remove duplicate handlers if needed.
 
 ## Moderation
 

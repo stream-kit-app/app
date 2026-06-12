@@ -4,11 +4,12 @@ import { db } from '$db/index';
 import { eq, inArray } from 'drizzle-orm';
 
 import { DEFAULT_TIMER_PLATFORMS } from '../lib/stored-timer';
+import type { StoredActionHandler } from '$lib/core/action/stored-action';
 import { botTimers } from './schema';
 
 export type SaveTimerInput = {
 	name: string;
-	messages: string[];
+	handlers: StoredActionHandler[];
 	intervalMinSec: number;
 	intervalMaxSec: number;
 	minChatLines: number;
@@ -17,17 +18,12 @@ export type SaveTimerInput = {
 	onlineOnly: boolean;
 };
 
-export function normalizeTimerMessages(values: string[]): string[] {
-	return values.map((value) => value.trim()).filter(Boolean);
-}
-
 export async function getTimers(): Promise<TimerRecord[]> {
 	return db.select().from(botTimers);
 }
 
 export async function saveTimer(input: SaveTimerInput, id?: number): Promise<TimerRecord> {
 	const now = new Date();
-	const messages = normalizeTimerMessages(input.messages);
 	const platforms = input.platforms.length > 0 ? input.platforms : DEFAULT_TIMER_PLATFORMS;
 	const intervalMinSec = Math.max(30, input.intervalMinSec);
 	const intervalMaxSec = Math.max(intervalMinSec, input.intervalMaxSec);
@@ -37,7 +33,7 @@ export async function saveTimer(input: SaveTimerInput, id?: number): Promise<Tim
 			.update(botTimers)
 			.set({
 				name: input.name.trim(),
-				messages,
+				handlers: input.handlers,
 				intervalMinSec,
 				intervalMaxSec,
 				minChatLines: Math.max(0, input.minChatLines),
@@ -56,7 +52,7 @@ export async function saveTimer(input: SaveTimerInput, id?: number): Promise<Tim
 		.insert(botTimers)
 		.values({
 			name: input.name.trim(),
-			messages,
+			handlers: input.handlers,
 			intervalMinSec,
 			intervalMaxSec,
 			minChatLines: Math.max(0, input.minChatLines),

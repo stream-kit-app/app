@@ -4,6 +4,7 @@ export const DROPDOWN_ITEM_HEIGHT_PX = 36;
 export const DROPDOWN_VIEWPORT_HEIGHT_PX = 200;
 export const DROPDOWN_OVERSCAN_ITEMS = 6;
 export const DROPDOWN_VIRTUALIZE_THRESHOLD = 50;
+export const DROPDOWN_SEARCH_THRESHOLD = 8;
 
 export function filterSelectItems(items: SelectItem[], query: string): SelectItem[] {
 	const normalizedQuery = query.trim().toLowerCase();

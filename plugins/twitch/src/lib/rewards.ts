@@ -32,6 +32,7 @@ export function rewardSelectItems(
 export function rewardSelectCondition(app: PluginAppApi): ConditionDefinition {
 	return {
 		type: 'select',
+		key: 'rewardId',
 		name: 'Reward',
 		placeholder: 'Any reward',
 		loadingPlaceholder: 'Loading rewards…',

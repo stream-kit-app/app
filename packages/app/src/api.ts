@@ -4,8 +4,9 @@ export type {
 	ActionLogEntry,
 	ActionLogLevel,
 	CorePluginApi,
+	MapLifetime,
 	VariableScope
-} from '@stream-kit/plugin-handlers';
+} from './lib/types/core-plugin-api';
 export type {
 	CommandPermissions,
 	CommandRecord,
@@ -84,6 +85,8 @@ export type {
 	WriteFileOptions
 } from './lib/core/filesystem';
 export { Audio } from './lib/core/audio';
+export { AppLifecycle } from './lib/core/lifecycle';
+export type { AppLifecycleContext, AppLifecycleEvent } from './lib/core/lifecycle';
 export { isUrlCommand, ProcessWatcher } from './lib/core/process';
 export type {
 	ProcessEventContext,
@@ -107,7 +110,8 @@ export type {
 	HandlerFieldValue,
 	HandlerFieldVariable,
 	HandlerFileFilter,
-	KeyValueEntry
+	KeyValueEntry,
+	TextSelectTextFieldValue
 } from './lib/core/action/handler/field';
 export type { CronFieldKey, CronPreset } from '../../core/src/cron';
 export {

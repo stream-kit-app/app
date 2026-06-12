@@ -1,19 +1,31 @@
 import type { Modal } from '$lib/core/modal';
+import type { Action } from '$lib/core/action/action.svelte';
+import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
+import { runHandlerChain } from '$lib/core/action/run-handler-chain';
+import { ActionHandler } from '$lib/core/action/action-handler.svelte';
+import { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+import { migrateLegacyHandlerFields } from '$lib/core/action/handler-field';
 import type { TimerPlatform, TimerRecord } from './stored-timer';
 import { DEFAULT_TIMER_PLATFORMS } from './stored-timer';
 
-import { normalizeTimerMessages, saveTimer } from '../db/repository';
+import { saveTimer } from '../db/repository';
 
 import TimerForm from '../ui/timer-form.svelte';
 import { translate } from '$lib/i18n';
 
 import { getApp } from '$lib/core/registry';
 import { getTimersService } from './get-timers';
+import type { TimerFormErrors } from './validate-form';
+import { validateTimerForm } from './validate-form';
+import {
+	hasHandlerErrors,
+	validateHandlerFields
+} from '$lib/core/action/validate-form';
 
 export type TimerProps = {
 	id?: number;
 	name?: string;
-	messages?: string[];
+	handlers?: ActionHandler[];
 	intervalMinSec?: number;
 	intervalMaxSec?: number;
 	minChatLines?: number;
@@ -26,19 +38,19 @@ export class Timer {
 	id?: number;
 	modalId?: string;
 	name: string = $state('');
-	messages: string[] = $state(['']);
+	handlers: ActionHandler[] = $state([]);
 	intervalMinSec: number = $state(300);
 	intervalMaxSec: number = $state(600);
 	minChatLines: number = $state(0);
 	enabled: boolean = $state(true);
 	platforms: TimerPlatform[] = $state([...DEFAULT_TIMER_PLATFORMS]);
 	onlineOnly: boolean = $state(false);
-	formErrors: { name?: string; messages?: string } | null = $state(null);
+	formErrors: TimerFormErrors | null = $state(null);
 
 	constructor(props: TimerProps = {}) {
 		this.id = props.id;
 		this.name = props.name ?? '';
-		this.messages = props.messages?.length ? [...props.messages] : [''];
+		this.handlers = props.handlers ?? [];
 		this.intervalMinSec = props.intervalMinSec ?? 300;
 		this.intervalMaxSec = props.intervalMaxSec ?? 600;
 		this.minChatLines = props.minChatLines ?? 0;
@@ -47,15 +59,31 @@ export class Timer {
 		this.onlineOnly = props.onlineOnly ?? false;
 	}
 
+	get hasUnavailableDefinitions(): boolean {
+		return this.handlers.some((handler) => !handler.definition.isAvailable);
+	}
+
 	static createDraft(): Timer {
 		return new Timer();
 	}
 
 	static fromRecord(record: TimerRecord): Timer {
+		const app = getApp();
+		const handlers = record.handlers.map((stored) => {
+			const definition =
+				app.actions.actions.find(stored.handlerTypeId) ??
+				Timer.createUnavailableHandlerDefinition(stored.handlerTypeId);
+
+			return new ActionHandler(definition, {
+				id: stored.id,
+				fields: migrateLegacyHandlerFields(stored)
+			});
+		});
+
 		return new Timer({
 			id: record.id,
 			name: record.name,
-			messages: record.messages.length > 0 ? [...record.messages] : [''],
+			handlers,
 			intervalMinSec: record.intervalMinSec,
 			intervalMaxSec: record.intervalMaxSec,
 			minChatLines: record.minChatLines,
@@ -63,6 +91,16 @@ export class Timer {
 			platforms: record.platforms,
 			onlineOnly: record.onlineOnly
 		});
+	}
+
+	private static createUnavailableHandlerDefinition(id: string): HandlerDefinition {
+		const definition = new HandlerDefinition({
+			id,
+			name: id
+		});
+		definition.setAvailable(false);
+
+		return definition;
 	}
 
 	toRecord(): TimerRecord {
@@ -73,7 +111,7 @@ export class Timer {
 		return {
 			id: this.id,
 			name: this.name.trim(),
-			messages: normalizeTimerMessages(this.messages),
+			handlers: this.handlers.map((handler) => handler.toStored()),
 			intervalMinSec: this.intervalMinSec,
 			intervalMaxSec: this.intervalMaxSec,
 			minChatLines: this.minChatLines,
@@ -125,27 +163,60 @@ export class Timer {
 		this.close();
 	}
 
+	addHandler(definition: HandlerDefinition): void {
+		this.handlers = [...this.handlers, new ActionHandler(definition)];
+	}
+
+	removeHandler(handlerId: string): void {
+		this.handlers = this.handlers.filter((handler) => handler.id !== handlerId);
+	}
+
+	runHandlers(data: unknown, triggerLabel = 'Timer'): void {
+		if (!this.enabled) {
+			return;
+		}
+
+		const context: HandlerTriggerContext = {
+			trigger: triggerLabel,
+			data
+		};
+
+		const actionProxy = this as unknown as Action;
+
+		runHandlerChain(this.handlers, actionProxy, context);
+	}
+
 	validateForm(): boolean {
-		const errors: { name?: string; messages?: string } = {};
+		const baseErrors = validateTimerForm({
+			name: this.name,
+			handlersCount: this.handlers.length,
+			platforms: this.platforms,
+			intervalMinSec: this.intervalMinSec
+		});
 
-		if (!this.name.trim()) {
-			errors.name = translate('Name is required');
+		const handlerErrors: Record<string, ReturnType<typeof validateHandlerFields>> = {};
+
+		for (const handler of this.handlers) {
+			const errors = validateHandlerFields(handler.fields, handler.fieldDefinitions);
+
+			if (hasHandlerErrors(errors)) {
+				handlerErrors[handler.id] = errors;
+			}
 		}
 
-		if (normalizeTimerMessages(this.messages).length === 0) {
-			errors.messages = translate('Add at least one message');
-		}
-
-		if (this.intervalMinSec < 30) {
-			errors.messages = translate('Minimum interval must be at least 30 seconds');
-		}
-
-		if (Object.keys(errors).length === 0) {
+		if (!baseErrors && Object.keys(handlerErrors).length === 0) {
 			this.formErrors = null;
 			return true;
 		}
 
-		this.formErrors = errors;
+		this.formErrors = {
+			name: baseErrors?.name,
+			handlers: baseErrors?.handlers,
+			platforms: baseErrors?.platforms,
+			interval: baseErrors?.interval,
+			handlerErrors
+		};
+
 		return false;
 	}
 
@@ -160,7 +231,7 @@ export class Timer {
 		const row = await saveTimer(
 			{
 				name: this.name.trim(),
-				messages: this.messages,
+				handlers: this.handlers.map((handler) => handler.toStored()),
 				intervalMinSec: this.intervalMinSec,
 				intervalMaxSec: this.intervalMaxSec,
 				minChatLines: this.minChatLines,
@@ -173,7 +244,6 @@ export class Timer {
 
 		if (row) {
 			this.id = row.id;
-			this.messages = row.messages.length > 0 ? [...row.messages] : [''];
 			this.enabled = row.enabled;
 		}
 

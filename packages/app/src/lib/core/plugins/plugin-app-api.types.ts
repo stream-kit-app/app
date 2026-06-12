@@ -29,6 +29,7 @@ import type { PluginMigration } from '$db/plugin-migrations';
 import type { DirEntry, FileHandle, FileInfo, UnwatchFn } from '@tauri-apps/plugin-fs';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import type { SettingsFieldValue } from '../settings';
+import type { AppLifecycleContext, AppLifecycleEvent } from '../lifecycle/types';
 import type { ProcessEventContext } from '../process/types';
 import type { RunProgramOptions, RunProgramResult } from '../process/run-program';
 
@@ -272,6 +273,23 @@ export interface PluginAppFsApi {
 }
 
 /**
+ * Application lifecycle events (start/exit).
+ */
+export interface PluginAppLifecycleApi {
+	/** Whether the app has finished booting and emitted the started event. */
+	readonly started: boolean;
+
+	/** Subscribe to app-started events. Returns an unsubscribe function. */
+	onStarted(handler: (context: AppLifecycleContext) => void): () => void;
+
+	/** Subscribe to app-exit events. Returns an unsubscribe function. */
+	onExit(handler: (context: AppLifecycleContext) => void): () => void;
+
+	/** Build a lifecycle context for the given event. */
+	getContext(event: AppLifecycleEvent): AppLifecycleContext;
+}
+
+/**
  * OS process lifecycle events (start/stop).
  */
 export interface PluginAppProcessApi {
@@ -493,6 +511,9 @@ export interface PluginAppApi {
 
 	/** Play audio blobs. */
 	audio: PluginAppAudioApi;
+
+	/** Application start and exit events. */
+	lifecycle: PluginAppLifecycleApi;
 
 	/** Watch OS process start/stop events. */
 	process: PluginAppProcessApi;

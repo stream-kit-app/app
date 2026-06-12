@@ -1,8 +1,22 @@
 <script lang="ts">
-	import { capitalize, groupBy } from 'es-toolkit';
+	import { move } from '@dnd-kit/helpers';
+	import {
+		DragDropProvider,
+		DragOverlay,
+		KeyboardSensor,
+		PointerSensor
+	} from '@dnd-kit-svelte/svelte';
 
-	import { ActionCard } from '$lib/components/core/action';
+	import { watch } from 'runed';
+
+	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
+	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
+	import {
+		buildDndLayout,
+		dndLayoutToUpdates,
+		type DndActionLayout
+	} from '$lib/core/action/action-layout';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
@@ -12,17 +26,70 @@
 	import { useI18n } from '$lib/i18n';
 
 	const { t } = useI18n();
-	const groups = $derived(groupBy(app.actions.items, (action) => action.group));
+	const sensors = [KeyboardSensor, PointerSensor];
+
+	type DragEvent = Parameters<typeof move<DndActionLayout>>[1];
+
+	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
+	let isDragging = $state(false);
+
+	watch(
+		() =>
+			app.actions.items
+				.filter((action) => action.id != null)
+				.map(
+					(action) =>
+						`${action.id}:${action.group}:${action.groupSortOrder}:${action.sortOrder}`
+				)
+				.join('|'),
+		() => {
+			if (isDragging) {
+				return;
+			}
+
+			layout = buildDndLayout(app.actions.items);
+		}
+	);
 
 	const orderedSelectableIds = $derived(
-		Object.keys(groups).flatMap((group) =>
-			groups[group].filter((action) => action.id != null).map((action) => action.id!)
+		Object.entries(layout).flatMap(([, groupActions]) =>
+			groupActions.map((item) => item.id)
 		)
 	);
 
 	const selection = createSelectableList(() => orderedSelectableIds);
 
 	const selectableActions = $derived(app.actions.items.filter((action) => action.id != null));
+
+	function handleDragStart(): void {
+		isDragging = true;
+	}
+
+	function handleDragOver(event: DragEvent): void {
+		if (event.operation.source?.type === 'group') {
+			return;
+		}
+
+		layout = move(layout, event);
+	}
+
+	async function handleDragEnd(event: DragEvent): Promise<void> {
+		isDragging = false;
+
+		if (event.operation.source?.type === 'group') {
+			layout = move(layout, event);
+		}
+
+		const updates = dndLayoutToUpdates(layout);
+		const current = dndLayoutToUpdates(buildDndLayout(app.actions.items));
+
+		if (JSON.stringify(updates) === JSON.stringify(current)) {
+			return;
+		}
+
+		await app.actions.applyLayout(updates);
+		layout = buildDndLayout(app.actions.items);
+	}
 
 	async function enableSelected(): Promise<void> {
 		await app.actions.setEnabledBulk([...selection.selectedIds], true);
@@ -100,21 +167,67 @@
 		</div>
 	{/if}
 
-	<div class="mt-8 grid gap-6">
-		{#each Object.keys(groups) as group (group)}
-			<div class="flex flex-col gap-2">
-				<Heading level="4" class="text-dark-300 uppercase">{capitalize(group)}</Heading>
-				{#each groups[group] as action (action.id)}
-					{#if action.id != null}
-						<ActionCard
-							{action}
-							selected={selection.selectedIds.has(action.id)}
-							onSelectedChange={(value, shiftKey) =>
-								selection.handleSelectedChange(action.id!, value, shiftKey)}
+	<DragDropProvider
+		{sensors}
+		onDragStart={handleDragStart}
+		onDragOver={handleDragOver}
+		onDragEnd={handleDragEnd}
+	>
+		<div class="mt-8 grid gap-6">
+			{#each Object.entries(layout) as [groupId, groupActions], groupIndex (groupId)}
+				<ActionGroupSection {groupId} index={groupIndex}>
+					{#snippet children()}
+						<div class="flex flex-col gap-2">
+							{#each groupActions as item, actionIndex (item.id)}
+								<ActionSortableItem
+									action={item.action}
+									{groupId}
+									index={actionIndex}
+									selected={selection.selectedIds.has(item.id)}
+									onSelectedChange={(value, shiftKey) =>
+										selection.handleSelectedChange(item.id, value, shiftKey)}
+								/>
+							{/each}
+						</div>
+					{/snippet}
+				</ActionGroupSection>
+			{/each}
+		</div>
+
+		<DragOverlay>
+			{#snippet children(source)}
+				{#if source.data.group}
+					{@const item = layout[source.data.group as string]?.find(
+						(entry) => entry.id === source.id
+					)}
+					{#if item}
+						<ActionSortableItem
+							action={item.action}
+							groupId={source.data.group as string}
+							index={0}
+							isOverlay
 						/>
 					{/if}
-				{/each}
-			</div>
-		{/each}
-	</div>
+				{:else}
+					{@const groupItems = layout[source.id as string]}
+					{#if groupItems}
+						<ActionGroupSection groupId={source.id as string} index={0} isOverlay>
+							{#snippet children()}
+								<div class="flex flex-col gap-2">
+									{#each groupItems as item, actionIndex (item.id)}
+										<ActionSortableItem
+											action={item.action}
+											groupId={source.id as string}
+											index={actionIndex}
+											isOverlay
+										/>
+									{/each}
+								</div>
+							{/snippet}
+						</ActionGroupSection>
+					{/if}
+				{/if}
+			{/snippet}
+		</DragOverlay>
+	</DragDropProvider>
 </Container>

@@ -19,6 +19,11 @@ Use Svelte 5 runes and modern patterns. Validate with the Svelte MCP `svelte-aut
 
 Put reusable reactive logic in `.svelte.ts` classes or modules, not legacy stores.
 
+## Markup and tooltips
+
+- Prefer Svelte snippets and markup over building HTML strings in JavaScript (React-style). Use `{#snippet}`, `{@render}`, and `{#each}` / `{#if}` instead of string concatenation, `escapeHtml`, or `{@html}` for UI you control.
+- For `@attach tooltip(...)`, pass plain strings for simple text. For structured tooltip content, use `tooltipSnippet(snippet, arg)` from `@stream-kit/ui/attachments` (one snippet argument; pass an object when you need multiple values) — never assemble tooltip HTML in a callback.
+
 ## bits-ui (preferred for UI primitives)
 
 Use `bits-ui` for headless, accessible components instead of building from scratch.

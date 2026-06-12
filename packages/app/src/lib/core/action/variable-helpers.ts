@@ -1,9 +1,11 @@
-import type { CorePluginApi } from '@stream-kit/plugin-handlers';
+import type { CorePluginApi } from '@stream-kit/app/api';
 import type { HandlerFieldVariable } from '@stream-kit/ui/types';
 
 import type { App } from '../app.svelte';
+import type { ActionHandler } from './action-handler.svelte';
 import type { Action } from './action.svelte';
 import type { ActionTrigger } from './action-trigger.svelte';
+import { getHandlerFieldValue } from './handler-field';
 
 type ProcessEventContext = {
 	executable?: string;
@@ -96,4 +98,61 @@ export function getGlobalVariables(app: App): HandlerFieldVariable[] {
 		key,
 		label: formatVariableLabel(key)
 	}));
+}
+
+/** Action-scoped variables set by handlers before `handlerIndex` in the chain. */
+export function getPrecedingActionVariables(
+	handlers: ActionHandler[],
+	handlerIndex: number
+): HandlerFieldVariable[] {
+	const variables: HandlerFieldVariable[] = [];
+	const seen = new Set<string>();
+
+	for (let index = 0; index < handlerIndex; index += 1) {
+		const handler = handlers[index];
+		const targetName = getHandlerFieldValue(handler.fields, 'target-name');
+
+		if (typeof targetName === 'string') {
+			const key = targetName.trim();
+
+			if (key && !seen.has(key)) {
+				seen.add(key);
+				variables.push({ key, label: formatVariableLabel(key) });
+			}
+		}
+
+		const scope = getHandlerFieldValue(handler.fields, 'scope');
+		const variableName = getHandlerFieldValue(handler.fields, 'variable-name');
+
+		if (scope === 'action' && typeof variableName === 'string') {
+			const key = variableName.trim();
+
+			if (key && !seen.has(key)) {
+				seen.add(key);
+				variables.push({ key, label: formatVariableLabel(key) });
+			}
+		}
+	}
+
+	return variables;
+}
+
+export function mergeContextVariables(
+	...lists: HandlerFieldVariable[][]
+): HandlerFieldVariable[] {
+	const seen = new Set<string>();
+	const merged: HandlerFieldVariable[] = [];
+
+	for (const list of lists) {
+		for (const variable of list) {
+			if (seen.has(variable.key)) {
+				continue;
+			}
+
+			seen.add(variable.key);
+			merged.push(variable);
+		}
+	}
+
+	return merged.sort((left, right) => left.key.localeCompare(right.key));
 }

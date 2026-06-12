@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
 
+	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 
@@ -35,6 +36,12 @@
 
 	onMount(() => {
 		document.getElementById('boot-splash')?.remove();
+	});
+
+	beforeNavigate(() => {
+		for (const [, modal] of app.modals) {
+			modal.close();
+		}
 	});
 </script>
 

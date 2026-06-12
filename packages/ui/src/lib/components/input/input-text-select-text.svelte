@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import type { HandlerFieldVariable, SelectItemsSource } from '../../types';
 	import type { WithoutChildren } from 'bits-ui';
 	import type {
@@ -17,6 +18,7 @@
 	import { resolveSelectItems } from './resolve-select-items.svelte';
 
 	type Value = { path: string; type: string; value: string };
+	type ActiveField = 'path' | 'value';
 
 	type Props = {
 		label?: string;
@@ -26,11 +28,13 @@
 		selectPlaceholder?: string;
 		loadingPlaceholder?: string;
 		variables?: HandlerFieldVariable[];
+		valuelessOperators?: readonly string[];
 		id?: string;
 		class?: string;
 		selectClass?: string;
 		value?: Value;
 		error?: string;
+		suffix?: Snippet;
 		contentProps?: WithoutChildren<Select.ContentProps>;
 	} & Omit<HTMLInputAttributes, 'value' | 'id' | 'class'>;
 
@@ -42,11 +46,13 @@
 		selectPlaceholder,
 		loadingPlaceholder,
 		variables = [],
+		valuelessOperators = [],
 		id = useId(),
 		class: className,
 		selectClass,
 		contentProps,
 		error,
+		suffix,
 		value = $bindable({ path: '', type: 'equals', value: '' }),
 		...props
 	}: Props = $props();
@@ -56,7 +62,9 @@
 
 	const resolvedItems = resolveSelectItems(() => itemsSource);
 
+	let pathInputElement = $state<HTMLInputElement | null>(null);
 	let valueInputElement = $state<HTMLInputElement | null>(null);
+	let activeField = $state<ActiveField>('path');
 	let showSuggestions = $state(false);
 	let suggestionFilter = $state('');
 	let highlightedIndex = $state(0);
@@ -75,13 +83,32 @@
 		);
 	});
 
-	function getPartialVariable(): { start: number; partial: string } | null {
-		if (!valueInputElement) {
+	function getInputElement(field: ActiveField): HTMLInputElement | null {
+		return field === 'path' ? pathInputElement : valueInputElement;
+	}
+
+	function getFieldText(field: ActiveField): string {
+		return field === 'path' ? value.path : value.value;
+	}
+
+	function setFieldText(field: ActiveField, text: string): void {
+		if (field === 'path') {
+			value = { ...value, path: text };
+			return;
+		}
+
+		value = { ...value, value: text };
+	}
+
+	function getPartialVariable(field: ActiveField): { start: number; partial: string } | null {
+		const inputElement = getInputElement(field);
+
+		if (!inputElement) {
 			return null;
 		}
 
-		const text = value.value;
-		const cursor = valueInputElement.selectionStart ?? text.length;
+		const text = getFieldText(field);
+		const cursor = inputElement.selectionStart ?? text.length;
 		const beforeCursor = text.slice(0, cursor);
 		const openBrace = beforeCursor.lastIndexOf('{');
 
@@ -98,8 +125,9 @@
 		return { start: openBrace, partial };
 	}
 
-	function updateSuggestions(): void {
-		const partial = getPartialVariable();
+	function updateSuggestions(field: ActiveField): void {
+		activeField = field;
+		const partial = getPartialVariable(field);
 
 		if (!partial || variables.length === 0) {
 			showSuggestions = false;
@@ -113,118 +141,136 @@
 		highlightedIndex = 0;
 	}
 
-	function insertVariable(variableKey: string): void {
-		const partial = getPartialVariable();
+	function insertVariable(variableKey: string, field: ActiveField = activeField): void {
+		const partial = getPartialVariable(field);
+		const inputElement = getInputElement(field);
 
-		if (!partial || !valueInputElement) {
+		if (!partial || !inputElement) {
 			return;
 		}
 
-		const text = value.value;
-		const cursor = valueInputElement.selectionStart ?? text.length;
+		const text = getFieldText(field);
+		const cursor = inputElement.selectionStart ?? text.length;
 		const before = text.slice(0, partial.start);
 		const after = text.slice(cursor);
-		value = { ...value, value: `${before}{${variableKey}}${after}` };
+		setFieldText(field, `${before}{${variableKey}}${after}`);
 		showSuggestions = false;
 		suggestionFilter = '';
 
 		queueMicrotask(() => {
-			if (!valueInputElement) {
+			if (!inputElement) {
 				return;
 			}
 
 			const nextCursor = before.length + variableKey.length + 2;
-			valueInputElement.focus();
-			valueInputElement.setSelectionRange(nextCursor, nextCursor);
+			inputElement.focus();
+			inputElement.setSelectionRange(nextCursor, nextCursor);
 		});
 	}
 
-	function insertVariableAtCursor(variableKey: string): void {
-		const text = value.value;
+	function insertVariableAtCursor(variableKey: string, field: ActiveField = activeField): void {
+		const text = getFieldText(field);
+		const inputElement = getInputElement(field);
 
-		if (!valueInputElement) {
-			value = { ...value, value: `${text}{${variableKey}}` };
+		if (!inputElement) {
+			setFieldText(field, `${text}{${variableKey}}`);
 			return;
 		}
 
-		const cursor = valueInputElement.selectionStart ?? text.length;
+		const cursor = inputElement.selectionStart ?? text.length;
 		const before = text.slice(0, cursor);
 		const after = text.slice(cursor);
-		value = { ...value, value: `${before}{${variableKey}}${after}` };
+		setFieldText(field, `${before}{${variableKey}}${after}`);
 
 		queueMicrotask(() => {
 			const nextCursor = before.length + variableKey.length + 2;
-			valueInputElement?.focus();
-			valueInputElement?.setSelectionRange(nextCursor, nextCursor);
+			inputElement.focus();
+			inputElement.setSelectionRange(nextCursor, nextCursor);
 		});
 	}
 
-	const handleValueInput: FormEventHandler<HTMLInputElement> = () => {
-		updateSuggestions();
-	};
+	const createInputHandlers = (field: ActiveField) => {
+		const handleInput: FormEventHandler<HTMLInputElement> = () => {
+			updateSuggestions(field);
+		};
 
-	const handleValueKeydown: KeyboardEventHandler<HTMLInputElement> = (event) => {
-		if (!showSuggestions || filteredVariables.length === 0) {
-			return;
-		}
-
-		if (event.key === 'ArrowDown') {
-			event.preventDefault();
-			highlightedIndex = (highlightedIndex + 1) % filteredVariables.length;
-			return;
-		}
-
-		if (event.key === 'ArrowUp') {
-			event.preventDefault();
-			highlightedIndex =
-				(highlightedIndex - 1 + filteredVariables.length) % filteredVariables.length;
-			return;
-		}
-
-		if (event.key === 'Enter' || event.key === 'Tab') {
-			const variable = filteredVariables[highlightedIndex];
-
-			if (variable) {
-				event.preventDefault();
-				insertVariable(variable.key);
+		const handleKeydown: KeyboardEventHandler<HTMLInputElement> = (event) => {
+			if (!showSuggestions || filteredVariables.length === 0 || activeField !== field) {
+				return;
 			}
-			return;
-		}
 
-		if (event.key === 'Escape') {
-			showSuggestions = false;
-		}
+			if (event.key === 'ArrowDown') {
+				event.preventDefault();
+				highlightedIndex = (highlightedIndex + 1) % filteredVariables.length;
+				return;
+			}
+
+			if (event.key === 'ArrowUp') {
+				event.preventDefault();
+				highlightedIndex =
+					(highlightedIndex - 1 + filteredVariables.length) % filteredVariables.length;
+				return;
+			}
+
+			if (event.key === 'Enter' || event.key === 'Tab') {
+				const variable = filteredVariables[highlightedIndex];
+
+				if (variable) {
+					event.preventDefault();
+					insertVariable(variable.key, field);
+				}
+				return;
+			}
+
+			if (event.key === 'Escape') {
+				showSuggestions = false;
+			}
+		};
+
+		const handleBlur = () => {
+			setTimeout(() => {
+				showSuggestions = false;
+			}, 120);
+		};
+
+		return { handleInput, handleKeydown, handleBlur };
 	};
 
-	const handleValueBlur = () => {
-		setTimeout(() => {
-			showSuggestions = false;
-		}, 120);
-	};
+	const pathHandlers = createInputHandlers('path');
+	const valueHandlers = createInputHandlers('value');
 
 	const segmentBorder = $derived(error ? 'border-red-500' : 'border-dark-500');
+	const isValuelessOperator = $derived(valuelessOperators.includes(value.type));
 </script>
 
 <div class={cn('relative grid w-full gap-2', className)}>
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
-	<div
-		class={cn(
-			'grid grid-cols-[1fr_120px_1fr] rounded-xl has-focus:ring-2 has-focus:ring-primary',
-			error && 'has-focus:ring-red-500'
-		)}
-	>
+	<div class="flex items-center gap-3">
+		<div
+			class={cn(
+				'grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl has-focus:ring-2 has-focus:ring-primary',
+				error && 'has-focus:ring-red-500'
+			)}
+		>
 		<input
 			{id}
+			bind:this={pathInputElement}
 			placeholder={pathPlaceholder}
 			bind:value={value.path}
 			class={cn(
-				'min-w-0 flex-1 rounded-l-xl border border-r bg-dark-700 text-dark-50 outline-none',
+				'min-w-0 flex-1 border border-r bg-dark-700 text-dark-50 outline-none',
+				'rounded-l-xl',
 				inputSizeClasses.md,
 				segmentBorder
 			)}
 			aria-invalid={error ? true : undefined}
+			oninput={variables.length > 0 ? pathHandlers.handleInput : undefined}
+			onkeydown={variables.length > 0 ? pathHandlers.handleKeydown : undefined}
+			onblur={variables.length > 0 ? pathHandlers.handleBlur : undefined}
+			onfocus={variables.length > 0 ? () => updateSuggestions('path') : undefined}
+			onclick={variables.length > 0 ? () => updateSuggestions('path') : undefined}
 			{...props}
 		/>
 		<Select.Root type="single" items={resolvedItems.items} bind:value={value.type}>
@@ -296,22 +342,41 @@
 				</Select.Content>
 			</Select.Portal>
 		</Select.Root>
-		<input
-			bind:this={valueInputElement}
-			placeholder={valuePlaceholder}
-			bind:value={value.value}
-			class={cn(
-				'min-w-0 flex-1 rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
-				inputSizeClasses.md,
-				segmentBorder
-			)}
-			aria-invalid={error ? true : undefined}
-			oninput={variables.length > 0 ? handleValueInput : undefined}
-			onkeydown={variables.length > 0 ? handleValueKeydown : undefined}
-			onblur={variables.length > 0 ? handleValueBlur : undefined}
-			onfocus={variables.length > 0 ? updateSuggestions : undefined}
-			onclick={variables.length > 0 ? updateSuggestions : undefined}
-		/>
+		{#if isValuelessOperator}
+			<div
+				class={cn(
+					'flex min-w-0 items-center rounded-r-xl border border-l-0 bg-dark-700 px-3 text-dark-500 select-none',
+					inputSizeClasses.md,
+					segmentBorder
+				)}
+				aria-hidden="true"
+			>
+				—
+			</div>
+		{:else}
+			<input
+				bind:this={valueInputElement}
+				placeholder={valuePlaceholder}
+				bind:value={value.value}
+				class={cn(
+					'min-w-0 flex-1 rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+					inputSizeClasses.md,
+					segmentBorder
+				)}
+				aria-invalid={error ? true : undefined}
+				oninput={variables.length > 0 ? valueHandlers.handleInput : undefined}
+				onkeydown={variables.length > 0 ? valueHandlers.handleKeydown : undefined}
+				onblur={variables.length > 0 ? valueHandlers.handleBlur : undefined}
+				onfocus={variables.length > 0 ? () => updateSuggestions('value') : undefined}
+				onclick={variables.length > 0 ? () => updateSuggestions('value') : undefined}
+			/>
+		{/if}
+		</div>
+		{#if suffix}
+			<div class="flex shrink-0 items-center self-center">
+				{@render suffix()}
+			</div>
+		{/if}
 	</div>
 
 	{#if variables.length > 0}
@@ -347,7 +412,7 @@
 						)}
 						onmousedown={(event) => {
 							event.preventDefault();
-							insertVariable(variable.key);
+							insertVariable(variable.key, activeField);
 						}}
 					>
 						<span>{`{${variable.key}}`}</span>

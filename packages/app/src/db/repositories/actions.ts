@@ -1,11 +1,12 @@
 import type {
+	ActionLayoutUpdate,
 	ActionRecord,
 	StoredActionHandler,
 	StoredActionTrigger
 } from '../schemas/actions';
 import type { SelectItem } from '$lib/core/action/trigger/condition';
 
-import { asc, eq, inArray } from 'drizzle-orm';
+import { asc, eq, inArray, max } from 'drizzle-orm';
 
 import { db } from '../index';
 import { actions, DEFAULT_ACTION_GROUP } from '../schemas/actions';
@@ -24,6 +25,33 @@ export function normalizeActionGroup(group: string | null | undefined): string {
 	return trimmed || DEFAULT_ACTION_GROUP;
 }
 
+async function getGroupSortOrder(group: string): Promise<number> {
+	const [row] = await db
+		.select({ groupSortOrder: actions.groupSortOrder })
+		.from(actions)
+		.where(eq(actions.group, group))
+		.limit(1);
+
+	if (row) {
+		return row.groupSortOrder;
+	}
+
+	const [maxGroupSortOrder] = await db
+		.select({ value: max(actions.groupSortOrder) })
+		.from(actions);
+
+	return (maxGroupSortOrder?.value ?? -1) + 1;
+}
+
+async function getNextSortOrder(group: string): Promise<number> {
+	const [row] = await db
+		.select({ value: max(actions.sortOrder) })
+		.from(actions)
+		.where(eq(actions.group, group));
+
+	return (row?.value ?? -1) + 1;
+}
+
 export async function getAction(id: number): Promise<ActionRecord> {
 	const [row] = await db.select().from(actions).where(eq(actions.id, id)).limit(1);
 
@@ -35,14 +63,21 @@ export async function getAction(id: number): Promise<ActionRecord> {
 }
 
 export async function getActions(): Promise<ActionRecord[]> {
-	return db.select().from(actions);
+	return db
+		.select()
+		.from(actions)
+		.orderBy(asc(actions.groupSortOrder), asc(actions.sortOrder), asc(actions.id));
 }
 
 export async function getActionGroups(): Promise<SelectItem[]> {
 	const rows = await db
-		.selectDistinct({ group: actions.group })
+		.select({
+			group: actions.group,
+			groupSortOrder: actions.groupSortOrder
+		})
 		.from(actions)
-		.orderBy(asc(actions.group));
+		.groupBy(actions.group, actions.groupSortOrder)
+		.orderBy(asc(actions.groupSortOrder), asc(actions.group));
 
 	const groups = rows.map((row) => normalizeActionGroup(row.group));
 
@@ -58,11 +93,18 @@ export async function saveAction(input: SaveActionInput, id?: number): Promise<A
 	const group = normalizeActionGroup(input.group);
 
 	if (id != null) {
+		const existing = await getAction(id);
+		const groupChanged = existing.group !== group;
+		const groupSortOrder = groupChanged ? await getGroupSortOrder(group) : existing.groupSortOrder;
+		const sortOrder = groupChanged ? await getNextSortOrder(group) : existing.sortOrder;
+
 		const [row] = await db
 			.update(actions)
 			.set({
 				name: input.name,
 				group,
+				groupSortOrder,
+				sortOrder,
 				enabled: input.enabled,
 				triggers: input.triggers,
 				handlers: input.handlers,
@@ -74,11 +116,16 @@ export async function saveAction(input: SaveActionInput, id?: number): Promise<A
 		return row;
 	}
 
+	const groupSortOrder = await getGroupSortOrder(group);
+	const sortOrder = await getNextSortOrder(group);
+
 	const [row] = await db
 		.insert(actions)
 		.values({
 			name: input.name,
 			group,
+			groupSortOrder,
+			sortOrder,
 			enabled: input.enabled,
 			triggers: input.triggers,
 			handlers: input.handlers,
@@ -88,6 +135,26 @@ export async function saveAction(input: SaveActionInput, id?: number): Promise<A
 		.returning();
 
 	return row;
+}
+
+export async function reorderActionsLayout(updates: ActionLayoutUpdate[]): Promise<void> {
+	if (updates.length === 0) {
+		return;
+	}
+
+	const now = new Date();
+
+	for (const update of updates) {
+		await db
+			.update(actions)
+			.set({
+				group: update.group,
+				groupSortOrder: update.groupSortOrder,
+				sortOrder: update.sortOrder,
+				updatedAt: now
+			})
+			.where(eq(actions.id, update.id));
+	}
 }
 
 export async function updateActionEnabled(id: number, enabled: boolean): Promise<void> {

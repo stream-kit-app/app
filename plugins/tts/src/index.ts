@@ -11,10 +11,12 @@ import { createLocalTtsVoiceSelectField } from './lib/local/settings';
 import { localVoiceSelectSettingsField } from './lib/local/voices';
 import { streamelements } from './lib/streamelements';
 import { voiceSelectSettingsField } from './lib/streamelements/voices';
+import { configureFieldValueResolver } from './get-field-value';
 
 export const SETTINGS_KEY = 'tts';
 
 const plugin: Plugin = (app) => {
+	configureFieldValueResolver(app);
 	return {
 		key: SETTINGS_KEY,
 		name: 'TTS',

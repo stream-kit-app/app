@@ -21,6 +21,8 @@ export type ActionRecord = {
 	id: number;
 	name: string;
 	group: string;
+	groupSortOrder: number;
+	sortOrder: number;
 	enabled: boolean;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
@@ -32,9 +34,18 @@ export type NewActionRecord = {
 	id?: number;
 	name: string;
 	group?: string;
+	groupSortOrder?: number;
+	sortOrder?: number;
 	enabled?: boolean;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 	createdAt: Date;
 	updatedAt: Date;
+};
+
+export type ActionLayoutUpdate = {
+	id: number;
+	group: string;
+	groupSortOrder: number;
+	sortOrder: number;
 };

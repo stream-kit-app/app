@@ -1,5 +1,8 @@
 {
 	"compilerOptions": {
-		"ignoreDeprecations": "6.0"
+		"ignoreDeprecations": "6.0",
+		"paths": {
+			"@stream-kit/app/api": ["./packages/core/dist/index.d.ts"]
+		}
 	}
 }

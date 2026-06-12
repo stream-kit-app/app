@@ -1,5 +1,14 @@
-import type { ProcessEventContext } from '../contexts';
+import type { AppLifecycleContext, AppLifecycleEvent, ProcessEventContext } from '../contexts';
 import type { ScheduleEventContext } from '../contexts';
+
+export function createTestAppLifecycleContext(
+	event: AppLifecycleEvent = 'started'
+): AppLifecycleContext {
+	return {
+		event,
+		timestamp: new Date().toISOString()
+	};
+}
 
 export function createTestProcessEventContext(): ProcessEventContext {
 	return {

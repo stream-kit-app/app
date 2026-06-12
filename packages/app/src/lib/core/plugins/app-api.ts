@@ -70,6 +70,14 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		audio: {
 			play: app.audio.play.bind(app.audio)
 		},
+		lifecycle: {
+			get started() {
+				return app.lifecycle.started;
+			},
+			onStarted: app.lifecycle.onStarted.bind(app.lifecycle),
+			onExit: app.lifecycle.onExit.bind(app.lifecycle),
+			getContext: app.lifecycle.getContext.bind(app.lifecycle)
+		},
 		process: {
 			get running() {
 				return app.process.running;

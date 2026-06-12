@@ -8,7 +8,7 @@ The app uses this package to render first-party screens and declarative plugin m
 
 ```svelte
 <script lang="ts">
-	import { Button, Container, Heading, tooltip } from '@stream-kit/ui';
+	import { Button, Container, Heading, tooltip, tooltipSnippet } from '@stream-kit/ui';
 </script>
 
 <Container size="md" class="py-8">
@@ -17,6 +17,7 @@ The app uses this package to render first-party screens and declarative plugin m
 	</Heading>
 
 	<Button {@attach tooltip('App-owned UI')}>Click me</Button>
+	<Button {@attach tooltip(() => tooltipSnippet(details, item))}>Details</Button>
 </Container>
 ```
 

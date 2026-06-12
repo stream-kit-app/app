@@ -3,6 +3,7 @@
 
 	import Icon from '@iconify/svelte';
 
+	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
@@ -24,13 +25,16 @@
 
 <div
 	class={cn(
-		'grid grid-cols-[1fr_auto_auto] items-center rounded-xl border border-border-dark-600 bg-dark-800 transition-colors hover:bg-dark-700',
+		'grid grid-cols-[1fr_auto_auto_auto] items-center rounded-xl border transition-colors',
+		timer.hasUnavailableDefinitions
+			? 'border-destructive-500 bg-destructive-800 hover:bg-destructive-600'
+			: 'border-border-dark-600 bg-dark-800 hover:bg-dark-700',
 		!timer.enabled && 'opacity-60'
 	)}
 >
 	<button
 		type="button"
-		class="group col-span-3 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left"
+		class="group col-span-4 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left transition-colors"
 		onclick={() => timer.open()}
 	>
 		<div class="flex min-w-0 items-center gap-4">
@@ -54,13 +58,22 @@
 					{timer.name.trim()}
 				</p>
 				<p class="truncate text-sm text-dark-300">
-					{t('{count} messages · every {interval}', {
-						count: timer.messages.filter((m) => m.trim()).length,
-						interval: intervalLabel
-					})}
+					{t('every {interval}', { interval: intervalLabel })}
 				</p>
 			</div>
 		</div>
+
+		<span
+			class={cn(
+				'me-2 text-sm',
+				timer.hasUnavailableDefinitions ? 'text-destructive-50' : 'text-dark-300'
+			)}
+			{@attach tooltip(() =>
+				timer.handlers.map((handler) => `- ${handler.definition.name}`).join('<br />')
+			)}
+		>
+			{t('handlers ({count})', { count: timer.handlers.length })}
+		</span>
 
 		<div class="flex flex-wrap justify-end gap-1">
 			{#each timer.platforms as platform (platform)}

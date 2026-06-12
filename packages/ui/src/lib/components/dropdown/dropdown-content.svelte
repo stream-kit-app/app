@@ -16,7 +16,7 @@
 	)}
 	sideOffset={4}
 >
-	<ScrollArea orientation="vertical" viewportClasses="max-h-64 overflow-hidden">
+	<ScrollArea orientation="vertical" viewportClasses="max-h-120 overflow-hidden">
 		{@render children?.()}
 	</ScrollArea>
 </DropdownMenu.Content>

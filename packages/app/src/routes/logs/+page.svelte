@@ -1,18 +1,18 @@
 <script lang="ts">
-	import type { CorePluginApi } from '@stream-kit/plugin-handlers';
-	import { LogViewer } from '@stream-kit/ui/log-viewer';
+	import type { CorePluginApi } from '@stream-kit/app/api';
+
 	import { onMount } from 'svelte';
 
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
+	import { LogViewer } from '@stream-kit/ui/log-viewer';
 
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
 	const { t } = useI18n();
 
-	const core = $derived(app.plugins.tryGet<CorePluginApi>('core'));
-
+	let core = $derived(app.plugins.tryGet<CorePluginApi>('core'));
 	let revision = $state(0);
 
 	const entries = $derived.by(() => {
@@ -37,7 +37,7 @@
 	}
 </script>
 
-<Container class="py-6">
+<Container class="p-6">
 	<Heading level={1} class="mb-6">{t('Logs')}</Heading>
 
 	<LogViewer

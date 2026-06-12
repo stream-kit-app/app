@@ -1,1 +1,1 @@
-export type VariableScope = 'global' | 'user' | 'action';
+export type { VariableScope } from '@stream-kit/app/api';

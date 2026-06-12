@@ -5,7 +5,8 @@ export type {
 	HandlerFieldValue,
 	HandlerFieldVariable,
 	KeyValueEntry,
-	ResolvedHandlerFieldDefinition
+	ResolvedHandlerFieldDefinition,
+	TextSelectTextFieldValue
 } from './field';
 export type {
 	HandlerDefinitionProps,

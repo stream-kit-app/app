@@ -1,7 +1,8 @@
 packages:
-  - 'packages/*'
-  - 'plugins/*'
+    - 'packages/*'
+    - 'plugins/*'
+    - 'site'
 
 onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - esbuild
+    - '@tailwindcss/oxide'
+    - esbuild

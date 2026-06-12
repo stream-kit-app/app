@@ -32,7 +32,12 @@ export default defineConfig(async () => ({
 		}
 	},
 	optimizeDeps: {
-		include: ['monaco-editor']
+		include: [
+			'monaco-editor',
+			'@dnd-kit-svelte/svelte',
+			'@dnd-kit-svelte/svelte/sortable',
+			'@dnd-kit/helpers'
+		]
 	},
 	ssr: {
 		noExternal: [

@@ -1,3 +1,5 @@
 import { Tooltip } from 'bits-ui';
 
-export const tether = Tooltip.createTether();
+import type { TooltipPayload } from '../attachments/tooltip-content';
+
+export const tether = Tooltip.createTether<TooltipPayload>();

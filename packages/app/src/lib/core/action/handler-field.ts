@@ -32,9 +32,14 @@ export function initHandlerFieldValue(
 		return [];
 	}
 
+	if (definition.type === 'text-select-text') {
+		return { path: '', type: 'equals', value: '', negate: false };
+	}
+
 	if (
 		definition.type === 'text' ||
 		definition.type === 'select' ||
+		definition.type === 'combobox' ||
 		definition.type === 'select-file-or-folder' ||
 		definition.type === 'code'
 	) {
@@ -70,9 +75,26 @@ export function isHandlerFieldValueEmpty(
 		return value.every((entry) => !entry.key.trim());
 	}
 
+	if (definition.type === 'text-select-text') {
+		if (!value || typeof value !== 'object' || !('path' in value)) {
+			return true;
+		}
+
+		const compound = value as { path: string; type: string; value: string };
+		const valuelessOperators =
+			definition.type === 'text-select-text' ? (definition.valuelessOperators ?? []) : [];
+
+		if (valuelessOperators.includes(compound.type)) {
+			return !compound.path.trim();
+		}
+
+		return !compound.path.trim() || !compound.value.trim();
+	}
+
 	if (
 		definition.type === 'text' ||
 		definition.type === 'select' ||
+		definition.type === 'combobox' ||
 		definition.type === 'select-file-or-folder' ||
 		definition.type === 'code'
 	) {

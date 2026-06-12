@@ -5,6 +5,7 @@
 @source '../../**/*.{svelte,ts,js}';
 @source '../../../../plugins/**/src/**/*.{svelte,ts,js}';
 @source not '../../../../plugins/**/node_modules/**';
+@source not '../../../../site/**';
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 @custom-variant has-focus (&:has(:focus));

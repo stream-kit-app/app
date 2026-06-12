@@ -2,13 +2,9 @@ import type { ConditionDefinition, FieldValue } from '@stream-kit/core';
 
 import type { ProcessEventContext } from '../contexts';
 import { matchText } from './match-text';
+import { textMatchOperators } from './text-match-operators';
 
-export const processNameMatchOperators = [
-	{ value: 'startsWith', label: 'Starts with' },
-	{ value: 'endsWith', label: 'Ends with' },
-	{ value: 'contains', label: 'Contains' },
-	{ value: 'equals', label: 'Equals' }
-] as const;
+export const processNameMatchOperators = textMatchOperators;
 
 export function processNameCondition(): ConditionDefinition {
 	return {

@@ -6,7 +6,14 @@ export type KeyValueEntry = {
 	value: string;
 };
 
-export type HandlerFieldValue = string | boolean | KeyValueEntry[];
+export type TextSelectTextFieldValue = {
+	path: string;
+	type: string;
+	value: string;
+	negate?: boolean;
+};
+
+export type HandlerFieldValue = string | boolean | KeyValueEntry[] | TextSelectTextFieldValue;
 
 export type HandlerFieldInstance = {
 	key: string;

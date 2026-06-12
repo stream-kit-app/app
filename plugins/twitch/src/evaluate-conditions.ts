@@ -34,7 +34,7 @@ function evaluateNode(
 	return node.negate ? !passed : passed;
 }
 
-function normalizeLookupKey(value: string): string {
+export function normalizeLookupKey(value: string): string {
 	return value
 		.trim()
 		.replace(/([a-z0-9])([A-Z])/g, '$1-$2')

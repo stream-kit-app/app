@@ -11,6 +11,7 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"paths": {
+			"@stream-kit/app/api": ["../../packages/core/dist/index.d.ts"],
 			"$db/*": ["../../packages/app/src/db/*"],
 			"$lib/*": ["../../packages/app/src/lib/*"]
 		}

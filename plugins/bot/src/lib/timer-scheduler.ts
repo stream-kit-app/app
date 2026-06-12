@@ -1,8 +1,7 @@
 import type { PluginAppApi } from '@stream-kit/app/api';
 
 import type { BotSettings } from '../settings/bot-settings';
-import type { TimerPlatform, TimerRecord } from '../timers/app/lib/stored-timer';
-import { sendChatMessage } from './send-chat-message';
+import type { TimerPlatform, TimerRecord, TimerTriggerContext } from '../timers/app/lib/stored-timer';
 
 type TwitchStreamApi = {
 	readonly userId?: string;
@@ -21,9 +20,10 @@ type YouTubeStreamApi = {
 
 type TimerState = {
 	nextDueAt: number;
-	messageIndex: number;
 	linesSinceSend: number;
 };
+
+export type RunTimerFn = (id: number, data: TimerTriggerContext) => void;
 
 export class TimerScheduler {
 	private tickTimer: ReturnType<typeof setInterval> | undefined;
@@ -33,7 +33,8 @@ export class TimerScheduler {
 	constructor(
 		private readonly app: PluginAppApi,
 		private readonly settings: BotSettings,
-		private getTimers: () => TimerRecord[]
+		private getTimers: () => TimerRecord[],
+		private runTimer: RunTimerFn
 	) {}
 
 	start(): void {
@@ -75,7 +76,6 @@ export class TimerScheduler {
 	private createState(timer: TimerRecord): TimerState {
 		return {
 			nextDueAt: Date.now() + this.randomIntervalMs(timer),
-			messageIndex: 0,
 			linesSinceSend: 0
 		};
 	}
@@ -125,7 +125,7 @@ export class TimerScheduler {
 		const now = Date.now();
 
 		for (const timer of this.getTimers()) {
-			if (!timer.enabled || timer.messages.length === 0) {
+			if (!timer.enabled || timer.handlers.length === 0) {
 				continue;
 			}
 
@@ -147,36 +147,15 @@ export class TimerScheduler {
 				continue;
 			}
 
-			const message = timer.messages[state.messageIndex % timer.messages.length];
-			state.messageIndex += 1;
 			state.nextDueAt = now + this.randomIntervalMs(timer);
 			state.linesSinceSend = this.chatLineCount;
 
-			for (const platform of timer.platforms) {
-				if (platform === 'twitch' && this.settings.platforms.twitch) {
-					await sendChatMessage(
-						this.app,
-						'twitch',
-						{
-							broadcasterId: this.app.plugins.tryGet<TwitchStreamApi>('twitch')?.userId
-						},
-						message
-					);
-				}
-
-				if (platform === 'youtube' && this.settings.platforms.youtube) {
-					const youtube = this.app.plugins.tryGet<YouTubeStreamApi>('youtube');
-
-					await sendChatMessage(
-						this.app,
-						'youtube',
-						{
-							liveChatId: youtube?.liveChatId
-						},
-						message
-					);
-				}
-			}
+			this.runTimer(timer.id, {
+				timerId: timer.id,
+				name: timer.name,
+				platforms: timer.platforms,
+				firedAt: new Date().toISOString()
+			});
 		}
 	}
 }

@@ -42,6 +42,7 @@ export function bootApp(): Promise<void> {
 			await app.boot();
 			await app.actions.load();
 			await app.plugins.ready(app);
+			app.lifecycle.emitStarted();
 			await app.settings.load();
 
 			await initPluginDevWatcher();

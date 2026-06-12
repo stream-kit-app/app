@@ -7,10 +7,11 @@
 	import { tick } from 'svelte';
 
 	import { cn } from '../../utils';
-
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
+	import { DROPDOWN_SEARCH_THRESHOLD, filterSelectItems } from './select-dropdown-limits';
+	import SelectDropdownSearch from './select-dropdown-search.svelte';
 	import { DropdownScroll } from './use-dropdown-scroll.svelte';
 	import VirtualSelectItems from './virtual-select-items.svelte';
 
@@ -19,6 +20,9 @@
 		items: SelectItemsSource;
 		placeholder?: string;
 		loadingPlaceholder?: string;
+		searchPlaceholder?: string;
+		noResultsLabel?: string;
+		searchable?: boolean | 'auto';
 		prependIcon?: string;
 		id?: string;
 		class?: string;
@@ -48,6 +52,9 @@
 		items: itemsSource,
 		placeholder,
 		loadingPlaceholder,
+		searchPlaceholder,
+		noResultsLabel,
+		searchable = 'auto',
 		prependIcon,
 		contentProps,
 		id = useId(),
@@ -62,24 +69,73 @@
 
 	const resolvedPlaceholder = $derived(placeholder ?? 'Select an option');
 	const resolvedLoadingPlaceholder = $derived(loadingPlaceholder ?? 'Loading...');
+	const resolvedSearchPlaceholder = $derived(searchPlaceholder ?? 'Search values');
+	const resolvedNoResultsLabel = $derived(noResultsLabel ?? 'No matches found');
 
 	let open = $state(false);
+	let searchQuery = $state('');
+	let searchInputElement = $state<HTMLInputElement | null>(null);
+
 	const dropdownScroll = new DropdownScroll();
 
-	const resolvedItems = resolveSelectItems(() => itemsSource, () => reloadKey?.());
+	const resolvedItems = resolveSelectItems(
+		() => itemsSource,
+		() => reloadKey?.()
+	);
 	const disabled = $derived(disabledProp);
 	const selectedValue = $derived(type === 'multiple' ? undefined : (value as string | undefined));
+
+	const showSearch = $derived.by(() => {
+		if (searchable === true) {
+			return true;
+		}
+
+		if (searchable === false) {
+			return false;
+		}
+
+		return resolvedItems.items.length >= DROPDOWN_SEARCH_THRESHOLD;
+	});
+
+	const displayItems = $derived.by(() => {
+		if (resolvedItems.loading) {
+			return [];
+		}
+
+		if (!showSearch || !searchQuery.trim()) {
+			return resolvedItems.items;
+		}
+
+		return filterSelectItems(resolvedItems.items, searchQuery);
+	});
+
+	$effect(() => {
+		searchQuery;
+
+		if (!open) {
+			return;
+		}
+
+		dropdownScroll.resetScroll();
+	});
 
 	async function handleOpenChange(nextOpen: boolean) {
 		open = nextOpen;
 
 		if (!nextOpen) {
+			searchQuery = '';
 			dropdownScroll.resetScroll();
 			return;
 		}
 
 		await tick();
-		dropdownScroll.scrollToValue(resolvedItems.items, selectedValue);
+
+		if (showSearch) {
+			await tick();
+			searchInputElement?.focus();
+		}
+
+		dropdownScroll.scrollToValue(displayItems, selectedValue);
 	}
 </script>
 
@@ -149,10 +205,18 @@
 			sideOffset={contentProps?.sideOffset ?? 4}
 			class={cn(
 				'z-50 max-h-60 w-(--bits-select-anchor-width) min-w-(--bits-select-anchor-width)',
-				'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
+				'rounded-xl border border-dark-600 bg-dark-800 shadow-md outline-none',
 				contentProps?.class
 			)}
 		>
+			{#if showSearch && !resolvedItems.loading}
+				<SelectDropdownSearch
+					bind:query={searchQuery}
+					bind:inputElement={searchInputElement}
+					placeholder={resolvedSearchPlaceholder}
+					ariaLabel={resolvedSearchPlaceholder}
+				/>
+			{/if}
 			<Select.ScrollUpButton
 				class="flex w-full items-center justify-center py-1 text-dark-300"
 			>
@@ -161,17 +225,20 @@
 			<Select.Viewport
 				bind:ref={dropdownScroll.viewportRef}
 				onscroll={dropdownScroll.handleViewportScroll}
+				class=" p-[5px]"
 			>
 				{#if resolvedItems.loading}
 					<div class="px-3 py-1.5 text-sm text-dark-300">
 						{resolvedLoadingPlaceholder}
 					</div>
-				{:else if resolvedItems.items.length > 0}
+				{:else if displayItems.length > 0}
 					<VirtualSelectItems
-						items={resolvedItems.items}
+						items={displayItems}
 						scrollTop={dropdownScroll.scrollTop}
 						item={selectItem}
 					/>
+				{:else if showSearch && searchQuery.trim()}
+					<div class="px-3 py-1.5 text-sm text-dark-300">{resolvedNoResultsLabel}</div>
 				{/if}
 			</Select.Viewport>
 			<Select.ScrollDownButton
