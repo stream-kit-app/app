@@ -8,8 +8,8 @@ import { ApiClient as TwurpleApiClient } from '@twurple/api';
 import { StaticAuthProvider } from '@twurple/auth';
 import { ChatClient as TwurpleChatClient } from '@twurple/chat';
 import { EventSubWsListener as TwurpleEventSubWsListener } from '@twurple/eventsub-ws';
-import { PUBLIC_TWITCH_CLIENT_ID } from '$env/static/public';
 
+import { TWITCH_CLIENT_ID } from '../config';
 import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
 
 export type ValidatedTokenInfo = TokenInfo & { userId: string };
@@ -139,7 +139,7 @@ export function createTwitchPluginApi(
 		accessToken = nextAccessToken;
 		isConnected = true;
 
-		authProvider = new StaticAuthProvider(PUBLIC_TWITCH_CLIENT_ID, nextAccessToken, scopes);
+		authProvider = new StaticAuthProvider(TWITCH_CLIENT_ID, nextAccessToken, scopes);
 		client = new TwurpleApiClient({ authProvider });
 		chat = new TwurpleChatClient({ authProvider });
 		await chat.connect();
@@ -189,6 +189,15 @@ export function createTwitchPluginApi(
 			return eventSub;
 		},
 		async startOAuth() {
+			if (!TWITCH_CLIENT_ID) {
+				app.toast.create({
+					title: 'Twitch not configured',
+					description: 'Set TWITCH_CLIENT_ID in plugins/twitch/src/config.ts.',
+					variant: 'warning'
+				});
+				return;
+			}
+
 			isAuthenticating = true;
 			notify();
 
@@ -199,7 +208,7 @@ export function createTwitchPluginApi(
 			url.searchParams.set('response_type', 'token');
 			url.searchParams.set('redirect_uri', `http://localhost:${port}`);
 			url.searchParams.set('scope', scopes.join(' '));
-			url.searchParams.set('client_id', PUBLIC_TWITCH_CLIENT_ID);
+			url.searchParams.set('client_id', TWITCH_CLIENT_ID);
 			url.searchParams.set('state', state);
 
 			await app.opener.openUrl(url.toString());

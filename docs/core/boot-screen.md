@@ -43,6 +43,14 @@ The main window in [`tauri.conf.json`](../../packages/app/src-tauri/tauri.conf.j
 
 `isAppReady` is set to `true` when this completes. On failure, `bootError` is set and `BootScreen` shows the error with a reload retry.
 
+## Window reveal
+
+The main window starts small (480×200, frameless, centered, no native shadow) in [`tauri.conf.json`](../../packages/app/src-tauri/tauri.conf.json) to match the boot screen. On Windows, an undecorated window with `shadow: true` draws a 1px border artifact — `shadow: false` avoids that. `centerBootWindow()` also calls `setShadow(false)` on layout mount.
+
+When boot completes, [`revealMainWindow`](../../packages/app/src/lib/core/window/animate-window-size.ts) re-centers the window and animates the resize from that center point. The window stays frameless (`decorations: false`). After the resize finishes, `enableMainWindowPresentation()` turns the native shadow back on (Windows 11 also applies rounded window corners). The `app-window-ready` class on `<html>` clips the webview content to the same corner radius.
+
+Required Tauri capabilities: `core:window:allow-inner-size`, `core:window:allow-center`, plus existing size and decoration permissions.
+
 ## Maintaining visual parity
 
 When changing the boot screen design, update both:

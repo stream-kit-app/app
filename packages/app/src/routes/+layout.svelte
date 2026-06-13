@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
 
-	import { PhysicalSize } from '@tauri-apps/api/dpi';
-	import { getCurrentWindow } from '@tauri-apps/api/window';
+	import { dev } from '$app/environment';
 	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { onMount, tick } from 'svelte';
+	import { fade } from 'svelte/transition';
 
 	import { Logo } from '@stream-kit/ui/logo';
 	import * as Nav from '@stream-kit/ui/nav';
@@ -17,6 +17,11 @@
 	import { Modal } from '$lib/components/core/modal';
 	import { Toast } from '$lib/components/core/toast';
 	import { app, bootApp } from '$lib/core';
+	import {
+		centerBootWindow,
+		MAIN_WINDOW_CORNER_RADIUS_PX,
+		revealMainWindow
+	} from '$lib/core/window';
 	import { registerI18n, useI18n } from '$lib/i18n';
 
 	import './layout.css';
@@ -24,6 +29,7 @@
 	let { children, data }: LayoutProps = $props();
 
 	let isAppReady = $state(false);
+	let isRevealingWindow = $state(false);
 	let bootError = $state<string | null>(null);
 
 	registerI18n(() => data.i18n);
@@ -34,7 +40,10 @@
 	}
 
 	bootApp()
-		.then(() => {
+		.then(async () => {
+			isRevealingWindow = true;
+			await revealMainWindow();
+			isRevealingWindow = false;
 			isAppReady = true;
 		})
 		.catch((error) => {
@@ -48,12 +57,12 @@
 	}
 
 	onMount(async () => {
+		await centerBootWindow();
+
 		await tick();
 		requestAnimationFrame(() => {
 			document.getElementById('boot-splash')?.remove();
 		});
-
-		//await getCurrentWindow().setSize(new PhysicalSize(1680, 800));
 	});
 
 	beforeNavigate(() => {
@@ -61,12 +70,21 @@
 			modal.close();
 		}
 	});
+
+	$effect(() => {
+		document.documentElement.style.setProperty(
+			'--app-window-radius',
+			isAppReady ? `${MAIN_WINDOW_CORNER_RADIUS_PX}px` : '0px'
+		);
+
+		document.documentElement.classList.toggle('app-window-ready', isAppReady);
+	});
 </script>
 
-<BootScreen visible={!isAppReady} error={bootError} onRetry={retryBoot} />
+<BootScreen visible={!isAppReady || isRevealingWindow} error={bootError} onRetry={retryBoot} />
 
 {#if isAppReady}
-	<div class="relative isolate h-screen w-screen overflow-hidden">
+	<div class="relative isolate h-screen w-screen overflow-hidden" in:fade={{ duration: 300 }}>
 		<div class="boot-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true"></div>
 
 		<TooltipProvider>

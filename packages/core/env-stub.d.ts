@@ -1,7 +1,3 @@
-declare module '$env/static/public' {
-	export const PUBLIC_TWITCH_CLIENT_ID: string;
-}
-
 declare module '@stream-kit/core' {
 	export function interpolateVariables(
 		template: string,

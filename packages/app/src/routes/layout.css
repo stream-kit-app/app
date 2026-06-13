@@ -182,6 +182,12 @@
 		@apply bg-background font-sans text-foreground antialiased;
 	}
 
+	html.app-window-ready,
+	html.app-window-ready body {
+		border-radius: var(--app-window-radius, 0px);
+		overflow: hidden;
+	}
+
 	:where(
 		button,
 		[data-button-root],

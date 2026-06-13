@@ -9,9 +9,7 @@ node_modules
 /packages/*/dist
 /plugins/*/dist
 /package
-.env
-.env.*
-!.env.example
+plugins/twitch/src/config.ts
 plugins/youtube/src/config.ts
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*

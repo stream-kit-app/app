@@ -24,7 +24,7 @@
 		aria-live={error ? 'assertive' : 'polite'}
 		aria-busy={error ? undefined : 'true'}
 		aria-label={error ? t('Could not start Stream Kit') : t('Loading…')}
-		out:fade={{ duration: 75, delay: 200 }}
+		out:fade={{ duration: 150 }}
 	>
 		<div class="boot-grid" aria-hidden="true"></div>
 

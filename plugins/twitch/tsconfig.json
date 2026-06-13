@@ -13,8 +13,7 @@
 		"paths": {
 			"@stream-kit/app/api": ["../../packages/core/dist/index.d.ts"],
 			"$db/*": ["../../packages/app/src/db/*"],
-			"$lib/*": ["../../packages/app/src/lib/*"],
-			"$env/static/public": ["../../packages/app/.svelte-kit/ambient.d.ts"]
+			"$lib/*": ["../../packages/app/src/lib/*"]
 		}
 	},
 	"include": ["src"]
