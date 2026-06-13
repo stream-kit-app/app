@@ -16,7 +16,8 @@
 				"title": "Stream Kit",
 				"width": 1680,
 				"height": 800,
-				"devtools": true
+				"devtools": true,
+				"backgroundColor": "#0f0f12"
 			}
 		],
 		"security": {

@@ -28,7 +28,7 @@
 	>
 		<div class="boot-grid" aria-hidden="true"></div>
 
-		<div class="boot-enter relative z-10 flex flex-col items-center gap-8 px-6">
+		<div class="relative z-10 flex flex-col items-center gap-8 px-6">
 			<Logo />
 
 			{#if error}
@@ -77,20 +77,6 @@
 		animation: boot-bar-slide 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 	}
 
-	.boot-enter {
-		animation: boot-enter 0.4s ease-out both;
-	}
-
-	@keyframes boot-enter {
-		from {
-			opacity: 0;
-		}
-
-		to {
-			opacity: 1;
-		}
-	}
-
 	@keyframes boot-bar-slide {
 		from {
 			translate: -110% 0;
@@ -102,8 +88,7 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.boot-bar-fill,
-		.boot-enter {
+		.boot-bar-fill {
 			animation: none;
 		}
 	}

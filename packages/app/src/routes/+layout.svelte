@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
 
+	import { getCurrentWindow } from '@tauri-apps/api/window';
 	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 
 	import { Logo } from '@stream-kit/ui/logo';
 	import * as Nav from '@stream-kit/ui/nav';
@@ -45,8 +46,13 @@
 		window.location.reload();
 	}
 
-	onMount(() => {
-		document.getElementById('boot-splash')?.remove();
+	onMount(async () => {
+		await tick();
+		requestAnimationFrame(() => {
+			document.getElementById('boot-splash')?.remove();
+		});
+
+		const window = await getCurrentWindow();
 	});
 
 	beforeNavigate(() => {

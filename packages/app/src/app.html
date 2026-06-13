@@ -11,37 +11,128 @@
 			rel="stylesheet"
 		/>
 		<title>Tauri + SvelteKit + Typescript App</title>
-		%sveltekit.head%
-	</head>
-	<body data-sveltekit-preload-data="hover" class="bg-background text-foreground">
-		<div
-			id="boot-splash"
-			aria-hidden="true"
-			style="
+		<style>
+			#boot-splash {
 				position: fixed;
 				inset: 0;
 				z-index: 200;
+				display: flex;
+				align-items: center;
+				justify-content: center;
 				overflow: hidden;
 				background: oklch(0.06 0.004 264);
-			"
-		>
-			<div
-				style="
-					position: absolute;
-					inset: -20%;
-					background:
-						radial-gradient(
-							circle at 30% 35%,
-							oklch(0.38 0.16 255 / 0.22),
-							transparent 42%
-						),
-						radial-gradient(
-							circle at 70% 65%,
-							oklch(0.85 0.18 95 / 0.12),
-							transparent 38%
-						);
-				"
-			></div>
+			}
+
+			#boot-splash .boot-grid {
+				position: absolute;
+				inset: 0;
+				background-image:
+					linear-gradient(oklch(0.98 0.002 264 / 0.08) 1px, transparent 1px),
+					linear-gradient(90deg, oklch(0.98 0.002 264 / 0.08) 1px, transparent 1px);
+				background-size: 48px 48px;
+				mask-image: radial-gradient(circle at center, black 100%, transparent 72%);
+			}
+
+			#boot-splash .boot-content {
+				position: relative;
+				z-index: 10;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 2rem;
+				padding-inline: 1.5rem;
+			}
+
+			#boot-splash .boot-logo {
+				display: grid;
+				grid-template-columns: 50px auto;
+				align-items: center;
+				gap: 0.5rem;
+			}
+
+			#boot-splash .boot-logo img {
+				display: block;
+				width: 50px;
+				height: 50px;
+			}
+
+			#boot-splash .boot-logo span {
+				font-family: 'Outfit', sans-serif;
+				font-size: 1.125rem;
+				font-weight: 600;
+				letter-spacing: 0.025em;
+				text-transform: uppercase;
+				color: oklch(0.98 0.002 264);
+			}
+
+			#boot-splash .boot-status {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.75rem;
+				width: 100%;
+			}
+
+			#boot-splash .boot-bar {
+				position: relative;
+				width: 10rem;
+				height: 2px;
+				border-radius: 9999px;
+				background: oklch(0.3 0.015 264 / 0.6);
+				overflow: hidden;
+			}
+
+			#boot-splash .boot-bar-fill {
+				position: absolute;
+				inset-block: 0;
+				width: 40%;
+				border-radius: 9999px;
+				background: #fffa00;
+				animation: boot-bar-slide 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+			}
+
+			#boot-splash .boot-label {
+				font-family: 'Outfit', sans-serif;
+				font-size: 0.75rem;
+				font-weight: 500;
+				letter-spacing: 0.2em;
+				text-transform: uppercase;
+				color: oklch(0.55 0.015 264);
+			}
+
+			@keyframes boot-bar-slide {
+				from {
+					translate: -110% 0;
+				}
+
+				to {
+					translate: 260% 0;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				#boot-splash .boot-bar-fill {
+					animation: none;
+				}
+			}
+		</style>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover" class="bg-background text-foreground">
+		<div id="boot-splash" aria-hidden="true">
+			<div class="boot-grid" aria-hidden="true"></div>
+			<div class="boot-content">
+				<div class="boot-logo">
+					<img src="/logo.svg" width="50" height="50" alt="" />
+					<span>Stream Kit</span>
+				</div>
+				<div class="boot-status">
+					<div class="boot-bar" aria-hidden="true">
+						<div class="boot-bar-fill"></div>
+					</div>
+					<p class="boot-label">Loading…</p>
+				</div>
+			</div>
 		</div>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
