@@ -9,8 +9,6 @@ node_modules
 /packages/*/dist
 /plugins/*/dist
 /package
-plugins/twitch/src/config.ts
-plugins/youtube/src/config.ts
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /src-tauri
