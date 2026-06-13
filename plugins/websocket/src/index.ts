@@ -1,4 +1,4 @@
-import type { Plugin, PluginPageDefinition } from '@stream-kit/app/api';
+import type { Plugin, PluginPageDefinition } from '@stream-kit/plugin';
 
 import { Connection } from './app/lib/connection.svelte';
 import { Connections } from './app/lib/connections.svelte';
@@ -13,6 +13,7 @@ import { loadConnections } from './lib/connections';
 import { createConnectedTrigger } from './trigger/connected';
 import { createDisconnectedTrigger } from './trigger/disconnected';
 import { createMessageReceivedTrigger } from './trigger/message-received';
+import { setConnectionsService } from './lib/instances';
 import { configureFieldValueResolver } from './get-field-value';
 
 export type { WsMessageContext, WsConnectionStateContext } from './contexts';
@@ -132,16 +133,15 @@ const plugin: Plugin = (app) => {
 				children: [createSendMessageHandler(app)]
 			}
 		],
-		onBoot: async ({ store }) => {
+		onEnable: async ({ store }) => {
 			controller = createWebSocketPluginController(app);
 			connectionsService = new Connections(store, controller, app);
+			setConnectionsService(connectionsService);
 			await controller.boot(store);
 			await connectionsService.load();
+			await controller.connectAutoConnect();
 		},
 		onReady: async () => {
-			await controller?.connectAutoConnect();
-		},
-		onEnable: async () => {
 			await controller?.connectAutoConnect();
 		},
 		onDisable: async () => {

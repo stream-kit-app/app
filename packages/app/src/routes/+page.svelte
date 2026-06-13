@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CorePluginApi } from '@stream-kit/app/api';
+	import type { CorePluginApi } from '@stream-kit/plugin';
 	import type { BotPluginRegistrationApi } from '@stream-kit/plugin-bot';
 	import type { ObsPluginApi } from '@stream-kit/plugin-obs';
 	import type { WebSocketPluginApi } from '@stream-kit/plugin-websocket';

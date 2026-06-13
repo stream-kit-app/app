@@ -1,16 +1,16 @@
-import type { StoredActionHandler } from '$lib/core/action/stored-action';
+import type { StoredActionHandler } from '@stream-kit/plugin/action';
 
 export type TimerPlatform = 'twitch' | 'youtube';
 
 export type TimerTriggerContext = {
-	timerId: number;
+	timerId: string;
 	name: string;
 	platforms: TimerPlatform[];
 	firedAt: string;
 };
 
 export type TimerRecord = {
-	id: number;
+	id: string;
 	name: string;
 	handlers: StoredActionHandler[];
 	intervalMinSec: number;

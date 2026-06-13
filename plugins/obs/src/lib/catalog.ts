@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { SelectItem } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { SelectItem } from '@stream-kit/plugin';
 
 import { getObsClient } from './obs-call';
 

@@ -1,4 +1,4 @@
-import type { CorePluginApi } from '@stream-kit/app/api';
+import type { CorePluginApi } from '@stream-kit/plugin';
 import type { HandlerFieldVariable } from '@stream-kit/ui/types';
 
 import type { App } from '../app.svelte';

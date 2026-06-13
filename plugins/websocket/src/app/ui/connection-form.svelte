@@ -4,15 +4,15 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import { getConnectionsService } from '../lib/get-connections';
 
 	type Props = {
 		connection: Connection;
 	};
 
 	let { connection }: Props = $props();
-	const { t } = useI18n();
+	const app = getConnectionsService().requireApp();
+	const t = app.i18n.t;
 
 	const duplicateWarning = $derived(
 		connection.url.trim() ? connection.getDuplicateWarning() : undefined

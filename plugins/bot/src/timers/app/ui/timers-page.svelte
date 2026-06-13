@@ -6,24 +6,18 @@
 	import { Heading } from '@stream-kit/ui/heading';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
 	import { Timer } from '../lib/timer.svelte';
 	import { tryGetTimersService } from '../lib/get-timers';
 	import TimerCard from './timer-card.svelte';
 
-	type Props = {
-		title?: string;
-		description?: string;
-	};
-
-	let { title, description }: Props = $props();
-	const { t } = useI18n();
+	let { app, title, description }: PluginCustomViewProps = $props();
+	const t = $derived(app.i18n.t);
 
 	const timers = $derived(tryGetTimersService());
-	const selectedIds = new SvelteSet<number>();
-	let anchorId: number | null = null;
+	const selectedIds = new SvelteSet<string>();
+	let anchorId: string | null = null;
 
 	const selectableTimers = $derived((timers?.items ?? []).filter((timer) => timer.id != null));
 	const orderedSelectableIds = $derived(selectableTimers.map((timer) => timer.id!));
@@ -33,12 +27,12 @@
 	);
 	const hasSelection = $derived(selectedIds.size > 0);
 
-	function setSelected(id: number, selected: boolean): void {
+	function setSelected(id: string, selected: boolean): void {
 		if (selected) selectedIds.add(id);
 		else selectedIds.delete(id);
 	}
 
-	function selectRange(id: number, selected: boolean): void {
+	function selectRange(id: string, selected: boolean): void {
 		if (anchorId == null) {
 			setSelected(id, selected);
 			anchorId = id;
@@ -65,7 +59,7 @@
 		anchorId = id;
 	}
 
-	function handleSelectedChange(id: number, selected: boolean, shiftKey: boolean): void {
+	function handleSelectedChange(id: string, selected: boolean, shiftKey: boolean): void {
 		if (shiftKey) selectRange(id, selected);
 		else {
 			setSelected(id, selected);

@@ -1,5 +1,5 @@
 import type { CustomModRuleParameters, ModRuleRecord } from '../moderation/app/lib/stored-mod-rule';
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import { evaluateWith } from './evaluate-conditions';
 import { createModerationEvaluators, DEFAULT_EXEMPT_ROLES } from './moderation-conditions';
@@ -50,7 +50,7 @@ function sortRules(rules: ModRuleRecord[]): ModRuleRecord[] {
 			return left.priority - right.priority;
 		}
 
-		return left.id - right.id;
+		return left.id.localeCompare(right.id);
 	});
 }
 

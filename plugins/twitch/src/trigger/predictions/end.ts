@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { TriggerDefinitionProps } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { TriggerDefinitionProps } from '@stream-kit/plugin';
 
 import { subscribePredictionEnd } from '../../lib/eventsub-setup';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';

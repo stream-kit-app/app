@@ -1,4 +1,4 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import { isOnCooldown, markCooldown, type CooldownState } from '../commands/lib/cooldown';
 import type { BotSettings } from '../settings/bot-settings';
@@ -21,7 +21,7 @@ type YouTubeStreamApi = {
 };
 
 const BUILTIN_COOLDOWN_MS = 5_000;
-const BUILTIN_COMMAND_ID = -1;
+const BUILTIN_COMMAND_ID = '__builtin__';
 
 type BuiltinContext = {
 	userId: string;

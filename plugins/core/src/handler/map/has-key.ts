@@ -1,4 +1,4 @@
-import type { HandlerDefinitionProps } from '@stream-kit/core';
+import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import type { CorePluginContext } from '../../lib/core-context';

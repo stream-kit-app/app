@@ -1,4 +1,4 @@
-import type { TriggerDefinitionProps } from '@stream-kit/core';
+import type { TriggerDefinitionProps } from '@stream-kit/plugin';
 
 import type { MapStore } from '../lib/maps/map-store';
 import type { MapCreatedContext } from '../lib/maps/types';

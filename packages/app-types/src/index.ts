@@ -1,1 +1,1 @@
-export type * from '@stream-kit/app/api';
+export type * from '@stream-kit/plugin';

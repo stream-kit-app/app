@@ -1,4 +1,4 @@
-import type { CorePluginApi, PluginAppApi } from '@stream-kit/app/api';
+import type { CorePluginApi, PluginAppApi } from '@stream-kit/plugin';
 import {
 	getFieldValue as getFieldValueCore,
 	interpolateVariables,

@@ -12,18 +12,18 @@
 		Label
 	} from '@stream-kit/ui/input';
 
-	import DefinitionPickerDropdown from '$lib/components/core/action/definition-picker-dropdown.svelte';
-	import HandlerFieldGroup from '$lib/components/core/action/handler-field-group.svelte';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import DefinitionPickerDropdown from '@stream-kit/plugin/action-ui/definition-picker-dropdown.svelte';
+	import HandlerFieldGroup from '@stream-kit/plugin/action-ui/handler-field-group.svelte';
+	import { getCommandsService } from '../lib/get-commands';
+	import { cn } from '@stream-kit/plugin/utils';
 
 	type Props = {
 		command: Command;
 	};
 
 	let { command }: Props = $props();
-	const { t } = useI18n();
+	const app = getCommandsService().requireApp();
+	const t = app.i18n.t;
 
 	const roleItems = [
 		{ value: 'everyone', label: t('Everyone') },
@@ -34,7 +34,7 @@
 	];
 
 	function addHandler(definition: { id: string }) {
-		const found = getApp().actions.actions.find(definition.id);
+		const found = app.actions.findHandler(definition.id);
 
 		if (!found || found.isGroup || !found.isAvailable) {
 			return;
@@ -48,7 +48,7 @@
 	}
 
 	async function handleDelete() {
-		const confirmed = await getApp().confirm.ask({
+		const confirmed = await app.confirm.ask({
 			title: t('Delete command'),
 			description: t('Are you sure you want to delete "{name}"? This cannot be undone.', {
 				name: command.name.trim() || t('this command')
@@ -89,7 +89,7 @@
 			<Label>{t('Handlers')}</Label>
 			<DefinitionPickerDropdown
 				label={t('Add Handler')}
-				definitions={getApp().actions.actions.items}
+				definitions={app.actions.getHandlers()}
 				onSelect={addHandler}
 			/>
 		</div>

@@ -1,0 +1,27 @@
+{
+	"extends": "../app/.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"paths": {
+			"@stream-kit/core": ["../core/src/index.ts"],
+			"@stream-kit/plugin": ["./src/index.ts"],
+			"@stream-kit/plugin/action": ["./stubs/action.d.ts"],
+			"@stream-kit/plugin/utils": ["./stubs/utils.d.ts"],
+			"$db": ["../app/src/db"],
+			"$db/*": ["../app/src/db/*"],
+			"$lib": ["../app/src/lib"],
+			"$lib/locales/en.json": ["./stubs/locale-en.d.ts"],
+			"$lib/locales/nl.json": ["./stubs/locale-nl.d.ts"],
+			"$lib/*": ["../app/src/lib/*"]
+		}
+	},
+	"include": [
+		"./env-stub.d.ts",
+		"./src/**/*.ts",
+		"../app/src/lib/**/*.ts",
+		"../app/src/lib/**/*.svelte.ts",
+		"../ui/src/**/*.ts"
+	]
+}

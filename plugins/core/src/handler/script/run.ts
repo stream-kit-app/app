@@ -1,5 +1,5 @@
-import type { HandlerDefinitionProps } from '@stream-kit/core';
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { HandlerDefinitionProps } from '@stream-kit/plugin';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import { getFieldValue } from '../../get-field-value';
 import { runUserScript, SCRIPT_TEMPLATE } from '../../lib/run-code';

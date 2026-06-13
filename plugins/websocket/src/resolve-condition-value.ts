@@ -1,4 +1,5 @@
-import { interpolateVariables, type FieldValue } from '@stream-kit/core';
+import { interpolateVariables } from '@stream-kit/core';
+import { type FieldValue } from '@stream-kit/plugin';
 
 import { contextToVariables } from './lib/variables';
 

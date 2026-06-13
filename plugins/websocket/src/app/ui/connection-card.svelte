@@ -7,8 +7,8 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { getConnectionsService } from '../lib/get-connections';
+	import { cn } from '@stream-kit/plugin/utils';
 
 	type Props = {
 		connection: Connection;
@@ -16,7 +16,7 @@
 	};
 
 	let { connection, connections }: Props = $props();
-	const { t } = useI18n();
+	const t = getConnectionsService().requireApp().i18n.t;
 
 	const status = $derived.by(() => {
 		connections.revision;

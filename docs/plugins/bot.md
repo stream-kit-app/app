@@ -7,6 +7,8 @@ The **Bot** plugin (`@stream-kit/plugin-bot`) provides chat bot functionality: c
 - **Twitch** or **YouTube** plugin connected (either platform is sufficient)
 - Both platforms can be used together when connected
 
+The manifest keeps `dependencies: []` because Twitch and YouTube are **optional runtime integrations**. The Bot plugin detects them with `app.plugins.tryGet('twitch')` and `app.plugins.tryGet('youtube')` and reports configured when at least one platform is connected. This avoids hard install-order requirements while still allowing either platform alone.
+
 ## Pages
 
 Open **Bot** in the sidebar (under plugin menu items):

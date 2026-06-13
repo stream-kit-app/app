@@ -1,6 +1,6 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { ActionTrigger, TriggerDefinitionProps } from '@stream-kit/core';
-import type { ConditionGroupNode } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { ActionTrigger, TriggerDefinitionProps } from '@stream-kit/plugin';
+import type { ConditionGroupNode } from '@stream-kit/plugin';
 
 import type { ChatModerationContext } from '../lib/moderation-engine';
 import {
@@ -26,7 +26,7 @@ export function createChatMessageTrigger(app: PluginAppApi) {
 		name: 'Chat message',
 		conditions: [...moderationConditionDefinitions],
 		validate: (conditions: ConditionGroupNode, context, trigger?: ActionTrigger) => {
-			const stateKey = trigger ? hashTriggerId(trigger.id) : 0;
+			const stateKey = trigger ? hashTriggerId(trigger.id) : 'default';
 
 			return evaluateWith(
 				conditions,

@@ -1,0 +1,10 @@
+{
+	"key": "bot",
+	"name": "Bot",
+	"version": "0.1.1-alpha.2",
+	"description": "Chat bot with commands, timers, and moderation.",
+	"icon": "at-icons:bot",
+	"entry": "dist/index.js",
+	"dependencies": [],
+	"streamKitVersion": "0.1.0"
+}

@@ -1,5 +1,5 @@
 import type { StreamElementsVoice } from './types';
-import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
+import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
 import { TtsPlayer } from '../player';
 import { fetchStreamElementsSpeech, fetchStreamElementsVoices } from './api';

@@ -1,4 +1,4 @@
-import type { Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/plugin';
 
 import { createGreetHandler } from './handler/greet';
 
@@ -287,7 +287,7 @@ const plugin: Plugin = (app) => {
 			}
 		],
 		isConfigured: () => true,
-		onBoot: () => {
+		onEnable: () => {
 			app.toast.create({
 				title: 'Hello World',
 				description: 'The example plugin is active.',

@@ -1,4 +1,4 @@
-import type { HandlerFieldInstance, HandlerTriggerContext, KeyValueEntry } from '@stream-kit/app/api';
+import type { HandlerFieldInstance, HandlerTriggerContext, KeyValueEntry } from '@stream-kit/plugin';
 import { interpolateVariables } from '@stream-kit/core';
 
 import { getFieldValue } from '../get-field-value';

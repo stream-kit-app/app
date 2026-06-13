@@ -1,4 +1,4 @@
-import type { ConditionGroupNode } from '@stream-kit/app/api';
+import type { ConditionGroupNode } from '@stream-kit/plugin';
 
 import {
 	computeNextRun,

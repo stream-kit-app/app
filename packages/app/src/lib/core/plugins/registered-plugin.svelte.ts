@@ -48,7 +48,6 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	private isConfiguredResolver?: PluginRegistration<TApi>['isConfigured'];
 	private onLoad?: PluginRegistration<TApi>['onLoad'];
 	private onSave?: PluginRegistration<TApi>['onSave'];
-	private onBoot?: PluginRegistration<TApi>['onBoot'];
 	private onReady?: PluginRegistration<TApi>['onReady'];
 	private onEnable?: PluginRegistration<TApi>['onEnable'];
 	private onDisable?: PluginRegistration<TApi>['onDisable'];
@@ -72,10 +71,10 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		legacyStores: LazyStore[] = [],
 		options: RegisterPluginOptions = {}
 	) {
-		this.source = options.source ?? 'builtin';
+		this.source = options.source ?? 'installed';
 		this.installPath = options.installPath;
 		this.version = options.version;
-		this.defaultEnabled = this.source === 'builtin';
+		this.defaultEnabled = false;
 		this.isEnabled = this.defaultEnabled;
 		this.key = key;
 		this.name = props.name;
@@ -87,7 +86,6 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.isConfiguredResolver = props.isConfigured;
 		this.onLoad = props.onLoad;
 		this.onSave = props.onSave;
-		this.onBoot = props.onBoot;
 		this.onReady = props.onReady;
 		this.onEnable = props.onEnable;
 		this.onDisable = props.onDisable;
@@ -271,7 +269,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 			return;
 		}
 
-		await this.onBoot?.(this.createContext(app));
+		await this.onEnable?.(this.createContext(app));
 		this.hasBooted = true;
 	}
 
@@ -292,11 +290,10 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 			this.registerDefinitions(app);
 			await this.boot(app);
 			await this.ready(app);
-			await this.onEnable?.(this.createContext(app));
 		} else {
 			await this.onDisable?.(this.createContext(app));
 			this.unregisterDefinitions(app);
-			// Allow onBoot/onReady to run again the next time the plugin is enabled.
+			// Allow onEnable/onReady to run again the next time the plugin is enabled.
 			this.hasBooted = false;
 			this.hasReadied = false;
 		}

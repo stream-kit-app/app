@@ -1,4 +1,4 @@
-import type { ConditionGroupNode, TriggerDefinitionProps } from '@stream-kit/core';
+import type { ConditionGroupNode, TriggerDefinitionProps } from '@stream-kit/plugin';
 
 import type { MapStore } from '../lib/maps/map-store';
 import type { MapChangedContext } from '../lib/maps/types';

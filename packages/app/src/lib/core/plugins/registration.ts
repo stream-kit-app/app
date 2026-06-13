@@ -37,7 +37,6 @@ const registrationSchema = z
 		isConfigured: z.function().optional(),
 		onLoad: z.function().optional(),
 		onSave: z.function().optional(),
-		onBoot: z.function().optional(),
 		onReady: z.function().optional(),
 		onEnable: z.function().optional(),
 		onDisable: z.function().optional(),

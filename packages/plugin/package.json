@@ -1,0 +1,40 @@
+{
+	"name": "@stream-kit/plugin",
+	"version": "0.1.0-alpha.0",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./action": {
+			"types": "./stubs/action.d.ts"
+		},
+		"./utils": {
+			"types": "./stubs/utils.d.ts"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"prebuild": "pnpm --filter @stream-kit/app exec svelte-kit sync",
+		"build": "dts-bundle-generator --config dts-bundle.json && node scripts/build-runtime.mjs",
+		"check": "pnpm build && tsc --noEmit -p tsconfig.json",
+		"dev": "chokidar \"../app/src/lib/**/*.{ts,svelte.ts}\" \"src/**/*.ts\" -c \"pnpm build\" --initial"
+	},
+	"dependencies": {
+		"@stream-kit/core": "workspace:*"
+	},
+	"devDependencies": {
+		"@stream-kit/app": "workspace:*",
+		"@stream-kit/ui": "workspace:*",
+		"@types/node": "^24.12.4",
+		"chokidar-cli": "^3.0.0",
+		"dts-bundle-generator": "^9.5.1",
+		"esbuild": "^0.25.12",
+		"svelte": "^5.56.1",
+		"typescript": "~6.0.3"
+	}
+}

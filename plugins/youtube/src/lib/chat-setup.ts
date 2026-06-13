@@ -15,7 +15,7 @@ import type {
 } from '../contexts';
 import type { YouTubeApiClient } from './api-client';
 import type { YouTubeChannelInfo, YouTubeLiveChatMessage, YouTubeLiveStreamInfo } from './types';
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import { YOUTUBE_EVENTS } from './event-hub';
 import { resolveUserRole } from './role';

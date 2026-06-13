@@ -1,4 +1,4 @@
-import type { ConditionDefinition, FieldValue } from '@stream-kit/core';
+import type { ConditionDefinition, FieldValue } from '@stream-kit/plugin';
 
 import type { ProcessEventContext } from '../contexts';
 import { matchText } from './match-text';

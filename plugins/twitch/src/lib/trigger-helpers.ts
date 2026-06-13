@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@stream-kit/plugin';
 
 import { getTwitch } from './plugin-api';
 

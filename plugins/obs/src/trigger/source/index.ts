@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { TriggerDefinitionProps } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { TriggerDefinitionProps } from '@stream-kit/plugin';
 
 import { OBS_EVENTS } from '../../lib/event-hub';
 import { createInputMatchTrigger, createMediaMatchTrigger } from '../../lib/match-triggers';

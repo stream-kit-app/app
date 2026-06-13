@@ -1,4 +1,4 @@
-import type { Action, ActionTrigger } from '@stream-kit/core';
+import type { Action, ActionTrigger } from '@stream-kit/plugin';
 
 import type { ScheduleEventContext } from '../contexts';
 import { computeNextRun } from './compute-next-run';

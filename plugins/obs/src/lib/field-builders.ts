@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
 import { loadHotkeyItems, loadInputItems, loadSceneItems, loadTransitionItems } from './catalog';
 import {

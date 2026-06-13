@@ -1,1 +1,1 @@
-export type { ActionLogAppendInput, ActionLogEntry, ActionLogLevel } from '@stream-kit/app/api';
+export type { ActionLogAppendInput, ActionLogEntry, ActionLogLevel } from '@stream-kit/plugin';

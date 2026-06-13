@@ -1,9 +1,10 @@
-import type { Plugin, PluginPageDefinition } from '@stream-kit/app/api';
+import type { Plugin, PluginPageDefinition } from '@stream-kit/plugin';
 import type { Component } from 'svelte';
 
 import { Commands } from './commands/app/lib/commands.svelte';
 import CommandsPage from './commands/app/ui/commands-page.svelte';
 import { createChatRuntime } from './lib/chat-runtime';
+import { botSettings, commands, moderation, timers } from './lib/instances';
 import { TimerScheduler } from './lib/timer-scheduler';
 import { ModerationRules } from './moderation/app/lib/moderation-rules.svelte';
 import ModerationPage from './moderation/app/ui/moderation-page.svelte';
@@ -45,10 +46,10 @@ const moderationPageDef = {
 } satisfies PluginPageDefinition;
 
 export function botPlugin(
-	commands: Commands,
-	timers: Timers,
-	moderation: ModerationRules,
-	botSettings: BotSettings,
+	commandsService: Commands,
+	timersService: Timers,
+	moderationService: ModerationRules,
+	settings: BotSettings,
 	overviewPageComponent: Component = OverviewPage,
 	commandsPageComponent: Component = CommandsPage,
 	timersPageComponent: Component = TimersPage,
@@ -56,22 +57,37 @@ export function botPlugin(
 ): Plugin {
 	let timerScheduler: TimerScheduler | undefined;
 
+	function ensureTimerScheduler(pluginApp: Parameters<Plugin>[0]): TimerScheduler {
+		if (!timerScheduler) {
+			timerScheduler = new TimerScheduler(
+				pluginApp,
+				settings,
+				() => timersService.getSnapshot(),
+				(id, data) => {
+					timersService.runById(id, { trigger: 'Timer', data });
+				}
+			);
+		}
+
+		return timerScheduler;
+	}
+
 	function activateRuntime(pluginApp: Parameters<Plugin>[0]): void {
-		commands.registerRuntime((app) =>
+		commandsService.registerRuntime((app) =>
 			createChatRuntime(app, {
-				settings: botSettings,
-				fetchModRules: () => moderation.fetchRecords(),
-				getCommands: () => commands.getSnapshot(),
+				settings,
+				fetchModRules: () => moderationService.fetchRecords(),
+				getCommands: () => commandsService.getSnapshot(),
 				timerScheduler
 			})
 		);
-		commands.deactivate();
-		commands.activate(pluginApp);
+		commandsService.deactivate();
+		commandsService.activate(pluginApp);
 		timerScheduler?.start();
 	}
 
 	function deactivateRuntime(): void {
-		commands.deactivate();
+		commandsService.deactivate();
 		timerScheduler?.stop();
 	}
 
@@ -84,7 +100,7 @@ export function botPlugin(
 			{
 				name: 'Bot',
 				children: [
-					createModerationRuleTrigger(app, moderation),
+					createModerationRuleTrigger(app, moderationService),
 					createChatMessageTrigger(app)
 				]
 			}
@@ -96,10 +112,10 @@ export function botPlugin(
 			return Boolean(twitch?.isConnected || youtube?.isConnected);
 		},
 		api: {
-			commands,
-			timers,
-			moderation,
-			settings: botSettings
+			commands: commandsService,
+			timers: timersService,
+			moderation: moderationService,
+			settings
 		},
 		customViews: {
 			overview: overviewPageComponent,
@@ -131,32 +147,24 @@ export function botPlugin(
 				]
 			}
 		],
-		onLoad: async ({ store }) => {
-			await botSettings.load(store);
-			await Promise.all([commands.load(), timers.load(), moderation.load()]);
-		},
-		onBoot: async (context) => {
-			timerScheduler = new TimerScheduler(
-				context.app,
-				botSettings,
-				() => timers.getSnapshot(),
-				(id, data) => {
-					timers.runById(id, { trigger: 'Timer', data });
-				}
-			);
-			await moderation.load();
-			activateRuntime(context.app);
+		onLoad: async ({ app: pluginApp, store }) => {
+			commandsService.bind(store, pluginApp);
+			timersService.bind(store, pluginApp);
+			moderationService.bind(store, pluginApp);
+			await settings.load(store);
+			await Promise.all([
+				commandsService.load(),
+				timersService.load(),
+				moderationService.load()
+			]);
 		},
 		onEnable: async (context) => {
-			await Promise.all([commands.load(), timers.load(), moderation.load()]);
-			timerScheduler = new TimerScheduler(
-				context.app,
-				botSettings,
-				() => timers.getSnapshot(),
-				(id, data) => {
-					timers.runById(id, { trigger: 'Timer', data });
-				}
-			);
+			ensureTimerScheduler(context.app);
+			await Promise.all([
+				commandsService.load(),
+				timersService.load(),
+				moderationService.load()
+			]);
 			activateRuntime(context.app);
 		},
 		onReady: (context) => {
@@ -164,11 +172,12 @@ export function botPlugin(
 		},
 		onDisable: () => {
 			deactivateRuntime();
+			timerScheduler = undefined;
 		},
 		onSave: async ({ store }) => {
-			await botSettings.save(store);
+			await settings.save(store);
 		}
 	});
 }
 
-export default botPlugin;
+export default botPlugin(commands, timers, moderation, botSettings);

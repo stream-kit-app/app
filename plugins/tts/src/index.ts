@@ -1,4 +1,4 @@
-import type { Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/plugin';
 
 import { configureFieldValueResolver } from './get-field-value';
 import { createElevenLabsSpeakHandler } from './handler/elevenlabs/speak';
@@ -18,7 +18,7 @@ export const SETTINGS_KEY = 'tts';
 const plugin: Plugin = (app) => {
 	configureFieldValueResolver(app);
 	// Make the app bridge available before any lifecycle hook runs (onLoad
-	// refreshes voices before onBoot, which is where the service is fully booted).
+	// refreshes voices before onEnable, which is where the service is fully started).
 	local.setApp(app);
 
 	return {
@@ -310,7 +310,7 @@ const plugin: Plugin = (app) => {
 			await elevenlabs.syncFromStore();
 			await local.syncFromStore();
 		},
-		onBoot: async ({ store }) => {
+		onEnable: async ({ store }) => {
 			await streamelements.boot(app, store);
 			await elevenlabs.boot(app, store);
 			await local.boot(app, store);

@@ -1,7 +1,7 @@
 import type { YouTubeApiClient } from './api-client';
 import type { YouTubeChannelInfo, YouTubeLiveStreamInfo } from './types';
 import type { ChatMessageContext } from '../contexts';
-import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
+import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
 import { YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET } from '../config';
 import {

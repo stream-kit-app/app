@@ -12,6 +12,9 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig(async () => ({
 	plugins: [tailwindcss(), sveltekit()],
+	define: {
+		'import.meta.env.VITE_STREAM_KIT_WORKSPACE_ROOT': JSON.stringify(workspaceRoot)
+	},
 	// Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
 	//
 	// 1. prevent Vite from obscuring rust errors
@@ -40,16 +43,6 @@ export default defineConfig(async () => ({
 		]
 	},
 	ssr: {
-		noExternal: [
-			'@stream-kit/app',
-			'@stream-kit/ui',
-			'@stream-kit/plugin-commands',
-			'@stream-kit/plugin-obs',
-			'@stream-kit/plugin-twitch',
-			'@stream-kit/plugin-youtube',
-			'@stream-kit/plugin-tts',
-			'@stream-kit/plugin-handlers',
-			'@stream-kit/plugin-websocket',
-		]
+		noExternal: ['@stream-kit/app', '@stream-kit/ui']
 	}
 }));

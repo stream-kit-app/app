@@ -1,4 +1,4 @@
-import type { ConditionGroupNode, ConditionLeafNode } from '@stream-kit/app/api';
+import type { ConditionGroupNode, ConditionLeafNode } from '@stream-kit/plugin';
 
 function normalizeLookupKey(value: string): string {
 	return value

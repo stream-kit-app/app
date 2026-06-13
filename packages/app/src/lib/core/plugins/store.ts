@@ -6,7 +6,7 @@ import type { LazyStore } from '@tauri-apps/plugin-store';
  *
  * @example
  * ```ts
- * onBoot: async ({ store }) => {
+ * onEnable: async ({ store }) => {
  *   const cached = await store.get<string>('connections');
  *   if (cached) hydrate(JSON.parse(cached));
  *   await store.set('bootedAt', Date.now());

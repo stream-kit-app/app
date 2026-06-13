@@ -1,5 +1,5 @@
-import type { ActionHandler, PluginAppApi } from '@stream-kit/app/api';
-import type { HandlerDefinitionProps } from '@stream-kit/core';
+import type { ActionHandler, PluginAppApi } from '@stream-kit/plugin';
+import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import type { PointsRedemptionContext } from '../../contexts';
 import { getFieldValue } from '../../get-field-value';

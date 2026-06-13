@@ -1,4 +1,4 @@
-import type { PluginSettingsContext } from '@stream-kit/app/api';
+import type { PluginSettingsContext } from '@stream-kit/plugin';
 
 export function isProcessWatcherEnabled(getValue: PluginSettingsContext['getValue']): boolean {
 	return getValue('process-watcher') === true;

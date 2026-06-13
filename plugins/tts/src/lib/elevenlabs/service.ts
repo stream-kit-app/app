@@ -1,5 +1,5 @@
 import type { ElevenLabsVoice } from './types';
-import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
+import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
 import { TtsPlayer } from '../player';
 import { fetchElevenLabsSpeech, fetchElevenLabsVoices } from './api';

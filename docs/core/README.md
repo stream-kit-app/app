@@ -70,7 +70,7 @@ Core
 
 | Hook | Behavior |
 |------|----------|
-| `onBoot` | Binds `VariableStore` and `MapStore` to `PluginStore`, configures audio, loads variables, maps, and logs |
+| `onEnable` | Binds `VariableStore` and `MapStore` to `PluginStore`, configures audio, loads variables, maps, and logs |
 | `onEnable` / `onReady` / `onSave` | Syncs process watcher based on settings and active triggers |
 | `onDisable` | Stops process watcher |
 

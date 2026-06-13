@@ -1,1 +1,1 @@
-export type { VariableScope } from '@stream-kit/app/api';
+export type { VariableScope } from '@stream-kit/plugin';

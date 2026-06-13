@@ -1,4 +1,4 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import type { BotSettings } from '../settings/bot-settings';
 import type { TimerPlatform, TimerRecord, TimerTriggerContext } from '../timers/app/lib/stored-timer';
@@ -23,12 +23,12 @@ type TimerState = {
 	linesSinceSend: number;
 };
 
-export type RunTimerFn = (id: number, data: TimerTriggerContext) => void;
+export type RunTimerFn = (id: string, data: TimerTriggerContext) => void;
 
 export class TimerScheduler {
 	private tickTimer: ReturnType<typeof setInterval> | undefined;
 	private chatLineCount = 0;
-	private timerStates = new Map<number, TimerState>();
+	private timerStates = new Map<string, TimerState>();
 
 	constructor(
 		private readonly app: PluginAppApi,

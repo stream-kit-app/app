@@ -7,9 +7,20 @@ import { listen } from '@tauri-apps/api/event';
 import { translate } from '$lib/i18n';
 
 import { resolveEntryPath } from './plugin-loader';
+import { syncDevPluginEntry } from './plugin-dev-link';
 
 let listenerInitialized = false;
 let isReloading = false;
+
+function resolveWatchEntryPath(
+	manifest: Pick<InstalledPluginManifest, 'installPath' | 'entry' | 'devSourceEntry'>
+): string {
+	if (manifest.devSourceEntry) {
+		return manifest.devSourceEntry;
+	}
+
+	return resolveEntryPath(manifest);
+}
 
 export async function initPluginDevWatcher(): Promise<void> {
 	if (listenerInitialized) {
@@ -18,12 +29,18 @@ export async function initPluginDevWatcher(): Promise<void> {
 
 	listenerInitialized = true;
 
-	await listen<{ pluginKey: string }>('plugin-entry-changed', async () => {
+	await listen<{ pluginKey: string }>('plugin-entry-changed', async (event) => {
 		if (isReloading) {
 			return;
 		}
 
 		isReloading = true;
+
+		try {
+			await syncDevPluginEntry(event.payload.pluginKey);
+		} catch (error) {
+			console.warn(`Failed to sync dev plugin entry for ${event.payload.pluginKey}`, error);
+		}
 
 		try {
 			await invoke('open_devtools_if_needed');
@@ -37,11 +54,15 @@ export async function initPluginDevWatcher(): Promise<void> {
 
 export async function startPluginDevWatcher(
 	pluginKey: string,
-	manifest: Pick<InstalledPluginManifest, 'installPath' | 'entry'>
+	manifest: Pick<InstalledPluginManifest, 'installPath' | 'entry' | 'devSourceEntry'>
 ): Promise<boolean> {
-	const entryPath = resolveEntryPath(manifest);
+	const entryPath = resolveWatchEntryPath(manifest);
 
 	try {
+		if (manifest.devSourceEntry) {
+			await syncDevPluginEntry(pluginKey);
+		}
+
 		await invoke('watch_plugin_entry', { pluginKey, entryPath });
 		return true;
 	} catch (error) {
@@ -100,7 +121,7 @@ export async function setPluginDevMode(
 	app: App,
 	pluginKey: string,
 	enabled: boolean,
-	manifest: Pick<InstalledPluginManifest, 'installPath' | 'entry'> | undefined
+	manifest: Pick<InstalledPluginManifest, 'installPath' | 'entry' | 'devSourceEntry'> | undefined
 ): Promise<void> {
 	if (!app.settings.developerMode || !enabled) {
 		await app.settings.setPluginDevMode(pluginKey, enabled);

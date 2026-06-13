@@ -1,7 +1,5 @@
 import type Database from '@tauri-apps/plugin-sql';
 
-import { migrateBotTables } from '@stream-kit/plugin-bot/app/db/migrate';
-
 type LegacyTriggerTypeIdRow = {
 	id: number;
 	trigger_type_id: string;
@@ -219,5 +217,4 @@ async function migrateActionsTable(sqlite: Database): Promise<void> {
 
 export async function migrate(sqlite: Database): Promise<void> {
 	await migrateActionsTable(sqlite);
-	await migrateBotTables(sqlite);
 }

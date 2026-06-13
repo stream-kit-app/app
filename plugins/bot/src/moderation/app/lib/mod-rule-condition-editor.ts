@@ -1,21 +1,19 @@
-import type { ConditionEditor } from '$lib/core/action/condition-editor';
+import type { ConditionEditor, ResolvedConditionDefinition } from '@stream-kit/plugin/action';
 import type {
 	ConditionGroupNode,
 	ConditionNode,
-	Operator,
-	ResolvedConditionDefinition
-} from '$lib/core/action/trigger/condition';
-import type { ConditionFormErrors } from '$lib/core/action/validate-form';
-
+	Operator
+} from '@stream-kit/plugin';
 import {
 	addConditionToGroup,
 	addGroupToRoot,
 	getConditionDefinition,
 	removeConditionChild,
 	setConditionOperator
-} from '$lib/core/action/condition-tree';
+} from '@stream-kit/plugin/action';
 
 import { moderationConditionDefinitions } from '../../../lib/moderation-conditions';
+import type { ModRuleFormErrors } from './validate-form';
 
 export class ModRuleConditionEditor implements ConditionEditor {
 	get conditionDefinitions(): ResolvedConditionDefinition[] | undefined {
@@ -26,7 +24,7 @@ export class ModRuleConditionEditor implements ConditionEditor {
 		return getConditionDefinition(moderationConditionDefinitions, key);
 	}
 
-	getFieldError(nodeId: string, errors?: ConditionFormErrors): string | undefined {
+	getFieldError(nodeId: string, errors?: ModRuleFormErrors): string | undefined {
 		return errors?.conditionFields[nodeId];
 	}
 

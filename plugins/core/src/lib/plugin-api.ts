@@ -5,4 +5,4 @@ export type {
 	CorePluginApi,
 	MapLifetime,
 	VariableScope
-} from '@stream-kit/app/api';
+} from '@stream-kit/plugin';

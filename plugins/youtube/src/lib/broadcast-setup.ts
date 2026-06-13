@@ -1,4 +1,4 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import type { YouTubeApiClient } from './api-client';
 import type { StreamContext } from '../contexts';

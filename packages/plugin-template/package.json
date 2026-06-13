@@ -5,18 +5,17 @@
 	"license": "SEE LICENSE IN LICENSE",
 	"private": true,
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		}
+		".": "./src/index.ts"
 	},
 	"files": [
-		"dist"
+		"src",
+		"dist",
+		"manifest.json"
 	],
 	"scripts": {
-		"build": "node scripts/build.mjs",
+		"build": "vite build --config vite.build.config.js",
 		"check": "tsc --noEmit",
-		"dev": "node scripts/build.mjs --watch",
+		"dev": "vite build --config vite.build.config.js --watch",
 		"package": "pnpm build && node scripts/package.mjs"
 	},
 	"dependencies": {
@@ -24,8 +23,11 @@
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
-		"esbuild": "^0.25.12",
-		"tsup": "^8.5.0",
-		"typescript": "~6.0.3"
+		"@stream-kit/plugin": "workspace:*",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"svelte": "^5.56.1",
+		"typescript": "~6.0.3",
+		"vite": "^8.0.16",
+		"vite-plugin-node-polyfills": "^0.28.0"
 	}
 }

@@ -1,4 +1,4 @@
-import type { HandlerTriggerContext } from '@stream-kit/app/api';
+import type { HandlerTriggerContext } from '@stream-kit/plugin';
 
 import { contextToVariables } from './context-to-variables';
 import { extractUsername } from './extract-username';

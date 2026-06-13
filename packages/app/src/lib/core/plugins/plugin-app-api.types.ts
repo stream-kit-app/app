@@ -1,5 +1,7 @@
+import type { HandlerDefinition } from '../action/handler/handler-definition.svelte';
 import type { HandlerTriggerContext } from '../action/handler-context';
 import type { ConfirmOptions } from '../confirm/confirm.svelte';
+import type { PluginSettingsContext } from './context';
 import type {
 	CopyFileOptions,
 	CreateOptions,
@@ -33,6 +35,10 @@ import type { AppLifecycleContext, AppLifecycleEvent } from '../lifecycle/types'
 import type { ProcessEventContext } from '../process/types';
 import type { RunProgramOptions, RunProgramResult } from '../process/run-program';
 import type { LocalTtsRuntimeInfo, LocalTtsVoiceInfo } from '../tts';
+import type { TranslationKey } from '$lib/i18n';
+
+/** Opaque Drizzle client returned by {@link PluginAppDbApi.getClient}. */
+export type PluginDbClient = unknown;
 
 /**
  * Factory registered by the Commands plugin to activate chat command handling.
@@ -115,6 +121,9 @@ export interface PluginAppModalApi {
 	 * ```
 	 */
 	create(props: ModalProps): Modal;
+
+	/** Return an existing modal by id, if one was created earlier. */
+	get(id: string): Modal | undefined;
 }
 
 /**
@@ -152,6 +161,11 @@ export interface PluginAppPluginsApi {
 	 * ```
 	 */
 	getSettingValue(pluginKey: string, settingKey: string): SettingsFieldValue | undefined;
+
+	/**
+	 * Build lifecycle settings context for a plugin (store, getValue, app API).
+	 */
+	getSettingsContext(pluginKey: string): PluginSettingsContext | undefined;
 }
 
 /**
@@ -375,6 +389,20 @@ export interface PluginAppLocalTtsApi {
 }
 
 /**
+ * Translations for plugin UI and runtime messages.
+ */
+export interface PluginAppI18nApi {
+	/** Reactive translation function for Svelte components. */
+	t: (key: TranslationKey, params?: Record<string, string | number | null | undefined>) => string;
+
+	/** Non-reactive translation helper for TypeScript modules. */
+	translate(
+		key: TranslationKey,
+		params?: Record<string, string | number | null | undefined>
+	): string;
+}
+
+/**
  * Plugin database migration registration.
  */
 export interface PluginAppDbApi {
@@ -391,6 +419,12 @@ export interface PluginAppDbApi {
 	 * ```
 	 */
 	registerMigrations(pluginKey: string, migrations: PluginMigration[]): void;
+
+	/**
+	 * Return the shared Drizzle database client.
+	 * Only use this when the plugin registers its own SQLite tables via {@link registerMigrations}.
+	 */
+	getClient(): PluginDbClient;
 }
 
 /**
@@ -423,6 +457,12 @@ export interface PluginAppActionsApi {
 	 * ```
 	 */
 	runById(id: number, context: HandlerTriggerContext): boolean;
+
+	/** Find a registered action handler definition by id. */
+	findHandler(id: string): HandlerDefinition | undefined;
+
+	/** Return all registered action handler definitions. */
+	getHandlers(): HandlerDefinition[];
 }
 
 /**
@@ -453,11 +493,11 @@ export interface PluginAppCommandsApi {
 	getSnapshot(): CommandRecord[];
 
 	/**
-	 * Run a chat command by database id.
+	 * Run a chat command by id.
 	 *
 	 * @returns `true` when the command ran successfully.
 	 */
-	runById(id: number, context: HandlerTriggerContext): boolean;
+	runById(id: string, context: HandlerTriggerContext): boolean;
 
 	/**
 	 * Find a command record by its trigger string (e.g. `!hello`).
@@ -467,7 +507,7 @@ export interface PluginAppCommandsApi {
 	 * const command = app.commands.findByTrigger('!hello');
 	 * ```
 	 */
-	findByTrigger(trigger: string): Record<string, unknown> | undefined;
+	findByTrigger(trigger: string): CommandRecord | undefined;
 }
 
 /**
@@ -553,6 +593,9 @@ export interface PluginAppApi {
 
 	/** Register plugin database migrations. */
 	db: PluginAppDbApi;
+
+	/** Translate user-facing strings. */
+	i18n: PluginAppI18nApi;
 
 	/** Run and refresh user-configured actions. */
 	actions: PluginAppActionsApi;

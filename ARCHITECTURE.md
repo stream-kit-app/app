@@ -9,7 +9,7 @@ This document describes how the Stream Kit monorepo is organized and how the mai
 | `@stream-kit/app` | SvelteKit + Tauri host, SQLite/Drizzle, app kernel |
 | `@stream-kit/ui` | App-agnostic Svelte 5 UI primitives and declarative page blocks |
 | `@stream-kit/core` | Shared plugin utilities (`parseCommand`, `interpolateVariables`, `getFieldValue`) |
-| `@stream-kit/app-types` | Type-only re-exports of `@stream-kit/app/api` for plugin authors |
+| `@stream-kit/app-types` | Type-only re-exports of `@stream-kit/plugin` for plugin authors |
 | `@stream-kit/plugin-*` | Built-in platform and feature plugins |
 
 ## Boot sequence
@@ -21,7 +21,7 @@ flowchart TD
   boot --> use[Register built-in plugins]
   use --> external[Discover installed zip plugins]
   external --> load[plugins.load]
-  load --> pluginBoot[app.boot: plugin onBoot hooks]
+  load --> pluginBoot[app.boot: plugin onEnable hooks]
   pluginBoot --> actions[actions.load]
   actions --> settings[app.settings.load]
   settings --> dev[Plugin dev watcher]
@@ -30,7 +30,7 @@ flowchart TD
 Built-in plugins register through `createCommandsPlugin()` and similar factories. Each plugin owns its lifecycle hooks:
 
 - `onLoad` — hydrate plugin-owned state (e.g. commands from DB)
-- `onBoot` — start runtime services (e.g. chat listeners)
+- `onEnable` — start runtime services (e.g. chat listeners)
 - `onEnable` / `onDisable` — re-enable or tear down when toggled in the UI
 
 ## Plugin contract
@@ -46,7 +46,7 @@ const plugin: Plugin = (app) => ({
   settings: [...],
   customViews: { myView: MyPageComponent }, // built-in npm plugins only
   api: { ... },
-  onLoad, onBoot, onEnable, onDisable
+  onLoad, onEnable, onReady, onDisable
 });
 ```
 
@@ -93,7 +93,7 @@ Migrations for bot tables live in the plugin (`migrateBotTables`) and are invoke
 ## Type surface for plugin authors
 
 - Runtime API: passed as the factory argument (`PluginAppApi`)
-- Types: `@stream-kit/app/api` or `@stream-kit/app-types`
+- Types: `@stream-kit/plugin` or `@stream-kit/app-types`
 - Shared utilities: `@stream-kit/core`
 
-Value imports from `@stream-kit/app/api` in external plugin bundles resolve to the empty plugin-host shim — use `import type` only in zip plugins.
+Value imports from `@stream-kit/plugin` in external plugin bundles resolve to the empty plugin-host shim — use `import type` only in zip plugins.

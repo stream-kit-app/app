@@ -7,8 +7,8 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { getTimersService } from '../lib/get-timers';
+	import { cn } from '@stream-kit/plugin/utils';
 
 	type Props = {
 		timer: Timer;
@@ -17,7 +17,7 @@
 	};
 
 	let { timer, selected = false, onSelectedChange }: Props = $props();
-	const { t } = useI18n();
+	const t = getTimersService().requireApp().i18n.t;
 	let shiftKey = false;
 
 	const intervalLabel = $derived(`${timer.intervalMinSec}s – ${timer.intervalMaxSec}s`);

@@ -1,6 +1,6 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { ConditionGroupNode, TriggerDefinitionProps } from '@stream-kit/core';
-import type { ResolvedConditionDefinition } from '$lib/core/action/trigger/condition';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { ConditionGroupNode, TriggerDefinitionProps } from '@stream-kit/plugin';
+import type { ResolvedConditionDefinition } from '@stream-kit/plugin/action';
 
 import type { ModerationRules } from '../moderation/app/lib/moderation-rules.svelte';
 import type { ChatModerationContext } from '../lib/moderation-engine';
@@ -12,9 +12,9 @@ import {
 } from '../lib/bot-trigger-helpers';
 function resolveModRule(moderation: ModerationRules, conditions: ConditionGroupNode) {
 	const ruleIdValue = findConditionValue(conditions, 'mod-rule');
-	const ruleId = Number(typeof ruleIdValue === 'string' ? ruleIdValue : '');
+	const ruleId = typeof ruleIdValue === 'string' ? ruleIdValue : String(ruleIdValue ?? '');
 
-	if (!Number.isFinite(ruleId)) {
+	if (!ruleId) {
 		return undefined;
 	}
 

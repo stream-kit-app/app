@@ -1,4 +1,4 @@
-import type { ConditionDefinition, FieldValue, HandlerFieldVariable } from '@stream-kit/core';
+import type { ConditionDefinition, FieldValue, HandlerFieldVariable } from '@stream-kit/plugin';
 
 import { matchText } from '../match-text';
 

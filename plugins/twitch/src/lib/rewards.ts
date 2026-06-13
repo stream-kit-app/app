@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { ConditionDefinition, HandlerFieldDefinition, SelectItem } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { ConditionDefinition, HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 import { getTwitch } from './plugin-api';
 
 export async function loadCustomRewardItems(app: PluginAppApi): Promise<SelectItem[]> {

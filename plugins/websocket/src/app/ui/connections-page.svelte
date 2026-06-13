@@ -3,19 +3,14 @@
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
 
-	import { useI18n } from '$lib/i18n';
+	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
 	import { Connection } from '../lib/connection.svelte';
 	import { tryGetConnectionsService } from '../lib/get-connections';
 	import ConnectionCard from './connection-card.svelte';
 
-	type Props = {
-		title?: string;
-		description?: string;
-	};
-
-	let { title, description }: Props = $props();
-	const { t } = useI18n();
+	let { app, title, description }: PluginCustomViewProps = $props();
+	const t = $derived(app.i18n.t);
 
 	const connections = $derived(tryGetConnectionsService());
 </script>

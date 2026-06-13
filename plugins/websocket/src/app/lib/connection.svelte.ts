@@ -1,4 +1,4 @@
-import type { Modal } from '$lib/core/modal';
+import type { Modal } from '@stream-kit/plugin/action';
 import type { WsConnection } from '../../lib/connections';
 import {
 	createConnectionId,
@@ -17,9 +17,6 @@ import {
 
 import ConnectionForm from '../ui/connection-form.svelte';
 import ConnectionLogsModal from '../ui/connection-logs-modal.svelte';
-import { translate } from '$lib/i18n';
-
-import { getApp } from '$lib/core/registry';
 import { getConnectionsService } from './get-connections';
 
 export type ConnectionFormErrors = Partial<
@@ -98,14 +95,14 @@ export class Connection {
 		}
 
 		const logsModalId = `connection-logs-${this.id}`;
-		const app = getApp();
+		const app = getConnectionsService().requireApp();
 
 		const modal =
-			app.modals.get(logsModalId) ??
-			app.createModal({
+			app.modal.get(logsModalId) ??
+			app.modal.create({
 				id: logsModalId,
-				title: translate('Logs — {name}', {
-					name: this.name.trim() || translate('Connection')
+				title: app.i18n.translate('Logs — {name}', {
+					name: this.name.trim() || app.i18n.translate('Connection')
 				}),
 				content: ConnectionLogsModal,
 				props: { connection: this }
@@ -119,16 +116,18 @@ export class Connection {
 	open(): Modal {
 		this.modalId =
 			this.id != null ? `connection-${this.id}` : `connection-draft-${crypto.randomUUID()}`;
-		const app = getApp();
+		const app = getConnectionsService().requireApp();
 
 		const modal =
-			app.modals.get(this.modalId) ??
-			app.createModal({
+			app.modal.get(this.modalId) ??
+			app.modal.create({
 				id: this.modalId,
 				title:
 					this.id != null
-						? translate('Edit {name}', { name: this.name.trim() || translate('Connection') })
-						: translate('New Connection'),
+						? app.i18n.translate('Edit {name}', {
+								name: this.name.trim() || app.i18n.translate('Connection')
+							})
+						: app.i18n.translate('New Connection'),
 				content: ConnectionForm,
 				props: { connection: this }
 			});
@@ -144,10 +143,11 @@ export class Connection {
 			return;
 		}
 
-		getApp().modals.get(this.modalId)?.close();
+		getConnectionsService().requireApp().modal.get(this.modalId)?.close();
 	}
 
 	validateForm(): boolean {
+		const translate = getConnectionsService().requireApp().i18n.translate;
 		const errors: ConnectionFormErrors = {};
 		const name = this.name.trim();
 		const url = this.url.trim();
@@ -190,6 +190,7 @@ export class Connection {
 			return false;
 		}
 
+		const app = getConnectionsService().requireApp();
 		const connections = getConnectionsService();
 		const wasNew = this.id == null;
 		const record = this.toRecord();
@@ -211,9 +212,9 @@ export class Connection {
 		await saveConnections(connections.store, connections.items.map((item) => item.toRecord()));
 		await connections.controller.syncConnections(connections.items.map((item) => item.toRecord()));
 
-		getApp().toast.create({
-			title: translate(wasNew ? 'Connection added' : 'Connection updated'),
-			description: translate('{name} has been saved.', { name: record.name }),
+		app.toast.create({
+			title: app.i18n.translate(wasNew ? 'Connection added' : 'Connection updated'),
+			description: app.i18n.translate('{name} has been saved.', { name: record.name }),
 			variant: 'success'
 		});
 

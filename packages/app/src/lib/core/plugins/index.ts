@@ -4,6 +4,7 @@ export type { InstalledPluginManifest, PluginSource, RegisterPluginOptions } fro
 export type { PluginStore } from './store';
 export type {
 	Plugin,
+	PluginCustomViewProps,
 	PluginMenuItemChildDefinition,
 	PluginMenuItemDefinition,
 	PluginPageBlock,

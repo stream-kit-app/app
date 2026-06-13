@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { TriggerDefinitionProps } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { TriggerDefinitionProps } from '@stream-kit/plugin';
 
 import type { WhisperContext } from '../../contexts';
 import { evaluateMessageMatch, messageMatchCondition } from '../../lib/conditions';

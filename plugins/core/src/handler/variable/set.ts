@@ -1,4 +1,4 @@
-import type { HandlerDefinitionProps } from '@stream-kit/core';
+import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import type { VariableScope } from '../../lib/plugin-api';
 

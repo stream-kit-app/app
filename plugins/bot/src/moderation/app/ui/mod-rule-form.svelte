@@ -11,17 +11,17 @@
 		Label
 	} from '@stream-kit/ui/input';
 
-	import ConditionGroup from '$lib/components/core/action/condition-group.svelte';
+	import ConditionGroup from '@stream-kit/plugin/action-ui/condition-group.svelte';
 	import { DEFAULT_EXEMPT_ROLES, moderationRoleItems } from '../../../lib/role-utils';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
+	import { getModerationService } from '../lib/get-moderation';
 
 	type Props = {
 		rule: ModRule;
 	};
 
 	let { rule }: Props = $props();
-	const { t } = useI18n();
+	const app = getModerationService().requireApp();
+	const t = app.i18n.t;
 
 	const actionItems = [
 		{ value: 'delete', label: t('Delete message') },
@@ -150,7 +150,7 @@
 				variant="destructive"
 				type="button"
 				onclick={async () => {
-					const confirmed = await getApp().confirm.ask({
+					const confirmed = await app.confirm.ask({
 						title: t('Delete rule'),
 						description: t('Are you sure you want to delete "{name}"?', {
 							name: rule.name.trim() || t('this rule')

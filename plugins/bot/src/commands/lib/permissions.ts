@@ -1,4 +1,4 @@
-import type { CommandPermissions } from '@stream-kit/app/api';
+import type { CommandPermissions } from '@stream-kit/plugin';
 
 const ROLE_ALIASES: Record<string, string[]> = {
 	mod: ['mod', 'moderator'],

@@ -2,8 +2,8 @@ import type {
 	SettingsContext,
 	SettingsFieldDefinition,
 	SettingsVisibilityContext
-} from '@stream-kit/app/api';
-import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/core';
+} from '@stream-kit/plugin';
+import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
 import { fetchElevenLabsVoices } from './api';
 import { elevenlabs } from './service';

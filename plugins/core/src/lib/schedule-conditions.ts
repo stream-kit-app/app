@@ -1,4 +1,4 @@
-import type { ConditionDefinition, ConditionGroupNode } from '@stream-kit/core';
+import type { ConditionDefinition, ConditionGroupNode } from '@stream-kit/plugin';
 import { DEFAULT_CRON_PRESETS, getCronValidationError } from '@stream-kit/core';
 
 import { computeNextRun, validateScheduleDateTime } from './compute-next-run';

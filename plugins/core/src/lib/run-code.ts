@@ -1,5 +1,5 @@
 import type { HandlerTriggerContext } from '@stream-kit/core';
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 export const SCRIPT_TEMPLATE = `export default (context: HandlerTriggerContext[]) => {
 \tconst [{ trigger, data }] = context;

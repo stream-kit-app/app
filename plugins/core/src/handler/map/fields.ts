@@ -1,5 +1,5 @@
-import type { HandlerFieldDefinition } from '@stream-kit/core';
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { HandlerFieldDefinition } from '@stream-kit/plugin';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import type { MapStore } from '../../lib/maps/map-store';
 import type { MapLifetime } from '../../lib/maps/types';

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { move } from '@dnd-kit/helpers';
 	import {
 		DragDropProvider,
 		DragOverlay,
@@ -12,6 +11,7 @@
 	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
 	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
+	import { applyDndMove, type DndDragEvent } from '$lib/components/core/action/dnd-events';
 	import {
 		buildDndLayout,
 		dndLayoutToUpdates,
@@ -29,7 +29,7 @@
 	const { t } = useI18n();
 	const sensors = [KeyboardSensor, PointerSensor];
 
-	type DragEvent = Parameters<typeof move<DndActionLayout>>[1];
+	type DragEvent = DndDragEvent;
 
 	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
 	let groupOrder = $state<string[]>(getGroupOrder(layout));
@@ -68,11 +68,11 @@
 
 	function handleDragOver(event: DragEvent): void {
 		if (event.operation.source?.type === 'group') {
-			groupOrder = move(groupOrder, event);
+			groupOrder = applyDndMove(groupOrder, event);
 			return;
 		}
 
-		layout = move(layout, event);
+		layout = applyDndMove(layout, event);
 	}
 
 	async function handleDragEnd(): Promise<void> {

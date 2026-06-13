@@ -1,4 +1,4 @@
-import type { PluginStore } from '@stream-kit/app/api';
+import type { PluginStore } from '@stream-kit/plugin';
 
 export const CONNECTIONS_STORE_KEY = 'connections';
 

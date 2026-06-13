@@ -1,4 +1,4 @@
-import type { HandlerDefinitionProps } from '@stream-kit/core';
+import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import { interpolateVariables } from '@stream-kit/core';
 

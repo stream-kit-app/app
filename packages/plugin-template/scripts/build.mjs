@@ -16,13 +16,13 @@ const options = {
 	platform: 'browser',
 	target: 'es2022',
 	conditions: ['svelte', 'browser', 'import', 'default'],
-	external: ['@stream-kit/app/api', '@stream-kit/core']
+	external: ['@stream-kit/plugin', '@stream-kit/core']
 };
 
 function writeTypes() {
 	writeFileSync(
 		path.resolve(outDir, 'index.d.ts'),
-		"import type { Plugin } from '@stream-kit/app/api';\n\ndeclare const plugin: Plugin;\nexport default plugin;\n"
+		"import type { Plugin } from '@stream-kit/plugin';\n\ndeclare const plugin: Plugin;\nexport default plugin;\n"
 	);
 }
 

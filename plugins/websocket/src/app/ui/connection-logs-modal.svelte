@@ -8,8 +8,7 @@
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { cn } from '@stream-kit/plugin/utils';
 
 	import { getConnectionsService } from '../lib/get-connections';
 
@@ -18,7 +17,7 @@
 	};
 
 	let { connection }: Props = $props();
-	const { t } = useI18n();
+	const t = getConnectionsService().requireApp().i18n.t;
 	const connections = getConnectionsService();
 
 	let bottomAnchor = $state<HTMLDivElement | undefined>();

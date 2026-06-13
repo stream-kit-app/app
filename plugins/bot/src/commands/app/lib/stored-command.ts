@@ -3,8 +3,12 @@ export type {
 	CommandRecord,
 	CommandSource,
 	NewCommandRecord
-} from '$lib/types/command-types';
-export {
-	DEFAULT_COMMAND_PERMISSIONS,
-	DEFAULT_COMMAND_SOURCES
-} from '$lib/types/command-types';
+} from '@stream-kit/plugin';
+
+import type { CommandPermissions, CommandSource } from '@stream-kit/plugin';
+
+export const DEFAULT_COMMAND_PERMISSIONS: CommandPermissions = {
+	roles: ['everyone']
+};
+
+export const DEFAULT_COMMAND_SOURCES: CommandSource[] = ['twitch'];

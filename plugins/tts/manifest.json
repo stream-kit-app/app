@@ -1,0 +1,10 @@
+{
+	"key": "tts",
+	"name": "TTS",
+	"version": "0.1.1-alpha.2",
+	"description": "Text-to-speech via StreamElements, ElevenLabs, or local voices.",
+	"icon": "ri:speak-line",
+	"entry": "dist/index.js",
+	"dependencies": ["core"],
+	"streamKitVersion": "0.1.0"
+}

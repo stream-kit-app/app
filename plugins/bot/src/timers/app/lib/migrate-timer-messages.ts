@@ -1,5 +1,5 @@
-import type { StoredActionHandler } from '$lib/core/action/stored-action';
-import type { HandlerFieldInstance } from '$lib/core/action/handler/field';
+import type { StoredActionHandler } from '@stream-kit/plugin/action';
+import type { HandlerFieldInstance } from '@stream-kit/plugin';
 
 import type { TimerPlatform } from './stored-timer';
 

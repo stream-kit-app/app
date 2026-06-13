@@ -1,4 +1,4 @@
-import type { HandlerFieldVariable } from '@stream-kit/core';
+import type { HandlerFieldVariable } from '@stream-kit/plugin';
 
 export const SCENE_VARIABLE: HandlerFieldVariable = {
 	key: 'scene',

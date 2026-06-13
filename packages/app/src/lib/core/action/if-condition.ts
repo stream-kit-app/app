@@ -5,8 +5,13 @@ import type {
 import type { ActionHandler } from './action-handler.svelte';
 import type { SelectItem, SelectItemsSource } from './trigger/condition';
 
+type IfConditionTextSelectField = Extract<
+	ResolvedHandlerFieldDefinition,
+	{ type: 'text-select-text' }
+>;
+
 type IfConditionField = {
-	config: Extract<ResolvedHandlerFieldDefinition, { type: 'text-select-text'; allowNegate?: true }>;
+	config: IfConditionTextSelectField;
 	field: TextSelectTextFieldValue;
 };
 
@@ -20,7 +25,7 @@ export function isIfHandler(handler: ActionHandler): boolean {
 
 export function getIfConditionField(handler: ActionHandler): IfConditionField | undefined {
 	const config = handler.fieldDefinitions?.find(
-		(definition): definition is IfConditionField['config'] =>
+		(definition): definition is IfConditionTextSelectField =>
 			definition.type === 'text-select-text' && definition.allowNegate === true
 	);
 

@@ -1,4 +1,4 @@
-import type { ConditionDefinition, FieldValue } from '@stream-kit/core';
+import type { ConditionDefinition, FieldValue } from '@stream-kit/plugin';
 
 import type { MapChangedContext, MapCreatedContext, MapLifetime } from './maps/types';
 import { matchText } from './match-text';

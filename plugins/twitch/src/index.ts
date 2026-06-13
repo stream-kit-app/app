@@ -1,5 +1,5 @@
 import type { TwitchPluginApi, TwitchPluginController } from './lib/twitch';
-import type { Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/plugin';
 
 import { createCommercialHandler } from './handler/channel/commercial';
 import { createModAddHandler, createModRemoveHandler } from './handler/channel/moderator';
@@ -288,7 +288,7 @@ const plugin: Plugin = (app) => {
 				]
 			}
 		],
-		onBoot: async ({ store }) => {
+		onEnable: async ({ store }) => {
 			twitchApi = createTwitchPluginApi(app, store);
 			await twitchApi.boot();
 		}

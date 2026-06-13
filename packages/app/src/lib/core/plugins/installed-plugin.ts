@@ -10,6 +10,7 @@ export type InstalledPluginManifest = {
 	dependencies: string[];
 	streamKitVersion?: string;
 	installPath: string;
+	devSourceEntry?: string;
 };
 
 export type RegisterPluginOptions = {

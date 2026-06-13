@@ -1,5 +1,5 @@
 export type CooldownState = {
-	globalLastRun: Map<number, number>;
+	globalLastRun: Map<string, number>;
 	userLastRun: Map<string, number>;
 };
 
@@ -12,7 +12,7 @@ export function createCooldownTracker(): CooldownState {
 
 export function isOnCooldown(
 	state: CooldownState,
-	commandId: number,
+	commandId: string,
 	userId: string,
 	cooldownGlobalMs: number | null,
 	cooldownUserMs: number | null
@@ -41,7 +41,7 @@ export function isOnCooldown(
 
 export function markCooldown(
 	state: CooldownState,
-	commandId: number,
+	commandId: string,
 	userId: string,
 	cooldownGlobalMs: number | null,
 	cooldownUserMs: number | null

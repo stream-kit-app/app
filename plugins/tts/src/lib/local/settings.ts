@@ -1,4 +1,4 @@
-import type { PluginAppApi, PluginSettingsFieldDefinition } from '@stream-kit/app/api';
+import type { PluginAppApi, PluginSettingsFieldDefinition } from '@stream-kit/plugin';
 
 import { local } from './service';
 import { loadLocalCatalogVoiceItems, loadLocalVoiceItems } from './voices';

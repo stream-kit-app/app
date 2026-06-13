@@ -2,7 +2,7 @@
 
 Shared Svelte 5 UI primitives for Stream Kit.
 
-The app uses this package to render first-party screens and declarative plugin menu pages. Plugin menu page authors should define page schemas from `@stream-kit/app/api`; Stream Kit renders those schemas with these components.
+The app uses this package to render first-party screens and declarative plugin menu pages. Plugin menu page authors should define page schemas from `@stream-kit/plugin`; Stream Kit renders those schemas with these components.
 
 ## App Usage
 
@@ -26,7 +26,7 @@ The app uses this package to render first-party screens and declarative plugin m
 Plugins do not pass Svelte components or HTML for menu pages. They provide declarative page definitions:
 
 ```ts
-import type { Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/plugin';
 
 const plugin: Plugin = (app) => ({
 	name: 'Hello World',

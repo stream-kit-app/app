@@ -7,8 +7,8 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { getCommandsService } from '../lib/get-commands';
+	import { cn } from '@stream-kit/plugin/utils';
 
 	type Props = {
 		command: Command;
@@ -17,7 +17,7 @@
 	};
 
 	let { command, selected = false, onSelectedChange }: Props = $props();
-	const { t } = useI18n();
+	const t = getCommandsService().requireApp().i18n.t;
 	let shiftKey = false;
 
 	const commandLabel = $derived(command.displayCommandNames.map((name) => `!${name}`).join(', '));

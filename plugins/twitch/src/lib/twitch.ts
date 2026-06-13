@@ -1,4 +1,4 @@
-import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
+import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 import type { ApiClient } from '@twurple/api';
 import type { TokenInfo } from '@twurple/auth';
 import type { ChatClient } from '@twurple/chat';

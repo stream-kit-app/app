@@ -1,0 +1,11 @@
+{
+	"plugins": [
+		"plugins/core",
+		"plugins/bot",
+		"plugins/obs",
+		"plugins/tts",
+		"plugins/twitch",
+		"plugins/websocket",
+		"plugins/youtube"
+	]
+}

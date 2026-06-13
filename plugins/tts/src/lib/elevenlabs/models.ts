@@ -2,8 +2,8 @@ import type {
 	SettingsContext,
 	SettingsFieldDefinition,
 	SettingsVisibilityContext
-} from '@stream-kit/app/api';
-import type { SelectItem } from '@stream-kit/core';
+} from '@stream-kit/plugin';
+import type { SelectItem } from '@stream-kit/plugin';
 
 import { fetchElevenLabsModels } from './api';
 

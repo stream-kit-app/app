@@ -7,11 +7,32 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { translate } from '$lib/i18n';
 
 import { stopPluginDevWatcher } from './plugin-dev-watcher';
+import { getPluginHostUrl } from './plugin-host-url';
+import {
+	PLUGIN_HOST_SVELTE_SUBPATHS,
+	PLUGIN_HOST_UI_SUBPATHS
+} from '../../../../plugin-host-modules.generated.js';
 
 let importMapReady = false;
 
-function getPluginHostUrl(fileName: string): string {
-	return new URL(`/plugin-host/${fileName}`, window.location.origin).href;
+function createPluginHostImportMap(): Record<string, string> {
+	const imports: Record<string, string> = {
+		'@stream-kit/plugin': getPluginHostUrl('plugin.js'),
+		'@stream-kit/plugin/action': getPluginHostUrl('action.js'),
+		'@stream-kit/core': getPluginHostUrl('core.js'),
+		'@iconify/svelte': getPluginHostUrl('@iconify/svelte.js'),
+		svelte: getPluginHostUrl('svelte.js')
+	};
+
+	for (const subpath of PLUGIN_HOST_SVELTE_SUBPATHS) {
+		imports[`svelte/${subpath}`] = getPluginHostUrl(`svelte/${subpath}.js`);
+	}
+
+	for (const subpath of PLUGIN_HOST_UI_SUBPATHS) {
+		imports[`@stream-kit/ui/${subpath}`] = getPluginHostUrl(`@stream-kit/ui/${subpath}.js`);
+	}
+
+	return imports;
 }
 
 async function ensurePluginImportMap(): Promise<void> {
@@ -23,10 +44,7 @@ async function ensurePluginImportMap(): Promise<void> {
 	script.type = 'importmap';
 	script.id = 'stream-kit-plugin-import-map';
 	script.textContent = JSON.stringify({
-		imports: {
-			'@stream-kit/app/api': getPluginHostUrl('app-api.js'),
-			'@stream-kit/core': getPluginHostUrl('core.js')
-		}
+		imports: createPluginHostImportMap()
 	});
 	document.head.prepend(script);
 
@@ -57,7 +75,10 @@ export async function loadInstalledPluginModule(
 
 	const entryPath = resolveEntryPath(manifest);
 	const url = new URL(convertFileSrc(entryPath));
-	url.searchParams.set('streamKitPluginLoad', `${manifest.key}-${manifest.version}-${Date.now()}`);
+	url.searchParams.set(
+		'streamKitPluginLoad',
+		`${manifest.key}-${manifest.version}-${Date.now()}`
+	);
 	const module = await import(/* @vite-ignore */ url.href);
 	const plugin = module.default;
 

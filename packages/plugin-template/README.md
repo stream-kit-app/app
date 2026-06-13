@@ -32,20 +32,20 @@ plugin.zip
 
 ## Authoring rules
 
-- Use `import type` from `@stream-kit/app/api` or `@stream-kit/app-types` for plugin types.
-- Use `@stream-kit/core` for handler/trigger prop types, `getFieldValue`, `resolveFieldText`, `interpolateVariables`, and `parseCommand`.
-- Register plugin menu pages with declarative page definitions from `@stream-kit/app/api`.
+- Use `import type` from `@stream-kit/plugin` or `@stream-kit/app-types` for plugin types.
+- Use `@stream-kit/core` for runtime helpers such as `getFieldValue`, `resolveFieldText`, `interpolateVariables`, and `parseCommand`.
+- Register plugin menu pages with declarative page definitions from `@stream-kit/plugin`.
 - Do not pass Svelte components, compiled HTML, raw HTML, or `{@html}` for **external zip** plugin menu pages.
 - Built-in npm plugins may register `customViews` with Svelte components; zip plugins must stay blocks-only.
 - Button blocks may define an `onClick` handler when they need plugin-owned behavior.
 - Bundle all other runtime dependencies into `dist/index.js`.
-- Stream Kit generates a unique installed plugin key from the manifest name and adds a suffix if needed.
+- Set a stable `key` in `manifest.json`. Stream Kit uses that key for install paths, settings, and dependencies.
 - Menu item keys, form keys, and handler/trigger ids are generated and scoped by Stream Kit.
 
 ## Declarative menu page example
 
 ```ts
-import type { Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/plugin';
 
 const plugin: Plugin = (app) => ({
 	name: 'Hello World',
@@ -81,7 +81,7 @@ export default plugin;
 Handlers receive a single `HandlerTriggerContext` object:
 
 ```ts
-import type { HandlerDefinitionProps } from '@stream-kit/core';
+import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 export const createGreetHandler = (): HandlerDefinitionProps => ({
 	name: 'Greet chatter',
@@ -103,8 +103,9 @@ export default (context: HandlerTriggerContext[]) => {
 ## Install in Stream Kit
 
 1. Open the Plugins page in the app.
-2. Click **Plugin installeren**.
-3. Select your `plugin.zip`.
+2. Click **Install plugin** or, in developer mode, **Link dev plugin** and select `manifest.json`.
+3. For zip distribution, select your `plugin.zip`.
 4. Enable the plugin from the plugin card.
+5. For local development, enable **Dev mode** on the plugin card after running the plugin's own `pnpm dev` command.
 
 Installed plugins start disabled until you enable them manually.

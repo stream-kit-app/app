@@ -1,4 +1,4 @@
-import type { ConditionGroupNode, FieldValue } from '@stream-kit/core';
+import type { ConditionGroupNode, FieldValue } from '@stream-kit/plugin';
 
 export function evaluateConditionTree(
 	group: ConditionGroupNode,

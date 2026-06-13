@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { CommandRecord } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { CommandRecord } from '@stream-kit/plugin';
 
 import { isOnCooldown, markCooldown, type CooldownState } from './cooldown';
 import { hasPermission } from './permissions';

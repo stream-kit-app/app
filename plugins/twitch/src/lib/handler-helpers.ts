@@ -1,4 +1,4 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 import type { HandlerTriggerContext } from '@stream-kit/core';
 
 import { getBroadcasterId, getBroadcasterName, getChannelFromContext } from './broadcaster';

@@ -1,15 +1,31 @@
-import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
+import type { HandlerTriggerContext, PluginAppApi, PluginStore } from '@stream-kit/plugin';
 import type { TimerRecord } from './stored-timer';
 
-import { deleteTimers, getTimers, updateTimersEnabled } from '../db/repository';
+import { loadTimers, saveTimers } from '../../../lib/timers-store';
 
-import { translate } from '$lib/i18n';
-
-import { getApp } from '$lib/core/registry';
 import { Timer } from './timer.svelte';
 
 export class Timers {
 	items: Timer[] = $state.raw([]);
+	private store?: PluginStore;
+	private app?: PluginAppApi;
+
+	bind(store: PluginStore, app: PluginAppApi): void {
+		this.store = store;
+		this.app = app;
+	}
+
+	private requireContext(): { store: PluginStore; app: PluginAppApi } {
+		if (!this.store || !this.app) {
+			throw new Error('Timers service has not been bound to a plugin store');
+		}
+
+		return { store: this.store, app: this.app };
+	}
+
+	requireApp(): PluginAppApi {
+		return this.requireContext().app;
+	}
 
 	add(timer: Timer): void {
 		if (timer.id != null && this.items.some((item) => item.id === timer.id)) {
@@ -19,7 +35,7 @@ export class Timers {
 		this.items = [...this.items, timer];
 	}
 
-	async deleteBulk(ids: number[]): Promise<void> {
+	async deleteBulk(ids: string[]): Promise<void> {
 		const toDelete = this.items.filter((timer) => timer.id != null && ids.includes(timer.id));
 
 		if (toDelete.length === 0) {
@@ -30,30 +46,61 @@ export class Timers {
 			timer.close();
 		}
 
-		await deleteTimers(toDelete.map((timer) => timer.id!));
-
 		const deletedIds = new Set(toDelete.map((timer) => timer.id));
 		this.items = this.items.filter((item) => item.id == null || !deletedIds.has(item.id));
+		await this.persist();
 
-		getApp().toast.create({
-			title: translate('Timers deleted'),
-			description: translate('{count} timers have been deleted.', { count: toDelete.length }),
+		const { app } = this.requireContext();
+
+		app.toast.create({
+			title: app.i18n.translate('Timers deleted'),
+			description: app.i18n.translate('{count} timers have been deleted.', {
+				count: toDelete.length
+			}),
 			variant: 'success'
 		});
 	}
 
 	async load(): Promise<void> {
-		const rows = await getTimers();
-		this.items = rows.map((row) => Timer.fromRecord(row));
+		const { store, app } = this.requireContext();
+		const rows = await loadTimers(store);
+
+		this.items = rows.map((row) => Timer.fromRecord(row, app));
+	}
+
+	async persist(): Promise<void> {
+		const { store } = this.requireContext();
+		await saveTimers(store, this.getSnapshot());
+	}
+
+	async upsert(timer: Timer): Promise<void> {
+		const wasNew = timer.id == null || !this.items.some((item) => item.id === timer.id);
+
+		if (timer.id == null) {
+			timer.id = crypto.randomUUID();
+		}
+
+		const now = new Date();
+
+		if (wasNew) {
+			timer.createdAt = now;
+			timer.updatedAt = now;
+			this.add(timer);
+		} else {
+			timer.updatedAt = now;
+			this.items = this.items.map((item) => (item.id === timer.id ? timer : item));
+		}
+
+		await this.persist();
 	}
 
 	getSnapshot(): TimerRecord[] {
 		return this.items
-			.filter((timer): timer is Timer & { id: number } => timer.id != null)
+			.filter((timer): timer is Timer & { id: string } => timer.id != null)
 			.map((timer) => timer.toRecord());
 	}
 
-	runById(id: number, context: HandlerTriggerContext): boolean {
+	runById(id: string, context: HandlerTriggerContext): boolean {
 		const timer = this.items.find((item) => item.id === id);
 
 		if (!timer) {
@@ -65,7 +112,7 @@ export class Timers {
 		return true;
 	}
 
-	async setEnabledBulk(ids: number[], enabled: boolean): Promise<void> {
+	async setEnabledBulk(ids: string[], enabled: boolean): Promise<void> {
 		const toUpdate = this.items.filter(
 			(timer) => timer.id != null && ids.includes(timer.id) && timer.enabled !== enabled
 		);
@@ -76,16 +123,16 @@ export class Timers {
 
 		for (const timer of toUpdate) {
 			timer.enabled = enabled;
+			timer.updatedAt = new Date();
 		}
 
-		await updateTimersEnabled(
-			toUpdate.map((timer) => timer.id!),
-			enabled
-		);
+		await this.persist();
 
-		getApp().toast.create({
-			title: translate(enabled ? 'Timers enabled' : 'Timers disabled'),
-			description: translate(
+		const { app } = this.requireContext();
+
+		app.toast.create({
+			title: app.i18n.translate(enabled ? 'Timers enabled' : 'Timers disabled'),
+			description: app.i18n.translate(
 				enabled
 					? '{count} timers have been enabled.'
 					: '{count} timers have been disabled.',

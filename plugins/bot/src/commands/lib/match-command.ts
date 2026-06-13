@@ -1,4 +1,4 @@
-import type { CommandRecord } from '@stream-kit/app/api';
+import type { CommandRecord } from '@stream-kit/plugin';
 
 export function findMatchingCommand(
 	commands: CommandRecord[],

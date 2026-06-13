@@ -1,36 +1,29 @@
-import type { Modal } from '$lib/core/modal';
-import type { Action } from '$lib/core/action/action.svelte';
-import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
-import { runHandlerChain } from '$lib/core/action/run-handler-chain';
-import { ActionHandler } from '$lib/core/action/action-handler.svelte';
-import { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
-import { migrateLegacyHandlerFields } from '$lib/core/action/handler-field';
+import type { HandlerTriggerContext, PluginAppApi } from '@stream-kit/plugin';
+import type { Action, Modal } from '@stream-kit/plugin/action';
+import {
+	ActionHandler,
+	HandlerDefinition,
+	hasHandlerErrors,
+	migrateLegacyHandlerFields,
+	runHandlerChain,
+	validateHandlerFields
+} from '@stream-kit/plugin/action';
 import type { CommandPermissions, CommandRecord, CommandSource } from './stored-command';
 import {
 	DEFAULT_COMMAND_PERMISSIONS,
 	DEFAULT_COMMAND_SOURCES
 } from './stored-command';
 
-import {
-	normalizeCommandNames,
-	saveCommand,
-	updateCommandEnabled
-} from '../db/repository';
+import { normalizeCommandNames } from '../../../lib/commands-store';
 
 import CommandForm from '../ui/command-form.svelte';
-import { translate } from '$lib/i18n';
 
-import { getApp } from '$lib/core/registry';
 import { getCommandsService } from './get-commands';
 import type { CommandFormErrors } from './validate-form';
 import { validateCommandForm } from './validate-form';
-import {
-	hasHandlerErrors,
-	validateHandlerFields
-} from '$lib/core/action/validate-form';
 
 export type CommandProps = {
-	id?: number;
+	id?: string;
 	name?: string;
 	commandNames?: string[];
 	handlers?: ActionHandler[];
@@ -39,10 +32,12 @@ export type CommandProps = {
 	cooldownGlobalMs?: number | null;
 	cooldownUserMs?: number | null;
 	enabled?: boolean;
+	createdAt?: Date;
+	updatedAt?: Date;
 };
 
 export class Command {
-	id?: number;
+	id?: string;
 	modalId?: string;
 	name: string = $state('');
 	commandNames: string[] = $state(['']);
@@ -52,6 +47,8 @@ export class Command {
 	cooldownGlobalMs: number | null = $state(null);
 	cooldownUserMs: number | null = $state(null);
 	enabled: boolean = $state(true);
+	createdAt?: Date;
+	updatedAt?: Date;
 
 	formErrors: CommandFormErrors | null = $state(null);
 
@@ -65,6 +62,8 @@ export class Command {
 		this.cooldownGlobalMs = props.cooldownGlobalMs ?? null;
 		this.cooldownUserMs = props.cooldownUserMs ?? null;
 		this.enabled = props.enabled ?? true;
+		this.createdAt = props.createdAt;
+		this.updatedAt = props.updatedAt;
 	}
 
 	get hasUnavailableDefinitions(): boolean {
@@ -79,11 +78,10 @@ export class Command {
 		return new Command();
 	}
 
-	static fromRecord(record: CommandRecord): Command {
-		const app = getApp();
+	static fromRecord(record: CommandRecord, app: PluginAppApi): Command {
 		const handlers = record.handlers.map((stored) => {
 			const definition =
-				app.actions.actions.find(stored.handlerTypeId) ??
+				app.actions.findHandler(stored.handlerTypeId) ??
 				Command.createUnavailableHandlerDefinition(stored.handlerTypeId);
 
 			return new ActionHandler(definition, {
@@ -101,7 +99,9 @@ export class Command {
 			permissions: record.permissions,
 			cooldownGlobalMs: record.cooldownGlobalMs,
 			cooldownUserMs: record.cooldownUserMs,
-			enabled: record.enabled
+			enabled: record.enabled,
+			createdAt: record.createdAt,
+			updatedAt: record.updatedAt
 		});
 	}
 
@@ -120,6 +120,8 @@ export class Command {
 			throw new Error('Command must be saved before converting to a record');
 		}
 
+		const now = new Date();
+
 		return {
 			id: this.id,
 			name: this.name.trim(),
@@ -130,24 +132,24 @@ export class Command {
 			cooldownGlobalMs: this.cooldownGlobalMs,
 			cooldownUserMs: this.cooldownUserMs,
 			enabled: this.enabled,
-			createdAt: new Date(),
-			updatedAt: new Date()
+			createdAt: this.createdAt ?? now,
+			updatedAt: this.updatedAt ?? now
 		};
 	}
 
 	open(): Modal {
+		const app = getCommandsService().requireApp();
 		this.modalId =
 			this.id != null ? `command-${this.id}` : `command-draft-${crypto.randomUUID()}`;
-		const app = getApp();
 
 		const modal =
-			app.modals.get(this.modalId) ??
-			app.createModal({
+			app.modal.get(this.modalId) ??
+			app.modal.create({
 				id: this.modalId,
 				title:
 					this.id != null
-						? translate('Edit {name}', { name: this.name })
-						: translate('New Command'),
+						? app.i18n.translate('Edit {name}', { name: this.name })
+						: app.i18n.translate('New Command'),
 				content: CommandForm,
 				props: { command: this }
 			});
@@ -172,7 +174,7 @@ export class Command {
 			return;
 		}
 
-		getApp().modals.get(this.modalId)?.close();
+		getCommandsService().requireApp().modal.get(this.modalId)?.close();
 	}
 
 	addHandler(definition: HandlerDefinition): void {
@@ -199,12 +201,16 @@ export class Command {
 	}
 
 	validateForm(): boolean {
-		const baseErrors = validateCommandForm({
-			name: this.name,
-			commandNames: this.commandNames,
-			handlersCount: this.handlers.length,
-			sources: this.sources
-		});
+		const app = getCommandsService().requireApp();
+		const baseErrors = validateCommandForm(
+			{
+				name: this.name,
+				commandNames: this.commandNames,
+				handlersCount: this.handlers.length,
+				sources: this.sources
+			},
+			app.i18n.translate
+		);
 
 		const handlerErrors: Record<string, ReturnType<typeof validateHandlerFields>> = {};
 
@@ -237,40 +243,21 @@ export class Command {
 			return false;
 		}
 
-		const app = getApp();
+		const app = getCommandsService().requireApp();
 		const commands = getCommandsService();
 		const wasNew = this.id == null;
-		const row = await saveCommand(
-			{
-				name: this.name.trim(),
-				commandNames: this.commandNames,
-				handlers: this.handlers.map((handler) => handler.toStored()),
-				sources: this.sources,
-				permissions: this.permissions,
-				cooldownGlobalMs: this.cooldownGlobalMs,
-				cooldownUserMs: this.cooldownUserMs,
-				enabled: this.enabled
-			},
-			this.id
-		);
 
-		if (row) {
-			this.id = row.id;
-			this.commandNames = row.commandNames.length > 0 ? [...row.commandNames] : [''];
-			this.enabled = row.enabled;
-		}
-
-		if (wasNew && row) {
-			commands.add(this);
-		} else if (row) {
-			commands.items = commands.items.map((item) => (item.id === row.id ? this : item));
-		}
+		await commands.upsert(this);
 
 		app.toast.create({
-			title: translate('Command saved'),
-			description: translate('The command has been saved successfully'),
+			title: app.i18n.translate('Command saved'),
+			description: app.i18n.translate('The command has been saved successfully'),
 			variant: 'success'
 		});
+
+		if (wasNew) {
+			// upsert already added to items
+		}
 
 		this.close();
 
@@ -288,17 +275,6 @@ export class Command {
 			return;
 		}
 
-		await updateCommandEnabled(this.id, enabled);
-
-		getApp().toast.create({
-			title: translate(enabled ? 'Command enabled' : 'Command disabled'),
-			description: translate(
-				enabled ? '{name} has been enabled.' : '{name} has been disabled.',
-				{
-					name: this.name.trim() || translate('this command')
-				}
-			),
-			variant: 'success'
-		});
+		await getCommandsService().setEnabledBulk([this.id], enabled);
 	}
 }

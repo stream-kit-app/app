@@ -1,16 +1,8 @@
-import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { HandlerTriggerContext, PluginAppApi, PluginStore } from '@stream-kit/plugin';
 import type { CommandRecord } from './stored-command';
 
-import {
-	deleteCommands,
-	getCommands,
-	updateCommandsEnabled
-} from '../db/repository';
+import { loadCommands, saveCommands } from '../../../lib/commands-store';
 
-import { translate } from '$lib/i18n';
-
-import { getApp } from '$lib/core/registry';
 import { Command } from './command.svelte';
 
 export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
@@ -19,6 +11,25 @@ export class Commands {
 	items: Command[] = $state.raw([]);
 	private runtimeCleanup: (() => void) | null = null;
 	private runtimeFactory: CommandRuntimeFactory | null = null;
+	private store?: PluginStore;
+	private app?: PluginAppApi;
+
+	bind(store: PluginStore, app: PluginAppApi): void {
+		this.store = store;
+		this.app = app;
+	}
+
+	private requireContext(): { store: PluginStore; app: PluginAppApi } {
+		if (!this.store || !this.app) {
+			throw new Error('Commands service has not been bound to a plugin store');
+		}
+
+		return { store: this.store, app: this.app };
+	}
+
+	requireApp(): PluginAppApi {
+		return this.requireContext().app;
+	}
 
 	registerRuntime(factory: CommandRuntimeFactory): void {
 		this.runtimeFactory = factory;
@@ -32,11 +43,11 @@ export class Commands {
 		this.items = [...this.items, command];
 	}
 
-	async delete(id: number): Promise<void> {
+	async delete(id: string): Promise<void> {
 		await this.deleteBulk([id]);
 	}
 
-	async deleteBulk(ids: number[]): Promise<void> {
+	async deleteBulk(ids: string[]): Promise<void> {
 		const toDelete = this.items.filter(
 			(command) => command.id != null && ids.includes(command.id)
 		);
@@ -49,16 +60,15 @@ export class Commands {
 			command.close();
 		}
 
-		await deleteCommands(toDelete.map((command) => command.id!));
-
 		const deletedIds = new Set(toDelete.map((command) => command.id));
 		this.items = this.items.filter((item) => item.id == null || !deletedIds.has(item.id));
+		await this.persist();
 
-		const app = getApp();
+		const { app } = this.requireContext();
 
 		app.toast.create({
-			title: translate('Commands deleted'),
-			description: translate('{count} commands have been deleted.', {
+			title: app.i18n.translate('Commands deleted'),
+			description: app.i18n.translate('{count} commands have been deleted.', {
 				count: toDelete.length
 			}),
 			variant: 'success'
@@ -66,9 +76,36 @@ export class Commands {
 	}
 
 	async load(): Promise<void> {
-		const rows = await getCommands();
+		const { store, app } = this.requireContext();
+		const rows = await loadCommands(store);
 
-		this.items = rows.map((row) => Command.fromRecord(row));
+		this.items = rows.map((row) => Command.fromRecord(row, app));
+	}
+
+	async persist(): Promise<void> {
+		const { store } = this.requireContext();
+		await saveCommands(store, this.getSnapshot());
+	}
+
+	async upsert(command: Command): Promise<void> {
+		const wasNew = command.id == null || !this.items.some((item) => item.id === command.id);
+
+		if (command.id == null) {
+			command.id = crypto.randomUUID();
+		}
+
+		const now = new Date();
+
+		if (wasNew) {
+			command.createdAt = now;
+			command.updatedAt = now;
+			this.add(command);
+		} else {
+			command.updatedAt = now;
+			this.items = this.items.map((item) => (item.id === command.id ? command : item));
+		}
+
+		await this.persist();
 	}
 
 	activate(pluginApp: PluginAppApi): void {
@@ -88,7 +125,7 @@ export class Commands {
 
 	getSnapshot(): CommandRecord[] {
 		return this.items
-			.filter((command): command is Command & { id: number } => command.id != null)
+			.filter((command): command is Command & { id: string } => command.id != null)
 			.map((command) => command.toRecord());
 	}
 
@@ -100,7 +137,7 @@ export class Commands {
 		);
 	}
 
-	runById(id: number, context: HandlerTriggerContext): boolean {
+	runById(id: string, context: HandlerTriggerContext): boolean {
 		const command = this.items.find((item) => item.id === id);
 
 		if (!command) {
@@ -112,7 +149,7 @@ export class Commands {
 		return true;
 	}
 
-	async setEnabledBulk(ids: number[], enabled: boolean): Promise<void> {
+	async setEnabledBulk(ids: string[], enabled: boolean): Promise<void> {
 		const toUpdate = this.items.filter(
 			(command) => command.id != null && ids.includes(command.id) && command.enabled !== enabled
 		);
@@ -123,18 +160,16 @@ export class Commands {
 
 		for (const command of toUpdate) {
 			command.enabled = enabled;
+			command.updatedAt = new Date();
 		}
 
-		await updateCommandsEnabled(
-			toUpdate.map((command) => command.id!),
-			enabled
-		);
+		await this.persist();
 
-		const app = getApp();
+		const { app } = this.requireContext();
 
 		app.toast.create({
-			title: translate(enabled ? 'Commands enabled' : 'Commands disabled'),
-			description: translate(
+			title: app.i18n.translate(enabled ? 'Commands enabled' : 'Commands disabled'),
+			description: app.i18n.translate(
 				enabled
 					? '{count} commands have been enabled.'
 					: '{count} commands have been disabled.',

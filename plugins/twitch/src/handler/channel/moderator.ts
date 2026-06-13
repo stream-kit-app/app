@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { HandlerDefinitionProps } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import { resolveFieldText } from '../../get-field-value';
 import { resolveBroadcasterId, resolveUserFromContext } from '../../lib/handler-helpers';

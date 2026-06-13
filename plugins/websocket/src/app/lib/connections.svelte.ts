@@ -1,4 +1,4 @@
-import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
+import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
 import {
 	findDuplicateUrl,
@@ -34,6 +34,10 @@ export class Connections {
 		this.unsubscribeLogs = this.controller.subscribeLogs(() => {
 			this.logsRevision += 1;
 		});
+	}
+
+	requireApp(): PluginAppApi {
+		return this.app;
 	}
 
 	async load(): Promise<void> {

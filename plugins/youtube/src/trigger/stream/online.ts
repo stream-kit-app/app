@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { TriggerDefinitionProps } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { TriggerDefinitionProps } from '@stream-kit/plugin';
 
 import { subscribeStreamOnline } from '../../lib/broadcast-setup';
 import { createTestStreamContext } from '../../lib/test-contexts';

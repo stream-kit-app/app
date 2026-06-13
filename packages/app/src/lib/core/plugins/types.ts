@@ -25,11 +25,11 @@ export type PluginPublicApi = unknown;
  *
  * @example
  * ```ts
- * import type { Plugin } from '@stream-kit/app/api';
+ * import type { Plugin } from '@stream-kit/plugin';
  *
  * const plugin: Plugin = (app) => ({
  *   name: 'My Plugin',
- *   onBoot: async ({ store }) => {
+ *   onEnable: async ({ store }) => {
  *     await store.set('initialized', true);
  *   }
  * });
@@ -62,6 +62,12 @@ export type PluginSettingsFieldSectionDefinition = Omit<
 export type PluginSettingsFieldItem =
 	| PluginSettingsFieldDefinition
 	| PluginSettingsFieldSectionDefinition;
+
+export type PluginCustomViewProps = {
+	app: PluginAppApi;
+	title?: string;
+	description?: string;
+};
 
 export type PluginMenuItemChildDefinition = {
 	title: string;
@@ -108,7 +114,7 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 
 	/**
 	 * Called after plugin settings are read from the plugin store during app startup.
-	 * Runs before {@link PluginRegistration.onBoot}. Use this to hydrate in-memory state from persisted settings.
+	 * Runs before {@link PluginRegistration.onEnable}. Use this to hydrate in-memory state from persisted settings.
 	 *
 	 * @example
 	 * ```ts
@@ -134,22 +140,23 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 	onSave?: (context: PluginSettingsContext) => void | Promise<void>;
 
 	/**
-	 * Called the first time the plugin starts while enabled and all dependencies are satisfied.
+	 * Called when the plugin is enabled and all dependencies are satisfied.
+	 * Runs during app startup for enabled plugins and when the user toggles the plugin on.
 	 * Use this to initialize services, register runtimes, and connect to external systems.
 	 *
 	 * @example
 	 * ```ts
-	 * onBoot: async ({ store, getValue }) => {
+	 * onEnable: async ({ store, getValue }) => {
 	 *   controller = createController(app);
 	 *   await controller.boot(store);
 	 *   syncGetValue(getValue);
 	 * }
 	 * ```
 	 */
-	onBoot?: (context: PluginSettingsContext) => void | Promise<void>;
+	onEnable?: (context: PluginSettingsContext) => void | Promise<void>;
 
 	/**
-	 * Called after all plugins have booted and actions are loaded.
+	 * Called after all plugins have enabled and actions are loaded.
 	 * Use this for work that depends on the full app being ready (e.g. auto-connect).
 	 *
 	 * @example
@@ -160,20 +167,6 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 	 * ```
 	 */
 	onReady?: (context: PluginSettingsContext) => void | Promise<void>;
-
-	/**
-	 * Called when the user enables the plugin.
-	 * Runs after {@link PluginRegistration.onBoot} on first enable, or on subsequent toggles after boot.
-	 *
-	 * @example
-	 * ```ts
-	 * onEnable: async ({ getValue }) => {
-	 *   syncGetValue(getValue);
-	 *   await api?.connect();
-	 * }
-	 * ```
-	 */
-	onEnable?: (context: PluginSettingsContext) => void | Promise<void>;
 
 	/**
 	 * Called when the user disables the plugin, before triggers and handlers are unregistered.

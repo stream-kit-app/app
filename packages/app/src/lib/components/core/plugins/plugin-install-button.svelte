@@ -4,11 +4,13 @@
 
 	import { Button } from '@stream-kit/ui/button';
 	import { app } from '$lib/core';
+	import { linkPluginDev } from '$lib/core/plugins/plugin-dev-link';
 	import { installPluginFromZip } from '$lib/core/plugins/plugin-loader';
 	import { useI18n } from '$lib/i18n';
 
 	const { t } = useI18n();
 	let isInstalling = $state(false);
+	let isLinking = $state(false);
 
 	async function installPlugin(): Promise<void> {
 		if (isInstalling) {
@@ -99,15 +101,69 @@
 			isInstalling = false;
 		}
 	}
+
+	async function linkDevPlugin(): Promise<void> {
+		if (isLinking) {
+			return;
+		}
+
+		const selected = await open({
+			multiple: false,
+			directory: false,
+			filters: [{ name: t('Plugin manifest'), extensions: ['json'] }]
+		});
+
+		if (!selected || Array.isArray(selected)) {
+			return;
+		}
+
+		isLinking = true;
+
+		try {
+			await linkPluginDev(selected, true);
+			await app.plugins.load(app);
+			app.toast.create({
+				title: t('Plugin linked'),
+				description: t(
+					'Development plugin linked. Enable the plugin and turn on Dev mode to watch rebuilds.'
+				),
+				variant: 'success'
+			});
+			window.location.reload();
+		} catch (error) {
+			app.toast.create({
+				title: t('Plugin could not be linked'),
+				description: error instanceof Error ? error.message : t('Unknown installation error.'),
+				variant: 'error'
+			});
+		} finally {
+			isLinking = false;
+		}
+	}
 </script>
 
-<Button
-	onclick={installPlugin}
-	variant="outline"
-	disabled={isInstalling}
-	icon="ri:upload-line"
-	aria-label={t('Install plugin')}
-	isLoading={isInstalling}
->
-	{isInstalling ? t('Installing...') : t('Install plugin')}
-</Button>
+<div class="flex flex-wrap gap-2">
+	<Button
+		onclick={installPlugin}
+		variant="outline"
+		disabled={isInstalling}
+		icon="ri:upload-line"
+		aria-label={t('Install plugin')}
+		isLoading={isInstalling}
+	>
+		{isInstalling ? t('Installing...') : t('Install plugin')}
+	</Button>
+
+	{#if app.settings.developerMode}
+		<Button
+			onclick={linkDevPlugin}
+			variant="outline"
+			disabled={isLinking}
+			icon="ri:link-m"
+			aria-label={t('Link dev plugin')}
+			isLoading={isLinking}
+		>
+			{isLinking ? t('Linking...') : t('Link dev plugin')}
+		</Button>
+	{/if}
+</div>

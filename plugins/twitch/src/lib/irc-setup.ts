@@ -1,4 +1,4 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 import type { ChatMessage } from '@twurple/chat';
 
 import type { ChatMessageContext } from '../contexts';

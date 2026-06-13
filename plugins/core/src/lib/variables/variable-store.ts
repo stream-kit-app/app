@@ -1,4 +1,4 @@
-import type { HandlerTriggerContext, PluginStore } from '@stream-kit/app/api';
+import type { HandlerTriggerContext, PluginStore } from '@stream-kit/plugin';
 
 import { extractUsername } from './extract-username';
 import { resolveVariables } from './resolve-variables';

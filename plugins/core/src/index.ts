@@ -3,7 +3,7 @@ import type {
 	PluginAppApi,
 	PluginSettingsContext,
 	SettingsVisibilityContext
-} from '@stream-kit/app/api';
+} from '@stream-kit/plugin';
 
 import { createPlayAudioFileHandler } from './handler/audio/play-file';
 import { createPlayAudioFolderHandler } from './handler/audio/play-folder';
@@ -199,15 +199,16 @@ const plugin = (app: PluginAppApi) => {
 				]
 			}
 		],
-		onBoot: async ({ store }: PluginSettingsContext) => {
+		onEnable: async (context: PluginSettingsContext) => {
+			const { store } = context;
 			variables.bindStore(store);
 			maps.bindStore(store);
 			configureAudioPlayback(app);
 			await variables.load();
 			await maps.load();
 			await logs.load(app.fs);
+			await syncSchedulesFromContext(context);
 		},
-		onEnable: syncSchedulesFromContext,
 		onReady: syncWatcherFromContext,
 		onSave: syncWatcherFromContext,
 		onDisable: async ({ app: pluginApp }: PluginSettingsContext) => {

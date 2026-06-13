@@ -1,5 +1,5 @@
 import type { YouTubePluginApi, YouTubePluginController } from './lib/youtube';
-import type { Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/plugin';
 
 import { createDeleteMessageHandler } from './handler/chat/delete-message';
 import { createSendMessageHandler } from './handler/chat/send-message';
@@ -186,7 +186,7 @@ const plugin: Plugin = (app) => {
 				]
 			}
 		],
-		onBoot: async ({ store }) => {
+		onEnable: async ({ store }) => {
 			youtubeApi = createYouTubePluginApi(app, store);
 			await youtubeApi.boot();
 		}

@@ -2,7 +2,7 @@
 
 This package contains app-agnostic Svelte 5 UI primitives for Stream Kit.
 
-Declarative plugin menu pages are rendered by the app with this package. Plugin authors should define page schemas through `@stream-kit/app/api`; they should not import Svelte components from this package for menu pages.
+Declarative plugin menu pages are rendered by the app with this package. Plugin authors should define page schemas through `@stream-kit/plugin`; they should not import Svelte components from this package for menu pages.
 
 Rules for changes in this package:
 

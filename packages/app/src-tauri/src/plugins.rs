@@ -6,14 +6,13 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use zip::ZipArchive;
 
-const BUILTIN_PLUGIN_KEYS: &[&str] = &[
-    "core", "twitch", "youtube", "obs", "tts", "bot", "websocket", "commands",
-];
+const DEV_LINK_FILE: &str = "dev-link.json";
 const MANIFEST_FILE: &str = "manifest.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PluginManifest {
+    pub key: String,
     pub name: String,
     pub version: String,
     pub description: Option<String>,
@@ -22,6 +21,13 @@ struct PluginManifest {
     #[serde(default)]
     pub dependencies: Vec<String>,
     pub stream_kit_version: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DevLinkManifest {
+    pub source_root: String,
+    pub source_entry: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,12 +42,14 @@ pub struct InstalledPluginManifest {
     pub dependencies: Vec<String>,
     pub stream_kit_version: Option<String>,
     pub install_path: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dev_source_entry: Option<String>,
 }
 
 impl From<PluginManifest> for InstalledPluginManifest {
     fn from(manifest: PluginManifest) -> Self {
         Self {
-            key: String::new(),
+            key: manifest.key,
             name: manifest.name,
             version: manifest.version,
             description: manifest.description,
@@ -50,6 +58,7 @@ impl From<PluginManifest> for InstalledPluginManifest {
             dependencies: manifest.dependencies,
             stream_kit_version: manifest.stream_kit_version,
             install_path: String::new(),
+            dev_source_entry: None,
         }
     }
 }
@@ -59,7 +68,36 @@ fn parse_manifest_contents(contents: &str, source: &str) -> Result<PluginManifes
         .map_err(|error| format!("invalid manifest.json in {source}: {error}"))
 }
 
+fn validate_plugin_key(key: &str) -> Result<(), String> {
+    let trimmed = key.trim();
+
+    if trimmed.is_empty() {
+        return Err("manifest key must not be empty".to_string());
+    }
+
+    if trimmed.len() > 64 {
+        return Err("manifest key must be 64 characters or fewer".to_string());
+    }
+
+    if !trimmed
+        .chars()
+        .all(|character| character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-')
+    {
+        return Err(
+            "manifest key must use lowercase letters, numbers, and hyphens only".to_string(),
+        );
+    }
+
+    if trimmed.starts_with('-') || trimmed.ends_with('-') {
+        return Err("manifest key must not start or end with a hyphen".to_string());
+    }
+
+    Ok(())
+}
+
 fn validate_manifest(manifest: &PluginManifest, install_dir: Option<&Path>) -> Result<(), String> {
+    validate_plugin_key(&manifest.key)?;
+
     if manifest.name.trim().is_empty() {
         return Err("manifest name must not be empty".to_string());
     }
@@ -94,6 +132,28 @@ fn plugins_dir(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(plugins_dir)
 }
 
+fn read_dev_link(path: &Path) -> Result<Option<DevLinkManifest>, String> {
+    let dev_link_path = path.join(DEV_LINK_FILE);
+
+    if !dev_link_path.is_file() {
+        return Ok(None);
+    }
+
+    let contents = fs::read_to_string(&dev_link_path).map_err(|error| {
+        format!(
+            "failed to read dev link at {}: {error}",
+            dev_link_path.display()
+        )
+    })?;
+
+    serde_json::from_str(&contents).map_err(|error| {
+        format!(
+            "invalid dev link file at {}: {error}",
+            dev_link_path.display()
+        )
+    }).map(Some)
+}
+
 fn read_manifest(path: &Path) -> Result<InstalledPluginManifest, String> {
     let manifest_path = path.join(MANIFEST_FILE);
     let contents = fs::read_to_string(&manifest_path).map_err(|error| {
@@ -107,56 +167,161 @@ fn read_manifest(path: &Path) -> Result<InstalledPluginManifest, String> {
     validate_manifest(&manifest, Some(path))?;
 
     let mut installed = InstalledPluginManifest::from(manifest);
-    installed.key = path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| "plugin install path is not valid UTF-8".to_string())?
-        .to_string();
     installed.install_path = path
         .to_str()
         .ok_or_else(|| "plugin install path is not valid UTF-8".to_string())?
         .to_string();
 
+    if let Some(dev_link) = read_dev_link(path)? {
+        installed.dev_source_entry = Some(dev_link.source_entry);
+    }
+
     Ok(installed)
 }
 
-fn slugify(value: &str, fallback: &str) -> String {
-    let mut slug = String::new();
-    let mut last_was_separator = false;
+fn plugin_destination(plugins_root: &Path, key: &str) -> PathBuf {
+    plugins_root.join(key)
+}
 
-    for character in value.chars() {
-        if character.is_ascii_alphanumeric() {
-            slug.push(character.to_ascii_lowercase());
-            last_was_separator = false;
-        } else if !last_was_separator && !slug.is_empty() {
-            slug.push('-');
-            last_was_separator = true;
+fn copy_file_create_parents(source: &Path, destination: &Path) -> Result<(), String> {
+    if let Some(parent) = destination.parent() {
+        fs::create_dir_all(parent).map_err(|error| {
+            format!(
+                "failed to create parent directory {}: {error}",
+                parent.display()
+            )
+        })?;
+    }
+
+    fs::copy(source, destination).map_err(|error| {
+        format!(
+            "failed to copy {} to {}: {error}",
+            source.display(),
+            destination.display()
+        )
+    })?;
+
+    Ok(())
+}
+
+fn mirror_directory(source: &Path, destination: &Path) -> Result<(), String> {
+    fs::create_dir_all(destination)
+        .map_err(|error| format!("failed to create directory {}: {error}", destination.display()))?;
+
+    for entry in fs::read_dir(source).map_err(|error| {
+        format!(
+            "failed to read directory {}: {error}",
+            source.display()
+        )
+    })? {
+        let entry = entry.map_err(|error| format!("failed to read directory entry: {error}"))?;
+        let source_path = entry.path();
+        let destination_path = destination.join(entry.file_name());
+
+        if source_path.is_dir() {
+            mirror_directory(&source_path, &destination_path)?;
+        } else {
+            copy_file_create_parents(&source_path, &destination_path)?;
         }
     }
 
-    while slug.ends_with('-') {
-        slug.pop();
+    Ok(())
+}
+
+fn mirror_plugin_files(source_root: &Path, manifest: &PluginManifest, destination: &Path) -> Result<(), String> {
+    fs::create_dir_all(destination)
+        .map_err(|error| format!("failed to create plugin directory: {error}"))?;
+
+    let manifest_path = source_root.join(MANIFEST_FILE);
+    copy_file_create_parents(&manifest_path, &destination.join(MANIFEST_FILE))?;
+
+    let source_entry = source_root.join(&manifest.entry);
+    if !source_entry.is_file() {
+        return Err(format!(
+            "manifest entry file not found: {}",
+            source_entry.display()
+        ));
     }
 
-    if slug.is_empty() {
-        fallback.to_string()
+    let source_output_dir = source_entry.parent().ok_or_else(|| {
+        format!(
+            "manifest entry file has no parent directory: {}",
+            source_entry.display()
+        )
+    })?;
+
+    if source_output_dir.file_name().is_some_and(|name| name == "dist") {
+        mirror_directory(source_output_dir, &destination.join("dist"))?;
     } else {
-        slug
+        copy_file_create_parents(&source_entry, &destination.join(&manifest.entry))?;
+    }
+
+    Ok(())
+}
+
+fn write_dev_link(destination: &Path, source_root: &Path, source_entry: &Path) -> Result<(), String> {
+    let dev_link = DevLinkManifest {
+        source_root: source_root
+            .to_str()
+            .ok_or_else(|| "plugin source root is not valid UTF-8".to_string())?
+            .to_string(),
+        source_entry: source_entry
+            .to_str()
+            .ok_or_else(|| "plugin source entry is not valid UTF-8".to_string())?
+            .to_string(),
+    };
+
+    fs::write(
+        destination.join(DEV_LINK_FILE),
+        serde_json::to_string_pretty(&dev_link)
+            .map_err(|error| format!("failed to serialize dev link file: {error}"))?,
+    )
+    .map_err(|error| format!("failed to write dev link file: {error}"))?;
+
+    Ok(())
+}
+
+fn resolve_project_root(project_path: &str) -> Result<PathBuf, String> {
+    let path = PathBuf::from(project_path);
+
+    if path.ends_with(MANIFEST_FILE) {
+        path.parent()
+            .map(Path::to_path_buf)
+            .ok_or_else(|| "manifest path has no parent directory".to_string())
+    } else {
+        Ok(path)
     }
 }
 
-fn install_key_base(manifest: &PluginManifest) -> String {
-    let mut key = slugify(&manifest.name, "plugin");
+fn read_manifest_from_project(project_root: &Path) -> Result<PluginManifest, String> {
+    let manifest_path = project_root.join(MANIFEST_FILE);
+    let contents = fs::read_to_string(&manifest_path).map_err(|error| {
+        format!(
+            "failed to read manifest at {}: {error}",
+            manifest_path.display()
+        )
+    })?;
 
-    if BUILTIN_PLUGIN_KEYS.contains(&key.as_str()) {
-        key = format!("{key}-plugin");
+    let manifest = parse_manifest_contents(&contents, &manifest_path.display().to_string())?;
+    validate_plugin_key(&manifest.key)?;
+
+    if manifest.name.trim().is_empty() {
+        return Err("manifest name must not be empty".to_string());
     }
 
-    key
-}
+    if manifest.entry.trim().is_empty() {
+        return Err("manifest entry must not be empty".to_string());
+    }
 
-fn plugin_destination(plugins_root: &Path, base_key: &str) -> PathBuf {
-    plugins_root.join(base_key)
+    let source_entry = project_root.join(&manifest.entry);
+    if !source_entry.is_file() {
+        return Err(format!(
+            "manifest entry file not found: {}. Build the plugin before linking it.",
+            source_entry.display()
+        ));
+    }
+
+    Ok(manifest)
 }
 
 fn extract_zip_to_dir<R: Read + std::io::Seek>(
@@ -276,14 +441,13 @@ pub fn install_plugin_zip(
     validate_manifest(&manifest, None)?;
 
     let plugins_root = plugins_dir(&app)?;
-    let install_key = install_key_base(&manifest);
-    let destination = plugin_destination(&plugins_root, &install_key);
+    let destination = plugin_destination(&plugins_root, &manifest.key);
 
     if destination.exists() {
         if !replace_existing {
             return Err(format!(
                 "a plugin with key '{}' is already installed",
-                install_key
+                manifest.key
             ));
         }
 
@@ -309,11 +473,167 @@ pub fn install_plugin_zip(
 }
 
 #[tauri::command]
-pub fn uninstall_plugin(app: AppHandle, key: String) -> Result<(), String> {
-    if BUILTIN_PLUGIN_KEYS.contains(&key.as_str()) {
-        return Err(format!("cannot uninstall built-in plugin '{key}'"));
+pub fn link_plugin_dev(
+    app: AppHandle,
+    project_path: String,
+    replace_existing: bool,
+) -> Result<InstalledPluginManifest, String> {
+    let project_root = resolve_project_root(&project_path)?;
+    let manifest = read_manifest_from_project(&project_root)?;
+
+    let plugins_root = plugins_dir(&app)?;
+    let destination = plugin_destination(&plugins_root, &manifest.key);
+
+    if destination.exists() {
+        if !replace_existing {
+            return Err(format!(
+                "a plugin with key '{}' is already installed",
+                manifest.key
+            ));
+        }
+
+        fs::remove_dir_all(&destination).map_err(|error| {
+            format!(
+                "failed to remove existing plugin directory {}: {error}",
+                destination.display()
+            )
+        })?;
     }
 
+    mirror_plugin_files(&project_root, &manifest, &destination)?;
+
+    let source_entry = project_root.join(&manifest.entry);
+    write_dev_link(&destination, &project_root, &source_entry)?;
+
+    read_manifest(&destination)
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct WorkspaceDevPluginsConfig {
+    #[serde(default)]
+    plugins: Vec<String>,
+}
+
+#[tauri::command]
+pub fn link_workspace_dev_plugins(
+    app: AppHandle,
+    workspace_root: String,
+    replace_existing: bool,
+) -> Result<Vec<InstalledPluginManifest>, String> {
+    let config_path = PathBuf::from(&workspace_root).join("dev-plugins.json");
+
+    if !config_path.is_file() {
+        return Ok(Vec::new());
+    }
+
+    let contents = fs::read_to_string(&config_path).map_err(|error| {
+        format!(
+            "failed to read workspace dev plugin config at {}: {error}",
+            config_path.display()
+        )
+    })?;
+
+    let config: WorkspaceDevPluginsConfig = serde_json::from_str(&contents).map_err(|error| {
+        format!(
+            "invalid workspace dev plugin config at {}: {error}",
+            config_path.display()
+        )
+    })?;
+
+    let workspace_root_path = PathBuf::from(&workspace_root);
+    let mut linked = Vec::new();
+
+    for plugin_path in config.plugins {
+        let project_root = workspace_root_path.join(&plugin_path);
+        let manifest_path = project_root.join(MANIFEST_FILE);
+
+        if !manifest_path.is_file() {
+            eprintln!(
+                "skipping workspace dev plugin at {}: manifest.json not found",
+                project_root.display()
+            );
+            continue;
+        }
+
+        match link_plugin_dev(
+            app.clone(),
+            project_root
+                .to_str()
+                .ok_or_else(|| "plugin project path is not valid UTF-8".to_string())?
+                .to_string(),
+            replace_existing,
+        ) {
+            Ok(manifest) => linked.push(manifest),
+            Err(error) => {
+                eprintln!(
+                    "failed to link workspace dev plugin at {}: {error}",
+                    project_root.display()
+                );
+            }
+        }
+    }
+
+    Ok(linked)
+}
+
+#[tauri::command]
+pub fn sync_dev_plugin_entry(app: AppHandle, plugin_key: String) -> Result<(), String> {
+    let plugins_root = plugins_dir(&app)?;
+    let destination = plugin_destination(&plugins_root, &plugin_key);
+
+    if !destination.is_dir() {
+        return Err(format!("plugin '{plugin_key}' is not installed"));
+    }
+
+    let dev_link = read_dev_link(&destination)?.ok_or_else(|| {
+        format!("plugin '{plugin_key}' is not linked for development")
+    })?;
+
+    let manifest = read_manifest(&destination)?;
+    let source_root = PathBuf::from(&dev_link.source_root);
+    let source_entry = source_root.join(&manifest.entry);
+
+    if !source_entry.is_file() {
+        return Err(format!(
+            "dev plugin entry file not found: {}",
+            source_entry.display()
+        ));
+    }
+
+    let source_manifest = source_root.join(MANIFEST_FILE);
+    if source_manifest.is_file() {
+        copy_file_create_parents(&source_manifest, &destination.join(MANIFEST_FILE))?;
+    }
+
+    let source_output_dir = source_entry.parent().ok_or_else(|| {
+        format!(
+            "manifest entry file has no parent directory: {}",
+            source_entry.display()
+        )
+    })?;
+
+    if source_output_dir.file_name().is_some_and(|name| name == "dist") {
+        let destination_output_dir = destination.join("dist");
+        if destination_output_dir.exists() {
+            fs::remove_dir_all(&destination_output_dir).map_err(|error| {
+                format!(
+                    "failed to remove plugin output directory {}: {error}",
+                    destination_output_dir.display()
+                )
+            })?;
+        }
+
+        mirror_directory(source_output_dir, &destination_output_dir)?;
+    } else {
+        copy_file_create_parents(&source_entry, &destination.join(&manifest.entry))?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn uninstall_plugin(app: AppHandle, key: String) -> Result<(), String> {
     let plugins_root = plugins_dir(&app)?;
     let destination = plugins_root.join(&key);
 

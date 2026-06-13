@@ -1,4 +1,4 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
 
 import type { BotSettings } from '../settings/bot-settings';
 import type { Commands } from '../commands/app/lib/commands.svelte';

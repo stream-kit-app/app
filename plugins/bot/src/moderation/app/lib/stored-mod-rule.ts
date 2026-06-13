@@ -1,4 +1,4 @@
-import type { ConditionGroupNode } from '$lib/core/action/trigger/condition';
+import type { ConditionGroupNode } from '@stream-kit/plugin';
 
 export type ModRuleType = 'custom';
 export type ModRuleAction = 'delete' | 'timeout' | 'warn';
@@ -12,7 +12,7 @@ export type CustomModRuleParameters = {
 export type ModRuleParameters = CustomModRuleParameters;
 
 export type ModRuleRecord = {
-	id: number;
+	id: string;
 	name: string;
 	type: ModRuleType;
 	enabled: boolean;

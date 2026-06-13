@@ -1,4 +1,4 @@
-import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@stream-kit/core';
+import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@stream-kit/plugin';
 
 import { evaluateConditionTree } from './evaluate-conditions';
 import { resolveConditionValue } from '../resolve-condition-value';

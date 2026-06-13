@@ -4,27 +4,29 @@
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		}
+		".": "./src/index.ts"
 	},
 	"files": [
-		"dist"
+		"src",
+		"dist",
+		"manifest.json"
 	],
 	"scripts": {
-		"build": "tsup",
+		"build": "vite build --config vite.build.config.js",
 		"check": "tsc --noEmit",
-		"dev": "tsup --watch src"
+		"dev": "vite build --config vite.build.config.js --watch"
 	},
 	"dependencies": {
 		"@elevenlabs/elevenlabs-js": "^2.51.0",
-		"@stream-kit/core": "workspace:*",
-		"@tauri-apps/api": "^2.11.0"
+		"@stream-kit/core": "workspace:*"
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
-		"tsup": "^8.5.0",
-		"typescript": "~6.0.3"
+		"@stream-kit/plugin": "workspace:*",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"svelte": "^5.56.1",
+		"typescript": "~6.0.3",
+		"vite": "^8.0.16",
+		"vite-plugin-node-polyfills": "^0.28.0"
 	}
 }

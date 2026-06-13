@@ -1,5 +1,5 @@
 import type { ObsPluginApi, ObsPluginController } from './lib/obs';
-import type { Plugin } from '@stream-kit/app/api';
+import type { Plugin } from '@stream-kit/plugin';
 
 import {
 	createPauseRecordHandler,
@@ -419,18 +419,15 @@ const plugin: Plugin = (app) => {
 				]
 			}
 		],
-		onBoot: async ({ getValue }) => {
+		onEnable: async ({ getValue }) => {
 			obsApi = createObsPluginApi(app);
 			syncGetValue(getValue);
 			await obsApi.boot();
+			await obsApi.connect();
 		},
 		onSave: async ({ getValue }) => {
 			syncGetValue(getValue);
 			await obsApi?.reconnectFromSettings();
-		},
-		onEnable: async ({ getValue }) => {
-			syncGetValue(getValue);
-			await obsApi?.connect();
 		},
 		onDisable: async () => {
 			await obsApi?.disconnect();

@@ -1,4 +1,4 @@
-import type { ConditionGroupNode, FieldValue } from '$lib/core/action/trigger/condition';
+import type { ConditionGroupNode, FieldValue } from '@stream-kit/plugin';
 
 export function evaluateConditionTree(
 	group: ConditionGroupNode,

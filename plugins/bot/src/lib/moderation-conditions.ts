@@ -2,11 +2,10 @@ import type { ChatModerationContext } from './moderation-engine';
 import type {
 	ConditionDefinition,
 	ConditionGroupNode,
-	FieldValue,
-	ResolvedConditionDefinition
-} from '$lib/core/action/trigger/condition';
-
-import { emptyConditionGroup } from '$lib/core/action/condition-tree';
+	FieldValue
+} from '@stream-kit/plugin';
+import type { ResolvedConditionDefinition } from '@stream-kit/plugin/action';
+import { emptyConditionGroup } from '@stream-kit/plugin/action';
 
 import { matchText } from './match-text';
 import { DEFAULT_EXEMPT_ROLES, moderationRoleItems, roleMatches } from './role-utils';
@@ -149,7 +148,7 @@ const messageFloodTracker = new Map<string, Array<{ at: number }>>();
 
 function evaluateRepeatMessage(
 	context: ChatModerationContext,
-	ruleId: number,
+	ruleId: string,
 	value: FieldValue
 ): boolean {
 	const match = readTextSelectText(value);
@@ -178,7 +177,7 @@ function evaluateRepeatMessage(
 
 function evaluateMessageFlood(
 	context: ChatModerationContext,
-	ruleId: number,
+	ruleId: string,
 	value: FieldValue
 ): boolean {
 	const match = readTextSelectText(value);
@@ -211,7 +210,7 @@ function evaluateMessageFlood(
 
 export function createModerationEvaluators(
 	context: ChatModerationContext,
-	ruleId: number
+	ruleId: string
 ): Record<string, (value: FieldValue) => boolean> {
 	return {
 		message: (value) => {

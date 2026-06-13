@@ -11,11 +11,11 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"paths": {
-			"@stream-kit/app/api": ["../../packages/core/dist/index.d.ts"],
-			"$db/*": ["../../packages/app/src/db/*"],
-			"$lib/*": ["../../packages/app/src/lib/*"],
+			"@stream-kit/plugin": ["../../packages/plugin/dist/index.d.ts"],
+			"@stream-kit/plugin/action": ["../../packages/plugin/stubs/action.d.ts"],
+			"@stream-kit/plugin/utils": ["../../packages/plugin/stubs/utils.d.ts"],
 			"@stream-kit/ui/*": ["../../packages/ui/src/lib/*"]
 		}
 	},
-	"include": ["src"]
+	"include": ["src", "../../packages/plugin/stubs/action-ui.d.ts"]
 }

@@ -1,7 +1,6 @@
 <script lang="ts" generics="T">
 	import type { Snippet } from 'svelte';
 
-	import { move } from '@dnd-kit/helpers';
 	import {
 		DragDropProvider,
 		DragOverlay,
@@ -11,7 +10,7 @@
 	import { watch } from 'runed';
 
 	import SortableChainItem from './sortable-chain-item.svelte';
-	import type { DndDragEvent } from './dnd-events';
+	import { applyDndMove, type DndDragEvent } from './dnd-events';
 
 	type ChainEntry = {
 		id: string;
@@ -56,7 +55,7 @@
 	}
 
 	function handleDragOver(event: DndDragEvent): void {
-		list = move(list, event) as ChainEntry[];
+		list = applyDndMove(list, event);
 	}
 
 	function handleDragEnd(): void {

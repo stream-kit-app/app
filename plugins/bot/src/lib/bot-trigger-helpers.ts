@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { Action, ActionTrigger, ConditionGroupNode, FieldValue } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { Action, ActionTrigger, ConditionGroupNode, FieldValue } from '@stream-kit/plugin';
 
 import type { ChatModerationContext } from './moderation-engine';
 import { subscribeBotChatMessages } from './chat-message-hub';
@@ -38,14 +38,14 @@ export function createTestChatModerationContext(): ChatModerationContext {
 	};
 }
 
-export function hashTriggerId(triggerId: string): number {
+export function hashTriggerId(triggerId: string): string {
 	let hash = 0;
 
 	for (let index = 0; index < triggerId.length; index++) {
 		hash = (hash * 31 + triggerId.charCodeAt(index)) | 0;
 	}
 
-	return Math.abs(hash) || 1;
+	return String(Math.abs(hash) || 1);
 }
 
 export function createBotChatTriggerLifecycle(

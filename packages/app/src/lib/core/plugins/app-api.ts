@@ -5,11 +5,14 @@ import type { App } from '../app.svelte';
 import type { CommandRecord } from '$lib/types/command-types';
 import { createFilesystemApi } from '../filesystem/create-api';
 import { getSettingsFieldValue } from '../settings/settings-field';
+import { db } from '$db/index';
 import { registerPluginMigrations, type PluginMigration } from '$db/plugin-migrations';
+import { getI18n, translate, type TranslationKey } from '$lib/i18n';
 
 import type {
 	CommandRuntimeFactory,
-	PluginAppApi
+	PluginAppApi,
+	PluginDbClient
 } from './plugin-app-api.types';
 
 export type { CommandRuntimeFactory, PluginAppApi } from './plugin-app-api.types';
@@ -18,10 +21,8 @@ export type BotPluginApi = {
 	commands: {
 		registerRuntime: (factory: CommandRuntimeFactory) => void;
 		getSnapshot: () => CommandRecord[];
-		runById: (id: number, context: HandlerTriggerContext) => boolean;
-		findByTrigger: (
-			trigger: string
-		) => { id: number; toRecord: () => Record<string, unknown> } | undefined;
+		runById: (id: string, context: HandlerTriggerContext) => boolean;
+		findByTrigger: (trigger: string) => CommandRecord | undefined;
 	};
 };
 
@@ -33,8 +34,15 @@ export type PluginDefinitionCollections = {
 	handlers?: HandlerDefinitionProps[];
 };
 
-function getCommandsApi(app: App) {
-	return app.plugins.tryGet<BotPluginApi>('bot')?.commands;
+type BotCommandsService = {
+	registerRuntime: (factory: CommandRuntimeFactory) => void;
+	getSnapshot: () => CommandRecord[];
+	runById: (id: string, context: HandlerTriggerContext) => boolean;
+	findByTrigger: (trigger: string) => { toRecord: () => CommandRecord } | undefined;
+};
+
+function getCommandsApi(app: App): BotCommandsService | undefined {
+	return app.plugins.tryGet<{ commands?: BotCommandsService }>('bot')?.commands;
 }
 
 export function createPluginAppApi(app: App): PluginAppApi {
@@ -50,6 +58,15 @@ export function createPluginAppApi(app: App): PluginAppApi {
 				}
 
 				return getSettingsFieldValue(plugin.fields, settingKey);
+			},
+			getSettingsContext: (pluginKey) => {
+				const plugin = app.plugins.find(pluginKey);
+
+				if (!plugin) {
+					return undefined;
+				}
+
+				return plugin.createContext(app);
 			}
 		},
 		toast: {
@@ -60,7 +77,8 @@ export function createPluginAppApi(app: App): PluginAppApi {
 			ask: app.confirm.ask.bind(app.confirm)
 		},
 		modal: {
-			create: app.createModal.bind(app)
+			create: app.createModal.bind(app),
+			get: (id: string) => app.modals.get(id)
 		},
 		menu: {
 			add: app.menu.addPlugin.bind(app.menu),
@@ -98,7 +116,23 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		db: {
 			registerMigrations: (pluginKey: string, migrations: PluginMigration[]) => {
 				registerPluginMigrations(pluginKey, migrations);
-			}
+			},
+			getClient: (): PluginDbClient => db
+		},
+		i18n: {
+			t: (key: TranslationKey, params?: Record<string, string | number | null | undefined>) => {
+				const i18n = getI18n();
+
+				if (!i18n) {
+					return key;
+				}
+
+				return i18n.t(
+					key,
+					params as Record<string, string | number> | undefined
+				);
+			},
+			translate
 		},
 		actions: {
 			reactivateAll: () => {
@@ -112,23 +146,21 @@ export function createPluginAppApi(app: App): PluginAppApi {
 				}
 			},
 			hasEnabledProcessTrigger: () => app.actions.hasEnabledProcessTrigger(),
-			runById: (id: number, context: HandlerTriggerContext) => app.actions.runById(id, context)
+			runById: (id: number, context: HandlerTriggerContext) => app.actions.runById(id, context),
+			findHandler: (id: string) => app.actions.actions.find(id),
+			getHandlers: () => app.actions.actions.items
 		},
 		commands: {
 			registerRuntime: (factory: CommandRuntimeFactory) => {
 				getCommandsApi(app)?.registerRuntime(factory);
 			},
 			getSnapshot: () => getCommandsApi(app)?.getSnapshot() ?? [],
-			runById: (id: number, context: HandlerTriggerContext) =>
+			runById: (id: string, context: HandlerTriggerContext) =>
 				getCommandsApi(app)?.runById(id, context) ?? false,
 			findByTrigger: (trigger: string) => {
 				const command = getCommandsApi(app)?.findByTrigger(trigger);
 
-				if (!command || command.id == null) {
-					return undefined;
-				}
-
-				return command.toRecord();
+				return command?.toRecord();
 			}
 		},
 		oauth: {
@@ -140,4 +172,11 @@ export function createPluginAppApi(app: App): PluginAppApi {
 			openUrl: app.opener.openUrl.bind(app.opener)
 		}
 	} satisfies PluginAppApi;
+}
+
+let pluginAppInstance: PluginAppApi | undefined;
+
+export function getPluginAppApi(app: App): PluginAppApi {
+	pluginAppInstance ??= createPluginAppApi(app);
+	return pluginAppInstance;
 }

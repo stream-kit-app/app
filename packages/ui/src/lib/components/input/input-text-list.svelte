@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import { useId } from 'bits-ui';
 
-	import { InputText } from '.';
+	import InputText from './input-text.svelte';
 	import { cn } from '../../utils';
 	import Button from '../button/button.svelte';
 	import Label from './label.svelte';

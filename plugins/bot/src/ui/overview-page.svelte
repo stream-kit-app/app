@@ -1,24 +1,18 @@
 <script lang="ts">
+	import type { BotPluginRegistrationApi } from '../lib/plugin-api';
+	import type { PluginCustomViewProps } from '@stream-kit/plugin';
+
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
-
 	import { tryGetCommandsService } from '../commands/app/lib/get-commands';
-	import type { BotPluginRegistrationApi } from '../lib/plugin-api';
 	import { tryGetModerationService } from '../moderation/app/lib/get-moderation';
 	import { tryGetTimersService } from '../timers/app/lib/get-timers';
 
-	type Props = {
-		title?: string;
-		description?: string;
-	};
-
-	let { title, description }: Props = $props();
-	const { t } = useI18n();
+	let { app, title, description }: PluginCustomViewProps = $props();
+	const t = $derived(app.i18n.t);
 
 	const botApi = $derived(app.plugins.tryGet<BotPluginRegistrationApi>('bot'));
 	const twitch = $derived(app.plugins.tryGet<{ isConnected?: boolean }>('twitch'));
@@ -33,13 +27,13 @@
 	const isConfigured = $derived(Boolean(twitch?.isConnected || youtube?.isConnected));
 
 	async function saveSettings(): Promise<void> {
-		const plugin = app.plugins.find('bot');
+		const context = app.plugins.getSettingsContext('bot');
 
-		if (!plugin || !settings) {
+		if (!context || !settings) {
 			return;
 		}
 
-		await settings.save(plugin.createContext(app).store);
+		await settings.save(context.store);
 	}
 </script>
 
@@ -50,7 +44,7 @@
 
 	<section class="mt-8 grid gap-4">
 		<h2 class="text-lg font-medium text-dark-50">{t('Connections')}</h2>
-		<div class="grid gap-3 rounded-xl border border-border-dark-600 bg-dark-800 p-4">
+		<div class="border-border-dark-600 grid gap-3 rounded-xl border bg-dark-800 p-4">
 			<div class="flex items-center justify-between gap-4">
 				<span>Twitch</span>
 				<Badge variant={twitch?.isConnected ? 'default' : 'secondary'}>
@@ -79,7 +73,7 @@
 	{#if settings}
 		<section class="mt-8 grid gap-4">
 			<h2 class="text-lg font-medium text-dark-50">{t('Bot Settings')}</h2>
-			<div class="grid gap-4 rounded-xl border border-border-dark-600 bg-dark-800 p-4">
+			<div class="border-border-dark-600 grid gap-4 rounded-xl border bg-dark-800 p-4">
 				<InputSwitch
 					label={t('Bot enabled')}
 					bind:checked={
@@ -135,15 +129,15 @@
 	<section class="mt-8 grid gap-4">
 		<h2 class="text-lg font-medium text-dark-50">{t('Summary')}</h2>
 		<div class="grid gap-3 sm:grid-cols-3">
-			<div class="rounded-xl border border-border-dark-600 bg-dark-800 p-4">
+			<div class="border-border-dark-600 rounded-xl border bg-dark-800 p-4">
 				<p class="text-2xl font-semibold">{commands?.items.length ?? 0}</p>
 				<p class="text-sm text-dark-300">{t('Commands')}</p>
 			</div>
-			<div class="rounded-xl border border-border-dark-600 bg-dark-800 p-4">
+			<div class="border-border-dark-600 rounded-xl border bg-dark-800 p-4">
 				<p class="text-2xl font-semibold">{timers?.items.length ?? 0}</p>
 				<p class="text-sm text-dark-300">{t('Timers')}</p>
 			</div>
-			<div class="rounded-xl border border-border-dark-600 bg-dark-800 p-4">
+			<div class="border-border-dark-600 rounded-xl border bg-dark-800 p-4">
 				<p class="text-2xl font-semibold">{moderation?.items.length ?? 0}</p>
 				<p class="text-sm text-dark-300">{t('Moderation rules')}</p>
 			</div>

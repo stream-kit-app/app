@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { CommandRecord } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { CommandRecord } from '@stream-kit/plugin';
 
 import { parseCommand } from '@stream-kit/core';
 

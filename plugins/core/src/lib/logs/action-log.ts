@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import { BaseDirectory } from '@stream-kit/app/api';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import { BaseDirectory } from '@stream-kit/plugin';
 
 import type { ActionLogAppendInput, ActionLogEntry } from './types';
 

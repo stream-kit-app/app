@@ -7,7 +7,7 @@ export type CommandPermissions = {
 };
 
 export type CommandRecord = {
-	id: number;
+	id: string;
 	name: string;
 	commandNames: string[];
 	handlers: StoredActionHandler[];
@@ -21,7 +21,7 @@ export type CommandRecord = {
 };
 
 export type NewCommandRecord = {
-	id?: number;
+	id?: string;
 	name: string;
 	commandNames: string[];
 	handlers: StoredActionHandler[];

@@ -1,0 +1,10 @@
+{
+	"key": "websocket",
+	"name": "WebSocket",
+	"version": "0.1.1-alpha.2",
+	"description": "Persistent WebSocket connections with action triggers.",
+	"icon": "ri:links-line",
+	"entry": "dist/index.js",
+	"dependencies": ["core"],
+	"streamKitVersion": "0.1.0"
+}

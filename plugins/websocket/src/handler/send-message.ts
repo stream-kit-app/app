@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { HandlerDefinitionProps, SelectItem } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { HandlerDefinitionProps, SelectItem } from '@stream-kit/plugin';
 
 import { getFieldValue, resolveFieldText } from '../get-field-value';
 import { getWebSocket } from '../lib/plugin-api';

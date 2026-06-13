@@ -1,5 +1,5 @@
-import type { PluginAppApi } from '@stream-kit/app/api';
-import type { Action, ActionTrigger } from '@stream-kit/core';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import type { Action, ActionTrigger } from '@stream-kit/plugin';
 
 import type { WsConnectionStateContext } from '../contexts';
 

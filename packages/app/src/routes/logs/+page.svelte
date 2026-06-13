@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CorePluginApi } from '@stream-kit/app/api';
+	import type { CorePluginApi } from '@stream-kit/plugin';
 
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';

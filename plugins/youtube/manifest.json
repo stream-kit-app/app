@@ -1,0 +1,10 @@
+{
+	"key": "youtube",
+	"name": "YouTube",
+	"version": "0.1.1-alpha.2",
+	"description": "YouTube live chat, memberships, moderation, and stream status.",
+	"icon": "ri:youtube-fill",
+	"entry": "dist/index.js",
+	"dependencies": ["core"],
+	"streamKitVersion": "0.1.0"
+}

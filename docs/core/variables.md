@@ -61,7 +61,7 @@ variables  → Record<string, string>                    // global
 users      → Record<username, Record<key, value>>     // per user
 ```
 
-Variables are loaded in `onBoot` and written immediately on `set()`.
+Variables are loaded in `onEnable` and written immediately on `set()`.
 
 ## Examples
 

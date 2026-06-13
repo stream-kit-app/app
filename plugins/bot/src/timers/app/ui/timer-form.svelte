@@ -10,21 +10,21 @@
 		Label
 	} from '@stream-kit/ui/input';
 
-	import DefinitionPickerDropdown from '$lib/components/core/action/definition-picker-dropdown.svelte';
-	import HandlerFieldGroup from '$lib/components/core/action/handler-field-group.svelte';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import DefinitionPickerDropdown from '@stream-kit/plugin/action-ui/definition-picker-dropdown.svelte';
+	import HandlerFieldGroup from '@stream-kit/plugin/action-ui/handler-field-group.svelte';
+	import { getTimersService } from '../lib/get-timers';
+	import { cn } from '@stream-kit/plugin/utils';
 
 	type Props = {
 		timer: Timer;
 	};
 
 	let { timer }: Props = $props();
-	const { t } = useI18n();
+	const app = getTimersService().requireApp();
+	const t = app.i18n.t;
 
 	function addHandler(definition: { id: string }) {
-		const found = getApp().actions.actions.find(definition.id);
+		const found = app.actions.findHandler(definition.id);
 
 		if (!found || found.isGroup || !found.isAvailable) {
 			return;
@@ -50,7 +50,7 @@
 			<Label>{t('Handlers')}</Label>
 			<DefinitionPickerDropdown
 				label={t('Add Handler')}
-				definitions={getApp().actions.actions.items}
+				definitions={app.actions.getHandlers()}
 				onSelect={addHandler}
 			/>
 		</div>
@@ -187,7 +187,7 @@
 				variant="destructive"
 				type="button"
 				onclick={async () => {
-					const confirmed = await getApp().confirm.ask({
+					const confirmed = await app.confirm.ask({
 						title: t('Delete timer'),
 						description: t('Are you sure you want to delete "{name}"?', {
 							name: timer.name.trim() || t('this timer')

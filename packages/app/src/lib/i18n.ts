@@ -25,6 +25,10 @@ export const registerI18n = (i18n: () => I18nContext) => {
 
 export type TranslationKey = Parameters<I18nContext['t']>[0];
 
+export function getI18n(): I18nContext | null {
+	return globalI18n;
+}
+
 export function translate(
 	key: TranslationKey,
 	params?: Record<string, string | number | null | undefined>
