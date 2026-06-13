@@ -1,5 +1,14 @@
 # @stream-kit/plugin-websocket
 
+## 0.1.1-alpha.1
+
+### Patch Changes
+
+- Build
+
+- Updated dependencies []:
+    - @stream-kit/core@0.1.1-alpha.1
+
 ## 0.1.1-alpha.0
 
 ### Patch Changes
