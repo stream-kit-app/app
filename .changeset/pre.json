@@ -16,5 +16,7 @@
     "@stream-kit/plugin-youtube": "0.1.0",
     "@stream-kit/site": "0.0.1"
   },
-  "changesets": []
+  "changesets": [
+    "sixty-aliens-drop"
+  ]
 }
