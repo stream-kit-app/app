@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
 
+	import { PhysicalSize } from '@tauri-apps/api/dpi';
 	import { getCurrentWindow } from '@tauri-apps/api/window';
 	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -52,7 +53,7 @@
 			document.getElementById('boot-splash')?.remove();
 		});
 
-		const window = await getCurrentWindow();
+		//await getCurrentWindow().setSize(new PhysicalSize(1680, 800));
 	});
 
 	beforeNavigate(() => {
