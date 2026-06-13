@@ -1,16 +1,12 @@
 import type { Modal } from '../modal';
-import { HandlerDefinitions } from './handler';
-import { HandlerDefinition } from './handler/handler-definition.svelte';
-import { TriggerDefinitions } from './trigger';
-import { TriggerDefinition } from './trigger/trigger-definition.svelte';
-import type { ActionFormErrors } from './validate-form';
+import type { HandlerTriggerContext } from './handler-context';
 import type {
 	ActionLayoutUpdate,
 	ActionRecord,
 	StoredActionHandler,
 	StoredActionTrigger
 } from './stored-action';
-import { DEFAULT_ACTION_GROUP } from './stored-action';
+import type { ActionFormErrors } from './validate-form';
 
 import {
 	deleteAction,
@@ -26,16 +22,20 @@ import {
 import ActionForm from '$lib/components/core/action/action-form.svelte';
 import { translate } from '$lib/i18n';
 
-import { getApp } from '../registry';
-import { ActionHandler } from './action-handler.svelte';
-import { ActionTrigger } from './action-trigger.svelte';
-import { migrateLegacyHandlerFields } from './handler-field';
-import { ActionExecution } from './action-execution.svelte';
-import type { HandlerTriggerContext } from './handler-context';
-import { runHandlerChain } from './run-handler-chain';
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
-import { validateActionForm } from './validate-form';
+import { getApp } from '../registry';
+import { ActionExecution } from './action-execution.svelte';
+import { ActionHandler } from './action-handler.svelte';
 import { applyLayoutUpdates, compareActionsByLayout } from './action-layout';
+import { ActionTrigger } from './action-trigger.svelte';
+import { HandlerDefinitions } from './handler';
+import { migrateLegacyHandlerFields } from './handler-field';
+import { HandlerDefinition } from './handler/handler-definition.svelte';
+import { runHandlerChain } from './run-handler-chain';
+import { DEFAULT_ACTION_GROUP } from './stored-action';
+import { TriggerDefinitions } from './trigger';
+import { TriggerDefinition } from './trigger/trigger-definition.svelte';
+import { validateActionForm } from './validate-form';
 
 type ActionFormSnapshot = {
 	name: string;
@@ -553,7 +553,9 @@ export class Action {
 		if (!this.hasTestableTriggers) {
 			getApp().toast.create({
 				title: translate('No testable triggers'),
-				description: translate('Add a trigger that supports testing before running a test.'),
+				description: translate(
+					'Add a trigger that supports testing before running a test.'
+				),
 				variant: 'warning'
 			});
 			return;
@@ -796,9 +798,12 @@ export class Action {
 
 		app.toast.create({
 			title: translate(enabled ? 'Action enabled' : 'Action disabled'),
-			description: translate(enabled ? '{name} has been enabled.' : '{name} has been disabled.', {
-				name: this.name.trim() || translate('this action')
-			}),
+			description: translate(
+				enabled ? '{name} has been enabled.' : '{name} has been disabled.',
+				{
+					name: this.name.trim() || translate('this action')
+				}
+			),
 			variant: 'success'
 		});
 	}

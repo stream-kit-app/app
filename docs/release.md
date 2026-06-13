@@ -13,7 +13,7 @@ PR with changeset → merge to main → Version Packages PR → merge → git ta
 | Workflow                                                                        | Trigger                          | Purpose                                                                                               |
 | ------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | [`.github/workflows/release.yml`](../.github/workflows/release.yml)             | Push to `main`                   | Opens or updates a **Version Packages** PR; on merge, creates a `v*` git tag and dispatches the build |
-| [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` or manual dispatch | Builds macOS + Windows installers, MSIX bundle, GitHub Release artifacts                              |
+| [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` or manual dispatch | Builds Windows installers and optionally publishes an MSIX bundle to the Microsoft Store              |
 
 ## Adding a changeset
 
@@ -78,24 +78,24 @@ Only [`packages/app/package.json`](../packages/app/package.json) is versioned by
 
 ## Local builds
 
-Build desktop installers:
+Build Windows installers:
 
 ```bash
 pnpm build
 pnpm tauri build
 ```
 
-Build a Microsoft Store MSIX bundle (Windows only):
+Build a Microsoft Store MSIX bundle:
 
 ```bash
 pnpm build
-pnpm --filter @stream-kit/app tauri:windows:build -- --arch x64,arm64 --runner pnpm
+pnpm --filter @stream-kit/app tauri:windows:build -- --arch x64 --runner pnpm
 ```
 
 Output:
 
 - Tauri installers: `packages/app/src-tauri/target/release/bundle/`
-- MSIX bundle: `packages/app/src-tauri/target/msix/*.msixbundle`
+- MSIX bundle: `packages/app/src-tauri/target/msix/*.msixbundle` (only when Store publishing is enabled)
 
 ## GitHub secrets
 
@@ -138,18 +138,16 @@ See [Publish app updates to Microsoft Store with GitHub Actions](https://learn.m
     - Set `publisher` to the exact Partner Center publisher CN (replace the `CN=Stream Kit B.V.` placeholder).
     - Ensure `publisherDisplayName` matches Partner Center (`Stream Kit B.V.`).
 4. Configure GitHub secrets and set `MSSTORE_PUBLISH=true`.
-5. Merge a Version Packages PR; CI uploads the MSIX bundle to GitHub Releases and submits to Partner Center.
+5. Merge a Version Packages PR; CI builds the MSIX bundle once, uploads it to GitHub Releases, and submits it to Partner Center.
 
 ## Build artifacts per platform
 
-| Platform        | Artifacts                                         |
-| --------------- | ------------------------------------------------- |
-| macOS           | `.dmg`, `.app` (universal: Apple Silicon + Intel) |
-| Windows         | `.msi`, `.exe` (NSIS), `.msixbundle`              |
-| Microsoft Store | `.msixbundle` (x64 + arm64)                       |
+| Platform        | Artifacts                         |
+| --------------- | --------------------------------- |
+| Windows         | `.msi`, `.exe` (NSIS)             |
+| Microsoft Store | `.msixbundle` (x64, optional job) |
 
 ## Notes
 
-- macOS alpha builds may be unsigned; users may see Gatekeeper warnings until Apple Developer signing is configured.
 - `bundle.publisher` in Tauri config must not match `productName` (`Stream Kit`); use `Stream Kit B.V.`.
 - GitHub Releases are created as **drafts**; publish manually after verifying artifacts.
