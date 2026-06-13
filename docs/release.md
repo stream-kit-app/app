@@ -33,7 +33,7 @@ pnpm changeset
 1. Merge a PR that contains one or more changesets into `main`.
 2. The **Release** workflow opens a **Version Packages** PR (or updates an existing one).
 3. Review the version bump and changelog, then merge the Version Packages PR.
-4. The Release workflow runs `changeset tag`, pushing a tag like `v0.1.0-alpha.1`.
+4. The Release workflow runs `pnpm release`, pushing a tag like `v0.1.0-alpha.1` to GitHub.
 5. The **Build Release** workflow builds installers and uploads them to a draft GitHub Release.
 
 Publish the draft release on GitHub when you are ready to ship.
@@ -57,6 +57,7 @@ Only [`packages/app/package.json`](../packages/app/package.json) is versioned by
 
 - [`packages/app/src-tauri/tauri.conf.json`](../packages/app/src-tauri/tauri.conf.json)
 - [`packages/app/src-tauri/Cargo.toml`](../packages/app/src-tauri/Cargo.toml)
+- [`packages/app/src-tauri/tauri.windows.conf.json`](../packages/app/src-tauri/tauri.windows.conf.json) — sets `bundle.windows.wix.version` to a numeric-only MSI version (e.g. `0.1.0-alpha.3` → `0.1.0.3`). WiX does not accept semver pre-release labels like `alpha`.
 
 ## Local builds
 
