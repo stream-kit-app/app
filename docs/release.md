@@ -33,10 +33,25 @@ pnpm changeset
 1. Merge a PR that contains one or more changesets into `main`.
 2. The **Release** workflow opens a **Version Packages** PR (or updates an existing one).
 3. Review the version bump and changelog, then merge the Version Packages PR.
-4. The Release workflow runs `pnpm release`, pushing a tag like `v0.1.0-alpha.1` to GitHub.
-5. The **Build Release** workflow builds installers and uploads them to a draft GitHub Release.
+4. The Release workflow pushes a tag like `v0.1.0-alpha.1` to GitHub (separate step after the Version Packages PR).
+5. The **Build Release** workflow starts automatically on that tag push.
 
 Publish the draft release on GitHub when you are ready to ship.
+
+### Build did not start?
+
+**Build Release** only runs when a `v*` tag is pushed *and* the workflow file exists on `main`. Tags pushed before `build-release.yml` was merged do not retroactively trigger a build.
+
+To build an existing tag manually:
+
+1. Go to **Actions → Build Release → Run workflow**
+2. Enter the tag (e.g. `v0.1.0-alpha.1`) and run
+
+Or re-push the tag from your machine:
+
+```bash
+git push origin refs/tags/v0.1.0-alpha.1 --force
+```
 
 ## Alpha channel
 
