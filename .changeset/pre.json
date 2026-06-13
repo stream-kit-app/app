@@ -17,6 +17,7 @@
     "@stream-kit/site": "0.0.1"
   },
   "changesets": [
+    "chatty-jobs-join",
     "chatty-plants-agree",
     "fancy-walls-divide",
     "sixty-aliens-drop",
