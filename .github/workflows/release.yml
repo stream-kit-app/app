@@ -1,55 +1,67 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
-  contents: write
-  pull-requests: write
+    contents: write
+    pull-requests: write
+    actions: write
 
 jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    release:
+        name: Release
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Create Release Pull Request
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          version: pnpm version-packages
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
-          createGithubReleases: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+            - name: Create Release Pull Request
+              id: changesets
+              uses: changesets/action@v1
+              with:
+                  version: pnpm version-packages
+                  commit: 'chore: version packages'
+                  title: 'chore: version packages'
+                  createGithubReleases: false
+              env:
+                  GITHUB_TOKEN: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Sync main branch
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        run: |
-          git checkout main
-          git pull --ff-only origin main
+            - name: Sync main branch
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              run: |
+                  git fetch origin main --tags
+                  git checkout -B main origin/main
+                  git pull --ff-only origin main
 
-      - name: Push release tag
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        run: pnpm release
+            - name: Push release tag
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              run: pnpm release
+
+            - name: Trigger release build
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  RELEASE_TAG="v$(node -p "require('./packages/app/package.json').version")"
+                  git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}"
+                  gh workflow run build-release.yml --ref main -f tag="${RELEASE_TAG}"

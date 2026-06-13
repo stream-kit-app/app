@@ -10,10 +10,10 @@ PR with changeset → merge to main → Version Packages PR → merge → git ta
                                                                                     Microsoft Store (optional)
 ```
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | Push to `main` | Opens or updates a **Version Packages** PR; on merge, creates a `v*` git tag |
-| [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` | Builds macOS + Windows installers, MSIX bundle, GitHub Release artifacts |
+| Workflow                                                                        | Trigger                          | Purpose                                                                                               |
+| ------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [`.github/workflows/release.yml`](../.github/workflows/release.yml)             | Push to `main`                   | Opens or updates a **Version Packages** PR; on merge, creates a `v*` git tag and dispatches the build |
+| [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` or manual dispatch | Builds macOS + Windows installers, MSIX bundle, GitHub Release artifacts                              |
 
 ## Adding a changeset
 
@@ -33,14 +33,16 @@ pnpm changeset
 1. Merge a PR that contains one or more changesets into `main`.
 2. The **Release** workflow opens a **Version Packages** PR (or updates an existing one).
 3. Review the version bump and changelog, then merge the Version Packages PR.
-4. The Release workflow pushes a tag like `v0.1.0-alpha.1` to GitHub (separate step after the Version Packages PR).
-5. The **Build Release** workflow starts automatically on that tag push.
+4. The Release workflow pushes a tag like `v0.1.0-alpha.1` to GitHub.
+5. The Release workflow explicitly dispatches **Build Release** for that tag.
 
 Publish the draft release on GitHub when you are ready to ship.
 
 ### Build did not start?
 
-**Build Release** only runs when a `v*` tag is pushed *and* the workflow file exists on `main`. Tags pushed before `build-release.yml` was merged do not retroactively trigger a build.
+**Build Release** runs when a `v*` tag is pushed or when `Release` dispatches it manually. GitHub does not reliably start a second workflow from a tag pushed with the default `GITHUB_TOKEN`, so `Release` also calls `gh workflow run build-release.yml`.
+
+The release workflow requires `actions: write`, `contents: write`, and `pull-requests: write` permissions. If GitHub blocks PR creation, configure `CHANGESET_GITHUB_TOKEN` as described below.
 
 To build an existing tag manually:
 
@@ -99,21 +101,22 @@ Output:
 
 ### Automatic
 
-| Secret | Purpose |
-|--------|---------|
-| `GITHUB_TOKEN` | Provided by GitHub Actions for releases and changesets |
+| Secret                   | Purpose                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `GITHUB_TOKEN`           | Provided by GitHub Actions for releases and changesets                                           |
+| `CHANGESET_GITHUB_TOKEN` | Optional PAT for creating Changesets PRs and pushing tags when org settings block `GITHUB_TOKEN` |
 
 ### Microsoft Store (required for Store publish job)
 
 Configure these in **Settings → Secrets and variables → Actions**:
 
-| Secret | Purpose |
-|--------|---------|
-| `AZURE_AD_TENANT_ID` | Azure AD tenant for Partner Center API |
-| `AZURE_AD_APPLICATION_CLIENT_ID` | App registration client ID |
-| `AZURE_AD_APPLICATION_SECRET` | App registration client secret |
-| `SELLER_ID` | Partner Center seller ID |
-| `MSSTORE_PRODUCT_ID` | Store product ID after app registration |
+| Secret                           | Purpose                                 |
+| -------------------------------- | --------------------------------------- |
+| `AZURE_AD_TENANT_ID`             | Azure AD tenant for Partner Center API  |
+| `AZURE_AD_APPLICATION_CLIENT_ID` | App registration client ID              |
+| `AZURE_AD_APPLICATION_SECRET`    | App registration client secret          |
+| `SELLER_ID`                      | Partner Center seller ID                |
+| `MSSTORE_PRODUCT_ID`             | Store product ID after app registration |
 
 Also set repository variable **`MSSTORE_PUBLISH`** to `true` when all Store secrets are configured. Without it, the Store publish job is skipped so CI does not fail before Partner Center is set up.
 
@@ -121,29 +124,29 @@ See [Publish app updates to Microsoft Store with GitHub Actions](https://learn.m
 
 ### Optional (later)
 
-| Secret | Purpose |
-|--------|---------|
-| `TAURI_SIGNING_PRIVATE_KEY` | Tauri updater signing |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Updater key password |
-| Windows code signing certificate | Signed NSIS/MSI on GitHub Releases (Store re-signs MSIX) |
+| Secret                               | Purpose                                                  |
+| ------------------------------------ | -------------------------------------------------------- |
+| `TAURI_SIGNING_PRIVATE_KEY`          | Tauri updater signing                                    |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Updater key password                                     |
+| Windows code signing certificate     | Signed NSIS/MSI on GitHub Releases (Store re-signs MSIX) |
 
 ## Microsoft Store setup
 
 1. Enroll as a [Microsoft Store developer](https://learn.microsoft.com/en-us/windows/apps/get-started/sign-up).
 2. Register the app in [Partner Center](https://partner.microsoft.com/dashboard/apps-and-games/overview) as an MSIX app.
 3. Update [`packages/app/src-tauri/gen/windows/bundle.config.json`](../packages/app/src-tauri/gen/windows/bundle.config.json):
-   - Set `publisher` to the exact Partner Center publisher CN (replace the `CN=Stream Kit B.V.` placeholder).
-   - Ensure `publisherDisplayName` matches Partner Center (`Stream Kit B.V.`).
+    - Set `publisher` to the exact Partner Center publisher CN (replace the `CN=Stream Kit B.V.` placeholder).
+    - Ensure `publisherDisplayName` matches Partner Center (`Stream Kit B.V.`).
 4. Configure GitHub secrets and set `MSSTORE_PUBLISH=true`.
 5. Merge a Version Packages PR; CI uploads the MSIX bundle to GitHub Releases and submits to Partner Center.
 
 ## Build artifacts per platform
 
-| Platform | Artifacts |
-|----------|-----------|
-| macOS | `.dmg`, `.app` (universal: Apple Silicon + Intel) |
-| Windows | `.msi`, `.exe` (NSIS), `.msixbundle` |
-| Microsoft Store | `.msixbundle` (x64 + arm64) |
+| Platform        | Artifacts                                         |
+| --------------- | ------------------------------------------------- |
+| macOS           | `.dmg`, `.app` (universal: Apple Silicon + Intel) |
+| Windows         | `.msi`, `.exe` (NSIS), `.msixbundle`              |
+| Microsoft Store | `.msixbundle` (x64 + arm64)                       |
 
 ## Notes
 

@@ -16,7 +16,10 @@ function run(command) {
 
 function tagExists(name) {
 	try {
-		execSync(`git rev-parse ${name}^{tag}`, { stdio: 'ignore', cwd: root });
+		execSync(`git rev-parse --verify --quiet refs/tags/${name}`, {
+			stdio: 'ignore',
+			cwd: root
+		});
 		return true;
 	} catch {
 		return false;
@@ -49,5 +52,7 @@ if (isCi) {
 	run(`git push origin refs/tags/${tag}`);
 	console.log(`Pushed tag ${tag} to origin`);
 } else {
-	console.log(`Not running in CI — tag was not pushed. Run \`git push origin refs/tags/${tag}\` to publish.`);
+	console.log(
+		`Not running in CI — tag was not pushed. Run \`git push origin refs/tags/${tag}\` to publish.`
+	);
 }
