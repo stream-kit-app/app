@@ -41,8 +41,12 @@
 
 	bootApp()
 		.then(async () => {
-			isRevealingWindow = true;
+			if (!dev) {
+				isRevealingWindow = true;
+			}
+
 			await revealMainWindow();
+
 			isRevealingWindow = false;
 			isAppReady = true;
 		})
@@ -57,7 +61,9 @@
 	}
 
 	onMount(async () => {
-		await centerBootWindow();
+		if (!dev) {
+			await centerBootWindow();
+		}
 
 		await tick();
 		requestAnimationFrame(() => {
@@ -72,6 +78,10 @@
 	});
 
 	$effect(() => {
+		if (dev) {
+			return;
+		}
+
 		document.documentElement.style.setProperty(
 			'--app-window-radius',
 			isAppReady ? `${MAIN_WINDOW_CORNER_RADIUS_PX}px` : '0px'
@@ -84,7 +94,10 @@
 <BootScreen visible={!isAppReady || isRevealingWindow} error={bootError} onRetry={retryBoot} />
 
 {#if isAppReady}
-	<div class="relative isolate h-screen w-screen overflow-hidden" in:fade={{ duration: 300 }}>
+	<div
+		class="relative isolate h-screen w-screen overflow-hidden"
+		in:fade={{ duration: dev ? 0 : 300 }}
+	>
 		<div class="boot-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true"></div>
 
 		<TooltipProvider>

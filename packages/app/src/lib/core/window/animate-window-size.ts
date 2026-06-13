@@ -1,5 +1,6 @@
 import type { Window } from '@tauri-apps/api/window';
 
+import { dev } from '$app/environment';
 import { isTauri } from '@tauri-apps/api/core';
 import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -10,6 +11,17 @@ export const MAIN_WINDOW_SIZE = {
 } as const;
 
 export const MAIN_WINDOW_CORNER_RADIUS_PX = 8;
+
+export function usesBootWindowPresentation(): boolean {
+	return isTauri() && !dev;
+}
+
+async function prepareDevWindow(): Promise<void> {
+	const window = getCurrentWindow();
+
+	await window.setDecorations(true);
+	await window.setSize(new PhysicalSize(MAIN_WINDOW_SIZE.width, MAIN_WINDOW_SIZE.height));
+}
 
 type AnimateWindowSizeOptions = {
 	width: number;
@@ -117,7 +129,7 @@ export async function animateWindowSize({
 }
 
 export async function centerBootWindow(): Promise<void> {
-	if (!isTauri()) {
+	if (!usesBootWindowPresentation()) {
 		return;
 	}
 
@@ -127,7 +139,7 @@ export async function centerBootWindow(): Promise<void> {
 }
 
 export async function enableMainWindowPresentation(): Promise<void> {
-	if (!isTauri()) {
+	if (!usesBootWindowPresentation()) {
 		return;
 	}
 
@@ -136,6 +148,11 @@ export async function enableMainWindowPresentation(): Promise<void> {
 
 export async function revealMainWindow(): Promise<void> {
 	if (!isTauri()) {
+		return;
+	}
+
+	if (dev) {
+		await prepareDevWindow();
 		return;
 	}
 

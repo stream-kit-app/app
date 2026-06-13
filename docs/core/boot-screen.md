@@ -45,9 +45,11 @@ The main window in [`tauri.conf.json`](../../packages/app/src-tauri/tauri.conf.j
 
 ## Window reveal
 
-The main window starts small (480×200, frameless, centered, no native shadow) in [`tauri.conf.json`](../../packages/app/src-tauri/tauri.conf.json) to match the boot screen. On Windows, an undecorated window with `shadow: true` draws a 1px border artifact — `shadow: false` avoids that. `centerBootWindow()` also calls `setShadow(false)` on layout mount.
+In production (`dev` is false), the main window starts small (480×200, frameless, centered, no native shadow) in [`tauri.conf.json`](../../packages/app/src-tauri/tauri.conf.json) to match the boot screen. On Windows, an undecorated window with `shadow: true` draws a 1px border artifact — `shadow: false` avoids that during boot. `centerBootWindow()` also calls `setShadow(false)` on layout mount.
 
 When boot completes, [`revealMainWindow`](../../packages/app/src/lib/core/window/animate-window-size.ts) re-centers the window and animates the resize from that center point. The window stays frameless (`decorations: false`). After the resize finishes, `enableMainWindowPresentation()` turns the native shadow back on (Windows 11 also applies rounded window corners). The `app-window-ready` class on `<html>` clips the webview content to the same corner radius.
+
+In development (`dev` is true), all of this is skipped. `revealMainWindow()` only snaps the Tauri window to the main size with decorations enabled so `tauri dev` stays usable. There is no resize animation, centering, shadow toggling, or rounded-window CSS.
 
 Required Tauri capabilities: `core:window:allow-inner-size`, `core:window:allow-center`, plus existing size and decoration permissions.
 

@@ -4,7 +4,8 @@ import {
 	enableMainWindowPresentation,
 	MAIN_WINDOW_CORNER_RADIUS_PX,
 	MAIN_WINDOW_SIZE,
-	revealMainWindow
+	revealMainWindow,
+	usesBootWindowPresentation
 } from './animate-window-size';
 
 export {
@@ -13,5 +14,6 @@ export {
 	enableMainWindowPresentation,
 	MAIN_WINDOW_CORNER_RADIUS_PX,
 	MAIN_WINDOW_SIZE,
-	revealMainWindow
+	revealMainWindow,
+	usesBootWindowPresentation
 };
