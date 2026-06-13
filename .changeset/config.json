@@ -7,18 +7,5 @@
 	"access": "restricted",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": [
-		"@stream-kit/app-types",
-		"@stream-kit/core",
-		"@stream-kit/plugin-template",
-		"@stream-kit/ui",
-		"@stream-kit/plugin-bot",
-		"@stream-kit/plugin-handlers",
-		"@stream-kit/plugin-obs",
-		"@stream-kit/plugin-tts",
-		"@stream-kit/plugin-twitch",
-		"@stream-kit/plugin-websocket",
-		"@stream-kit/plugin-youtube",
-		"@stream-kit/site"
-	]
+	"ignore": ["@stream-kit/app-types", "@stream-kit/plugin-template", "@stream-kit/site"]
 }

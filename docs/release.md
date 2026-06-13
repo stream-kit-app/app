@@ -23,7 +23,7 @@ When your PR includes a user-facing change to the desktop app, add a changeset:
 pnpm changeset
 ```
 
-1. Select **@stream-kit/app** (other workspace packages are ignored).
+1. Select **@stream-kit/app** only (packages like `@stream-kit/site` are ignored; workspace deps are not versioned unless you add a changeset for them).
 2. Choose the bump type: `patch`, `minor`, or `major`.
 3. Write a short summary for the changelog.
 4. Commit the generated `.changeset/*.md` file with your PR.
