@@ -69,6 +69,14 @@ export class ProcessWatcher {
 		this.isRunning = false;
 		this.recentStarts.clear();
 		this.recentStops.clear();
+
+		// Tear down the Tauri event listeners so they don't keep receiving events
+		// while stopped; `sync(true)` re-registers them via `ensureListeners`.
+		this.startedUnlisten?.();
+		this.stoppedUnlisten?.();
+		this.startedUnlisten = undefined;
+		this.stoppedUnlisten = undefined;
+		this.listenersReady = undefined;
 	}
 
 	private emitStarted(context: ProcessEventContext): void {

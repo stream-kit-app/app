@@ -91,21 +91,26 @@
 	});
 </script>
 
-<div class={cn('grid w-full gap-2', className)}>
+<div
+	class={cn('grid w-full gap-2', className)}
+	role="group"
+	aria-labelledby={label ? `${id}-label` : undefined}
+>
 	{#if label}
-		<Label for={id}>{label}</Label>
+		<Label id={`${id}-label`}>{label}</Label>
 	{/if}
 
 	<div class="grid gap-2">
 		{#each rows as row (row.id)}
 			<div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-2">
 				<InputText
-					{id}
+					id={`${id}-${row.id}-key`}
 					placeholder={keyPlaceholder}
 					value={row.key}
 					oninput={(event) => updateRow(row.id, { key: event.currentTarget.value })}
 				/>
 				<InputText
+					id={`${id}-${row.id}-value`}
 					placeholder={valuePlaceholder}
 					value={row.value}
 					oninput={(event) => updateRow(row.id, { value: event.currentTarget.value })}

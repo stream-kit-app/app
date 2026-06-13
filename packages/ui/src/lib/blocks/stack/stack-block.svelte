@@ -11,7 +11,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	{#each block.blocks as child, index (`stack-${index}`)}
+	{#each block.blocks as child (child)}
 		{@render renderBlock(child)}
 	{/each}
 </div>

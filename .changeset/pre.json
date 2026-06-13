@@ -1,0 +1,20 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "@stream-kit/app": "0.1.0-alpha.0",
+    "@stream-kit/app-types": "0.1.0",
+    "@stream-kit/core": "0.1.0",
+    "@stream-kit/plugin-template": "0.1.0",
+    "@stream-kit/ui": "0.1.0",
+    "@stream-kit/plugin-bot": "0.1.0",
+    "@stream-kit/plugin-handlers": "0.1.0",
+    "@stream-kit/plugin-obs": "0.1.0",
+    "@stream-kit/plugin-tts": "0.1.0",
+    "@stream-kit/plugin-twitch": "0.1.0",
+    "@stream-kit/plugin-websocket": "0.1.0",
+    "@stream-kit/plugin-youtube": "0.1.0",
+    "@stream-kit/site": "0.0.1"
+  },
+  "changesets": []
+}

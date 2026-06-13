@@ -187,10 +187,22 @@ function fieldKeyMatches(fieldKey: string, lookupKey: string): boolean {
 	const normalizedFieldKey = normalizeLookupKey(fieldKey);
 	const normalizedLookupKey = normalizeLookupKey(lookupKey);
 
-	return (
-		normalizedFieldKey === normalizedLookupKey ||
-		normalizedFieldKey.endsWith(`-${normalizedLookupKey}`)
-	);
+	if (normalizedFieldKey === normalizedLookupKey) {
+		return true;
+	}
+
+	// Generated keys are `<scope>.<name>`. Match the trailing name segment exactly
+	// (anchored on the scope separator) instead of any hyphen suffix, so a short
+	// lookup like "token" doesn't accidentally match "auth-token".
+	const separatorIndex = fieldKey.lastIndexOf('.');
+
+	if (separatorIndex === -1) {
+		return false;
+	}
+
+	const nameSegment = fieldKey.slice(separatorIndex + 1);
+
+	return nameSegment !== '' && normalizeLookupKey(nameSegment) === normalizedLookupKey;
 }
 
 function normalizeLookupKey(value: string): string {

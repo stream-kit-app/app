@@ -2,14 +2,6 @@ import type { LocalTtsVoiceInfo } from './types';
 import type { PluginAppApi, PluginStore } from '@stream-kit/app/api';
 
 import { TtsPlayer } from '../player';
-import {
-	deleteLocalTtsVoice,
-	downloadLocalTtsRuntime,
-	downloadLocalTtsVoice,
-	getLocalTtsRuntimeInfo,
-	listLocalTtsVoices,
-	synthesizeLocalSpeech
-} from './api';
 
 const STORE_KEY_SUFFIXES = {
 	defaultVoice: 'local-tts-default-voice',
@@ -48,9 +40,22 @@ export class LocalTtsService {
 	public voices: LocalTtsVoiceInfo[] = [];
 
 	private store?: PluginStore;
+	private app?: PluginAppApi;
 	private player = new TtsPlayer();
 	private refreshPromise: Promise<void> | null = null;
 	private listeners = new Set<() => void>();
+
+	private get tts(): PluginAppApi['localTts'] {
+		if (!this.app) {
+			throw new Error('Local TTS service has not been booted');
+		}
+
+		return this.app.localTts;
+	}
+
+	setApp(app: PluginAppApi): void {
+		this.app = app;
+	}
 
 	subscribe(listener: () => void): () => void {
 		this.listeners.add(listener);
@@ -68,6 +73,7 @@ export class LocalTtsService {
 
 	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
 		this.store = store;
+		this.setApp(app);
 		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume));
 		await this.syncFromStore();
 		await this.refreshVoices();
@@ -113,8 +119,8 @@ export class LocalTtsService {
 		this.refreshPromise = (async () => {
 			try {
 				const [voices, runtime] = await Promise.all([
-					listLocalTtsVoices(),
-					getLocalTtsRuntimeInfo()
+					this.tts.listVoices(),
+					this.tts.getRuntimeInfo()
 				]);
 
 				const voicesChanged = voicesFingerprint(this.voices) !== voicesFingerprint(voices);
@@ -152,19 +158,19 @@ export class LocalTtsService {
 			return;
 		}
 
-		await downloadLocalTtsRuntime();
+		await this.tts.downloadRuntime();
 		this.runtimeInstalled = true;
 		this.notify();
 	}
 
 	async downloadVoice(voiceId: string): Promise<void> {
 		await this.ensureRuntime();
-		await downloadLocalTtsVoice(voiceId);
+		await this.tts.downloadVoice(voiceId);
 		await this.refreshVoices();
 	}
 
 	async removeVoice(voiceId: string): Promise<void> {
-		await deleteLocalTtsVoice(voiceId);
+		await this.tts.deleteVoice(voiceId);
 
 		if (this.defaultVoice === voiceId) {
 			this.defaultVoice = undefined;
@@ -176,7 +182,7 @@ export class LocalTtsService {
 	async speak(text: string, voiceId: string, volume?: number): Promise<void> {
 		await this.ensureRuntime();
 
-		const bytes = await synthesizeLocalSpeech(voiceId, text);
+		const bytes = await this.tts.synthesize(voiceId, text);
 		const blob = new Blob([Uint8Array.from(bytes)], { type: 'audio/wav' });
 		this.player.enqueue(blob, volume ?? this.volume);
 	}

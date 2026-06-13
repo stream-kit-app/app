@@ -2,6 +2,18 @@
 
 All handlers live under **Core** in the action editor.
 
+## Handler chain execution
+
+Handlers run top to bottom in the order shown in the editor. Each handler calls
+`next()` to continue the chain.
+
+- A handler **stops** the chain by intentionally not calling `next()` (this is how
+  the **If** handler skips the rest of the chain when its condition fails).
+- A handler that **throws** is treated as an unexpected failure: the error is
+  logged and the chain continues with the next handler rather than aborting.
+- Async handlers are awaited, so handlers run sequentially and earlier handlers'
+  side effects (such as action variables) are available to later ones.
+
 ## Audio
 
 ### Play audio file
@@ -30,7 +42,9 @@ Files are queued and played one after another.
 
 ### Run script
 
-Runs TypeScript-like user code in a sandboxed `Function` context.
+Runs TypeScript-like user code inside an isolated Web Worker. The worker has its
+own global scope with no access to the app, the DOM, or Tauri APIs, so a script
+can only read the trigger context passed to it and write action variables back.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -46,7 +60,15 @@ export default (context: HandlerTriggerContext[]) => {
 };
 ```
 
-Type annotations are stripped at compile time. Errors are shown as toasts.
+Notes:
+
+- Type annotations are stripped before execution. Errors are shown as toasts.
+- The handler **awaits** the script, so any action variables it sets are visible
+  to later handlers in the chain.
+- Scripts run with a time limit (5 seconds). A script that exceeds it is
+  terminated and reported as an error.
+- Only changes to `context[].actionVariables` are returned to the chain; other
+  mutations stay inside the worker.
 
 ---
 

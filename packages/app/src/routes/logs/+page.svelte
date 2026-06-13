@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { CorePluginApi } from '@stream-kit/app/api';
 
-	import { onMount } from 'svelte';
-
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
 	import { LogViewer } from '@stream-kit/ui/log-viewer';
@@ -20,15 +18,17 @@
 		return core?.logs.getEntries() ?? [];
 	});
 
-	onMount(() => {
-		if (!core) {
+	$effect(() => {
+		const api = core;
+
+		if (!api) {
 			return;
 		}
 
-		revision = core.logs.revision;
+		revision = api.logs.revision;
 
-		return core.logs.subscribe(() => {
-			revision = core.logs.revision;
+		return api.logs.subscribe(() => {
+			revision = api.logs.revision;
 		});
 	});
 

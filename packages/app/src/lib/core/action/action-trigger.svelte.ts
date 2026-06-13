@@ -92,4 +92,10 @@ export class ActionTrigger implements ConditionEditor {
 			conditions: $state.snapshot(this.conditions)
 		};
 	}
+
+	static clone(source: ActionTrigger): ActionTrigger {
+		return new ActionTrigger(source.definition, {
+			conditions: structuredClone($state.snapshot(source.conditions))
+		});
+	}
 }

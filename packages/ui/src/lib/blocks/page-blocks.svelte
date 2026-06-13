@@ -30,7 +30,7 @@
 		{/if}
 
 		<div class="flex flex-col gap-5">
-			{#each blocks as block, index (`page-${index}`)}
+			{#each blocks as block (block)}
 				<PageBlockRenderer {block} {renderForm} />
 			{/each}
 		</div>

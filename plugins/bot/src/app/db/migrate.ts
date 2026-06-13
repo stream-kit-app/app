@@ -30,6 +30,37 @@ type LegacyTimerRow = {
 	updated_at: number;
 };
 
+// tauri-plugin-sql pools connections, so BEGIN/COMMIT cannot reliably span
+// execute() calls. Rename the old table to a backup and only drop it once the
+// rebuilt table is fully populated, so a crash never destroys data.
+async function replaceTableWithBackup(
+	sqlite: Database,
+	table: string,
+	create: () => Promise<void>,
+	fill: () => Promise<void>
+): Promise<void> {
+	const backup = `${table}_migration_backup`;
+
+	await sqlite.execute(`DROP TABLE IF EXISTS "${backup}"`);
+	await sqlite.execute(`ALTER TABLE "${table}" RENAME TO "${backup}"`);
+	await create();
+	await fill();
+	await sqlite.execute(`DROP TABLE IF EXISTS "${backup}"`);
+}
+
+function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
+	if (typeof value !== 'string' || value.trim() === '') {
+		return fallback;
+	}
+
+	try {
+		return JSON.parse(value) as T;
+	} catch (error) {
+		console.warn('Skipping corrupt JSON value during bot migration', error);
+		return fallback;
+	}
+}
+
 async function createBotTimersTable(sqlite: Database): Promise<void> {
 	await sqlite.execute(`
 		CREATE TABLE IF NOT EXISTS bot_timers (
@@ -49,7 +80,7 @@ async function createBotTimersTable(sqlite: Database): Promise<void> {
 }
 
 function parsePlatforms(value: string): TimerPlatform[] {
-	const parsed = JSON.parse(value) as unknown;
+	const parsed = safeJsonParse<unknown>(value, null);
 
 	if (!Array.isArray(parsed)) {
 		return ['twitch', 'youtube'];
@@ -65,7 +96,7 @@ function parseHandlers(value: string | undefined): unknown[] {
 		return [];
 	}
 
-	const parsed = JSON.parse(value) as unknown;
+	const parsed = safeJsonParse<unknown>(value, null);
 
 	return Array.isArray(parsed) ? parsed : [];
 }
@@ -91,38 +122,44 @@ export async function migrateBotTimersTable(sqlite: Database): Promise<void> {
 
 	const rows = await sqlite.select<LegacyTimerRow[]>('SELECT * FROM bot_timers');
 
-	await sqlite.execute('DROP TABLE bot_timers');
-	await createBotTimersTable(sqlite);
+	await replaceTableWithBackup(
+		sqlite,
+		'bot_timers',
+		() => createBotTimersTable(sqlite),
+		async () => {
+			for (const row of rows) {
+				const platforms = parsePlatforms(row.platforms);
+				const existingHandlers = parseHandlers(row.handlers);
+				const legacyMessages = normalizeLegacyTimerMessages(
+					safeJsonParse<unknown>(row.messages, [])
+				);
+				const handlers =
+					existingHandlers.length > 0
+						? existingHandlers
+						: convertTimerMessagesToHandlers(legacyMessages, platforms);
 
-	for (const row of rows) {
-		const platforms = parsePlatforms(row.platforms);
-		const existingHandlers = parseHandlers(row.handlers);
-		const legacyMessages = normalizeLegacyTimerMessages(JSON.parse(row.messages));
-		const handlers =
-			existingHandlers.length > 0
-				? existingHandlers
-				: convertTimerMessagesToHandlers(legacyMessages, platforms);
-
-		await sqlite.execute(
-			`INSERT INTO bot_timers (
-				id, name, handlers, interval_min_sec, interval_max_sec, min_chat_lines,
-				enabled, platforms, online_only, created_at, updated_at
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-			[
-				row.id,
-				row.name,
-				JSON.stringify(handlers),
-				row.interval_min_sec,
-				row.interval_max_sec,
-				row.min_chat_lines,
-				row.enabled,
-				row.platforms,
-				row.online_only,
-				row.created_at,
-				row.updated_at
-			]
-		);
-	}
+				await sqlite.execute(
+					`INSERT INTO bot_timers (
+						id, name, handlers, interval_min_sec, interval_max_sec, min_chat_lines,
+						enabled, platforms, online_only, created_at, updated_at
+					) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+					[
+						row.id,
+						row.name,
+						JSON.stringify(handlers),
+						row.interval_min_sec,
+						row.interval_max_sec,
+						row.min_chat_lines,
+						row.enabled,
+						row.platforms,
+						row.online_only,
+						row.created_at,
+						row.updated_at
+					]
+				);
+			}
+		}
+	);
 }
 
 export async function migrateBotModRulesTable(sqlite: Database): Promise<void> {
@@ -158,7 +195,9 @@ export async function migrateBotModRulesTable(sqlite: Database): Promise<void> {
 
 		const parameters = convertLegacyModRuleParameters(
 			row.type,
-			typeof row.parameters === 'string' ? JSON.parse(row.parameters) : row.parameters
+			typeof row.parameters === 'string'
+				? safeJsonParse<unknown>(row.parameters, {})
+				: row.parameters
 		);
 
 		await sqlite.execute(
@@ -173,7 +212,9 @@ export async function migrateBotModRulesTable(sqlite: Database): Promise<void> {
 
 	for (const row of customRows) {
 		const parsed =
-			typeof row.parameters === 'string' ? JSON.parse(row.parameters) : row.parameters;
+			typeof row.parameters === 'string'
+				? safeJsonParse<{ conditions?: unknown } | null>(row.parameters, null)
+				: row.parameters;
 
 		if (!parsed?.conditions) {
 			continue;

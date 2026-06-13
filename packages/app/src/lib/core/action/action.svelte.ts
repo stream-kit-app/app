@@ -90,16 +90,17 @@ export class Actions {
 	}
 
 	async load(): Promise<void> {
+		// Tear down any currently active subscriptions before replacing items so
+		// repeated loads (e.g. a future reload) don't leak trigger subscriptions.
+		for (const existing of this.items) {
+			this.deactivate(existing);
+		}
+
 		const rows = await getActions();
 		const loaded: Action[] = [];
 
 		for (const row of rows) {
 			const action = Action.fromRecord(row);
-
-			if (!action) {
-				continue;
-			}
-
 			loaded.push(action);
 
 			if (action.enabled) {
@@ -203,12 +204,34 @@ export class Actions {
 			}
 		}
 
-		await updateActionsEnabled(
-			toUpdate.map((action) => action.id!),
-			enabled
-		);
-
 		const app = getApp();
+
+		try {
+			await updateActionsEnabled(
+				toUpdate.map((action) => action.id!),
+				enabled
+			);
+		} catch (error) {
+			// Roll back every optimistic change so the UI matches persistence.
+			for (const action of toUpdate) {
+				action.enabled = !enabled;
+
+				if (action.enabled) {
+					this.activate(action);
+				} else {
+					this.deactivate(action);
+				}
+			}
+
+			console.error('Failed to persist bulk action enabled state', error);
+			app.toast.create({
+				title: translate('Actions could not be updated'),
+				description: translate('The changes were not saved. Please try again.'),
+				variant: 'error'
+			});
+
+			return;
+		}
 
 		app.toast.create({
 			title: translate(enabled ? 'Actions enabled' : 'Actions disabled'),
@@ -229,7 +252,9 @@ export class Actions {
 			return false;
 		}
 
-		void action.runHandlers(context.data, context.trigger);
+		void action.runHandlers(context.data, context.trigger).catch((error) => {
+			console.error('Action run failed', error);
+		});
 
 		return true;
 	}
@@ -282,8 +307,23 @@ export class Action {
 		return new Action();
 	}
 
-	static fromRecord(record: ActionRecord): Action | null {
+	static createFrom(source: Action): Action {
+		const sourceName = source.name.trim() || translate('Untitled action');
+
+		return new Action({
+			name: translate('Copy of {name}', { name: sourceName }),
+			group: source.group,
+			enabled: source.enabled,
+			triggers: source.triggers.map((trigger) => ActionTrigger.clone(trigger)),
+			handlers: source.handlers.map((handler) => ActionHandler.clone(handler))
+		});
+	}
+
+	static fromRecord(record: ActionRecord): Action {
 		const app = getApp();
+		// Unresolved trigger/handler types are loaded as unavailable placeholders
+		// (like handlers below) so actions are never silently dropped from the UI
+		// while their data still lives in the database.
 		const triggers = record.triggers.map((stored) => {
 			const definition =
 				app.actions.triggers.find(stored.triggerTypeId) ??
@@ -294,10 +334,6 @@ export class Action {
 				conditions: stored.conditions
 			});
 		});
-
-		if (triggers.length === 0 && record.triggers.length > 0) {
-			return null;
-		}
 
 		const handlers = record.handlers.map((stored) => {
 			const definition =
@@ -465,6 +501,21 @@ export class Action {
 		this.triggers = this.triggers.filter((trigger) => trigger.id !== triggerId);
 	}
 
+	cloneTrigger(triggerId: string): void {
+		const index = this.triggers.findIndex((trigger) => trigger.id === triggerId);
+
+		if (index === -1) {
+			return;
+		}
+
+		const clone = ActionTrigger.clone(this.triggers[index]!);
+		this.triggers = [
+			...this.triggers.slice(0, index + 1),
+			clone,
+			...this.triggers.slice(index + 1)
+		];
+	}
+
 	addHandler(definition: HandlerDefinition): void {
 		this.handlers = [...this.handlers, new ActionHandler(definition)];
 	}
@@ -473,12 +524,29 @@ export class Action {
 		this.handlers = this.handlers.filter((handler) => handler.id !== handlerId);
 	}
 
+	cloneHandler(handlerId: string): void {
+		const index = this.handlers.findIndex((handler) => handler.id === handlerId);
+
+		if (index === -1) {
+			return;
+		}
+
+		const clone = ActionHandler.clone(this.handlers[index]!);
+		this.handlers = [
+			...this.handlers.slice(0, index + 1),
+			clone,
+			...this.handlers.slice(index + 1)
+		];
+	}
+
 	fire(trigger: ActionTrigger, data: unknown): void {
 		if (!this.enabled) {
 			return;
 		}
 
-		void this.dispatchTrigger(trigger, data, { bypassEnabled: false });
+		void this.dispatchTrigger(trigger, data, { bypassEnabled: false }).catch((error) => {
+			console.error('Action trigger dispatch failed', error);
+		});
 	}
 
 	async test(): Promise<void> {
@@ -537,11 +605,10 @@ export class Action {
 
 		const showFormVisual = this.isFormOpen;
 		const trackExecution = !options.bypassEnabled;
+		const trackVisual = trackExecution || showFormVisual;
 
-		if (trackExecution || showFormVisual) {
-			if (!this.execution.state.isRunning) {
-				this.execution.begin();
-			}
+		if (trackVisual) {
+			this.execution.begin();
 		}
 
 		if (showFormVisual) {
@@ -549,7 +616,7 @@ export class Action {
 		}
 
 		if (!trigger.evaluate(data)) {
-			if (trackExecution) {
+			if (trackVisual) {
 				await this.execution.end();
 			}
 
@@ -561,7 +628,7 @@ export class Action {
 			showVisual: showFormVisual
 		});
 
-		if (trackExecution) {
+		if (trackVisual) {
 			await this.execution.end();
 		}
 	}
@@ -634,21 +701,29 @@ export class Action {
 			this.id
 		);
 
-		if (row) {
-			this.id = row.id;
-			this.group = normalizeActionGroup(row.group);
-			this.groupSortOrder = row.groupSortOrder;
-			this.sortOrder = row.sortOrder;
-			this.enabled = row.enabled;
+		if (!row) {
+			app.toast.create({
+				title: translate('Action could not be saved'),
+				description: translate('The action was not persisted. Please try again.'),
+				variant: 'error'
+			});
+
+			return false;
 		}
 
-		if (wasNew && row) {
+		this.id = row.id;
+		this.group = normalizeActionGroup(row.group);
+		this.groupSortOrder = row.groupSortOrder;
+		this.sortOrder = row.sortOrder;
+		this.enabled = row.enabled;
+
+		if (wasNew) {
 			app.actions.add(this);
 
 			if (this.enabled) {
 				app.actions.activate(this);
 			}
-		} else if (row) {
+		} else {
 			app.actions.items = applyLayoutUpdates(app.actions.items, [
 				{
 					id: row.id,
@@ -680,13 +755,15 @@ export class Action {
 			return;
 		}
 
-		this.enabled = enabled;
-
 		if (this.id == null) {
+			this.enabled = enabled;
 			return;
 		}
 
 		const app = getApp();
+		const previous = this.enabled;
+
+		this.enabled = enabled;
 
 		if (enabled) {
 			app.actions.activate(this);
@@ -694,7 +771,28 @@ export class Action {
 			app.actions.deactivate(this);
 		}
 
-		await updateActionEnabled(this.id, enabled);
+		try {
+			await updateActionEnabled(this.id, enabled);
+		} catch (error) {
+			// Roll back the in-memory state and activation so the UI and runtime
+			// stay consistent with what is actually persisted.
+			this.enabled = previous;
+
+			if (previous) {
+				app.actions.activate(this);
+			} else {
+				app.actions.deactivate(this);
+			}
+
+			console.error('Failed to persist action enabled state', error);
+			app.toast.create({
+				title: translate('Action could not be updated'),
+				description: translate('The change was not saved. Please try again.'),
+				variant: 'error'
+			});
+
+			return;
+		}
 
 		app.toast.create({
 			title: translate(enabled ? 'Action enabled' : 'Action disabled'),

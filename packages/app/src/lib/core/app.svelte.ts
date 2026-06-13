@@ -22,6 +22,7 @@ import { createPluginAppApi } from './plugins/app-api';
 import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
 import { Settings } from './settings';
 import { Toast } from './toast';
+import { LocalTts } from './tts';
 
 export class App extends Bootable {
 	public menu = new Menu();
@@ -35,6 +36,7 @@ export class App extends Bootable {
 	public audio = new Audio();
 	public lifecycle = new AppLifecycle();
 	public process = new ProcessWatcher();
+	public localTts = new LocalTts();
 
 	public modals = new SvelteMap<string, Modal>();
 	public confirm = new Confirm();
@@ -64,6 +66,10 @@ export class App extends Bootable {
 		this.modals.set(modal.id, modal);
 
 		return modal;
+	}
+
+	public removeModal(id: string): void {
+		this.modals.delete(id);
 	}
 
 	public async use(plugin: Plugin, options: RegisterPluginOptions = {}): Promise<void> {

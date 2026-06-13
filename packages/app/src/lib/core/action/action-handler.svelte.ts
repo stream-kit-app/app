@@ -44,6 +44,12 @@ export class ActionHandler {
 			fields: $state.snapshot(this.fields)
 		};
 	}
+
+	static clone(source: ActionHandler): ActionHandler {
+		return new ActionHandler(source.definition, {
+			fields: structuredClone($state.snapshot(source.fields))
+		});
+	}
 }
 
 export type HandlerFieldFormErrors = {

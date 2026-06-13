@@ -291,10 +291,14 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		if (enabled) {
 			this.registerDefinitions(app);
 			await this.boot(app);
+			await this.ready(app);
 			await this.onEnable?.(this.createContext(app));
 		} else {
 			await this.onDisable?.(this.createContext(app));
 			this.unregisterDefinitions(app);
+			// Allow onBoot/onReady to run again the next time the plugin is enabled.
+			this.hasBooted = false;
+			this.hasReadied = false;
 		}
 	}
 

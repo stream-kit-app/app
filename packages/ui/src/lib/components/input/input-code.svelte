@@ -39,6 +39,7 @@
 	let container: HTMLDivElement | undefined = $state();
 	let editor: MonacoEditor.IStandaloneCodeEditor | undefined = $state();
 	let isReady = $state(false);
+	let cancelled = false;
 
 	function emitValueChange(next: string): void {
 		if (!oninput) {
@@ -56,6 +57,13 @@
 		}
 
 		const monaco = await ensureMonaco(configureMonaco);
+
+		// The component may have been destroyed while Monaco was loading; don't
+		// create an editor on a detached node.
+		if (cancelled || !container) {
+			return;
+		}
+
 		const editorLanguage = language === 'typescript' ? 'typescript' : 'javascript';
 		const modelUri = monaco.Uri.parse(`inmemory://model/${id}.${editorLanguage === 'typescript' ? 'ts' : 'js'}`);
 		const model =
@@ -113,6 +121,7 @@
 	});
 
 	onDestroy(() => {
+		cancelled = true;
 		const model = editor?.getModel();
 		editor?.dispose();
 		model?.dispose();

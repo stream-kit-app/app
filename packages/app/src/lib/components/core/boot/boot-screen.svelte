@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 
+	import { Button } from '@stream-kit/ui/button';
 	import { Logo } from '@stream-kit/ui/logo';
 
 	import { useI18n } from '$lib/i18n';
 
 	type Props = {
 		visible?: boolean;
+		error?: string | null;
+		onRetry?: () => void;
 	};
 
-	let { visible = true }: Props = $props();
+	let { visible = true, error = null, onRetry }: Props = $props();
 
 	const { t } = useI18n();
 </script>
@@ -17,10 +20,10 @@
 {#if visible}
 	<div
 		class="fixed inset-0 z-200 flex items-center justify-center overflow-hidden bg-dark-950"
-		role="status"
-		aria-live="polite"
-		aria-busy="true"
-		aria-label={t('Loading…')}
+		role={error ? 'alert' : 'status'}
+		aria-live={error ? 'assertive' : 'polite'}
+		aria-busy={error ? undefined : 'true'}
+		aria-label={error ? t('Could not start Stream Kit') : t('Loading…')}
 		out:fade={{ duration: 75, delay: 200 }}
 	>
 		<div class="boot-grid" aria-hidden="true"></div>
@@ -28,15 +31,29 @@
 		<div class="boot-enter relative z-10 flex flex-col items-center gap-8 px-6">
 			<Logo />
 
-			<div class="flex w-full flex-col items-center gap-3">
-				<div class="boot-bar" aria-hidden="true">
-					<div class="boot-bar-fill"></div>
+			{#if error}
+				<div class="flex w-full max-w-md flex-col items-center gap-3 text-center">
+					<p class="font-outfit text-sm font-semibold text-dark-50">
+						{t('Could not start Stream Kit')}
+					</p>
+					<p class="text-xs wrap-break-word text-dark-300">{error}</p>
+					{#if onRetry}
+						<Button class="mt-2" onclick={onRetry}>{t('Try again')}</Button>
+					{/if}
 				</div>
+			{:else}
+				<div class="flex w-full flex-col items-center gap-3">
+					<div class="boot-bar" aria-hidden="true">
+						<div class="boot-bar-fill"></div>
+					</div>
 
-				<p class="font-outfit text-xs font-medium tracking-[0.2em] text-dark-400 uppercase">
-					{t('Loading…')}
-				</p>
-			</div>
+					<p
+						class="font-outfit text-xs font-medium tracking-[0.2em] text-dark-400 uppercase"
+					>
+						{t('Loading…')}
+					</p>
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}

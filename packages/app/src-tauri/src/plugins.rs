@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use zip::ZipArchive;
 
-const BUILTIN_PLUGIN_KEYS: &[&str] = &["twitch", "youtube", "tts", "commands"];
+const BUILTIN_PLUGIN_KEYS: &[&str] = &[
+    "core", "twitch", "youtube", "obs", "tts", "bot", "websocket", "commands",
+];
 const MANIFEST_FILE: &str = "manifest.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

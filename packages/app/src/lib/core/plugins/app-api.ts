@@ -70,6 +70,14 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		audio: {
 			play: app.audio.play.bind(app.audio)
 		},
+		localTts: {
+			listVoices: app.localTts.listVoices.bind(app.localTts),
+			getRuntimeInfo: app.localTts.getRuntimeInfo.bind(app.localTts),
+			downloadRuntime: app.localTts.downloadRuntime.bind(app.localTts),
+			downloadVoice: app.localTts.downloadVoice.bind(app.localTts),
+			deleteVoice: app.localTts.deleteVoice.bind(app.localTts),
+			synthesize: app.localTts.synthesize.bind(app.localTts)
+		},
 		lifecycle: {
 			get started() {
 				return app.lifecycle.started;

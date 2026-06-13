@@ -22,6 +22,7 @@
 	let { children, data }: LayoutProps = $props();
 
 	let isAppReady = $state(false);
+	let bootError = $state<string | null>(null);
 
 	registerI18n(() => data.i18n);
 	const { t } = useI18n();
@@ -30,9 +31,19 @@
 		return t(title as Parameters<typeof t>[0]);
 	}
 
-	void bootApp().then(() => {
-		isAppReady = true;
-	});
+	bootApp()
+		.then(() => {
+			isAppReady = true;
+		})
+		.catch((error) => {
+			bootError = error instanceof Error ? error.message : String(error);
+		});
+
+	function retryBoot(): void {
+		// A full reload guarantees a clean state; re-running a partially completed
+		// boot in-process could double-register plugins.
+		window.location.reload();
+	}
 
 	onMount(() => {
 		document.getElementById('boot-splash')?.remove();
@@ -45,7 +56,7 @@
 	});
 </script>
 
-<BootScreen visible={!isAppReady} />
+<BootScreen visible={!isAppReady} error={bootError} onRetry={retryBoot} />
 
 {#if isAppReady}
 	<div class="relative isolate h-screen w-screen overflow-hidden">
@@ -79,8 +90,8 @@
 			</div>
 		</TooltipProvider>
 
-		{#each app.modals.entries() as [, modal]}
-			<Modal {modal} />
+		{#each app.modals.entries() as [id, modal] (id)}
+			<Modal {modal} onClosed={() => app.removeModal(id)} />
 		{/each}
 
 		<ConfirmDialog confirm={app.confirm} />

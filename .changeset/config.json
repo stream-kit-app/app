@@ -1,0 +1,24 @@
+{
+	"$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+	"changelog": ["@changesets/changelog-github", { "repo": "stream-kit-app/app" }],
+	"commit": false,
+	"fixed": [],
+	"linked": [],
+	"access": "restricted",
+	"baseBranch": "main",
+	"updateInternalDependencies": "patch",
+	"ignore": [
+		"@stream-kit/app-types",
+		"@stream-kit/core",
+		"@stream-kit/plugin-template",
+		"@stream-kit/ui",
+		"@stream-kit/plugin-bot",
+		"@stream-kit/plugin-handlers",
+		"@stream-kit/plugin-obs",
+		"@stream-kit/plugin-tts",
+		"@stream-kit/plugin-twitch",
+		"@stream-kit/plugin-websocket",
+		"@stream-kit/plugin-youtube",
+		"@stream-kit/site"
+	]
+}

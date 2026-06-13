@@ -5,6 +5,7 @@ import type { HandlerTriggerContext } from './handler-context';
 export type HandlerChainCallbacks = {
 	onHandlerStart?: (handler: ActionHandler, index: number) => void;
 	onHandlerComplete?: (handler: ActionHandler, index: number) => void;
+	onHandlerError?: (handler: ActionHandler, index: number, error: unknown) => void;
 };
 
 export async function runHandlerChain(
@@ -59,8 +60,13 @@ export async function runHandlerChain(
 			await nextPromise;
 			await run(index + 1);
 		} catch (error) {
+			// A thrown handler is an unexpected failure (handlers signal an
+			// intentional stop by not calling `next()`), so log it and continue
+			// with the remaining handlers instead of aborting the whole chain.
 			callbacks?.onHandlerComplete?.(handler, index);
+			callbacks?.onHandlerError?.(handler, index, error);
 			console.error('Handler execution failed', error);
+			await run(index + 1);
 		}
 	};
 

@@ -2,7 +2,7 @@
 	import type { PageBlock } from '../types';
 	import type { Snippet } from 'svelte';
 
-	import { cn } from 'tailwind-variants';
+	import { cn } from '../../utils';
 
 	type Props = {
 		block: Extract<PageBlock, { type: 'grid' }>;
@@ -19,7 +19,7 @@
 		'grid gap-4 md:grid-cols-3': block.columns === 3
 	})}
 >
-	{#each block.blocks as child, index (`grid-${index}`)}
+	{#each block.blocks as child (child)}
 		{@render renderBlock(child)}
 	{/each}
 </div>

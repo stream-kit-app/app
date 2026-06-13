@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
 	import type { ActionTrigger } from '$lib/core/action/action-trigger.svelte';
-	import type { Action } from '$lib/core/action/action.svelte';
+	import type { Action as ActionType } from '$lib/core/action/action.svelte';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { getActionGroups } from '$db/repositories/actions';
@@ -10,13 +10,15 @@
 	import { InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
 	import { VariablePopover } from '@stream-kit/ui/variable-popover';
 
+	import { tooltip } from '$lib/attachments';
+	import { Action } from '$lib/core/action/action.svelte';
+	import { isIfHandler } from '$lib/core/action/if-condition';
 	import {
 		getGlobalVariables,
 		getPrecedingActionVariables,
 		getTriggerVariables,
 		mergeContextVariables
 	} from '$lib/core/action/variable-helpers';
-	import { isIfHandler } from '$lib/core/action/if-condition';
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
@@ -28,7 +30,7 @@
 	import SortableChainList from './sortable-chain-list.svelte';
 
 	type Props = {
-		action: Action;
+		action: ActionType;
 	};
 
 	let { action }: Props = $props();
@@ -98,6 +100,12 @@
 
 	async function handleTest() {
 		await action.test();
+	}
+
+	function handleCloneAction(): void {
+		const clone = Action.createFrom(action);
+		action.close();
+		clone.open();
 	}
 
 	const canTest = $derived(
@@ -221,13 +229,24 @@
 									copiedLabel={t('Copied')}
 								/>
 							</span>
-							<Button
-								variant="ghost"
-								size="icon"
-								icon="ri:close-line"
-								aria-label={t('Remove')}
-								onclick={() => action.removeTrigger(trigger.id)}
-							/>
+							<div class="flex shrink-0 items-center gap-1">
+								<Button
+									variant="ghost"
+									size="icon"
+									icon="clarity:clone-line"
+									aria-label={t('Clone trigger')}
+									onclick={() => action.cloneTrigger(trigger.id)}
+									{@attach tooltip(() => t('Clone trigger'))}
+								/>
+								<Button
+									variant="ghost"
+									size="icon"
+									icon="ri:close-line"
+									aria-label={t('Remove')}
+									onclick={() => action.removeTrigger(trigger.id)}
+									{@attach tooltip(() => t('Remove trigger'))}
+								/>
+							</div>
 						</div>
 
 						{#if !trigger.definition.isAvailable}
@@ -311,7 +330,9 @@
 					>
 						<div class="flex items-center justify-between gap-2">
 							{#if isIfHandler(handler)}
-								<div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
+								<div
+									class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1"
+								>
 									<IfConditionSummary {handler} />
 									{#if !handler.definition.isAvailable}
 										<span class="text-sm font-normal text-destructive-50">
@@ -329,13 +350,24 @@
 									{/if}
 								</p>
 							{/if}
-							<Button
-								variant="ghost"
-								size="icon"
-								icon="ri:close-line"
-								aria-label={t('Remove')}
-								onclick={() => action.removeHandler(handler.id)}
-							/>
+							<div class="flex shrink-0 items-center gap-1">
+								<Button
+									variant="ghost"
+									size="icon"
+									icon="clarity:clone-line"
+									aria-label={t('Clone handler')}
+									onclick={() => action.cloneHandler(handler.id)}
+									{@attach tooltip(() => t('Clone handler'))}
+								/>
+								<Button
+									variant="ghost"
+									size="icon"
+									icon="ri:close-line"
+									aria-label={t('Remove')}
+									onclick={() => action.removeHandler(handler.id)}
+									{@attach tooltip(() => t('Remove handler'))}
+								/>
+							</div>
 						</div>
 
 						{#if !handler.definition.isAvailable}
@@ -371,11 +403,11 @@
 		{#if action.id != null}
 			<Button
 				type="button"
-				variant="destructive"
-				onclick={() => void handleDelete()}
-				icon="ri:delete-bin-line"
+				variant="outline"
+				onclick={handleCloneAction}
+				icon="clarity:clone-line"
 			>
-				{t('Delete')}
+				{t('Clone')}
 			</Button>
 		{/if}
 		<Button
@@ -387,7 +419,18 @@
 		>
 			{t('Test')}
 		</Button>
-		<Button type="button" variant="ghost" onclick={() => void handleCancel()} class="ms-auto">
+		{#if action.id != null}
+			<Button
+				type="button"
+				variant="destructive"
+				onclick={() => void handleDelete()}
+				icon="ri:delete-bin-line"
+				class="ms-auto"
+			>
+				{t('Delete')}
+			</Button>
+		{/if}
+		<Button type="button" variant="ghost" onclick={() => void handleCancel()}>
 			{t('Cancel')}
 		</Button>
 		<Button type="submit" onclick={() => void handleSave()}>{t('Save')}</Button>

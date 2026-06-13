@@ -3,6 +3,7 @@
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import Icon from '@iconify/svelte';
+	import { onDestroy } from 'svelte';
 
 	import { cn } from '../../utils';
 	import { Button } from '../button';
@@ -161,16 +162,31 @@
 		}
 	}
 
+	let copyTimeout: ReturnType<typeof setTimeout> | undefined;
+
 	function handleCopy(id: string, text: string): void {
-		navigator.clipboard.writeText(text).then(() => {
+		void navigator.clipboard.writeText(text).then(() => {
 			copiedId = id;
-			setTimeout(() => {
+
+			if (copyTimeout) {
+				clearTimeout(copyTimeout);
+			}
+
+			copyTimeout = setTimeout(() => {
 				if (copiedId === id) {
 					copiedId = null;
 				}
+
+				copyTimeout = undefined;
 			}, 2000);
 		});
 	}
+
+	onDestroy(() => {
+		if (copyTimeout) {
+			clearTimeout(copyTimeout);
+		}
+	});
 
 	const onSearchInput: FormEventHandler<HTMLInputElement> = (event) => {
 		searchQuery = event.currentTarget.value;

@@ -91,6 +91,8 @@ export function createChatRuntime(app: PluginAppApi, deps: ChatRuntimeDeps): () 
 	const cooldownState = createCooldownTracker();
 
 	return subscribeBotChatMessages(app, (context) => {
-		void handleChatMessage(app, deps, context, cooldownState);
+		void handleChatMessage(app, deps, context, cooldownState).catch((error) => {
+			console.error('Failed to handle chat message', error);
+		});
 	});
 }

@@ -1,9 +1,12 @@
 {
 	"name": "@stream-kit/workspace",
 	"private": true,
-	"version": "0.1.0",
+	"version": "0.1.0-alpha.0",
 	"type": "module",
 	"scripts": {
+		"changeset": "changeset",
+		"version-packages": "changeset version && node scripts/sync-app-version.mjs",
+		"release": "changeset tag",
 		"build:packages": "pnpm --filter @stream-kit/ui build && pnpm --filter @stream-kit/core build && pnpm --filter @stream-kit/plugin-handlers build && pnpm --filter @stream-kit/plugin-twitch build && pnpm --filter @stream-kit/plugin-youtube build && pnpm --filter @stream-kit/plugin-obs build && pnpm --filter @stream-kit/plugin-tts build && pnpm --filter @stream-kit/plugin-bot build && pnpm --filter @stream-kit/plugin-websocket build && pnpm --filter @stream-kit/app build:plugin-host",
 		"dev": "pnpm build:packages && concurrently -n ui,core-pkg,core-plugin,twitch,youtube,obs,tts,bot,websocket,tauri -c yellow,blue,white,magenta,red,green,cyan,gray,white,green \"pnpm --filter @stream-kit/ui dev\" \"pnpm --filter @stream-kit/core dev\" \"pnpm --filter @stream-kit/plugin-handlers dev\" \"pnpm --filter @stream-kit/plugin-twitch dev\" \"pnpm --filter @stream-kit/plugin-youtube dev\" \"pnpm --filter @stream-kit/plugin-obs dev\" \"pnpm --filter @stream-kit/plugin-tts dev\" \"pnpm --filter @stream-kit/plugin-bot dev\" \"pnpm --filter @stream-kit/plugin-websocket dev\" \"pnpm --filter @stream-kit/app tauri dev\"",
 		"dev:packages": "pnpm --parallel --filter @stream-kit/ui --filter @stream-kit/core --filter @stream-kit/plugin-handlers --filter @stream-kit/plugin-twitch --filter @stream-kit/plugin-youtube --filter @stream-kit/plugin-obs --filter @stream-kit/plugin-tts --filter @stream-kit/plugin-bot --filter @stream-kit/plugin-websocket dev",
@@ -20,6 +23,8 @@
 	},
 	"license": "SEE LICENSE IN LICENSE",
 	"devDependencies": {
+		"@changesets/changelog-github": "^0.5.1",
+		"@changesets/cli": "^2.29.5",
 		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
 		"concurrently": "^9.2.1",
 		"prettier": "^3.8.4",

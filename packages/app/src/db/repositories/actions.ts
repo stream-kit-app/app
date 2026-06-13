@@ -6,7 +6,7 @@ import type {
 } from '../schemas/actions';
 import type { SelectItem } from '$lib/core/action/trigger/condition';
 
-import { asc, eq, inArray, max } from 'drizzle-orm';
+import { asc, eq, inArray, max, sql } from 'drizzle-orm';
 
 import { db } from '../index';
 import { actions, DEFAULT_ACTION_GROUP } from '../schemas/actions';
@@ -88,7 +88,10 @@ export async function getActionGroups(): Promise<SelectItem[]> {
 	return groups.map((group) => ({ value: group, label: group }));
 }
 
-export async function saveAction(input: SaveActionInput, id?: number): Promise<ActionRecord> {
+export async function saveAction(
+	input: SaveActionInput,
+	id?: number
+): Promise<ActionRecord | undefined> {
 	const now = new Date();
 	const group = normalizeActionGroup(input.group);
 
@@ -142,19 +145,36 @@ export async function reorderActionsLayout(updates: ActionLayoutUpdate[]): Promi
 		return;
 	}
 
-	const now = new Date();
+	// tauri-plugin-sql cannot run a multi-statement transaction, so apply every
+	// row update in a single atomic UPDATE ... CASE statement instead of a loop.
+	const now = Date.now();
+	const ids = updates.map((update) => update.id);
 
-	for (const update of updates) {
-		await db
-			.update(actions)
-			.set({
-				group: update.group,
-				groupSortOrder: update.groupSortOrder,
-				sortOrder: update.sortOrder,
-				updatedAt: now
-			})
-			.where(eq(actions.id, update.id));
-	}
+	const groupCase = sql.join(
+		updates.map((update) => sql`WHEN ${update.id} THEN ${update.group}`),
+		sql` `
+	);
+	const groupSortCase = sql.join(
+		updates.map((update) => sql`WHEN ${update.id} THEN ${update.groupSortOrder}`),
+		sql` `
+	);
+	const sortCase = sql.join(
+		updates.map((update) => sql`WHEN ${update.id} THEN ${update.sortOrder}`),
+		sql` `
+	);
+	const idList = sql.join(
+		ids.map((id) => sql`${id}`),
+		sql`, `
+	);
+
+	await db.run(sql`
+		UPDATE ${actions} SET
+			"group" = CASE ${actions.id} ${groupCase} END,
+			group_sort_order = CASE ${actions.id} ${groupSortCase} END,
+			sort_order = CASE ${actions.id} ${sortCase} END,
+			updated_at = ${now}
+		WHERE ${actions.id} IN (${idList})
+	`);
 }
 
 export async function updateActionEnabled(id: number, enabled: boolean): Promise<void> {

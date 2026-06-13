@@ -11,10 +11,17 @@
 
 	type Props = {
 		modal: Modal;
+		onClosed?: () => void;
 	};
 
-	const { modal }: Props = $props();
+	const { modal, onClosed }: Props = $props();
 	const { t } = useI18n();
+
+	// Matches the dialog exit animation so the modal stays mounted while it
+	// animates out before it is removed from the registry.
+	const EXIT_ANIMATION_MS = 250;
+
+	let hasOpened = false;
 
 	function handleOpenChange(open: boolean): void {
 		if (open) {
@@ -24,6 +31,21 @@
 
 		modal.close();
 	}
+
+	$effect(() => {
+		if (modal.isOpen) {
+			hasOpened = true;
+			return;
+		}
+
+		if (!hasOpened) {
+			return;
+		}
+
+		const timeout = setTimeout(() => onClosed?.(), EXIT_ANIMATION_MS);
+
+		return () => clearTimeout(timeout);
+	});
 </script>
 
 <Dialog.Root open={modal.isOpen} onOpenChange={handleOpenChange}>
@@ -37,13 +59,14 @@
 		<Dialog.Content class={cn('group fixed inset-0 flex h-screen w-screen justify-end p-4')}>
 			<div class="p-6">
 				<Dialog.Close
+					aria-label={t('Close')}
 					class={cn(
 						'cursor-pointer duration-150',
 						'group-data-[state=open]:animate-in group-data-[state=open]:slide-in-from-right-28',
 						'group-data-[state=closed]:animate-out group-data-[state=closed]:slide-out-to-right-28'
 					)}
 				>
-					<Icon icon="ri:close-fill" class="h-12 w-12" />
+					<Icon icon="ri:close-fill" class="h-12 w-12" aria-hidden="true" />
 				</Dialog.Close>
 			</div>
 			<ScrollArea

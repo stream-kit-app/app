@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
-	import { cn } from 'tailwind-variants';
 
 	import { ScrollArea } from '../scroll-area';
+	import { cn } from '../../utils';
 
 	type Props = DropdownMenu.ContentProps;
 	const { children, ...props }: Props = $props();

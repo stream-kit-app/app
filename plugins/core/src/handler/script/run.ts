@@ -16,14 +16,16 @@ export const createRunScriptHandler = (app: PluginAppApi) => {
 				defaultValue: SCRIPT_TEMPLATE
 			}
 		],
-		execute: (_action, handler, context, next) => {
+		execute: async (_action, handler, context, next) => {
 			const source = getFieldValue(handler.fields, 'script');
 
 			if (typeof source !== 'string' || !source.trim()) {
+				next();
 				return;
 			}
 
-			void runUserScript(app, source, [context]);
+			// Await so any context/variable mutations are visible to later handlers.
+			await runUserScript(app, source, [context]);
 			next();
 		}
 	} satisfies HandlerDefinitionProps;

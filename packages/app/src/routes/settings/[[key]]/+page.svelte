@@ -56,6 +56,7 @@
 		developerMode: false
 	});
 	let hasLoadedSettings = $state(false);
+	let hasInteracted = false;
 
 	const settingsContext = $derived({
 		app,
@@ -65,10 +66,14 @@
 
 	$effect(() => {
 		void app.settings.ensureLoaded().then(() => {
-			fieldValues = {
-				locale: getLocale(),
-				developerMode: app.settings.developerMode
-			};
+			// Don't overwrite a value the user already changed during the load.
+			if (!hasInteracted) {
+				fieldValues = {
+					locale: getLocale(),
+					developerMode: app.settings.developerMode
+				};
+			}
+
 			hasLoadedSettings = true;
 		});
 	});
@@ -115,6 +120,7 @@
 				return fieldValues[key];
 			},
 			set value(next: string | boolean) {
+				hasInteracted = true;
 				fieldValues = { ...fieldValues, [key]: next };
 			}
 		};

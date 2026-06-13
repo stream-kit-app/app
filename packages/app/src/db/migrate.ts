@@ -20,6 +20,38 @@ type SingularHandlerRow = {
 	updated_at: number;
 };
 
+// tauri-plugin-sql runs each execute() on a pooled connection, so BEGIN/COMMIT
+// cannot reliably span calls. Instead of dropping the table first, rename it to
+// a backup and only drop the backup once the rebuilt table is fully populated,
+// so a crash mid-migration never destroys data.
+async function replaceTableWithBackup(
+	sqlite: Database,
+	table: string,
+	create: () => Promise<void>,
+	fill: () => Promise<void>
+): Promise<void> {
+	const backup = `${table}_migration_backup`;
+
+	await sqlite.execute(`DROP TABLE IF EXISTS "${backup}"`);
+	await sqlite.execute(`ALTER TABLE "${table}" RENAME TO "${backup}"`);
+	await create();
+	await fill();
+	await sqlite.execute(`DROP TABLE IF EXISTS "${backup}"`);
+}
+
+function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
+	if (typeof value !== 'string' || value.trim() === '') {
+		return fallback;
+	}
+
+	try {
+		return JSON.parse(value) as T;
+	} catch (error) {
+		console.warn('Skipping corrupt JSON value during migration', error);
+		return fallback;
+	}
+}
+
 async function createActionsTable(sqlite: Database): Promise<void> {
 	await sqlite.execute(`
 		CREATE TABLE IF NOT EXISTS actions (
@@ -111,48 +143,59 @@ async function migrateAddSortOrderColumns(sqlite: Database): Promise<void> {
 async function migrateFromTriggerTypeId(sqlite: Database): Promise<void> {
 	const legacyRows = await sqlite.select<LegacyTriggerTypeIdRow[]>('SELECT * FROM actions');
 
-	await sqlite.execute('DROP TABLE actions');
-	await createActionsTable(sqlite);
+	await replaceTableWithBackup(
+		sqlite,
+		'actions',
+		() => createActionsTable(sqlite),
+		async () => {
+			for (const row of legacyRows) {
+				const triggers = JSON.stringify([
+					{
+						id: crypto.randomUUID(),
+						triggerTypeId: row.trigger_type_id,
+						conditions: safeJsonParse<unknown>(row.conditions, {})
+					}
+				]);
 
-	for (const row of legacyRows) {
-		const triggers = JSON.stringify([
-			{
-				id: crypto.randomUUID(),
-				triggerTypeId: row.trigger_type_id,
-				conditions: JSON.parse(row.conditions)
+				await sqlite.execute(
+					`INSERT INTO actions (id, name, triggers, handlers, created_at, updated_at)
+					 VALUES ($1, $2, $3, $4, $5, $6)`,
+					[row.id, row.name, triggers, '[]', row.created_at, row.updated_at]
+				);
 			}
-		]);
-
-		await sqlite.execute(
-			`INSERT INTO actions (id, name, triggers, handlers, created_at, updated_at)
-			 VALUES ($1, $2, $3, $4, $5, $6)`,
-			[row.id, row.name, triggers, '[]', row.created_at, row.updated_at]
-		);
-	}
+		}
+	);
 }
 
 async function migrateFromSingularHandler(sqlite: Database): Promise<void> {
 	const rows = await sqlite.select<SingularHandlerRow[]>('SELECT * FROM actions');
 
-	await sqlite.execute('DROP TABLE actions');
-	await createActionsTable(sqlite);
+	await replaceTableWithBackup(
+		sqlite,
+		'actions',
+		() => createActionsTable(sqlite),
+		async () => {
+			for (const row of rows) {
+				const parsedHandler = row.handler
+					? safeJsonParse<Record<string, unknown>>(row.handler, {})
+					: null;
+				const handlers = parsedHandler
+					? JSON.stringify([
+							{
+								id: crypto.randomUUID(),
+								...parsedHandler
+							}
+						])
+					: '[]';
 
-	for (const row of rows) {
-		const handlers = row.handler
-			? JSON.stringify([
-					{
-						id: crypto.randomUUID(),
-						...JSON.parse(row.handler)
-					}
-				])
-			: '[]';
-
-		await sqlite.execute(
-			`INSERT INTO actions (id, name, triggers, handlers, created_at, updated_at)
-			 VALUES ($1, $2, $3, $4, $5, $6)`,
-			[row.id, row.name, row.triggers, handlers, row.created_at, row.updated_at]
-		);
-	}
+				await sqlite.execute(
+					`INSERT INTO actions (id, name, triggers, handlers, created_at, updated_at)
+					 VALUES ($1, $2, $3, $4, $5, $6)`,
+					[row.id, row.name, row.triggers, handlers, row.created_at, row.updated_at]
+				);
+			}
+		}
+	);
 }
 
 async function migrateActionsTable(sqlite: Database): Promise<void> {

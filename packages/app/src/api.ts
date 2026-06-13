@@ -85,6 +85,8 @@ export type {
 	WriteFileOptions
 } from './lib/core/filesystem';
 export { Audio } from './lib/core/audio';
+export { LocalTts } from './lib/core/tts';
+export type { LocalTtsRuntimeInfo, LocalTtsVoiceInfo } from './lib/core/tts';
 export { AppLifecycle } from './lib/core/lifecycle';
 export type { AppLifecycleContext, AppLifecycleEvent } from './lib/core/lifecycle';
 export { isUrlCommand, ProcessWatcher } from './lib/core/process';
@@ -113,7 +115,7 @@ export type {
 	KeyValueEntry,
 	TextSelectTextFieldValue
 } from './lib/core/action/handler/field';
-export type { CronFieldKey, CronPreset } from '../../core/src/cron';
+export type { CronFieldKey, CronPreset } from '@stream-kit/core';
 export {
 	computeCronNextRun,
 	CRON_FIELD_COUNT,
@@ -126,4 +128,4 @@ export {
 	isValidCronExpression,
 	normalizeCronExpression,
 	splitCronParts
-} from '../../core/src/cron';
+} from '@stream-kit/core';

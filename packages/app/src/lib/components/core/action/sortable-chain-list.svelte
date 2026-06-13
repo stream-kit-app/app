@@ -8,6 +8,7 @@
 		KeyboardSensor,
 		PointerSensor
 	} from '@dnd-kit-svelte/svelte';
+	import { watch } from 'runed';
 
 	import SortableChainItem from './sortable-chain-item.svelte';
 	import type { DndDragEvent } from './dnd-events';
@@ -37,13 +38,18 @@
 		return source.map((item) => ({ id: getId(item), item }));
 	}
 
-	$effect(() => {
-		if (isDragging) {
-			return;
-		}
+	// Mirror external items into the local drag list, but never while dragging so
+	// in-progress reordering isn't clobbered by an upstream update.
+	watch(
+		() => items,
+		(currentItems) => {
+			if (isDragging) {
+				return;
+			}
 
-		list = toEntries(items);
-	});
+			list = toEntries(currentItems);
+		}
+	);
 
 	function handleDragStart(): void {
 		isDragging = true;
@@ -55,7 +61,15 @@
 
 	function handleDragEnd(): void {
 		isDragging = false;
-		onReorder(list.map((entry) => entry.item));
+
+		const reordered = list.map((entry) => entry.item);
+		const orderChanged =
+			reordered.length !== items.length ||
+			reordered.some((item, index) => getId(item) !== getId(items[index]));
+
+		if (orderChanged) {
+			onReorder(reordered);
+		}
 	}
 </script>
 

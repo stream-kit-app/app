@@ -57,11 +57,16 @@
 		};
 	});
 
+	let loadGeneration = 0;
+
 	$effect(() => {
-		void loadFields(fieldItems);
+		const items = fieldItems;
+		const generation = ++loadGeneration;
+
+		void loadFields(items, generation);
 	});
 
-	async function loadFields(items: SettingsFieldItem[]): Promise<void> {
+	async function loadFields(items: SettingsFieldItem[], generation: number): Promise<void> {
 		isLoading = true;
 		const stored: SettingsFieldInstance[] = [];
 		const pluginContext = plugin.createContext(app);
@@ -76,6 +81,11 @@
 					value
 				});
 			}
+		}
+
+		// Ignore stale loads: a newer fieldItems change has superseded this one.
+		if (generation !== loadGeneration) {
+			return;
 		}
 
 		fieldInstances = createSettingsFields(items, stored);

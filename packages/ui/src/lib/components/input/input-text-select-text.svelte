@@ -10,6 +10,7 @@
 
 	import Icon from '@iconify/svelte';
 	import { Select, useId } from 'bits-ui';
+	import { onDestroy } from 'svelte';
 
 	import { cn } from '../../utils';
 	import { Button } from '../button';
@@ -228,13 +229,26 @@
 		};
 
 		const handleBlur = () => {
-			setTimeout(() => {
+			if (blurTimeout) {
+				clearTimeout(blurTimeout);
+			}
+
+			blurTimeout = setTimeout(() => {
 				showSuggestions = false;
+				blurTimeout = undefined;
 			}, 120);
 		};
 
 		return { handleInput, handleKeydown, handleBlur };
 	};
+
+	let blurTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	onDestroy(() => {
+		if (blurTimeout) {
+			clearTimeout(blurTimeout);
+		}
+	});
 
 	const pathHandlers = createInputHandlers('path');
 	const valueHandlers = createInputHandlers('value');
@@ -266,6 +280,17 @@
 				segmentBorder
 			)}
 			aria-invalid={error ? true : undefined}
+			role={variables.length > 0 ? 'combobox' : undefined}
+			aria-autocomplete={variables.length > 0 ? 'list' : undefined}
+			aria-expanded={variables.length > 0
+				? showSuggestions && activeField === 'path' && filteredVariables.length > 0
+				: undefined}
+			aria-controls={variables.length > 0 ? `${id}-listbox` : undefined}
+			aria-activedescendant={showSuggestions &&
+			activeField === 'path' &&
+			filteredVariables.length > 0
+				? `${id}-option-${highlightedIndex}`
+				: undefined}
 			oninput={variables.length > 0 ? pathHandlers.handleInput : undefined}
 			onkeydown={variables.length > 0 ? pathHandlers.handleKeydown : undefined}
 			onblur={variables.length > 0 ? pathHandlers.handleBlur : undefined}
@@ -364,6 +389,17 @@
 					segmentBorder
 				)}
 				aria-invalid={error ? true : undefined}
+				role={variables.length > 0 ? 'combobox' : undefined}
+				aria-autocomplete={variables.length > 0 ? 'list' : undefined}
+				aria-expanded={variables.length > 0
+					? showSuggestions && activeField === 'value' && filteredVariables.length > 0
+					: undefined}
+				aria-controls={variables.length > 0 ? `${id}-listbox` : undefined}
+				aria-activedescendant={showSuggestions &&
+				activeField === 'value' &&
+				filteredVariables.length > 0
+					? `${id}-option-${highlightedIndex}`
+					: undefined}
 				oninput={variables.length > 0 ? valueHandlers.handleInput : undefined}
 				onkeydown={variables.length > 0 ? valueHandlers.handleKeydown : undefined}
 				onblur={variables.length > 0 ? valueHandlers.handleBlur : undefined}
@@ -397,6 +433,7 @@
 
 	{#if showSuggestions && filteredVariables.length > 0}
 		<ul
+			id={`${id}-listbox`}
 			class="absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
 			role="listbox"
 		>
@@ -405,6 +442,7 @@
 					<button
 						type="button"
 						role="option"
+						id={`${id}-option-${index}`}
 						aria-selected={index === highlightedIndex}
 						class={cn(
 							'flex w-full items-center justify-between gap-2 rounded-md px-3 py-1.5 text-left text-sm text-dark-50',

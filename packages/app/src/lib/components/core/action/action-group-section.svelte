@@ -50,19 +50,8 @@
 	</div>
 
 	<div class="relative">
-		<div
-			class={cn(isDragging.current && !isOverlay && 'pointer-events-none select-none opacity-0')}
-			aria-hidden={isDragging.current && !isOverlay}
-		>
+		<div class={cn(isDragging.current && !isOverlay && 'pointer-events-none select-none')}>
 			{@render children()}
 		</div>
-		{#if isDragging.current && !isOverlay}
-			<div
-				class="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-dashed border-primary-300/70 bg-primary-950/50 px-4 text-sm font-medium text-primary-200"
-				aria-hidden="true"
-			>
-				{t('Moving group: {name}', { name: displayName })}
-			</div>
-		{/if}
 	</div>
 </section>

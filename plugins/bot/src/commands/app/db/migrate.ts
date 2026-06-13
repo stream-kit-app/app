@@ -19,6 +19,37 @@ function normalizeLegacyCommandName(value: string): string {
 	return value.trim().replace(/^!+/, '').toLowerCase();
 }
 
+// tauri-plugin-sql pools connections, so BEGIN/COMMIT cannot reliably span
+// execute() calls. Rename the old table to a backup and only drop it once the
+// rebuilt table is fully populated, so a crash never destroys data.
+async function replaceTableWithBackup(
+	sqlite: Database,
+	table: string,
+	create: () => Promise<void>,
+	fill: () => Promise<void>
+): Promise<void> {
+	const backup = `${table}_migration_backup`;
+
+	await sqlite.execute(`DROP TABLE IF EXISTS "${backup}"`);
+	await sqlite.execute(`ALTER TABLE "${table}" RENAME TO "${backup}"`);
+	await create();
+	await fill();
+	await sqlite.execute(`DROP TABLE IF EXISTS "${backup}"`);
+}
+
+function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
+	if (typeof value !== 'string' || value.trim() === '') {
+		return fallback;
+	}
+
+	try {
+		return JSON.parse(value) as T;
+	} catch (error) {
+		console.warn('Skipping corrupt JSON value during commands migration', error);
+		return fallback;
+	}
+}
+
 async function createCommandsTable(sqlite: Database): Promise<void> {
 	await sqlite.execute(`
 		CREATE TABLE IF NOT EXISTS commands (
@@ -51,35 +82,39 @@ export async function migrateCommandsTable(sqlite: Database): Promise<void> {
 
 	const rows = await sqlite.select<LegacyCommandRow[]>('SELECT * FROM commands');
 
-	await sqlite.execute('DROP TABLE commands');
-	await createCommandsTable(sqlite);
+	await replaceTableWithBackup(
+		sqlite,
+		'commands',
+		() => createCommandsTable(sqlite),
+		async () => {
+			for (const row of rows) {
+				const aliases = safeJsonParse<string[]>(row.aliases, []);
+				const commandNames = [
+					normalizeLegacyCommandName(row.command),
+					...aliases.map(normalizeLegacyCommandName)
+				].filter(Boolean);
+				const uniqueCommandNames = [...new Set(commandNames)];
 
-	for (const row of rows) {
-		const aliases = JSON.parse(row.aliases) as string[];
-		const commandNames = [
-			normalizeLegacyCommandName(row.command),
-			...aliases.map(normalizeLegacyCommandName)
-		].filter(Boolean);
-		const uniqueCommandNames = [...new Set(commandNames)];
-
-		await sqlite.execute(
-			`INSERT INTO commands (
-				id, name, command_names, handlers, sources, permissions,
-				cooldown_global_ms, cooldown_user_ms, enabled, created_at, updated_at
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-			[
-				row.id,
-				row.name,
-				JSON.stringify(uniqueCommandNames),
-				'[]',
-				row.sources,
-				row.permissions,
-				row.cooldown_global_ms,
-				row.cooldown_user_ms,
-				row.enabled,
-				row.created_at,
-				row.updated_at
-			]
-		);
-	}
+				await sqlite.execute(
+					`INSERT INTO commands (
+						id, name, command_names, handlers, sources, permissions,
+						cooldown_global_ms, cooldown_user_ms, enabled, created_at, updated_at
+					) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+					[
+						row.id,
+						row.name,
+						JSON.stringify(uniqueCommandNames),
+						'[]',
+						row.sources,
+						row.permissions,
+						row.cooldown_global_ms,
+						row.cooldown_user_ms,
+						row.enabled,
+						row.created_at,
+						row.updated_at
+					]
+				);
+			}
+		}
+	);
 }

@@ -2,27 +2,50 @@ import Database from '@tauri-apps/plugin-sql';
 import { drizzle } from 'drizzle-orm/sqlite-proxy';
 
 import { migrate } from './migrate';
+import { runPluginMigrations } from './plugin-migrations';
 import * as schema from './schemas';
 
-const sqlite = await Database.load('sqlite:app.db');
+let sqlite: Database | undefined;
 
-await migrate(sqlite);
+export let db: ReturnType<typeof createDb>;
 
-export const db = drizzle<typeof schema>(
-	async (sql, params, method) => {
-		if (returnsRows(sql)) {
-			const rows = await sqlite.select<Record<string, unknown>[]>(sql, params);
-			const values = rows.map((row) => Object.values(row));
+function createDb(connection: Database) {
+	return drizzle<typeof schema>(
+		async (sql, params, method) => {
+			if (returnsRows(sql)) {
+				const rows = await connection.select<Record<string, unknown>[]>(sql, params);
+				const values = rows.map((row) => Object.values(row));
 
-			return { rows: method === 'get' ? values[0] : values };
-		}
+				return { rows: method === 'get' ? values[0] : values };
+			}
 
-		await sqlite.execute(sql, params);
+			await connection.execute(sql, params);
 
-		return { rows: [] };
-	},
-	{ schema }
-);
+			return { rows: [] };
+		},
+		{ schema }
+	);
+}
+
+export async function initDb(): Promise<void> {
+	if (sqlite) {
+		return;
+	}
+
+	const connection = await Database.load('sqlite:app.db');
+	await migrate(connection);
+
+	sqlite = connection;
+	db = createDb(connection);
+}
+
+export async function runRegisteredPluginMigrations(): Promise<void> {
+	if (!sqlite) {
+		throw new Error('Database has not been initialized');
+	}
+
+	await runPluginMigrations(sqlite);
+}
 
 export { saveAction, getActions, getAction, getActionGroups } from './repositories/actions';
 export type { SaveActionInput } from './repositories/actions';

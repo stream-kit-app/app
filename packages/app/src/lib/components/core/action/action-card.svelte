@@ -1,19 +1,21 @@
 <script lang="ts">
-	import type { Action } from '$lib/core/action/action.svelte';
+	import type { Action as ActionType } from '$lib/core/action/action.svelte';
 
 	import Icon from '@iconify/svelte';
 
 	import { tooltip, tooltipSnippet } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Button } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
+	import { Action } from '$lib/core/action/action.svelte';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	type Definition = { name: string; isAvailable: boolean };
 
 	type Props = {
-		action: Action;
+		action: ActionType;
 		selected?: boolean;
 		onSelectedChange?: (selected: boolean, shiftKey: boolean) => void;
 		isDragging?: boolean;
@@ -30,6 +32,11 @@
 
 	let { t } = useI18n();
 	let shiftKey = false;
+
+	function handleClone(event: MouseEvent): void {
+		event.stopPropagation();
+		Action.createFrom(action).open();
+	}
 </script>
 
 {#snippet definitionList({ title, definitions }: { title: string; definitions: Definition[] })}
@@ -94,7 +101,7 @@
 		<button
 			type="button"
 			class={cn(
-				'group col-span-4 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left transition-colors'
+				'group col-span-3 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left transition-colors'
 			)}
 			onclick={() => action.open()}
 		>
@@ -127,13 +134,24 @@
 			>
 				{t('handlers ({count})', { count: action.handlers.length })}
 			</Badge>
-
+		</button>
+		<div class="flex shrink-0 items-center gap-1 pe-2">
+			{#if action.id != null}
+				<Button
+					variant="ghost"
+					size="icon"
+					icon="clarity:clone-line"
+					aria-label={t('Clone action')}
+					onclick={handleClone}
+					{@attach tooltip(() => t('Clone action'))}
+				/>
+			{/if}
 			<Icon
 				icon="ri:arrow-right-s-line"
-				class="size-5 shrink-0 justify-self-end text-dark-400 transition-colors group-hover:text-dark-200"
+				class="size-5 shrink-0 text-dark-400"
 				aria-hidden="true"
 			/>
-		</button>
+		</div>
 	</div>
 
 	{#if isDragging}

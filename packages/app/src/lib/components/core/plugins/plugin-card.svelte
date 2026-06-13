@@ -77,8 +77,8 @@
 		statusRevision += 1;
 
 		app.toast.create({
-			title: plugin.isEnabled ? t('Plugin enabled') : t('Plugin disabled'),
-			description: plugin.isEnabled
+			title: enabled ? t('Plugin enabled') : t('Plugin disabled'),
+			description: enabled
 				? t('{name} has been enabled.', { name: plugin.name })
 				: t('{name} has been disabled.', { name: plugin.name }),
 			variant: 'success'

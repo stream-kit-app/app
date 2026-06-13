@@ -32,11 +32,23 @@ export function buildDndLayout(actions: Action[]): DndActionLayout {
 	return layout;
 }
 
-export function dndLayoutToUpdates(layout: DndActionLayout): ActionLayoutUpdate[] {
+export function getGroupOrder(layout: DndActionLayout): string[] {
+	return Object.keys(layout);
+}
+
+export function dndLayoutToUpdates(
+	layout: DndActionLayout,
+	groupOrder: string[] = getGroupOrder(layout)
+): ActionLayoutUpdate[] {
 	const updates: ActionLayoutUpdate[] = [];
 	let groupSortOrder = 0;
 
-	for (const [group, items] of Object.entries(layout)) {
+	for (const group of groupOrder) {
+		const items = layout[group];
+
+		if (!items) {
+			continue;
+		}
 		let sortOrder = 0;
 
 		for (const item of items) {

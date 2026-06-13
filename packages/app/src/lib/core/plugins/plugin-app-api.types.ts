@@ -32,6 +32,7 @@ import type { SettingsFieldValue } from '../settings';
 import type { AppLifecycleContext, AppLifecycleEvent } from '../lifecycle/types';
 import type { ProcessEventContext } from '../process/types';
 import type { RunProgramOptions, RunProgramResult } from '../process/run-program';
+import type { LocalTtsRuntimeInfo, LocalTtsVoiceInfo } from '../tts';
 
 /**
  * Factory registered by the Commands plugin to activate chat command handling.
@@ -282,8 +283,13 @@ export interface PluginAppLifecycleApi {
 	/** Subscribe to app-started events. Returns an unsubscribe function. */
 	onStarted(handler: (context: AppLifecycleContext) => void): () => void;
 
-	/** Subscribe to app-exit events. Returns an unsubscribe function. */
-	onExit(handler: (context: AppLifecycleContext) => void): () => void;
+	/**
+	 * Subscribe to app-exit events. Returns an unsubscribe function.
+	 *
+	 * The handler may return a promise; the window stays open until all exit
+	 * handlers settle, allowing async cleanup (flush stores, disconnect, etc.).
+	 */
+	onExit(handler: (context: AppLifecycleContext) => void | Promise<void>): () => void;
 
 	/** Build a lifecycle context for the given event. */
 	getContext(event: AppLifecycleEvent): AppLifecycleContext;
@@ -342,6 +348,30 @@ export interface PluginAppAudioApi {
 	 * ```
 	 */
 	play(blob: Blob, volume?: number): Promise<void>;
+}
+
+/**
+ * App-owned bridge to the local (Piper) TTS runtime. Keeps Tauri command
+ * invocation in the app layer so plugins stay platform-agnostic.
+ */
+export interface PluginAppLocalTtsApi {
+	/** List all known local voices (installed and downloadable). */
+	listVoices(): Promise<LocalTtsVoiceInfo[]>;
+
+	/** Whether the local TTS runtime is installed. */
+	getRuntimeInfo(): Promise<LocalTtsRuntimeInfo>;
+
+	/** Download and install the local TTS runtime. */
+	downloadRuntime(): Promise<void>;
+
+	/** Download and install a specific voice. */
+	downloadVoice(voiceId: string): Promise<void>;
+
+	/** Delete a downloaded voice. */
+	deleteVoice(voiceId: string): Promise<void>;
+
+	/** Synthesize speech as WAV bytes for the given voice and text. */
+	synthesize(voiceId: string, text: string): Promise<Uint8Array>;
 }
 
 /**
@@ -511,6 +541,9 @@ export interface PluginAppApi {
 
 	/** Play audio blobs. */
 	audio: PluginAppAudioApi;
+
+	/** Bridge to the local (Piper) TTS runtime. */
+	localTts: PluginAppLocalTtsApi;
 
 	/** Application start and exit events. */
 	lifecycle: PluginAppLifecycleApi;

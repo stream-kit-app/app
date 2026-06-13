@@ -15,6 +15,7 @@
 	import {
 		buildDndLayout,
 		dndLayoutToUpdates,
+		getGroupOrder,
 		type DndActionLayout
 	} from '$lib/core/action/action-layout';
 	import { Button } from '@stream-kit/ui/button';
@@ -31,6 +32,7 @@
 	type DragEvent = Parameters<typeof move<DndActionLayout>>[1];
 
 	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
+	let groupOrder = $state<string[]>(getGroupOrder(layout));
 	let isDragging = $state(false);
 
 	watch(
@@ -48,13 +50,12 @@
 			}
 
 			layout = buildDndLayout(app.actions.items);
+			groupOrder = getGroupOrder(layout);
 		}
 	);
 
 	const orderedSelectableIds = $derived(
-		Object.entries(layout).flatMap(([, groupActions]) =>
-			groupActions.map((item) => item.id)
-		)
+		groupOrder.flatMap((groupId) => layout[groupId]?.map((item) => item.id) ?? [])
 	);
 
 	const selection = createSelectableList(() => orderedSelectableIds);
@@ -67,20 +68,17 @@
 
 	function handleDragOver(event: DragEvent): void {
 		if (event.operation.source?.type === 'group') {
+			groupOrder = move(groupOrder, event);
 			return;
 		}
 
 		layout = move(layout, event);
 	}
 
-	async function handleDragEnd(event: DragEvent): Promise<void> {
+	async function handleDragEnd(): Promise<void> {
 		isDragging = false;
 
-		if (event.operation.source?.type === 'group') {
-			layout = move(layout, event);
-		}
-
-		const updates = dndLayoutToUpdates(layout);
+		const updates = dndLayoutToUpdates(layout, groupOrder);
 		const current = dndLayoutToUpdates(buildDndLayout(app.actions.items));
 
 		if (JSON.stringify(updates) === JSON.stringify(current)) {
@@ -89,6 +87,7 @@
 
 		await app.actions.applyLayout(updates);
 		layout = buildDndLayout(app.actions.items);
+		groupOrder = getGroupOrder(layout);
 	}
 
 	async function enableSelected(): Promise<void> {
@@ -174,7 +173,8 @@
 		onDragEnd={handleDragEnd}
 	>
 		<div class="mt-8 grid gap-6">
-			{#each Object.entries(layout) as [groupId, groupActions], groupIndex (groupId)}
+			{#each groupOrder as groupId, groupIndex (groupId)}
+				{@const groupActions = layout[groupId] ?? []}
 				<ActionGroupSection {groupId} index={groupIndex}>
 					{#snippet children()}
 						<div class="flex flex-col gap-2">

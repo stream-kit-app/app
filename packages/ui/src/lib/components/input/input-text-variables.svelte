@@ -7,6 +7,7 @@
 	} from 'svelte/elements';
 
 	import { useId } from 'bits-ui';
+	import { onDestroy } from 'svelte';
 
 	import { cn } from '../../utils';
 
@@ -171,11 +172,24 @@
 		}
 	};
 
+	let blurTimeout: ReturnType<typeof setTimeout> | undefined;
+
 	const handleBlur = () => {
-		setTimeout(() => {
+		if (blurTimeout) {
+			clearTimeout(blurTimeout);
+		}
+
+		blurTimeout = setTimeout(() => {
 			showSuggestions = false;
+			blurTimeout = undefined;
 		}, 120);
 	};
+
+	onDestroy(() => {
+		if (blurTimeout) {
+			clearTimeout(blurTimeout);
+		}
+	});
 </script>
 
 <div class="relative grid w-full gap-2">
@@ -200,7 +214,14 @@
 				inputSizeClasses.md,
 				error ? 'border-red-500' : 'border-dark-500'
 			)}
+			role="combobox"
 			aria-invalid={error ? true : undefined}
+			aria-autocomplete="list"
+			aria-expanded={showSuggestions && filteredVariables.length > 0}
+			aria-controls={`${id}-listbox`}
+			aria-activedescendant={showSuggestions && filteredVariables.length > 0
+				? `${id}-option-${highlightedIndex}`
+				: undefined}
 			oninput={handleInput}
 			onkeydown={handleKeydown}
 			onblur={handleBlur}
@@ -228,6 +249,7 @@
 
 	{#if showSuggestions && filteredVariables.length > 0}
 		<ul
+			id={`${id}-listbox`}
 			class="absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
 			role="listbox"
 		>
@@ -236,6 +258,7 @@
 					<button
 						type="button"
 						role="option"
+						id={`${id}-option-${index}`}
 						aria-selected={index === highlightedIndex}
 						class={cn(
 							'flex w-full items-center justify-between gap-2 rounded-md px-3 py-1.5 text-left text-sm text-dark-50',

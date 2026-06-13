@@ -77,16 +77,20 @@
 	});
 </script>
 
-<div class={cn('grid w-full gap-2', className)}>
+<div
+	class={cn('grid w-full gap-2', className)}
+	role="group"
+	aria-labelledby={label ? `${id}-label` : undefined}
+>
 	{#if label}
-		<Label for={id}>{label}</Label>
+		<Label id={`${id}-label`}>{label}</Label>
 	{/if}
 
 	<div class="grid gap-2">
 		{#each rows as row (row.id)}
 			<div class="flex items-center gap-2">
 				<InputText
-					{id}
+					id={`${id}-${row.id}`}
 					{placeholder}
 					value={row.value}
 					oninput={(event) => updateRowValue(row.id, event.currentTarget.value)}

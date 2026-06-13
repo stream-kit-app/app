@@ -111,18 +111,34 @@ export async function installPluginFromZip(
 		replaceExisting
 	});
 
-	if (app.plugins.find(manifest.key)) {
+	const existing = app.plugins.find(manifest.key);
+
+	if (existing) {
+		// Fully tear down the previous registration before replacing it so leftover
+		// trigger/handler definitions and dev watchers don't conflict on re-register.
+		if (existing.isEnabled) {
+			await existing.setEnabled(app, false);
+		}
+
+		await stopPluginDevWatcher(manifest.key);
 		app.plugins.remove(manifest.key);
 	}
 
-	const pluginFactory = await loadInstalledPluginModule(manifest);
-	await app.use(pluginFactory, {
-		key: manifest.key,
-		source: 'installed',
-		installPath: manifest.installPath,
-		version: manifest.version
-	});
-	await app.plugins.loadPlugin(app, manifest.key);
+	try {
+		const pluginFactory = await loadInstalledPluginModule(manifest);
+		await app.use(pluginFactory, {
+			key: manifest.key,
+			source: 'installed',
+			installPath: manifest.installPath,
+			version: manifest.version
+		});
+		await app.plugins.loadPlugin(app, manifest.key);
+	} catch (error) {
+		// Roll back the extracted files so a broken install doesn't linger on disk.
+		app.plugins.remove(manifest.key);
+		await invoke('uninstall_plugin', { key: manifest.key }).catch(() => undefined);
+		throw error;
+	}
 
 	return manifest;
 }

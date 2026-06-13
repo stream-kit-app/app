@@ -1,5 +1,6 @@
 import type { Plugin } from '@stream-kit/app/api';
 
+import { configureFieldValueResolver } from './get-field-value';
 import { createElevenLabsSpeakHandler } from './handler/elevenlabs/speak';
 import { createLocalSpeakHandler } from './handler/local/speak';
 import { createStreamElementsSpeakHandler } from './handler/streamelements/speak';
@@ -11,12 +12,15 @@ import { createLocalTtsVoiceSelectField } from './lib/local/settings';
 import { localVoiceSelectSettingsField } from './lib/local/voices';
 import { streamelements } from './lib/streamelements';
 import { voiceSelectSettingsField } from './lib/streamelements/voices';
-import { configureFieldValueResolver } from './get-field-value';
 
 export const SETTINGS_KEY = 'tts';
 
 const plugin: Plugin = (app) => {
 	configureFieldValueResolver(app);
+	// Make the app bridge available before any lifecycle hook runs (onLoad
+	// refreshes voices before onBoot, which is where the service is fully booted).
+	local.setApp(app);
+
 	return {
 		key: SETTINGS_KEY,
 		name: 'TTS',
@@ -116,7 +120,10 @@ const plugin: Plugin = (app) => {
 							}
 
 							try {
-								await local.testVoice(voiceId, 'This is a local text-to-speech test.');
+								await local.testVoice(
+									voiceId,
+									'This is a local text-to-speech test.'
+								);
 								app.toast.create({
 									title: 'Test started',
 									description: 'Playing the test phrase.',

@@ -26,21 +26,31 @@ export async function getPluginDevModes(): Promise<Record<string, boolean>> {
 	return (await store.get<Record<string, boolean>>(PLUGIN_DEV_MODE_KEY)) ?? {};
 }
 
+// LazyStore persists the whole map, so concurrent toggles would otherwise
+// read-modify-write the same object and clobber each other. Serialize them.
+let devModeWriteQueue: Promise<unknown> = Promise.resolve();
+
 export async function setPluginDevMode(
 	pluginKey: string,
 	enabled: boolean
 ): Promise<Record<string, boolean>> {
-	const modes = await getPluginDevModes();
+	const run = devModeWriteQueue.then(async () => {
+		const modes = await getPluginDevModes();
 
-	if (enabled) {
-		modes[pluginKey] = true;
-	} else {
-		delete modes[pluginKey];
-	}
+		if (enabled) {
+			modes[pluginKey] = true;
+		} else {
+			delete modes[pluginKey];
+		}
 
-	await store.set(PLUGIN_DEV_MODE_KEY, modes);
+		await store.set(PLUGIN_DEV_MODE_KEY, modes);
 
-	return modes;
+		return modes;
+	});
+
+	devModeWriteQueue = run.catch(() => undefined);
+
+	return run;
 }
 
 export async function clearPluginDevModes(): Promise<void> {

@@ -25,6 +25,21 @@
 			return;
 		}
 
+		// Installed plugins run with full access to the app and system, so require
+		// explicit, informed consent before extracting and loading untrusted code.
+		const trusted = await app.confirm.ask({
+			title: t('Install third-party plugin?'),
+			description: t(
+				'Installed plugins run with full access to Stream Kit and your system. Only install plugins from sources you trust.'
+			),
+			confirmLabel: t('Install'),
+			cancelLabel: t('Cancel')
+		});
+
+		if (!trusted) {
+			return;
+		}
+
 		isInstalling = true;
 
 		try {

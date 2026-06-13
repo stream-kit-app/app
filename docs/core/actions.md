@@ -21,6 +21,18 @@ Order is stored in the local database (`group_sort_order`, `sort_order`) and per
 
 When you change an action’s group in the editor, it is placed at the end of that group.
 
+## Cloning
+
+You can duplicate actions, triggers, and handlers:
+
+| Location | What it does |
+|----------|--------------|
+| Clone button on an action row | Opens a pre-filled draft named “Copy of …”. Save to create the new action. |
+| Clone button in the action editor footer | Same as above while editing an existing action. |
+| Clone button on a trigger or handler row | Inserts a copy directly after that item in the chain. Save the action to persist. |
+
+Cloned triggers and handlers receive new instance IDs. Their configuration (conditions, field values) is deep-copied from the source.
+
 ## Related docs
 
 - [Handlers](./handlers.md) — handler chains inside an action
