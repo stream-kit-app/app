@@ -1,5 +1,22 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.4
+
+### Patch Changes
+
+- [`361e3a2`](https://github.com/stream-kit-app/app/commit/361e3a21cad6e3d85fca0d0029ced1facfd132bb) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - build
+
+- Updated dependencies [[`361e3a2`](https://github.com/stream-kit-app/app/commit/361e3a21cad6e3d85fca0d0029ced1facfd132bb)]:
+    - @stream-kit/plugin-websocket@0.1.1-alpha.2
+    - @stream-kit/plugin-twitch@0.1.1-alpha.2
+    - @stream-kit/core@0.1.1-alpha.2
+    - @stream-kit/plugin-handlers@0.1.1-alpha.2
+    - @stream-kit/plugin-bot@0.1.1-alpha.2
+    - @stream-kit/plugin-tts@0.1.1-alpha.2
+    - @stream-kit/ui@0.1.1-alpha.2
+    - @stream-kit/plugin-obs@0.1.1-alpha.2
+    - @stream-kit/plugin-youtube@0.1.1-alpha.2
+
 ## 0.1.0-alpha.3
 
 ### Patch Changes
