@@ -1,6 +1,8 @@
 import type { ObsPluginApi, ObsPluginController } from './lib/obs';
 import type { Plugin } from '@stream-kit/plugin';
 
+import { configureFieldValueResolver } from './get-field-value';
+import { createTriggerHotkeyHandler } from './handler/hotkey/trigger';
 import {
 	createPauseRecordHandler,
 	createResumeRecordHandler,
@@ -10,9 +12,9 @@ import {
 	createToggleRecordHandler
 } from './handler/recording/index';
 import {
+	createSaveReplayBufferHandler,
 	createStartReplayBufferHandler,
 	createStopReplayBufferHandler,
-	createSaveReplayBufferHandler,
 	createToggleReplayBufferHandler
 } from './handler/replay-buffer/index';
 import { createSetPreviewSceneHandler } from './handler/scene/preview';
@@ -34,22 +36,20 @@ import {
 	createToggleStreamHandler
 } from './handler/stream/index';
 import {
+	createDisableStudioModeHandler,
+	createEnableStudioModeHandler
+} from './handler/studio-mode/index';
+import {
 	createSetTransitionDurationHandler,
 	createSetTransitionHandler,
 	createTriggerStudioTransitionHandler
 } from './handler/transition/index';
-import {
-	createDisableStudioModeHandler,
-	createEnableStudioModeHandler
-} from './handler/studio-mode/index';
-import { createTriggerHotkeyHandler } from './handler/hotkey/trigger';
 import {
 	createStartVirtualCamHandler,
 	createStopVirtualCamHandler,
 	createToggleVirtualCamHandler
 } from './handler/virtualcam/index';
 import { createObsPluginApi } from './lib/obs';
-import { configureFieldValueResolver } from './get-field-value';
 import { createRecordingStartedTrigger } from './trigger/recording/started';
 import { createRecordingStoppedTrigger } from './trigger/recording/stopped';
 import {
@@ -58,8 +58,8 @@ import {
 	createReplayBufferStoppedTrigger
 } from './trigger/replay-buffer/index';
 import {
-	createSceneChangedTrigger,
-	createPreviewSceneChangedTrigger
+	createPreviewSceneChangedTrigger,
+	createSceneChangedTrigger
 } from './trigger/scene/changed';
 import {
 	createInputHiddenTrigger,
@@ -156,7 +156,8 @@ const plugin: Plugin = (app) => {
 		description: 'Connect and control OBS Studio via WebSocket.',
 		icon: 'ri:live-line',
 		api: publicApi,
-		isConfigured: () => publicApi.isConnected,
+		isConfigured: ({ getValue }) =>
+			getValue('host') && getValue('port') && getValue('password'),
 		settings: [
 			{
 				type: 'alert',
