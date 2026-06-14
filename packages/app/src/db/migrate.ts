@@ -215,6 +215,31 @@ async function migrateActionsTable(sqlite: Database): Promise<void> {
 	await migrateAddSortOrderColumns(sqlite);
 }
 
+async function createOverlaysTable(sqlite: Database): Promise<void> {
+	await sqlite.execute(`
+		CREATE TABLE IF NOT EXISTS overlays (
+			id TEXT PRIMARY KEY NOT NULL,
+			name TEXT NOT NULL,
+			template TEXT NOT NULL DEFAULT 'blank',
+			width INTEGER NOT NULL DEFAULT 800,
+			height INTEGER NOT NULL DEFAULT 600,
+			config TEXT NOT NULL DEFAULT '{}',
+			expected_events TEXT NOT NULL DEFAULT '[]',
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL
+		)
+	`);
+}
+
+async function migrateOverlaysTable(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(overlays)');
+
+	if (columns.length === 0) {
+		await createOverlaysTable(sqlite);
+	}
+}
+
 export async function migrate(sqlite: Database): Promise<void> {
 	await migrateActionsTable(sqlite);
+	await migrateOverlaysTable(sqlite);
 }

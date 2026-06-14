@@ -1,11 +1,17 @@
 <script lang="ts">
+	import type { LanguageServerConfig, LanguageServerConnection } from '../../codemirror';
+	import type { Extension } from '@codemirror/state';
+	import type { EditorView } from '@codemirror/view';
 	import type { HTMLTextareaAttributes } from 'svelte/elements';
-	import type { editor as MonacoEditor } from 'monaco-editor';
 
 	import { useId } from 'bits-ui';
 	import { onDestroy, onMount } from 'svelte';
 
-	import { ensureMonaco, type MonacoConfigurator } from '../../monaco/setup';
+	import {
+		createEditorView,
+		createLanguageServerConnection,
+		syncEditorDocument
+	} from '../../codemirror';
 	import { cn } from '../../utils';
 	import Label from './label.svelte';
 
@@ -17,10 +23,11 @@
 		placeholder?: string;
 		value?: string;
 		oninput?: HTMLTextareaAttributes['oninput'];
-		language?: 'typescript';
+		language?: 'typescript' | 'javascript' | 'svelte' | 'json';
 		minHeight?: string;
 		class?: string;
-		configureMonaco?: MonacoConfigurator;
+		extensions?: Extension[];
+		languageServer?: LanguageServerConfig | null;
 	};
 
 	let {
@@ -33,11 +40,13 @@
 		language = 'typescript',
 		minHeight = '12rem',
 		class: className,
-		configureMonaco
+		extensions = [],
+		languageServer = null
 	}: Props = $props();
 
 	let container: HTMLDivElement | undefined = $state();
-	let editor: MonacoEditor.IStandaloneCodeEditor | undefined = $state();
+	let view: EditorView | undefined = $state();
+	let lspConnection: LanguageServerConnection | undefined = $state();
 	let isReady = $state(false);
 	let cancelled = false;
 
@@ -51,81 +60,59 @@
 		} as Event & { currentTarget: HTMLTextAreaElement });
 	}
 
+	async function buildExtraExtensions(): Promise<Extension[]> {
+		lspConnection?.destroy();
+		lspConnection = undefined;
+
+		if (!languageServer) {
+			return [...extensions];
+		}
+
+		const connection = await createLanguageServerConnection(languageServer);
+		lspConnection = connection;
+
+		return [...extensions, ...connection.extensions];
+	}
+
 	onMount(async () => {
 		if (!container) {
 			return;
 		}
 
-		const monaco = await ensureMonaco(configureMonaco);
+		const extraExtensions = await buildExtraExtensions();
 
-		// The component may have been destroyed while Monaco was loading; don't
-		// create an editor on a detached node.
 		if (cancelled || !container) {
+			lspConnection?.destroy();
+			lspConnection = undefined;
 			return;
 		}
 
-		const editorLanguage = language === 'typescript' ? 'typescript' : 'javascript';
-		const modelUri = monaco.Uri.parse(`inmemory://model/${id}.${editorLanguage === 'typescript' ? 'ts' : 'js'}`);
-		const model =
-			monaco.editor.getModel(modelUri) ??
-			monaco.editor.createModel(value, editorLanguage, modelUri);
-
-		editor = monaco.editor.create(container, {
-			model,
-			theme: 'vs-dark',
-			automaticLayout: true,
-			fixedOverflowWidgets: true,
-			minimap: { enabled: false },
-			scrollBeyondLastLine: false,
-			fontSize: 13,
-			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-			lineNumbers: 'on',
-			tabSize: 2,
-			insertSpaces: true,
-			wordWrap: 'on',
-			padding: { top: 12, bottom: 12 },
-			scrollbar: {
-				verticalScrollbarSize: 8,
-				horizontalScrollbarSize: 8
-			},
-			placeholder
-		});
-
-		editor.onDidChangeModelContent(() => {
-			emitValueChange(editor?.getValue() ?? '');
+		view = createEditorView({
+			parent: container,
+			doc: value,
+			language,
+			placeholder,
+			extensions: extraExtensions,
+			onChange: emitValueChange
 		});
 
 		isReady = true;
 	});
 
 	$effect(() => {
-		if (!editor || !isReady) {
+		if (!view || !isReady) {
 			return;
 		}
 
-		const current = editor.getValue();
-
-		if (current !== value) {
-			const position = editor.getPosition();
-			const selection = editor.getSelection();
-			editor.setValue(value);
-
-			if (position) {
-				editor.setPosition(position);
-			}
-
-			if (selection) {
-				editor.setSelection(selection);
-			}
-		}
+		syncEditorDocument(view, value);
 	});
 
 	onDestroy(() => {
 		cancelled = true;
-		const model = editor?.getModel();
-		editor?.dispose();
-		model?.dispose();
-		editor = undefined;
+		lspConnection?.destroy();
+		lspConnection = undefined;
+		view?.destroy();
+		view = undefined;
 	});
 </script>
 
@@ -140,8 +127,10 @@
 		aria-multiline="true"
 		aria-invalid={error ? true : undefined}
 		class={cn(
-			'overflow-hidden rounded-xl border focus-within:ring-2',
-			error ? 'border-red-500 focus-within:ring-red-500' : 'border-dark-500 focus-within:ring-primary',
+			'overflow-hidden rounded-lg border bg-dark-900 focus-within:ring-2 [&_.cm-editor]:min-h-[inherit] [&_.cm-editor]:outline-none [&_.cm-scroller]:min-h-[inherit]',
+			error
+				? 'border-red-500 focus-within:ring-red-500'
+				: 'border-dark-600 focus-within:ring-primary',
 			className
 		)}
 		style:min-height={minHeight}

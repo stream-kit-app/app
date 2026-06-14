@@ -1,0 +1,26 @@
+{
+	"name": "@stream-kit/overlay-sdk",
+	"version": "0.1.0-alpha.0",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc --project tsconfig.declarations.json && esbuild src/index.ts --bundle --format=esm --platform=browser --outfile=dist/index.js && node scripts/build-svelte-runtime.mjs && node scripts/copy-to-app-static.mjs",
+		"check": "pnpm build && tsc --noEmit -p tsconfig.json",
+		"dev": "chokidar \"src/**/*.ts\" -c \"pnpm build\" --initial"
+	},
+	"devDependencies": {
+		"@types/node": "^24.12.4",
+		"esbuild": "^0.25.0",
+		"svelte": "^5.56.1",
+		"typescript": "~6.0.3"
+	}
+}

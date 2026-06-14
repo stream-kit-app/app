@@ -11,7 +11,7 @@ export const PLUGIN_HOST_SVELTE_SUBPATHS = [
 ];
 
 /** UI subpaths that are exported but should not be pre-built in the plugin host. */
-export const PLUGIN_HOST_UI_EXCLUDED_SUBPATHS = new Set(['monaco']);
+export const PLUGIN_HOST_UI_EXCLUDED_SUBPATHS = new Set(['codemirror']);
 
 export const PLUGIN_HOST_ROOT_IMPORTS = [
 	['@stream-kit/plugin', 'plugin.js'],

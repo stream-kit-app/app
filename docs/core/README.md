@@ -58,6 +58,7 @@ Core
 - [Dashboard](./dashboard.md) — home page overview and status widgets
 - [Actions](./actions.md) — list page, groups, and drag-and-drop order
 - [Handlers](./handlers.md) — all handlers and their fields
+- [Overlays](./overlays.md) — local OBS browser source overlays
 - [Variables](./variables.md) — scopes, interpolation, and storage
 - [Maps](./maps.md) — session and persistent key-value stores
 - [Logging](./logging.md) — action logs and the LogViewer

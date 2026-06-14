@@ -36,11 +36,22 @@ export default defineConfig(async () => ({
 	},
 	optimizeDeps: {
 		include: [
-			'monaco-editor',
 			'@dnd-kit-svelte/svelte',
 			'@dnd-kit-svelte/svelte/sortable',
-			'@dnd-kit/helpers'
-		]
+			'@dnd-kit/helpers',
+			'@lezer/highlight',
+			'@codemirror/lint',
+			'codemirror-lang-svelte',
+			'@codemirror/language',
+			'highlight.js/lib/core',
+			'highlight.js/lib/languages/javascript',
+			'highlight.js/lib/languages/typescript',
+			'highlight.js/lib/languages/json'
+		],
+		exclude: ['svelte-language-server-web']
+	},
+	worker: {
+		format: 'es'
 	},
 	ssr: {
 		noExternal: ['@stream-kit/app', '@stream-kit/ui']

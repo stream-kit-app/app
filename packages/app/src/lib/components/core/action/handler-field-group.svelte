@@ -31,7 +31,7 @@
 	import { MapContentPopover } from '$lib/components/core/map';
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
-	import { configureScriptApiTypes } from '$lib/monaco/script-setup';
+	import { buildScriptLspWorkspace } from '$lib/codemirror/script-lsp-workspace';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -250,7 +250,7 @@
 			language={config.language}
 			value={String(field.value ?? '')}
 			oninput={onCodeInput(field)}
-			configureMonaco={configureScriptApiTypes}
+			languageServer={buildScriptLspWorkspace(String(field.value ?? ''))}
 			{error}
 		/>
 	{:else if config.type === 'text-select-text'}

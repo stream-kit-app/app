@@ -23,6 +23,7 @@ import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
 import { Settings } from './settings';
 import { Toast } from './toast';
 import { LocalTts } from './tts';
+import { OverlayService } from './overlay/overlay-service.svelte';
 
 export class App extends Bootable {
 	public menu = new Menu();
@@ -37,6 +38,7 @@ export class App extends Bootable {
 	public lifecycle = new AppLifecycle();
 	public process = new ProcessWatcher();
 	public localTts = new LocalTts();
+	public overlay = new OverlayService(() => this);
 
 	public modals = new SvelteMap<string, Modal>();
 	public confirm = new Confirm();

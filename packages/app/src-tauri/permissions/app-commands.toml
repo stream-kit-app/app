@@ -24,5 +24,10 @@ commands.allow = [
 	"download_and_install_plugin_update",
 	"start_process_watcher",
 	"stop_process_watcher",
-	"run_program"
+	"run_program",
+	"overlay_server_start",
+	"overlay_server_stop",
+	"overlay_server_status",
+	"overlay_broadcast",
+	"overlay_get_overlays_dir"
 ]

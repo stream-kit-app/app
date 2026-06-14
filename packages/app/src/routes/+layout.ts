@@ -34,6 +34,11 @@ export const load = async () => {
 		icon: 'carbon:trigger'
 	});
 	app.menu.add({
+		path: '/overlays',
+		title: 'Overlays',
+		icon: 'ri:window-line'
+	});
+	app.menu.add({
 		path: '/logs',
 		title: 'Logs',
 		icon: 'ri:file-list-3-line'

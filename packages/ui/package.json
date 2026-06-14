@@ -53,9 +53,9 @@
 			"svelte": "./src/lib/components/heading/index.ts",
 			"import": "./src/lib/components/heading/index.ts"
 		},
-		"./monaco": {
-			"types": "./src/lib/monaco/index.ts",
-			"import": "./src/lib/monaco/index.ts"
+		"./codemirror": {
+			"types": "./src/lib/codemirror/index.ts",
+			"import": "./src/lib/codemirror/index.ts"
 		},
 		"./input": {
 			"types": "./src/lib/components/input/index.ts",
@@ -111,8 +111,20 @@
 		"dev": "svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"dependencies": {
+		"@codemirror/commands": "^6.10.3",
+		"@codemirror/lang-javascript": "^6.2.5",
+		"@codemirror/lang-json": "^6.0.2",
+		"@codemirror/language": "^6.12.3",
+		"@codemirror/lint": "^6.9.7",
+		"@codemirror/state": "^6.6.0",
+		"@codemirror/view": "^6.43.1",
+		"@lezer/highlight": "^1.2.3",
 		"@stream-kit/core": "workspace:*",
-		"monaco-editor": "^0.55.1"
+		"codemirror-lang-svelte": "^2.1.0",
+		"codemirror-languageserver": "^1.22.0",
+		"highlight.js": "^11.11.1",
+		"svelte-language-server-web": "^0.0.8",
+		"vscode-languageserver-protocol": "^3.18.0"
 	},
 	"peerDependencies": {
 		"@iconify/svelte": "^5.0.0",

@@ -1,6 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod dev;
 mod local_tts;
+mod overlay_server;
 mod plugins;
 mod process_watcher;
 mod run_program;
@@ -84,13 +85,19 @@ pub fn run() {
             plugins::download_and_install_plugin_update,
             process_watcher::start_process_watcher,
             process_watcher::stop_process_watcher,
-            run_program::run_program
+            run_program::run_program,
+            overlay_server::commands::overlay_server_start,
+            overlay_server::commands::overlay_server_stop,
+            overlay_server::commands::overlay_server_status,
+            overlay_server::commands::overlay_broadcast,
+            overlay_server::commands::overlay_get_overlays_dir
         ])
         .setup(|app| {
             app.manage(dev::PluginWatchers(std::sync::Mutex::new(
                 std::collections::HashMap::new(),
             )));
             app.manage(process_watcher::ProcessWatcherState::new());
+            app.manage(overlay_server::OverlayServerState::new());
 
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window("main") {

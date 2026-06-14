@@ -124,9 +124,6 @@ function uniqueSlug(value, used, fallback2 = "item") {
   used.add(slug);
   return slug;
 }
-function scopedSlug(scope, parts, fallback2 = "item") {
-  return `${scope}:${parts.map((part) => slugify(part, fallback2)).join(".")}`;
-}
 
 // src/lib/core/action/handler/handler-definition.svelte.ts
 var HandlerDefinitions = class {
@@ -134,7 +131,7 @@ var HandlerDefinitions = class {
   add(props, options = {}) {
     const normalizedProps = {
       ...props,
-      id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length, options.idScope),
+      id: resolveDefinitionId(props.id, props.name, options.idScope, "handler"),
       fields: resolveFieldDefinitions(props.fields)
     };
     if (this.find(normalizedProps.id)) {
@@ -152,6 +149,9 @@ var HandlerDefinitions = class {
       }
     }
     return void 0;
+  }
+  remove(id) {
+    this.items = this.items.filter((definition) => definition.id !== id);
   }
 };
 var HandlerDefinition = class {
@@ -193,9 +193,16 @@ function resolveFieldDefinitions(fields) {
     };
   });
 }
-function createGeneratedDefinitionId(name, index2, scope) {
-  const id = `${slugify(name, "handler")}-${index2 + 1}`;
-  return scope ? scopedSlug(scope, [id], "handler") : id;
+function createStableDefinitionId(name, scope, fallback2 = "item") {
+  const segment = slugify(name, fallback2);
+  return scope ? `${scope}:${segment}` : segment;
+}
+function resolveDefinitionId(explicitId, name, scope, fallback2 = "item") {
+  if (explicitId) {
+    const segment = slugify(explicitId, fallback2);
+    return scope ? `${scope}:${segment}` : segment;
+  }
+  return createStableDefinitionId(name, scope, fallback2);
 }
 
 // src/lib/core/action/run-handler-chain.ts
