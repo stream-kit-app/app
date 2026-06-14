@@ -40,6 +40,11 @@ async function runBoot(): Promise<void> {
 	app.lifecycle.emitStarted();
 	await app.settings.load();
 
+	if (app.settings.checkPluginUpdatesOnStartup) {
+		const { pluginUpdates } = await import('./plugins/plugin-updates.svelte');
+		void pluginUpdates.check(true);
+	}
+
 	await initPluginDevWatcher();
 	await syncPluginDevWatchers(app);
 }

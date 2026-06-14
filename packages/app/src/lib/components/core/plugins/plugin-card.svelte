@@ -12,6 +12,8 @@
 	import { app } from '$lib/core';
 	import { setPluginDevMode } from '$lib/core/plugins/plugin-dev-watcher';
 	import { uninstallInstalledPlugin } from '$lib/core/plugins/plugin-loader';
+	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
+	import { canApplyPluginUpdates } from '$lib/core/plugins/plugin-update';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
@@ -24,6 +26,10 @@
 	let { plugin }: Props = $props();
 	let { t } = useI18n();
 	let statusRevision = $state(0);
+	let isUpdating = $state(false);
+
+	const pendingUpdate = $derived(pluginUpdates.getUpdate(plugin.key));
+	const canInstallUpdates = $derived(canApplyPluginUpdates());
 
 	const missingDependencies = $derived.by(() => {
 		void statusRevision;
@@ -115,6 +121,58 @@
 			});
 		}
 	}
+
+	async function updatePlugin(): Promise<void> {
+		if (!pendingUpdate || isUpdating) {
+			return;
+		}
+
+		if (!canInstallUpdates) {
+			return;
+		}
+
+		const confirmed = await app.confirm.ask({
+			title: t('Update plugin?'),
+			description: t(
+				'Update {name} from v{current} to v{next}? Installed plugins run with full access to Stream Kit and your system. Only update plugins from sources you trust.',
+				{
+					name: plugin.name,
+					current: pendingUpdate.installedVersion,
+					next: pendingUpdate.availableVersion
+				}
+			),
+			confirmLabel: t('Update'),
+			cancelLabel: t('Cancel')
+		});
+
+		if (!confirmed) {
+			return;
+		}
+
+		isUpdating = true;
+		const nextVersion = pendingUpdate.availableVersion;
+
+		try {
+			await pluginUpdates.apply(plugin.key);
+			statusRevision += 1;
+			app.toast.create({
+				title: t('Plugin updated'),
+				description: t('{name} has been updated to v{version}.', {
+					name: plugin.name,
+					version: nextVersion
+				}),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Plugin could not be updated'),
+				description: error instanceof Error ? error.message : t('Unknown error.'),
+				variant: 'error'
+			});
+		} finally {
+			isUpdating = false;
+		}
+	}
 </script>
 
 <section
@@ -130,11 +188,11 @@
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-center gap-2">
 				<h2 class="font-semibold">{plugin.name}</h2>
-				{#if plugin.source === 'installed'}
-					<Badge variant="default">{t('Installed')}</Badge>
-				{/if}
 				{#if plugin.version}
 					<Badge variant="default">v{plugin.version}</Badge>
+				{/if}
+				{#if pendingUpdate}
+					<Badge variant="warning">v{pendingUpdate.availableVersion}</Badge>
 				{/if}
 			</div>
 			{#if plugin.description}
@@ -181,6 +239,11 @@
 	</div>
 
 	<div class="mt-auto flex flex-wrap gap-2">
+		{#if pendingUpdate}
+			<Button onclick={updatePlugin} disabled={isUpdating} isLoading={isUpdating}>
+				{isUpdating ? t('Updating...') : t('Update plugin')}
+			</Button>
+		{/if}
 		{#if plugin.hasSettings}
 			<Button variant="outline" onclick={openSettings}>{t('Configure')}</Button>
 		{/if}

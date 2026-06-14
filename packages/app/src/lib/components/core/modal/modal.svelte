@@ -6,6 +6,7 @@
 
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
+	import PluginComponentHost from '$lib/components/core/plugins/plugin-component-host.svelte';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
@@ -92,7 +93,11 @@
 						</Dialog.Description>
 					{/if}
 					<div class="mt-6">
-						<modal.content {...modal.props} />
+						{#if modal.contentHost === 'plugin'}
+							<PluginComponentHost component={modal.content} props={modal.props} />
+						{:else}
+							<modal.content {...modal.props} />
+						{/if}
 					</div>
 				</div>
 			</ScrollArea>

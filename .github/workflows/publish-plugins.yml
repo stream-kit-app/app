@@ -1,0 +1,53 @@
+name: Publish Plugins
+
+on:
+    push:
+        tags:
+            - 'v*'
+    workflow_dispatch:
+        inputs:
+            plugin:
+                description: 'Plugin key to publish (leave empty for all)'
+                required: false
+                type: string
+
+permissions:
+    contents: write
+
+concurrency:
+    group: publish-plugins-${{ github.event.inputs.plugin || github.ref_name }}
+    cancel-in-progress: true
+
+jobs:
+    publish:
+        name: Publish plugin distributions
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build packages
+              run: pnpm build:packages
+
+            - name: Publish plugin distributions
+              env:
+                  GH_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
+              run: |
+                  if [ -n "${{ github.event.inputs.plugin }}" ]; then
+                    node scripts/publish-plugin-distribution.mjs --plugin "${{ github.event.inputs.plugin }}"
+                  else
+                    node scripts/publish-plugin-distribution.mjs --all
+                  fi

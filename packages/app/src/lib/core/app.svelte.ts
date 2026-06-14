@@ -61,7 +61,9 @@ export class App extends Bootable {
 			description: props.description,
 			content: props.content,
 			props: props.props,
-			size: props.size
+			size: props.size,
+			contentHost: props.contentHost,
+			onClose: props.onClose
 		});
 		this.modals.set(modal.id, modal);
 

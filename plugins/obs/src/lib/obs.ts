@@ -150,7 +150,9 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 				return;
 			}
 
-			void teardown();
+			void teardown().catch(() => {
+				// Ignore teardown errors during reconnect handling.
+			});
 			scheduleReconnect();
 		});
 

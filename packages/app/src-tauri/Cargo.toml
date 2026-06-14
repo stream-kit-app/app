@@ -32,6 +32,8 @@ zip = "2"
 notify = "8"
 notify-debouncer-mini = "0.6"
 reqwest = { version = "0.13.4", features = ["blocking"] }
+semver = "1"
+sha2 = "0.10"
 sysinfo = "0.33"
 
 [target.'cfg(windows)'.dependencies]

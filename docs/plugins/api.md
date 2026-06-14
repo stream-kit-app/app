@@ -39,6 +39,29 @@ export default plugin;
 
 The app host dynamically imports the plugin entry from the installed manifest and calls `app.use(...)` internally.
 
+## Definition IDs
+
+Trigger and handler definitions receive a stable ID when they are registered. IDs are derived from the plugin manifest `key` and slugified definition names along the tree path, for example:
+
+- `twitch:twitch:chat:chat-message`
+- `core:core:map:get-value`
+
+These IDs are persisted in saved actions. They stay the same across app restarts, plugin load order, and plugin reloads.
+
+Optional explicit IDs:
+
+```ts
+{
+	id: 'chat-message',
+	name: 'Chat Message',
+	// ...
+}
+```
+
+When `id` is set on a definition, it is appended to the parent scope (`twitch:chat:chat-message` if the parent scope is `twitch:chat`). Use explicit IDs only when two siblings would slugify to the same value.
+
+Legacy actions that still reference old index-based IDs (for example `twitch:twitch-4:chat-1:chat-message-1`) are migrated automatically on startup.
+
 ## Persistence with PluginStore
 
 Most plugins should persist data through the lifecycle `store` (`PluginStore`), backed by `plugin.{key}.json`:
@@ -102,6 +125,16 @@ Action form components and utilities are bundled at build time via aliases (mono
 
 - `@stream-kit/plugin/action-ui/*` → app action components
 - `@stream-kit/plugin/utils` → app `cn()` helper
+
+## Plugin updates
+
+Optional manifest fields for self-hosted updates:
+
+- `updateManifestUrl` — HTTPS URL to the published manifest
+- `downloadUrl` — HTTPS URL to the zip for this version (required in the remote manifest used for updates)
+- `sha256` — optional zip integrity check
+
+See [updates.md](./updates.md) for the author workflow.
 
 ## Custom plugin pages
 

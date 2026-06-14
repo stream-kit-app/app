@@ -13,6 +13,7 @@ export type HandlerExecuteFn = (
 ) => void | Promise<void>;
 
 export type HandlerDefinitionProps = {
+	id?: string;
 	name: string;
 	children?: HandlerDefinitionProps[];
 	fields?: HandlerFieldDefinition[];

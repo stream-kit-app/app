@@ -122,25 +122,15 @@ export async function discoverAndLoadInstalledPlugins(app: App): Promise<void> {
 	}
 }
 
-export async function installPluginFromZip(
+export async function reloadInstalledPlugin(
 	app: App,
-	zipPath: string,
-	replaceExisting = false
-): Promise<InstalledPluginManifest> {
-	const manifest = await invoke<InstalledPluginManifest>('install_plugin_zip', {
-		zipPath,
-		replaceExisting
-	});
-
+	manifest: InstalledPluginManifest
+): Promise<void> {
 	const existing = app.plugins.find(manifest.key);
+	const wasEnabled = existing?.isEnabled ?? false;
 
 	if (existing) {
-		// Fully tear down the previous registration before replacing it so leftover
-		// trigger/handler definitions and dev watchers don't conflict on re-register.
-		if (existing.isEnabled) {
-			await existing.setEnabled(app, false);
-		}
-
+		await existing.teardown(app);
 		await stopPluginDevWatcher(manifest.key);
 		app.plugins.remove(manifest.key);
 	}
@@ -154,12 +144,33 @@ export async function installPluginFromZip(
 			version: manifest.version
 		});
 		await app.plugins.loadPlugin(app, manifest.key);
+
+		const plugin = app.plugins.find(manifest.key);
+
+		if (plugin && wasEnabled) {
+			await plugin.boot(app);
+			await plugin.ready(app);
+		}
+
+		await app.actions.load();
 	} catch (error) {
-		// Roll back the extracted files so a broken install doesn't linger on disk.
 		app.plugins.remove(manifest.key);
 		await invoke('uninstall_plugin', { key: manifest.key }).catch(() => undefined);
 		throw error;
 	}
+}
+
+export async function installPluginFromZip(
+	app: App,
+	zipPath: string,
+	replaceExisting = false
+): Promise<InstalledPluginManifest> {
+	const manifest = await invoke<InstalledPluginManifest>('install_plugin_zip', {
+		zipPath,
+		replaceExisting
+	});
+
+	await reloadInstalledPlugin(app, manifest);
 
 	return manifest;
 }
@@ -174,6 +185,8 @@ export async function uninstallInstalledPlugin(app: App, key: string): Promise<v
 	if (plugin.isEnabled) {
 		await plugin.setEnabled(app, false);
 	}
+
+	plugin.removeDefinitions(app);
 
 	await stopPluginDevWatcher(key);
 	await app.settings.clearPluginDevMode(key);

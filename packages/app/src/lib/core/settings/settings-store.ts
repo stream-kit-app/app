@@ -3,6 +3,7 @@ import { LazyStore } from '@tauri-apps/plugin-store';
 const LOCALE_KEY = 'locale';
 const DEVELOPER_MODE_KEY = 'developerMode';
 const PLUGIN_DEV_MODE_KEY = 'pluginDevMode';
+const CHECK_PLUGIN_UPDATES_KEY = 'checkPluginUpdatesOnStartup';
 
 const store = new LazyStore('app.settings.json');
 
@@ -59,4 +60,12 @@ export async function clearPluginDevModes(): Promise<void> {
 
 export async function removePluginDevMode(pluginKey: string): Promise<void> {
 	await setPluginDevMode(pluginKey, false);
+}
+
+export async function getCheckPluginUpdatesOnStartup(): Promise<boolean> {
+	return (await store.get<boolean>(CHECK_PLUGIN_UPDATES_KEY)) ?? true;
+}
+
+export async function saveCheckPluginUpdatesOnStartup(enabled: boolean): Promise<void> {
+	await store.set(CHECK_PLUGIN_UPDATES_KEY, enabled);
 }

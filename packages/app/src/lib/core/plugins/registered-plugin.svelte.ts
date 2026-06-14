@@ -190,6 +190,36 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		app.pluginMenuPages.unregister(this.key);
 	}
 
+	removeDefinitions(app: App): void {
+		for (const definition of this.registeredTriggers) {
+			app.actions.triggers.remove(definition.id);
+		}
+
+		for (const definition of this.registeredHandlers) {
+			app.actions.actions.remove(definition.id);
+		}
+
+		this.registeredTriggers = [];
+		this.registeredHandlers = [];
+
+		for (const path of this.registeredMenuPaths) {
+			app.menu.remove(path);
+		}
+
+		this.registeredMenuPaths = [];
+		app.pluginMenuPages.unregister(this.key);
+	}
+
+	async teardown(app: App): Promise<void> {
+		if (this.hasBooted) {
+			await this.onDisable?.(this.createContext(app));
+			this.hasBooted = false;
+			this.hasReadied = false;
+		}
+
+		this.removeDefinitions(app);
+	}
+
 	async load(app: App): Promise<void> {
 		if (this.hasLoaded) {
 			return;

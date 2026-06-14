@@ -4,7 +4,7 @@ import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
 import type { HandlerDefinitionProps, HandlerExecuteFn } from './types';
 
-import { scopedSlug, slugify, uniqueSlug } from '$lib/utils';
+import { slugify, uniqueSlug } from '$lib/utils';
 
 type HandlerDefinitionInput = HandlerDefinitionProps & { id?: string };
 type HandlerDefinitionAddOptions = {
@@ -17,7 +17,7 @@ export class HandlerDefinitions {
 	add(props: HandlerDefinitionInput, options: HandlerDefinitionAddOptions = {}): HandlerDefinition {
 		const normalizedProps = {
 			...props,
-			id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length, options.idScope),
+			id: resolveDefinitionId(props.id, props.name, options.idScope, 'handler'),
 			fields: resolveFieldDefinitions(props.fields)
 		};
 
@@ -40,6 +40,10 @@ export class HandlerDefinitions {
 		}
 
 		return undefined;
+	}
+
+	remove(id: string): void {
+		this.items = this.items.filter((definition) => definition.id !== id);
 	}
 }
 
@@ -99,7 +103,21 @@ function resolveFieldDefinitions(
 	});
 }
 
-function createGeneratedDefinitionId(name: string, index: number, scope?: string): string {
-	const id = `${slugify(name, 'handler')}-${index + 1}`;
-	return scope ? scopedSlug(scope, [id], 'handler') : id;
+function createStableDefinitionId(name: string, scope?: string, fallback = 'item'): string {
+	const segment = slugify(name, fallback);
+	return scope ? `${scope}:${segment}` : segment;
+}
+
+function resolveDefinitionId(
+	explicitId: string | undefined,
+	name: string,
+	scope?: string,
+	fallback = 'item'
+): string {
+	if (explicitId) {
+		const segment = slugify(explicitId, fallback);
+		return scope ? `${scope}:${segment}` : segment;
+	}
+
+	return createStableDefinitionId(name, scope, fallback);
 }

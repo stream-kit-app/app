@@ -10,6 +10,7 @@ export type TriggerValidateFormFn = (
 ) => TriggerFormErrors | undefined;
 
 export type TriggerDefinitionProps<TContext = unknown> = {
+	id?: string;
 	name: string;
 	pluginName?: string;
 	children?: TriggerDefinitionProps<any>[];

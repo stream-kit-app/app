@@ -110,3 +110,15 @@ pnpm --filter @stream-kit/plugin-template package
 ```
 
 Users install the resulting zip from the Plugins page.
+
+## Definition IDs
+
+Triggers and handlers get stable IDs based on the manifest `key` and slugified names in the definition tree. You normally do not need to set `id` yourself.
+
+If two sibling definitions would produce the same slug, set an explicit `id` on one of them. See [Plugin Authoring API](./api.md#definition-ids).
+
+Saved actions store these IDs. Stream Kit migrates older index-based IDs automatically when actions are loaded.
+
+## Plugin updates
+
+Authors publish `manifest.json` and release zips on their own host (GitHub, GitLab, etc.). Add `updateManifestUrl` and `downloadUrl` to the manifest so Stream Kit can check for and install updates. See [updates.md](./updates.md).

@@ -80,6 +80,8 @@ pub fn run() {
             plugins::link_workspace_dev_plugins,
             plugins::sync_dev_plugin_entry,
             plugins::uninstall_plugin,
+            plugins::fetch_plugin_manifest,
+            plugins::download_and_install_plugin_update,
             process_watcher::start_process_watcher,
             process_watcher::stop_process_watcher,
             run_program::run_program

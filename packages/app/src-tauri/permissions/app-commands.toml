@@ -20,6 +20,8 @@ commands.allow = [
 	"link_workspace_dev_plugins",
 	"sync_dev_plugin_entry",
 	"uninstall_plugin",
+	"fetch_plugin_manifest",
+	"download_and_install_plugin_update",
 	"start_process_watcher",
 	"stop_process_watcher",
 	"run_program"

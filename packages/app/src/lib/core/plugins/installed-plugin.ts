@@ -9,6 +9,9 @@ export type InstalledPluginManifest = {
 	entry: string;
 	dependencies: string[];
 	streamKitVersion?: string;
+	updateManifestUrl?: string;
+	downloadUrl?: string;
+	sha256?: string;
 	installPath: string;
 	devSourceEntry?: string;
 };

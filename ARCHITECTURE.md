@@ -62,6 +62,8 @@ const plugin: Plugin = (app) => ({
 
 External plugins load through Tauri (`plugins.rs`) and browser import maps pointing at `static/plugin-host/`.
 
+Installed plugins can self-update when their manifest includes `updateManifestUrl`. The app fetches the remote manifest, compares semver, and downloads the zip from `downloadUrl`. See `docs/plugins/updates.md`.
+
 ## Actions vs Commands
 
 - **Actions** — first-party app feature. Trigger → condition → handler rules stored in the `actions` table.

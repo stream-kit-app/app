@@ -35,6 +35,10 @@ import { runHandlerChain } from './run-handler-chain';
 import { DEFAULT_ACTION_GROUP } from './stored-action';
 import { TriggerDefinitions } from './trigger';
 import { TriggerDefinition } from './trigger/trigger-definition.svelte';
+import {
+	resolveHandlerDefinition,
+	resolveTriggerDefinition
+} from './definition-id';
 import { validateActionForm } from './validate-form';
 
 type ActionFormSnapshot = {
@@ -100,11 +104,25 @@ export class Actions {
 		const loaded: Action[] = [];
 
 		for (const row of rows) {
-			const action = Action.fromRecord(row);
+			const migratedRecord = Action.migrateStoredDefinitionIds(row, this);
+			const action = Action.fromRecord(migratedRecord);
 			loaded.push(action);
 
 			if (action.enabled) {
 				this.activate(action);
+			}
+
+			if (migratedRecord !== row && row.id != null) {
+				await saveAction(
+					{
+						name: row.name,
+						group: row.group,
+						enabled: row.enabled ?? true,
+						triggers: migratedRecord.triggers,
+						handlers: migratedRecord.handlers
+					},
+					row.id
+				);
 			}
 		}
 
@@ -326,7 +344,7 @@ export class Action {
 		// while their data still lives in the database.
 		const triggers = record.triggers.map((stored) => {
 			const definition =
-				app.actions.triggers.find(stored.triggerTypeId) ??
+				resolveTriggerDefinition(app.actions.triggers, stored.triggerTypeId) ??
 				Action.createUnavailableTriggerDefinition(stored.triggerTypeId);
 
 			return new ActionTrigger(definition, {
@@ -337,7 +355,7 @@ export class Action {
 
 		const handlers = record.handlers.map((stored) => {
 			const definition =
-				app.actions.actions.find(stored.handlerTypeId) ??
+				resolveHandlerDefinition(app.actions.actions, stored.handlerTypeId) ??
 				Action.createUnavailableHandlerDefinition(stored.handlerTypeId);
 
 			return new ActionHandler(definition, {
@@ -356,6 +374,50 @@ export class Action {
 			triggers,
 			handlers
 		});
+	}
+
+	static migrateStoredDefinitionIds(record: ActionRecord, actions: Actions): ActionRecord {
+		let migrated = false;
+
+		const triggers = record.triggers.map((stored) => {
+			const resolved = resolveTriggerDefinition(actions.triggers, stored.triggerTypeId);
+
+			if (resolved && resolved.id !== stored.triggerTypeId) {
+				migrated = true;
+
+				return {
+					...stored,
+					triggerTypeId: resolved.id
+				};
+			}
+
+			return stored;
+		});
+
+		const handlers = record.handlers.map((stored) => {
+			const resolved = resolveHandlerDefinition(actions.actions, stored.handlerTypeId);
+
+			if (resolved && resolved.id !== stored.handlerTypeId) {
+				migrated = true;
+
+				return {
+					...stored,
+					handlerTypeId: resolved.id
+				};
+			}
+
+			return stored;
+		});
+
+		if (!migrated) {
+			return record;
+		}
+
+		return {
+			...record,
+			triggers,
+			handlers
+		};
 	}
 
 	private static createUnavailableTriggerDefinition(id: string): TriggerDefinition {
@@ -423,7 +485,7 @@ export class Action {
 
 		return stored.map((item) => {
 			const definition =
-				app.actions.triggers.find(item.triggerTypeId) ??
+				resolveTriggerDefinition(app.actions.triggers, item.triggerTypeId) ??
 				Action.createUnavailableTriggerDefinition(item.triggerTypeId);
 
 			return new ActionTrigger(definition, {
@@ -438,7 +500,7 @@ export class Action {
 
 		return stored.map((item) => {
 			const definition =
-				app.actions.actions.find(item.handlerTypeId) ??
+				resolveHandlerDefinition(app.actions.actions, item.handlerTypeId) ??
 				Action.createUnavailableHandlerDefinition(item.handlerTypeId);
 
 			return new ActionHandler(definition, {

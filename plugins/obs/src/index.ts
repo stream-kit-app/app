@@ -423,7 +423,6 @@ const plugin: Plugin = (app) => {
 			obsApi = createObsPluginApi(app);
 			syncGetValue(getValue);
 			await obsApi.boot();
-			await obsApi.connect();
 		},
 		onSave: async ({ getValue }) => {
 			syncGetValue(getValue);

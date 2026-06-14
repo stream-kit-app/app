@@ -5,9 +5,8 @@ export function getPluginHostUrl(fileName: string): string {
 let pluginHostSvelteModule: typeof import('svelte') | undefined;
 
 export async function importPluginHostSvelte(): Promise<typeof import('svelte')> {
-	if (!pluginHostSvelteModule) {
-		pluginHostSvelteModule = await import(/* @vite-ignore */ getPluginHostUrl('svelte.js'));
-	}
-
-	return pluginHostSvelteModule;
+	const module =
+		pluginHostSvelteModule ?? (await import(/* @vite-ignore */ getPluginHostUrl('svelte.js')));
+	pluginHostSvelteModule = module;
+	return module;
 }

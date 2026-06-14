@@ -6,5 +6,7 @@
 	"icon": "ri:hand-heart-line",
 	"entry": "dist/index.js",
 	"dependencies": [],
-	"streamKitVersion": "0.1.0"
+	"streamKitVersion": ">=0.1.0",
+	"updateManifestUrl": "https://raw.githubusercontent.com/your-org/hello-world-plugin/main/manifest.json",
+	"downloadUrl": "https://github.com/your-org/hello-world-plugin/releases/download/v0.1.0/hello-world.zip"
 }

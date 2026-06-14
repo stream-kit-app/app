@@ -77,7 +77,11 @@ export function createPluginAppApi(app: App): PluginAppApi {
 			ask: app.confirm.ask.bind(app.confirm)
 		},
 		modal: {
-			create: app.createModal.bind(app),
+			create: (props) =>
+				app.createModal({
+					...props,
+					contentHost: 'plugin'
+				}),
 			get: (id: string) => app.modals.get(id)
 		},
 		menu: {

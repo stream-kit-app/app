@@ -3,7 +3,7 @@ import type { ActionTrigger } from '../action-trigger.svelte';
 import type { ConditionDefinition, ConditionGroupNode, ResolvedConditionDefinition } from './condition';
 import type { TriggerDefinitionProps, TriggerTestFn, TriggerValidateFormFn } from './types';
 
-import { scopedSlug, slugify, uniqueSlug } from '$lib/utils';
+import { slugify, uniqueSlug } from '$lib/utils';
 
 type TriggerDefinitionInput<TContext = unknown> = TriggerDefinitionProps<TContext> & { id?: string };
 type TriggerDefinitionAddOptions = {
@@ -19,7 +19,7 @@ export class TriggerDefinitions {
 	): TriggerDefinition {
 		const normalizedProps = {
 			...props,
-			id: props.id ?? createGeneratedDefinitionId(props.name, this.items.length, options.idScope),
+			id: resolveDefinitionId(props.id, props.name, options.idScope, 'trigger'),
 			conditions: resolveConditionDefinitions(props.conditions)
 		};
 
@@ -43,11 +43,29 @@ export class TriggerDefinitions {
 
 		return undefined;
 	}
+
+	remove(id: string): void {
+		this.items = this.items.filter((definition) => definition.id !== id);
+	}
 }
 
-function createGeneratedDefinitionId(name: string, index: number, scope?: string): string {
-	const id = `${slugify(name, 'trigger')}-${index + 1}`;
-	return scope ? scopedSlug(scope, [id], 'trigger') : id;
+function createStableDefinitionId(name: string, scope?: string, fallback = 'item'): string {
+	const segment = slugify(name, fallback);
+	return scope ? `${scope}:${segment}` : segment;
+}
+
+function resolveDefinitionId(
+	explicitId: string | undefined,
+	name: string,
+	scope?: string,
+	fallback = 'item'
+): string {
+	if (explicitId) {
+		const segment = slugify(explicitId, fallback);
+		return scope ? `${scope}:${segment}` : segment;
+	}
+
+	return createStableDefinitionId(name, scope, fallback);
 }
 
 export class TriggerDefinition {

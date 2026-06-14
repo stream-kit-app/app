@@ -3,26 +3,32 @@
 > Versie 0.1.0 — laatst bijgewerkt: juni 2026  
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
+Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
+
 ## Huidige sterke punten
 
 - [x] Actiesysteem (trigger → conditie → handler)
 - [x] Twitch plugin (brede EventSub + chat coverage)
 - [x] OBS WebSocket plugin (scenes, sources, stream/record, hotkeys)
-- [x] Commands plugin (Twitch + YouTube, permissions, cooldowns) — merged into Bot plugin
+- [x] Bot plugin — commands, timers, moderation, built-in commands, overview settings (voorheen Commands plugin)
 - [x] TTS (Piper lokaal, StreamElements-token, ElevenLabs)
 - [x] WebSocket plugin (custom integraties)
 - [x] Core handlers (audio, TypeScript scripts, externe programma's, process watcher)
+- [x] Core variabelen (global, user, action scope) + Maps (persistente key-value stores)
+- [x] Schedule triggers (Cron + Scheduled) in Core plugin
 - [x] Plugin-architectuur (built-in + externe zip-plugins)
+- [x] Plugin updates (manifest URL, check/install, startup check)
+- [x] Dashboard (`/`) — stat cards, verbindingen, pluginstatus
 - [x] i18n (NL + EN)
 
 ---
 
 ## P0 — Productbasis (nodig voor elke richting)
 
-- [ ] Dashboard (`/`) — statusoverzicht: verbindingen, recente events, actieve acties
+- [~] Dashboard uitbreiden — basis klaar; recente events-widget en lijst actieve acties nog open
 - [x] Bot plugin — commands, timers, moderation, built-in commands, overview settings
-- [ ] Publieke installer + release-kanaal (Windows/macOS/Linux)
-- [ ] Documentatie uitbreiden (OBS + WebSocket plugins, gebruikershandleiding)
+- [~] Publieke installer + release-kanaal — alpha CI/builds (Windows); stabiel kanaal voor alle platformen nog open
+- [~] Documentatie uitbreiden — core, bot, websocket, dashboard, schedule, updates klaar; OBS-plugin doc + gebruikershandleiding nog open
 - [ ] Import/export van acties en commands (backup/restore)
 - [ ] Stabiliseren van API's en database-schema's (richting v1.0)
 
@@ -32,13 +38,13 @@
 
 ### State & actielogica
 
-- [ ] Persistente globale variabelen (lezen/schrijven in handlers)
-- [ ] Per-gebruiker variabelen (viewer state over sessies)
+- [x] Persistente globale variabelen (Core Set/Get handlers, PluginStore)
+- [x] Per-gebruiker variabelen (Core user scope, persistent per username)
 - [ ] Sub-actions / herbruikbare actiegroepen
-- [ ] Actie-queues (niet alleen audio)
+- [~] Actie-queues — alleen audio-queue; geen algemene handler-queue
 - [ ] Quote-systeem
 - [ ] Credits / rollen-systeem
-- [ ] Timers & geplande triggers
+- [~] Timers & geplande triggers — Core Cron/Scheduled + Bot interval timers; geavanceerde planning nog open
 
 ### Platform-uitbreiding
 
@@ -58,10 +64,10 @@
 
 ### Bot & chat
 
-- [ ] Timed/auto messages — basic timers implemented in Bot plugin; advanced scheduling TBD
-- [ ] Spam-filter & auto-mod regels UI
+- [~] Timed/auto messages — Bot interval timers klaar; geavanceerde scheduling (tijdslots, stream-only, etc.) nog open
+- [~] Spam-filter & auto-mod — Bot Moderation-pagina + rule engine klaar; dedicated spam-filter UX nog open
 - [ ] Multi-kanaal / multi-profiel support
-- [ ] Whisper-bot flows
+- [~] Whisper-bot flows — Twitch whisper trigger/handler klaar; dedicated bot-whisper flows nog open
 
 ---
 
@@ -98,7 +104,7 @@
 - [ ] Action templates & delen
 - [ ] Remote control / companion app
 - [ ] Speaker.bot / Meld Studio integratie
-- [ ] Betere test/simulate-modus voor actieketens
+- [~] Betere test/simulate-modus — Test-knop per actie (dummy trigger data); volledige keten-simulator nog open
 - [ ] Merch/store-koppelingen
 - [ ] Uitgebreidere appearance/thema-instellingen
 
@@ -106,7 +112,7 @@
 
 ## Technische schuld & documentatie
 
-- [ ] README bijwerken: OBS + WebSocket plugins toevoegen aan plugin-tabel
-- [ ] Roadmap synchroniseren met daadwerkelijke plugin-status
+- [ ] README bijwerken: OBS + WebSocket in plugin-tabel; projectstructuur (`commands/` → `bot/`, OBS/WebSocket toevoegen)
+- [ ] README status-sectie: documentatie is niet meer "minimaal" — afstemmen op `/docs`
 - [ ] Meer voorbeeld-acties / starter-templates voor nieuwe gebruikers
 - [ ] E2E-tests voor kritieke flows (OAuth, actie-uitvoering, commands)
