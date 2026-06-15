@@ -41,7 +41,7 @@ Missing variables are replaced with an empty string.
 
 When building the variable object for interpolation, this order applies (later wins on name conflict):
 
-1. **Trigger context** — string/number/boolean fields from `context.data`
+1. **Trigger context** — string/number/boolean fields from `context.data`, plus top-level objects serialized as JSON (e.g. Twitch `msg`)
 2. **Global** — stored global variables
 3. **User** — variables for the current user
 4. **Action** — `context.actionVariables`
@@ -97,7 +97,7 @@ Click a variable to copy `{key}` to the clipboard.
 **Limitations:**
 
 - Triggers without `onTest` show an empty state
-- Nested objects (`msg`, `raw`, `data`) are not listed — only top-level keys are interpolatable today
+- Object variables such as `msg` (Twitch chat) or `raw` (YouTube) are serialized as JSON strings for interpolation
 - Test data values may differ from live data (e.g. `role`), but keys are generally accurate
 - A few triggers use incorrect test factories; their key lists may be wrong until test contexts are fixed
 

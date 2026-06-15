@@ -19,8 +19,10 @@
 		emptyLabel?: string;
 		ariaLabel?: string;
 		copiedLabel?: string;
+		insertedLabel?: string;
 		noResultsLabel?: string;
 		icon?: string;
+		onInsert?: (key: string) => void;
 	};
 
 	let {
@@ -29,13 +31,20 @@
 		emptyLabel = 'No variables available.',
 		ariaLabel = 'Show variables',
 		copiedLabel = 'Copied',
+		insertedLabel = 'Inserted',
 		noResultsLabel = 'No variables match your search.',
-		icon = 'ri:braces-line'
+		icon = 'ri:braces-line',
+		onInsert
 	}: Props = $props();
 
 	let copiedKey = $state<string | null>(null);
 
-	function handleCopy(key: string): void {
+	function handleSelect(key: string): void {
+		if (onInsert) {
+			onInsert(key);
+			return;
+		}
+
 		navigator.clipboard.writeText(`{${key}}`).then(() => {
 			copiedKey = key;
 			setTimeout(() => {
@@ -80,8 +89,8 @@
 								class={cn(
 									'group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-transparent px-2.5 py-2 text-left text-xs transition-all duration-150 hover:border-dark-600/30 hover:bg-dark-700/50'
 								)}
-								title={copiedLabel}
-								onclick={() => handleCopy(variable.key)}
+								title={onInsert ? insertedLabel : copiedLabel}
+								onclick={() => handleSelect(variable.key)}
 							>
 								<div class="flex min-w-0 flex-1 items-center gap-2.5">
 									<span
@@ -103,7 +112,7 @@
 										/>
 									{:else}
 										<Icon
-											icon="ri:file-copy-line"
+											icon={onInsert ? 'ri:corner-down-left-line' : 'ri:file-copy-line'}
 											class="size-3.5 text-dark-400 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
 										/>
 									{/if}

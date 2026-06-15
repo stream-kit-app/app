@@ -1,3 +1,4 @@
+import { contextToVariables as contextToVariablesCore } from '@stream-kit/core';
 import type { CorePluginApi } from '@stream-kit/plugin';
 import type { HandlerFieldVariable } from '@stream-kit/ui/types';
 
@@ -17,21 +18,7 @@ type ProcessEventContext = {
 };
 
 export function contextToVariables(context: unknown): Record<string, string> {
-	const variables: Record<string, string> = {};
-
-	if (context && typeof context === 'object') {
-		for (const [key, value] of Object.entries(context as Record<string, unknown>)) {
-			if (typeof value === 'string') {
-				variables[key] = value;
-				continue;
-			}
-
-			if (typeof value === 'number' || typeof value === 'boolean') {
-				variables[key] = String(value);
-			}
-		}
-	}
-
+	const variables = contextToVariablesCore(context);
 	const processContext = context as Partial<ProcessEventContext>;
 
 	if (typeof processContext.executable === 'string' && !variables.executable) {

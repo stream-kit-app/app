@@ -1,4 +1,6 @@
 export { createEditorView, syncEditorDocument, type CreateEditorOptions } from './setup';
+export { openEditorSearch, formatEditorDocument } from './editor-commands';
+export { streamKitEditorExtensions } from './editor-extensions';
 export {
 	EDITOR_TAB_SIZE,
 	EDITOR_USE_TABS,
@@ -10,3 +12,4 @@ export { getLanguageExtensions } from './languages';
 export { streamKitEditorTheme } from './theme';
 export { createLanguageServerConnection, type LanguageServerConnection } from './lsp/connection';
 export type { CodeLanguage, LanguageServerConfig, LanguageServerKind } from './types';
+export type { EditorView } from '@codemirror/view';

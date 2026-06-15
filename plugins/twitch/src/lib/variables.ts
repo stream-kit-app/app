@@ -1,3 +1,5 @@
+import type { ChatMessage } from '@twurple/chat';
+
 import type { HandlerFieldVariable } from '@stream-kit/plugin';
 
 export const USERNAME_VARIABLE: HandlerFieldVariable = {
@@ -20,11 +22,17 @@ export const ROLE_VARIABLE: HandlerFieldVariable = {
 	label: 'User role'
 };
 
+export const MSG_VARIABLE: HandlerFieldVariable = {
+	key: 'msg',
+	label: 'Chat message (JSON)'
+};
+
 export const CHAT_TEXT_VARIABLES: HandlerFieldVariable[] = [
 	USERNAME_VARIABLE,
 	MESSAGE_VARIABLE,
 	CHANNEL_VARIABLE,
-	ROLE_VARIABLE
+	ROLE_VARIABLE,
+	MSG_VARIABLE
 ];
 
 export const USER_TEXT_VARIABLES: HandlerFieldVariable[] = [USERNAME_VARIABLE, CHANNEL_VARIABLE];
@@ -36,6 +44,37 @@ export const MESSAGE_TEXT_VARIABLES: HandlerFieldVariable[] = [
 	USERNAME_VARIABLE,
 	MESSAGE_VARIABLE
 ];
+
+export function chatMessageToJson(msg: ChatMessage): string {
+	return JSON.stringify({
+		channelId: msg.channelId,
+		id: msg.id,
+		isCheer: msg.isCheer,
+		isRedemption: msg.isRedemption,
+		isHypeChat: msg.isHypeChat,
+		isFirst: msg.isFirst,
+		isReturningChatter: msg.isReturningChatter,
+		isHighlight: msg.isHighlight,
+		isReply: msg.isReply,
+		bits: msg.bits,
+		rewardId: msg.rewardId,
+		hypeChatLocalizedAmount: msg.hypeChatLocalizedAmount,
+		hypeChatLevel: msg.hypeChatLevel,
+		parentMessageUserName: msg.parentMessageUserName,
+		parentMessageText: msg.parentMessageText,
+		userInfo: {
+			userId: msg.userInfo.userId,
+			userName: msg.userInfo.userName,
+			displayName: msg.userInfo.displayName,
+			isMod: msg.userInfo.isMod,
+			isBroadcaster: msg.userInfo.isBroadcaster,
+			isVip: msg.userInfo.isVip,
+			isSubscriber: msg.userInfo.isSubscriber,
+			isArtist: msg.userInfo.isArtist,
+			isFounder: msg.userInfo.isFounder
+		}
+	});
+}
 
 export function contextToVariables(context: unknown): Record<string, string> {
 	if (!context || typeof context !== 'object') {
@@ -80,6 +119,10 @@ export function contextToVariables(context: unknown): Record<string, string> {
 	set('level', record.level);
 	set('total', record.total);
 	set('reason', record.reason);
+
+	if (record.msg && typeof record.msg === 'object') {
+		variables.msg = chatMessageToJson(record.msg as ChatMessage);
+	}
 
 	return variables;
 }

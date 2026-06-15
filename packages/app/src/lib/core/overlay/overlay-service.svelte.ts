@@ -1,5 +1,10 @@
 import type { App } from '../app.svelte';
-import type { OverlayBuildResult, OverlayServerStatus, OverlayTemplateId } from './types';
+import type {
+	OverlayBuildResult,
+	OverlayProjectFile,
+	OverlayServerStatus,
+	OverlayTemplateId
+} from './types';
 
 import { invoke } from '@tauri-apps/api/core';
 
@@ -12,6 +17,8 @@ import {
 	migrateAllOverlayDist,
 	readOverlaySourceFiles,
 	removeOverlayProject,
+	removeOverlaySourceFile,
+	renameOverlaySourceFile,
 	updateOverlayMetadata,
 	writeOverlayDistFiles,
 	writeOverlaySourceFile
@@ -83,13 +90,21 @@ export class OverlayService {
 		await writeOverlaySourceFile(id, path, content);
 	}
 
-	async build(id: string): Promise<OverlayBuildResult> {
+	async removeSourceFile(id: string, path: string): Promise<void> {
+		await removeOverlaySourceFile(id, path);
+	}
+
+	async renameSourceFile(id: string, fromPath: string, toPath: string): Promise<void> {
+		await renameOverlaySourceFile(id, fromPath, toPath);
+	}
+
+	async build(id: string, files?: OverlayProjectFile[]): Promise<OverlayBuildResult> {
 		this.buildingId = id;
 		this.lastBuildError = null;
 
 		try {
-			const files = await readOverlaySourceFiles(id);
-			const result = await buildOverlayProject({ overlayId: id, files });
+			const sourceFiles = files ?? (await readOverlaySourceFiles(id));
+			const result = await buildOverlayProject({ overlayId: id, files: sourceFiles });
 
 			if (!result.success || !result.files) {
 				this.lastBuildError = result.error ?? 'Overlay build failed';

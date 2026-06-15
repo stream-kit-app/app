@@ -11,6 +11,11 @@ import {
 	overlayIndexHtmlNeedsMigration,
 	overlayMainJsNeedsMigration
 } from './build/overlay-dist';
+import {
+	OVERLAY_ENTRY_PATH,
+	isAllowedOverlayFileName,
+	overlayFileName
+} from './overlay-source-file';
 import { getOverlayTemplate } from './templates';
 
 const OVERLAYS_ROOT = 'overlays';
@@ -67,9 +72,6 @@ export async function createOverlayProject(
 	await fs.writeTextFile(`${dir}/manifest.json`, JSON.stringify(manifest, null, 2), {
 		baseDir: BaseDirectory.AppData
 	});
-	await fs.writeTextFile(`${dir}/context.json`, JSON.stringify(template.context, null, 2), {
-		baseDir: BaseDirectory.AppData
-	});
 
 	const record: SaveOverlayInput = {
 		id: input.id,
@@ -77,7 +79,7 @@ export async function createOverlayProject(
 		template: input.template,
 		width: template.width,
 		height: template.height,
-		config: template.context,
+		config: {},
 		expectedEvents: template.expectedEvents
 	};
 
@@ -100,7 +102,6 @@ export async function updateOverlayMetadata(record: SaveOverlayInput): Promise<v
 	};
 
 	await writeOverlayFile(record.id, 'manifest.json', JSON.stringify(manifest, null, 2));
-	await writeOverlayFile(record.id, 'context.json', JSON.stringify(record.config, null, 2));
 }
 
 export async function removeOverlayProject(fs: Filesystem, id: string): Promise<void> {
@@ -134,7 +135,11 @@ export async function readOverlaySourceFiles(id: string): Promise<OverlayProject
 				continue;
 			}
 
-			if (!/\.(svelte|ts|js)$/i.test(entry.name)) {
+			if (!/\.(svelte\.ts|svelte|ts|json)$/i.test(entry.name)) {
+				continue;
+			}
+
+			if (!isAllowedOverlayFileName(entry.name)) {
 				continue;
 			}
 
@@ -155,7 +160,51 @@ export async function writeOverlaySourceFile(
 	path: string,
 	content: string
 ): Promise<void> {
+	if (!path.startsWith('src/')) {
+		throw new Error('Overlay source files must live under src/');
+	}
+
+	if (path !== OVERLAY_ENTRY_PATH && !isAllowedOverlayFileName(overlayFileName(path))) {
+		throw new Error(`Unsupported overlay source file: ${path}`);
+	}
+
 	await writeOverlayFile(id, path, content);
+}
+
+export async function removeOverlaySourceFile(id: string, path: string): Promise<void> {
+	if (path === OVERLAY_ENTRY_PATH) {
+		throw new Error('Cannot delete App.svelte');
+	}
+
+	const { remove } = await import('@tauri-apps/plugin-fs');
+	const target = `${overlayDir(id)}/${path}`;
+
+	if (await import('@tauri-apps/plugin-fs').then((module) =>
+		module.exists(target, { baseDir: BaseDirectory.AppData })
+	)) {
+		await remove(target, { baseDir: BaseDirectory.AppData });
+	}
+}
+
+export async function renameOverlaySourceFile(
+	id: string,
+	fromPath: string,
+	toPath: string
+): Promise<void> {
+	if (fromPath === OVERLAY_ENTRY_PATH || toPath === OVERLAY_ENTRY_PATH) {
+		throw new Error('Cannot rename App.svelte');
+	}
+
+	if (!toPath.startsWith('src/') || !isAllowedOverlayFileName(overlayFileName(toPath))) {
+		throw new Error(`Invalid overlay source path: ${toPath}`);
+	}
+
+	const { readTextFile } = await import('@tauri-apps/plugin-fs');
+	const from = `${overlayDir(id)}/${fromPath}`;
+	const content = await readTextFile(from, { baseDir: BaseDirectory.AppData });
+
+	await writeOverlaySourceFile(id, toPath, content);
+	await removeOverlaySourceFile(id, fromPath);
 }
 
 export async function writeOverlayDistFiles(

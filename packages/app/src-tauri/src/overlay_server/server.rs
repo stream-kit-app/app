@@ -322,6 +322,9 @@ fn overlay_import_map_script() -> &'static str {
     "svelte": "/overlay-sdk/overlay-runtime.js",
     "svelte/internal/disclose-version": "/overlay-sdk/overlay-runtime.js",
     "svelte/internal/client": "/overlay-sdk/overlay-runtime.js",
+    "svelte/internal/flags/legacy": "/overlay-sdk/overlay-runtime.js",
+    "svelte/internal/flags/async": "/overlay-sdk/overlay-runtime.js",
+    "svelte/internal/flags/tracing": "/overlay-sdk/overlay-runtime.js",
     "svelte/reactivity": "/overlay-sdk/overlay-runtime.js"
   }
 }
@@ -353,7 +356,82 @@ fn ensure_overlay_import_map(html: &str) -> String {
 }
 
 fn prepare_overlay_html(html: &str, context: &serde_json::Value) -> String {
-    inject_context(&ensure_overlay_import_map(html), context)
+    inject_console_forwarder(&inject_context(
+        &ensure_overlay_import_map(html),
+        context,
+    ))
+}
+
+fn inject_console_forwarder(html: &str) -> String {
+    let script = overlay_console_forwarder_script();
+
+    if let Some(position) = html.find("</head>") {
+        let mut result = String::with_capacity(html.len() + script.len());
+        result.push_str(&html[..position]);
+        result.push_str(script);
+        result.push_str(&html[position..]);
+        return result;
+    }
+
+    format!("{script}{html}")
+}
+
+fn overlay_console_forwarder_script() -> &'static str {
+    r#"<script>
+(function () {
+	if (window.parent === window) return;
+
+	var CHANNEL = 'stream-kit-overlay-console';
+
+	function format(value) {
+		if (value === undefined) return 'undefined';
+		if (value === null) return 'null';
+		if (typeof value === 'string') return value;
+		if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+			return String(value);
+		}
+		try {
+			return JSON.stringify(value);
+		} catch (error) {
+			return String(value);
+		}
+	}
+
+	function publish(level, args) {
+		try {
+			window.parent.postMessage(
+				{
+					type: CHANNEL,
+					level: level,
+					message: args.map(format).join(' '),
+					timestamp: Date.now()
+				},
+				'*'
+			);
+		} catch (error) {}
+	}
+
+	['log', 'info', 'warn', 'error', 'debug'].forEach(function (level) {
+		var original = console[level].bind(console);
+		console[level] = function () {
+			var args = Array.prototype.slice.call(arguments);
+			original.apply(console, args);
+			publish(level, args);
+		};
+	});
+
+	window.addEventListener('error', function (event) {
+		publish('error', [event.message || 'Uncaught error']);
+	});
+
+	window.addEventListener('unhandledrejection', function (event) {
+		var reason = event.reason;
+		publish('error', [
+			reason && reason.message ? reason.message : String(reason)
+		]);
+	});
+})();
+</script>"#
 }
 
 fn inject_context(html: &str, context: &serde_json::Value) -> String {

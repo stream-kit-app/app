@@ -1,5 +1,7 @@
 export {
 	computeCronNextRun,
+	contextToVariables,
+	contextValueToVariableString,
 	CRON_FIELD_COUNT,
 	CRON_FIELD_KEYS,
 	DEFAULT_CRON_PRESETS,

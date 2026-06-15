@@ -251,6 +251,9 @@
 			value={String(field.value ?? '')}
 			oninput={onCodeInput(field)}
 			languageServer={buildScriptLspWorkspace(String(field.value ?? ''))}
+			variables={contextVariables}
+			variablesTitle={t('Variables')}
+			variablesAriaLabel={t('Insert variable')}
 			{error}
 		/>
 	{:else if config.type === 'text-select-text'}

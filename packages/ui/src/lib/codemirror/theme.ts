@@ -129,6 +129,40 @@ export const streamKitEditorTheme = EditorView.theme(
 		},
 		'.cm-diagnostic-info': {
 			borderLeft: '3px solid #60a5fa'
+		},
+		'.cm-foldGutter .cm-gutterElement': {
+			padding: '0 4px',
+			cursor: 'pointer'
+		},
+		'.cm-panel.cm-search': {
+			backgroundColor: 'var(--color-dark-800)',
+			borderTop: '1px solid var(--color-dark-600)',
+			color: 'var(--color-dark-50)',
+			padding: '8px 12px'
+		},
+		'.cm-panel.cm-search input, .cm-panel.cm-search button, .cm-panel.cm-search label': {
+			font: 'inherit',
+			color: 'inherit'
+		},
+		'.cm-panel.cm-search input': {
+			backgroundColor: 'var(--color-dark-900)',
+			border: '1px solid var(--color-dark-600)',
+			borderRadius: '0.375rem',
+			padding: '4px 8px'
+		},
+		'.cm-panel.cm-search button': {
+			backgroundColor: 'var(--color-dark-700)',
+			border: '1px solid var(--color-dark-600)',
+			borderRadius: '0.375rem',
+			padding: '4px 10px',
+			cursor: 'pointer'
+		},
+		'.cm-searchMatch': {
+			backgroundColor: 'color-mix(in srgb, var(--color-primary) 28%, transparent)',
+			outline: '1px solid color-mix(in srgb, var(--color-primary) 50%, transparent)'
+		},
+		'.cm-searchMatch-selected': {
+			backgroundColor: 'color-mix(in srgb, var(--color-primary) 42%, transparent)'
 		}
 	},
 	{ dark: true }

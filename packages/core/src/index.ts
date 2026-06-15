@@ -1,3 +1,4 @@
+export { contextToVariables, contextValueToVariableString } from './context-to-variables.js';
 export { interpolateVariables } from './interpolate-variables.js';
 export {
 	computeCronNextRun,

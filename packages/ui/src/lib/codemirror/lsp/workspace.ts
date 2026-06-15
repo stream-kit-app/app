@@ -46,6 +46,37 @@ export async function uploadWorkspaceToWorker(
 	}
 }
 
+export async function syncWorkspaceChangesToWorker(
+	workerRpc: WorkerRPC,
+	workspace: Record<string, string>,
+	knownContent: Map<string, string>
+): Promise<Map<string, string>> {
+	const changed: Record<string, string> = {};
+
+	for (const [path, content] of Object.entries(workspace)) {
+		if (knownContent.get(path) !== content) {
+			changed[path] = content;
+		}
+	}
+
+	for (const path of knownContent.keys()) {
+		if (!(path in workspace)) {
+			await workerRpc.deleteFile(path);
+			knownContent.delete(path);
+		}
+	}
+
+	if (Object.keys(changed).length > 0) {
+		await uploadWorkspaceToWorker(workerRpc, changed);
+
+		for (const [path, content] of Object.entries(changed)) {
+			knownContent.set(path, content);
+		}
+	}
+
+	return knownContent;
+}
+
 export function pickWorkspaceFiles(
 	workspace: Record<string, string>,
 	paths: readonly string[]

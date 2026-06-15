@@ -14,7 +14,8 @@
 			"$lib": ["../app/src/lib"],
 			"$lib/locales/en.json": ["./stubs/locale-en.d.ts"],
 			"$lib/locales/nl.json": ["./stubs/locale-nl.d.ts"],
-			"$lib/*": ["../app/src/lib/*"]
+			"$lib/*": ["../app/src/lib/*"],
+			"*.wasm?url": ["./stubs/wasm-url.d.ts"]
 		}
 	},
 	"include": [

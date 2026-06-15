@@ -14,9 +14,24 @@ The overlay server starts automatically when the app boots (default port `7891`)
 
 ## Editing overlays
 
-Open an overlay from the list to edit `App.svelte` and `context.json` in CodeMirror. The Svelte editor combines `codemirror-lang-svelte` syntax highlighting with an in-browser language server (LSP) for diagnostics, autocomplete, and hover info for Svelte syntax and `@stream-kit/overlay-sdk` imports. The virtual workspace includes Svelte 5 rune types (`$state`, `$derived`, etc.) and a `svelte.config.js` with `runes: true`.
+Open an overlay from the list to edit `App.svelte` and additional source files in CodeMirror. Use the **+** button next to the file tabs to add components or modules (`.svelte`, `.svelte.ts`, `.ts`, or `.json`). New files start as an unnamed tab—type a file name and press Enter to create the file. Import custom files from `App.svelte` with relative paths.
 
-Use **Save & build** to compile changes. The preview iframe refreshes from the local overlay server.
+Follow the standard TypeScript/Svelte import convention so imports resolve in both the editor and the build:
+
+- Svelte components keep the `.svelte` extension: `import Counter from './Counter.svelte'`.
+- TypeScript modules are imported **without** the `.ts` extension: `import { test } from './test'` (not `./test.ts`).
+
+> The in-browser language server uses TypeScript 4.9, which does not support `.ts` extensions in import paths. Writing `import … from './test.ts'` will report "Cannot find module"; drop the extension to fix it.
+
+The editor and preview are shown side by side in resizable panels; drag the handle between them to adjust the split. Your panel sizes are remembered between sessions. The overlay editor uses CodeMirror with syntax highlighting, bracket matching, code folding, find-in-file (`Ctrl+F`), and JSON parse diagnostics. Svelte and TypeScript files (`.svelte`, `.ts`, `.svelte.ts`) connect to an in-browser language server (LSP) for diagnostics, autocomplete, hover info, go-to-definition (`F12` / `Ctrl+click`), rename (`F2`), and format (`Shift+Alt+F` or the toolbar **Format** button). The virtual workspace includes all overlay source files plus Svelte 5 rune types (`$state`, `$derived`, etc.) and a `svelte.config.js` with `runes: true`.
+
+Changes autosave and rebuild automatically. The preview iframe refreshes from the local overlay server. While editing, the preview pane includes a docked **Console** at the bottom that shows build errors and `console.log` / `console.warn` / `console.error` output from the running overlay preview (captured only when the overlay runs inside the editor iframe, not in OBS).
+
+Adding, renaming, or deleting a file is applied live: the editor resynchronizes its language server and rebuilds immediately, so newly created files become importable and the preview updates without a manual page refresh.
+
+### Download as ZIP
+
+Use **Download ZIP** in the editor header to export the overlay as a standalone, runnable Svelte project (Vite + Svelte + TypeScript). The archive contains all overlay sources plus `package.json`, `vite.config.ts`, `svelte.config.js`, `tsconfig.json`, `index.html`, and a vendored copy of `@stream-kit/overlay-sdk` (aliased so existing imports keep working). After unzipping, run `npm install` and `npm run dev` to preview the overlay on its own.
 
 ## Overlay project structure
 
@@ -25,8 +40,9 @@ Each overlay is stored under app data:
 ```
 overlays/<id>/
   manifest.json
-  context.json
-  src/App.svelte
+  src/
+    App.svelte
+    …custom files…
   dist/
     index.html
     main.js
@@ -35,8 +51,7 @@ overlays/<id>/
 ```
 
 - **manifest.json** — metadata (name, size, expected events)
-- **context.json** — static context injected as `window.__OVERLAY_CONTEXT__`
-- **src/App.svelte** — your overlay UI and event handlers
+- **src/** — overlay source (entry is always `App.svelte`)
 - **dist/** — build output served to OBS
 
 ## Overlay SDK

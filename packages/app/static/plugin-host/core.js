@@ -1,4 +1,55 @@
 // ../core/dist/index.js
+function extractPlainData(value) {
+  if (value === null || value === void 0) {
+    return value;
+  }
+  if (typeof value !== "object") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(extractPlainData);
+  }
+  const result = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry === "function") {
+      continue;
+    }
+    result[key] = extractPlainData(entry);
+  }
+  return result;
+}
+function contextValueToVariableString(value) {
+  if (value === void 0 || value === null) {
+    return void 0;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (typeof value === "object") {
+    try {
+      return JSON.stringify(extractPlainData(value));
+    } catch {
+      return void 0;
+    }
+  }
+  return void 0;
+}
+function contextToVariables(context) {
+  const variables = {};
+  if (!context || typeof context !== "object") {
+    return variables;
+  }
+  for (const [key, value] of Object.entries(context)) {
+    const serialized = contextValueToVariableString(value);
+    if (serialized !== void 0) {
+      variables[key] = serialized;
+    }
+  }
+  return variables;
+}
 var VARIABLE_PATTERN = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
 function interpolateVariables(template, variables) {
   return template.replace(VARIABLE_PATTERN, (_match, key) => {
@@ -786,6 +837,8 @@ export {
   CRON_FIELD_KEYS,
   DEFAULT_CRON_PRESETS,
   computeCronNextRun,
+  contextToVariables,
+  contextValueToVariableString,
   getCronFieldCount,
   getCronNextRunLabel,
   getCronValidationError,

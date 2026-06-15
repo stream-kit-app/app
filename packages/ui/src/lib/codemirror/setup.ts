@@ -3,6 +3,7 @@ import { indentOnInput } from '@codemirror/language';
 import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers, placeholder as placeholderExt } from '@codemirror/view';
 
+import { streamKitEditorExtensions } from './editor-extensions';
 import { editorIndentExtensions } from './editor-indent';
 import { getLanguageExtensions } from './languages';
 import { streamKitSyntaxHighlighting } from './highlights';
@@ -29,6 +30,7 @@ export function createEditorView(options: CreateEditorOptions): EditorView {
 		lineNumbers(),
 		history(),
 		...editorIndentExtensions,
+		...streamKitEditorExtensions,
 		indentOnInput(),
 		streamKitEditorTheme,
 		streamKitSyntaxHighlighting,

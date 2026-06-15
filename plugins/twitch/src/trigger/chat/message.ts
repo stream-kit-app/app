@@ -22,12 +22,13 @@ import { rewardSelectCondition } from '../../lib/rewards';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
 import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 import { createTestChatMessageContext } from '../../lib/test-contexts';
+import { MSG_VARIABLE } from '../../lib/variables';
 
 export const createChatMessageTrigger = (app: PluginAppApi) =>
 	({
 		name: 'Chat Message',
 		conditions: [
-			messageMatchCondition(),
+			messageMatchCondition('match', 'Message', { variables: [MSG_VARIABLE] }),
 			userMatchCondition(),
 			roleCondition(),
 			messageMatchCondition('command', 'Command', { variables: [] }),
