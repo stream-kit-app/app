@@ -2,6 +2,13 @@ import type { OverlayProjectFile } from './types';
 
 export const OVERLAY_ENTRY_PATH = 'src/App.svelte';
 
+/** Managed scaffold files under src/; not edited in the in-app overlay editor. */
+export const OVERLAY_SCAFFOLD_SOURCE_PATHS = ['src/main.ts', 'src/vite-env.d.ts'] as const;
+
+export function isOverlayScaffoldSourceFile(path: string): boolean {
+	return (OVERLAY_SCAFFOLD_SOURCE_PATHS as readonly string[]).includes(path);
+}
+
 const ALLOWED_FILE_PATTERN = /^[A-Za-z0-9_-]+(\.(svelte\.ts|svelte|ts|json))$/;
 
 export type OverlaySourceLanguage = 'svelte' | 'typescript' | 'json';
@@ -17,28 +24,6 @@ export function isOverlayEntryFile(path: string): boolean {
 export function overlayFileName(path: string): string {
 	const parts = path.split('/');
 	return parts[parts.length - 1] ?? path;
-}
-
-/** Whether the overlay editor should attach the in-browser language server. */
-export function overlayFileSupportsLsp(path: string): boolean {
-	return path.endsWith('.svelte') || path.endsWith('.ts') || path.endsWith('.svelte.ts');
-}
-
-/** @deprecated Use {@link overlayFileSupportsLsp} */
-export function overlayFileSupportsSvelteLsp(path: string): boolean {
-	return overlayFileSupportsLsp(path);
-}
-
-export function overlayFileLspLanguageId(path: string): 'svelte' | 'typescript' | null {
-	if (path.endsWith('.svelte')) {
-		return 'svelte';
-	}
-
-	if (path.endsWith('.ts') || path.endsWith('.svelte.ts')) {
-		return 'typescript';
-	}
-
-	return null;
 }
 
 export function overlaySourceLanguage(path: string): OverlaySourceLanguage {

@@ -1,6 +1,6 @@
 export type CodeLanguage = 'typescript' | 'javascript' | 'svelte' | 'json';
 
-export type LanguageServerKind = 'svelte' | 'typescript';
+export type LanguageServerKind = 'typescript';
 
 export type LanguageServerConfig = {
 	kind: LanguageServerKind;

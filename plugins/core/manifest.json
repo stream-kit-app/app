@@ -7,7 +7,5 @@
   "entry": "dist/index.js",
   "dependencies": [],
   "streamKitVersion": ">=0.1.0",
-  "updateManifestUrl": "https://raw.githubusercontent.com/stream-kit-app/plugin-core/main/manifest.json",
-  "downloadUrl": "https://github.com/stream-kit-app/plugin-core/releases/download/v0.1.1-alpha.2/plugin-core.zip",
-  "sha256": "77f09001c7b37cd2430e8d43c54eff0c17148425a134646515450f3a69fcc880"
+  "updateManifestUrl": "https://stream-kit.app/api/plugins/core/manifest.json"
 }

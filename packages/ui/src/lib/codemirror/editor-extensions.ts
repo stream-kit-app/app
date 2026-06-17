@@ -1,10 +1,11 @@
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { formatDocument } from 'codemirror-languageserver';
 import { bracketMatching, foldGutter, foldKeymap } from '@codemirror/language';
 import { lintGutter } from '@codemirror/lint';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
 import type { Extension } from '@codemirror/state';
 import { highlightActiveLine, highlightActiveLineGutter, keymap } from '@codemirror/view';
+
+import { formatEditorDocument } from './format-document';
 
 /** Shared CodeMirror extensions for all Stream Kit editors. */
 export const streamKitEditorExtensions: Extension[] = [
@@ -19,8 +20,8 @@ export const streamKitEditorExtensions: Extension[] = [
 		...closeBracketsKeymap,
 		...searchKeymap,
 		...foldKeymap,
-		{ key: 'Mod-Shift-f', run: formatDocument },
-		{ key: 'Shift-Alt-f', run: formatDocument }
+		{ key: 'Mod-Shift-f', run: (view) => (void formatEditorDocument(view), true) },
+		{ key: 'Shift-Alt-f', run: (view) => (void formatEditorDocument(view), true) }
 	])
 ];
 

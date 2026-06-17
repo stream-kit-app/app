@@ -2,7 +2,6 @@ use tauri::{AppHandle, State};
 
 use super::server::{find_available_port, resolve_overlays_dir, resolve_sdk_dir, run_server};
 use super::state::{OverlayServerState, OverlayServerStatus};
-
 #[tauri::command]
 pub async fn overlay_server_start(
     app: AppHandle,

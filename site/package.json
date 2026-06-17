@@ -4,7 +4,13 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "concurrently --kill-others-on-fail --continue-on-error -n pb,typegen,site -c blue,yellow,green \"node scripts/run-pocketbase.mjs\" \"pnpm pb:typegen:watch\" \"vite dev\"",
+		"dev:site": "vite dev",
+		"pb:setup": "node scripts/setup-pocketbase.mjs",
+		"pb:serve": "node scripts/run-pocketbase.mjs",
+		"pb:seed": "node scripts/seed-plugins.mjs",
+		"pb:typegen": "node scripts/generate-pocketbase-types.mjs",
+		"pb:typegen:watch": "nodemon --config nodemon.typegen.json",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -13,7 +19,10 @@
 	},
 	"dependencies": {
 		"@iconify/svelte": "^5.2.1",
-		"@stream-kit/ui": "workspace:*"
+		"@stream-kit/ui": "workspace:*",
+		"neverthrow": "^8.2.0",
+		"pocketbase": "^0.27.0",
+		"zod": "^4.4.3"
 	},
 	"peerDependencies": {
 		"@stream-kit/ui": "workspace:*"
@@ -23,6 +32,9 @@
 		"@sveltejs/kit": "next",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
+		"concurrently": "^9.2.1",
+		"nodemon": "^3.1.10",
+		"pocketbase-typegen": "^1.5.0",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",

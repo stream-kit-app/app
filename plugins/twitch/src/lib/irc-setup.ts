@@ -1,10 +1,11 @@
+import type { ChatMessageContext } from '../contexts';
 import type { PluginAppApi } from '@stream-kit/plugin';
 import type { ChatMessage } from '@twurple/chat';
 
-import type { ChatMessageContext } from '../contexts';
 import { getBroadcasterId } from './broadcaster';
-import { resolveUserRole } from './role';
 import { getTwitch } from './plugin-api';
+import { resolveUserRole } from './role';
+import { chatMessageToContext } from './variables';
 
 type RawMessageHandler = (context: ChatMessageContext) => void;
 
@@ -30,7 +31,7 @@ function buildMessageContext(
 		userId: msg.userInfo.userId ?? '',
 		message: text,
 		role: resolveUserRole(msg),
-		msg
+		msg: chatMessageToContext(msg, text)
 	};
 }
 
@@ -130,13 +131,18 @@ export function subscribeWhispers(
 		return () => {};
 	}
 
-	return subscribeSimple(app, 'whisper', (emit) => {
-		const listener = chat.onWhisper((user, text) => {
-			emit({ user, message: text });
-		});
+	return subscribeSimple(
+		app,
+		'whisper',
+		(emit) => {
+			const listener = chat.onWhisper((user, text) => {
+				emit({ user, message: text });
+			});
 
-		return () => listener.unbind();
-	}, handler);
+			return () => listener.unbind();
+		},
+		handler
+	);
 }
 
 export function subscribeSubs(app: PluginAppApi, handler: SimpleHandler<unknown>): () => void {
@@ -146,51 +152,56 @@ export function subscribeSubs(app: PluginAppApi, handler: SimpleHandler<unknown>
 		return () => {};
 	}
 
-	return subscribeSimple(app, 'sub', (emit) => {
-		const disposers = [
-			chat.onSub((channel, user, subInfo) => {
-				emit({
-					type: 'new',
-					channel,
-					user,
-					tier: subInfo.plan,
-					months: subInfo.months
-				});
-			}),
-			chat.onResub((channel, user, subInfo) => {
-				emit({
-					type: 'resub',
-					channel,
-					user,
-					tier: subInfo.plan,
-					months: subInfo.months
-				});
-			}),
-			chat.onSubGift((channel, user, subInfo) => {
-				emit({
-					type: 'gift',
-					channel,
-					user,
-					tier: subInfo.plan,
-					giftCount: 1
-				});
-			}),
-			chat.onCommunitySub((channel, user, subInfo) => {
-				emit({
-					type: 'community',
-					channel,
-					user,
-					giftCount: subInfo.count
-				});
-			})
-		];
+	return subscribeSimple(
+		app,
+		'sub',
+		(emit) => {
+			const disposers = [
+				chat.onSub((channel, user, subInfo) => {
+					emit({
+						type: 'new',
+						channel,
+						user,
+						tier: subInfo.plan,
+						months: subInfo.months
+					});
+				}),
+				chat.onResub((channel, user, subInfo) => {
+					emit({
+						type: 'resub',
+						channel,
+						user,
+						tier: subInfo.plan,
+						months: subInfo.months
+					});
+				}),
+				chat.onSubGift((channel, user, subInfo) => {
+					emit({
+						type: 'gift',
+						channel,
+						user,
+						tier: subInfo.plan,
+						giftCount: 1
+					});
+				}),
+				chat.onCommunitySub((channel, user, subInfo) => {
+					emit({
+						type: 'community',
+						channel,
+						user,
+						giftCount: subInfo.count
+					});
+				})
+			];
 
-		return () => {
-			for (const listener of disposers) {
-				listener.unbind();
-			}
-		};
-	}, handler);
+			return () => {
+				for (const listener of disposers) {
+					listener.unbind();
+				}
+			};
+		},
+		handler
+	);
 }
 
 export function subscribeRaids(
@@ -203,13 +214,18 @@ export function subscribeRaids(
 		return () => {};
 	}
 
-	return subscribeSimple(app, 'raid', (emit) => {
-		const listener = chat.onRaid((channel, user, raidInfo) => {
-			emit({ channel, user, viewers: raidInfo.viewerCount });
-		});
+	return subscribeSimple(
+		app,
+		'raid',
+		(emit) => {
+			const listener = chat.onRaid((channel, user, raidInfo) => {
+				emit({ channel, user, viewers: raidInfo.viewerCount });
+			});
 
-		return () => listener.unbind();
-	}, handler);
+			return () => listener.unbind();
+		},
+		handler
+	);
 }
 
 export function subscribeModeration(
@@ -222,22 +238,27 @@ export function subscribeModeration(
 		return () => {};
 	}
 
-	return subscribeSimple(app, 'moderation', (emit) => {
-		const disposers = [
-			chat.onBan((channel, user) => {
-				emit({ type: 'ban', channel, user });
-			}),
-			chat.onTimeout((channel, user, duration) => {
-				emit({ type: 'timeout', channel, user, duration });
-			})
-		];
+	return subscribeSimple(
+		app,
+		'moderation',
+		(emit) => {
+			const disposers = [
+				chat.onBan((channel, user) => {
+					emit({ type: 'ban', channel, user });
+				}),
+				chat.onTimeout((channel, user, duration) => {
+					emit({ type: 'timeout', channel, user, duration });
+				})
+			];
 
-		return () => {
-			for (const listener of disposers) {
-				listener.unbind();
-			}
-		};
-	}, handler);
+			return () => {
+				for (const listener of disposers) {
+					listener.unbind();
+				}
+			};
+		},
+		handler
+	);
 }
 
 export function subscribeJoinPart(
@@ -250,20 +271,25 @@ export function subscribeJoinPart(
 		return () => {};
 	}
 
-	return subscribeSimple(app, 'joinpart', (emit) => {
-		const disposers = [
-			chat.onJoin((channel, user) => {
-				emit({ type: 'join', channel, user });
-			}),
-			chat.onPart((channel, user) => {
-				emit({ type: 'part', channel, user });
-			})
-		];
+	return subscribeSimple(
+		app,
+		'joinpart',
+		(emit) => {
+			const disposers = [
+				chat.onJoin((channel, user) => {
+					emit({ type: 'join', channel, user });
+				}),
+				chat.onPart((channel, user) => {
+					emit({ type: 'part', channel, user });
+				})
+			];
 
-		return () => {
-			for (const listener of disposers) {
-				listener.unbind();
-			}
-		};
-	}, handler);
+			return () => {
+				for (const listener of disposers) {
+					listener.unbind();
+				}
+			};
+		},
+		handler
+	);
 }

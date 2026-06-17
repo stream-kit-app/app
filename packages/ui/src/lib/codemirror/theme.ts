@@ -61,7 +61,10 @@ export const streamKitEditorTheme = EditorView.theme(
 		'.cm-tooltip .documentation': {
 			maxWidth: TOOLTIP_MAX_WIDTH,
 			lineHeight: '1.5',
-			overflowWrap: 'anywhere'
+			overflowWrap: 'anywhere',
+			whiteSpace: 'pre-wrap',
+			fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+			fontSize: '12px'
 		},
 		'.cm-tooltip .documentation pre': {
 			overflowX: 'auto',

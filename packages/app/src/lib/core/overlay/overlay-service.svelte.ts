@@ -7,14 +7,17 @@ import type {
 } from './types';
 
 import { invoke } from '@tauri-apps/api/core';
+import { join } from '@tauri-apps/api/path';
 
 import type { SaveOverlayInput } from '$db/repositories/overlays';
 
+import { openProjectInEditor } from '../opener/open-in-editor';
 import { buildOverlayProject } from './build/overlay-builder';
 import {
 	createOverlayProject,
+	ensureOverlayScaffold,
 	listOverlayProjects,
-	migrateAllOverlayDist,
+	migrateAllOverlayProjects,
 	readOverlaySourceFiles,
 	removeOverlayProject,
 	removeOverlaySourceFile,
@@ -40,7 +43,7 @@ export class OverlayService {
 
 	async init(): Promise<void> {
 		await this.refresh();
-		await migrateAllOverlayDist(this.items.map((overlay) => overlay.id));
+		await migrateAllOverlayProjects(this.items);
 		await this.startServer();
 	}
 
@@ -135,5 +138,14 @@ export class OverlayService {
 			event,
 			payload
 		});
+	}
+
+	async openInExternalEditor(id: string, name: string): Promise<void> {
+		await ensureOverlayScaffold(id, name);
+
+		const overlaysDir = await invoke<string>('overlay_get_overlays_dir');
+		const projectPath = await join(overlaysDir, id.trim());
+
+		await openProjectInEditor(projectPath);
 	}
 }

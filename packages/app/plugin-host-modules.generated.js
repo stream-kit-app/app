@@ -5,6 +5,7 @@ export const PLUGIN_HOST_UI_SUBPATHS = [
 	"badge",
 	"blocks",
 	"button",
+	"codemirror",
 	"container",
 	"dropdown",
 	"heading",

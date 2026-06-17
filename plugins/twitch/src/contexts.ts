@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@twurple/chat';
+import type { TwitchChatMessage } from '@stream-kit/core';
 
 export type TwitchBaseContext = {
 	broadcasterId: string;
@@ -10,7 +10,7 @@ export type ChatMessageContext = TwitchBaseContext & {
 	userId: string;
 	message: string;
 	role: string;
-	msg: ChatMessage;
+	msg: TwitchChatMessage;
 };
 
 export type WhisperContext = TwitchBaseContext & {

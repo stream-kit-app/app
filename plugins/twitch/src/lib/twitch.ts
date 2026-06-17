@@ -11,6 +11,7 @@ import { EventSubWsListener as TwurpleEventSubWsListener } from '@twurple/events
 
 import { TWITCH_CLIENT_ID } from '../config';
 import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
+import { clearBadgeCache, refreshBadgeCache } from './badge-cache';
 
 export type ValidatedTokenInfo = TokenInfo & { userId: string };
 
@@ -131,6 +132,7 @@ export function createTwitchPluginApi(
 		authProvider = undefined;
 		token = undefined;
 		userId = undefined;
+		clearBadgeCache();
 	}
 
 	async function connect(nextAccessToken: string): Promise<void> {
@@ -159,7 +161,9 @@ export function createTwitchPluginApi(
 			console.error(error);
 		}
 
-		rebindExistingMessageHandlers(app);
+		void refreshBadgeCache(app).finally(() => {
+			rebindExistingMessageHandlers(app);
+		});
 		notify();
 	}
 

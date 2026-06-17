@@ -1,0 +1,65 @@
+---
+description: PocketBase backend conventions for @stream-kit/site
+globs: site/**/*.{ts,svelte,js,mjs},site/pb/**/*
+alwaysApply: false
+---
+
+# PocketBase (site backend)
+
+PocketBase backs `@stream-kit/site` only. All backend code lives under `site/` — never in `packages/app` or plugin packages.
+
+## Layout
+
+| Path | Purpose |
+| --- | --- |
+| `site/pb/pb_migrations/` | Schema migrations (committed) |
+| `site/pb/pb_hooks/` | JS hooks (committed) |
+| `site/pb/pb_data/` | Local DB + uploads (gitignored) |
+| `site/pb/pocketbase(.exe)` | Downloaded binary (gitignored) |
+| `site/scripts/setup-pocketbase.mjs` | Downloads binary (`POCKETBASE_VERSION`) |
+| `site/scripts/run-pocketbase.mjs` | Serves on `http://127.0.0.1:8090` |
+| `site/scripts/seed-plugins.mjs` | Seeds plugins + uploads release zips to `files` |
+
+Dev: `pnpm --filter @stream-kit/site dev` (PocketBase + SvelteKit). Admin UI: `http://127.0.0.1:8090/_/`.
+
+## Schema changes
+
+- **Always** add a migration in `site/pb/pb_migrations/` — do not hand-edit `pb_data`.
+- Start migrations with `/// <reference path="../pb_data/types.d.ts" />`.
+- Use the `migrate(up, down)` pattern; keep collection IDs stable when editing existing migrations.
+- Field names: **camelCase** (`streamKitVersion`, `isLatest`, `publishedAt`, `mimeType`).
+- Document collection/field changes in `docs/site.md`.
+
+### Collections
+
+- **`plugins`** — stable identity: `key` (unique), `name` (unique), `description`, `icon`, `author` → `_pb_users_auth_`.
+- **`files`** — release zips: `file` (upload), `mimeType`, `size`, `sha256`, `originalName` (metadata filled by `files.pb.js` hook).
+- **`plugin_versions`** — releases linked to `plugins` (cascade delete): `version`, `streamKitVersion`, `entry`, `file` → `files`, `changelog`, `isLatest`, `publishedAt`. Unique on `(plugin, version)`.
+
+## SvelteKit integration
+
+- Talk to PocketBase **server-side only** via `site/src/lib/server/services/` (e.g. `PluginsService`).
+- Wire services through `event.locals.services` in `site/src/lib/server/hooks/services.ts`.
+- Default URL: `http://127.0.0.1:8090`. Do not expose admin tokens or superuser credentials to the client.
+- Prefer `neverthrow` for service-layer error handling.
+- Build file download URLs with `site/src/lib/server/pocketbase/file-url.ts`.
+
+```typescript
+// ✅ Server load / action
+export const load = async ({ locals }) => {
+	const result = await locals.services.plugins().listLatest();
+	// ...
+};
+
+// ❌ Never import PocketBase admin client from +page.svelte or client code
+```
+
+## Hooks
+
+Place hook scripts in `site/pb/pb_hooks/`. Keep hooks focused; use migrations for schema, hooks for request/record lifecycle logic.
+
+- **`files.pb.js`** — on create/update of `files`, sets `mimeType`, `size`, `sha256`, and `originalName` from the uploaded file.
+
+## Version bumps
+
+When upgrading PocketBase, update `POCKETBASE_VERSION` in `site/scripts/setup-pocketbase.mjs`, delete the old binary, and re-run `pnpm --filter @stream-kit/site pb:setup`.

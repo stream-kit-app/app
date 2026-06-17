@@ -1,0 +1,7 @@
+{
+	"watch": ["pb/pb_migrations"],
+	"ext": "js",
+	"ignore": ["pb/pb_migrations/.gitkeep"],
+	"exec": "node scripts/generate-pocketbase-types.mjs",
+	"delay": 500
+}

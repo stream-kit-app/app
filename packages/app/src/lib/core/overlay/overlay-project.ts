@@ -14,15 +14,24 @@ import {
 import {
 	OVERLAY_ENTRY_PATH,
 	isAllowedOverlayFileName,
+	isOverlayScaffoldSourceFile,
 	overlayFileName
 } from './overlay-source-file';
 import { getOverlayTemplate } from './templates';
+import {
+	getOverlayScaffoldFile,
+	getOverlayScaffoldFiles,
+	getOverlayScaffoldMetadataPaths,
+	getOverlayScaffoldRefreshPaths
+} from './overlay-scaffold';
 
 const OVERLAYS_ROOT = 'overlays';
 
 function overlayDir(id: string): string {
 	return `${OVERLAYS_ROOT}/${id}`;
 }
+
+export { overlayDir };
 
 export async function listOverlayProjects(): Promise<SaveOverlayInput[]> {
 	const rows = await getOverlays();
@@ -58,6 +67,8 @@ export async function createOverlayProject(
 			baseDir: BaseDirectory.AppData
 		});
 	}
+
+	await writeOverlayScaffold(input.id, input.name, { overwrite: true });
 
 	const manifest: OverlayManifest = {
 		id: input.id,
@@ -102,6 +113,7 @@ export async function updateOverlayMetadata(record: SaveOverlayInput): Promise<v
 	};
 
 	await writeOverlayFile(record.id, 'manifest.json', JSON.stringify(manifest, null, 2));
+	await syncOverlayScaffoldMetadata(record.id, record.name);
 }
 
 export async function removeOverlayProject(fs: Filesystem, id: string): Promise<void> {
@@ -143,6 +155,10 @@ export async function readOverlaySourceFiles(id: string): Promise<OverlayProject
 				continue;
 			}
 
+			if (isOverlayScaffoldSourceFile(projectPath)) {
+				continue;
+			}
+
 			files.push({
 				path: projectPath,
 				content: await readTextFile(fullPath, { baseDir: BaseDirectory.AppData })
@@ -166,6 +182,10 @@ export async function writeOverlaySourceFile(
 
 	if (path !== OVERLAY_ENTRY_PATH && !isAllowedOverlayFileName(overlayFileName(path))) {
 		throw new Error(`Unsupported overlay source file: ${path}`);
+	}
+
+	if (isOverlayScaffoldSourceFile(path)) {
+		throw new Error(`Cannot modify scaffold file: ${path}`);
 	}
 
 	await writeOverlayFile(id, path, content);
@@ -280,4 +300,56 @@ export async function migrateAllOverlayDist(ids: string[]): Promise<void> {
 	for (const id of ids) {
 		await migrateOverlayDist(id);
 	}
+}
+
+export async function migrateAllOverlayProjects(
+	items: Pick<SaveOverlayInput, 'id' | 'name'>[]
+): Promise<void> {
+	for (const item of items) {
+		await migrateOverlayDist(item.id);
+		await ensureOverlayScaffold(item.id, item.name);
+	}
+}
+
+async function writeOverlayScaffold(
+	id: string,
+	name: string,
+	options: { overwrite?: boolean } = {}
+): Promise<void> {
+	const { exists } = await import('@tauri-apps/plugin-fs');
+	const refreshPaths = new Set(getOverlayScaffoldRefreshPaths());
+
+	for (const file of getOverlayScaffoldFiles(name, id)) {
+		const target = `${overlayDir(id)}/${file.path}`;
+
+		if (
+			!options.overwrite &&
+			!refreshPaths.has(file.path) &&
+			(await exists(target, { baseDir: BaseDirectory.AppData }))
+		) {
+			continue;
+		}
+
+		await writeOverlayFileRaw(target, file.content);
+	}
+}
+
+export async function ensureOverlayScaffold(id: string, name: string): Promise<void> {
+	await writeOverlayScaffold(id, name);
+}
+
+async function syncOverlayScaffoldMetadata(id: string, name: string): Promise<void> {
+	for (const path of getOverlayScaffoldMetadataPaths()) {
+		const file = getOverlayScaffoldFile(name, id, path);
+
+		if (!file) {
+			continue;
+		}
+
+		await writeOverlayFileRaw(`${overlayDir(id)}/${path}`, file.content);
+	}
+}
+
+export function getOverlayProjectDir(id: string): string {
+	return overlayDir(id);
 }

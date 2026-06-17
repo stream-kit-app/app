@@ -1,7 +1,6 @@
-import type { PluginAppApi } from '@stream-kit/plugin';
-import type { TriggerDefinitionProps } from '@stream-kit/plugin';
-
 import type { ChatMessageContext } from '../../contexts';
+import type { PluginAppApi, TriggerDefinitionProps } from '@stream-kit/plugin';
+
 import { parseCommand } from '../../lib/command';
 import {
 	evaluateBooleanFilter,
@@ -20,8 +19,8 @@ import {
 import { subscribeMessages } from '../../lib/irc-setup';
 import { rewardSelectCondition } from '../../lib/rewards';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 import { createTestChatMessageContext } from '../../lib/test-contexts';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 import { MSG_VARIABLE } from '../../lib/variables';
 
 export const createChatMessageTrigger = (app: PluginAppApi) =>
@@ -71,9 +70,13 @@ export const createChatMessageTrigger = (app: PluginAppApi) =>
 			});
 		},
 		activate: (action, trigger) => {
-			const unsubscribe = subscribeMessages(app, () => true, (context) => {
-				action.fire(trigger, context);
-			});
+			const unsubscribe = subscribeMessages(
+				app,
+				() => true,
+				(context) => {
+					action.fire(trigger, context);
+				}
+			);
 
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},

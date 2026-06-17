@@ -1,5 +1,6 @@
 export { createEditorView, syncEditorDocument, type CreateEditorOptions } from './setup';
 export { openEditorSearch, formatEditorDocument } from './editor-commands';
+export { formatSourceText, applyFormattedDocument } from './format-document';
 export { streamKitEditorExtensions } from './editor-extensions';
 export {
 	EDITOR_TAB_SIZE,

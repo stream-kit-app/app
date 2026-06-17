@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EditorView, LanguageServerConnection } from '@stream-kit/ui/codemirror';
+	import type { EditorView } from '@stream-kit/ui/codemirror';
 	import type { OverlayProjectFile } from '$lib/core/overlay/types';
 
 	import Icon from '@iconify/svelte';
@@ -11,16 +11,17 @@
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
-	import { createLanguageServerConnection, formatEditorDocument, openEditorSearch } from '@stream-kit/ui/codemirror';
+	import {
+		applyFormattedDocument,
+		formatEditorDocument,
+		formatSourceText,
+		openEditorSearch
+	} from '@stream-kit/ui/codemirror';
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
 	import { InputCode } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
-	import {
-		buildOverlayLspWorkspace,
-		toWorkspaceUri
-	} from '$lib/codemirror/overlay-lsp-workspace';
 	import { app } from '$lib/core';
 	import {
 		createTemporaryOverlayPath,
@@ -29,9 +30,7 @@
 		normalizeOverlayComponentFileName,
 		OVERLAY_ENTRY_PATH,
 		overlayFileIcon,
-		overlayFileLspLanguageId,
 		overlayFileName,
-		overlayFileSupportsLsp,
 		overlaySourceLanguage,
 		overlaySourcePathsMatch,
 		sortOverlaySourceFiles,
@@ -52,7 +51,6 @@
 	const { t } = useI18n();
 
 	const AUTOSAVE_DELAY_MS = 700;
-	const OVERLAY_LSP_SYNC_DELAY_MS = 450;
 
 	type SaveStatus = 'loading' | 'saved' | 'pending' | 'saving' | 'building' | 'error';
 
@@ -66,12 +64,10 @@
 	let saveError = $state<string | null>(null);
 	let previewRevision = $state(Date.now());
 	let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
-	let lspSyncTimer: ReturnType<typeof setTimeout> | undefined;
 	let lastSavedContents = $state<Record<string, string>>({});
-	let overlayLspSession = $state<LanguageServerConnection | null>(null);
-	let lspLoading = $state(false);
 	let previewConsoleLogs = $state<OverlayPreviewConsoleEntry[]>([]);
 	let exporting = $state(false);
+	let openingInEditor = $state(false);
 	let editorViews = $state<Record<string, EditorView | null>>({});
 
 	const overlayId = $derived(page.params.id ?? '');
@@ -84,17 +80,11 @@
 
 		return [...persistent, ...pending];
 	});
-	const lspSourceFiles = $derived(
-		sourceFiles.filter((file) => !isTemporaryOverlayPath(file.path))
-	);
 	const previewUrl = $derived(`${app.overlay.getUrl(overlayId)}?v=${previewRevision}`);
 	const previewAspectRatio = $derived(
 		overlay ? `${overlay.width} / ${overlay.height}` : '16 / 9'
 	);
 	const activeEditorView = $derived(editorViews[activePath] ?? null);
-	const activeFileSupportsLsp = $derived(
-		!isTemporaryOverlayPath(activePath) && overlayFileSupportsLsp(activePath)
-	);
 	const hasBuildError = $derived(Boolean(app.overlay.lastBuildError));
 	const previewConsoleError = $derived(saveError ?? app.overlay.lastBuildError);
 	const statusVariant = $derived(
@@ -164,7 +154,7 @@
 			return;
 		}
 
-		formatEditorDocument(activeEditorView);
+		void formatEditorDocument(activeEditorView);
 	}
 
 	function defaultContentFor(fileName: string): string {
@@ -179,15 +169,6 @@
 		return '';
 	}
 
-	function clearLspSyncTimer(): void {
-		if (!lspSyncTimer) {
-			return;
-		}
-
-		clearTimeout(lspSyncTimer);
-		lspSyncTimer = undefined;
-	}
-
 	function updateFileContent(path: string, content: string): void {
 		sourceFiles = sourceFiles.map((file) => (file.path === path ? { ...file, content } : file));
 		scheduleAutosave();
@@ -199,10 +180,6 @@
 		}
 
 		clearAutosaveTimer();
-		clearLspSyncTimer();
-		overlayLspSession?.destroy();
-		overlayLspSession = null;
-		lspLoading = true;
 		loaded = false;
 		loadedOverlayId = overlayId;
 		activePath = OVERLAY_ENTRY_PATH;
@@ -216,27 +193,6 @@
 
 	onDestroy(() => {
 		clearAutosaveTimer();
-		clearLspSyncTimer();
-		overlayLspSession?.destroy();
-		overlayLspSession = null;
-	});
-
-	$effect(() => {
-		if (!loaded || !overlayLspSession) {
-			return;
-		}
-
-		const workspace = buildOverlayLspWorkspace(lspSourceFiles, OVERLAY_ENTRY_PATH).workspace;
-
-		clearLspSyncTimer();
-		lspSyncTimer = setTimeout(() => {
-			lspSyncTimer = undefined;
-			void overlayLspSession?.updateWorkspace(workspace);
-		}, OVERLAY_LSP_SYNC_DELAY_MS);
-
-		return () => {
-			clearLspSyncTimer();
-		};
 	});
 
 	$effect(() => {
@@ -273,8 +229,6 @@
 	});
 
 	async function loadOverlaySource(id: string): Promise<void> {
-		lspLoading = true;
-
 		try {
 			const { readOverlaySourceFiles, renameOverlaySourceFile } =
 				await import('$lib/core/overlay/overlay-project');
@@ -309,17 +263,12 @@
 				? OVERLAY_ENTRY_PATH
 				: (normalizedFiles[0]?.path ?? OVERLAY_ENTRY_PATH);
 
-			overlayLspSession?.destroy();
-			overlayLspSession = await createLanguageServerConnection(
-				buildOverlayLspWorkspace(normalizedFiles, OVERLAY_ENTRY_PATH),
-				{ shared: true }
-			);
-
 			loaded = true;
 			saveStatus = 'saved';
 			previewRevision = Date.now();
-		} finally {
-			lspLoading = false;
+		} catch (error) {
+			saveStatus = 'error';
+			saveError = error instanceof Error ? error.message : String(error);
 		}
 	}
 
@@ -346,6 +295,15 @@
 		}, AUTOSAVE_DELAY_MS);
 	}
 
+	async function formatFileForSave(file: OverlayProjectFile): Promise<string> {
+		try {
+			return await formatSourceText(file.content, editorLanguage(file.path));
+		} catch (error) {
+			console.warn('[overlay] Format on save failed:', file.path, error);
+			return file.content;
+		}
+	}
+
 	async function saveAndBuild(options: { force?: boolean } = {}): Promise<void> {
 		if (!overlay || !overlayId) {
 			return;
@@ -365,13 +323,37 @@
 		saveError = null;
 
 		try {
+			const filesToSave: OverlayProjectFile[] = [];
+
 			for (const file of changedFiles) {
+				const formatted = await formatFileForSave(file);
+				const content = formatted;
+
+				if (content !== file.content) {
+					sourceFiles = sourceFiles.map((entry) =>
+						entry.path === file.path ? { ...entry, content } : entry
+					);
+
+					const view = editorViews[file.path];
+
+					if (view) {
+						applyFormattedDocument(view, content);
+					}
+				}
+
+				filesToSave.push({ path: file.path, content });
+			}
+
+			for (const file of filesToSave) {
 				await app.overlay.saveSourceFile(overlayId, file.path, file.content);
 				lastSavedContents[file.path] = file.content;
 			}
 
 			saveStatus = 'building';
-			const result = await app.overlay.build(overlayId, persistentFiles);
+			const result = await app.overlay.build(
+				overlayId,
+				sourceFiles.filter((file) => !isTemporaryOverlayPath(file.path))
+			);
 
 			if (!result.success) {
 				saveStatus = 'error';
@@ -387,34 +369,12 @@
 		}
 	}
 
-	async function recreateLspSession(): Promise<void> {
-		clearLspSyncTimer();
-		lspLoading = true;
-
-		try {
-			const previous = overlayLspSession;
-			const next = await createLanguageServerConnection(
-				buildOverlayLspWorkspace(lspSourceFiles, activePath),
-				{ shared: true }
-			);
-
-			// Swapping the identity forces the `{#key overlayLspSession}` block to tear down and
-			// rebuild every editor against the new worker, so freshly added files are resolved
-			// without a manual page reload. Dispose the old worker only after the swap.
-			overlayLspSession = next;
-			previous?.destroy();
-		} finally {
-			lspLoading = false;
-		}
-	}
-
 	async function handleStructuralChange(): Promise<void> {
 		if (!loaded || !overlay) {
 			return;
 		}
 
 		clearAutosaveTimer();
-		await recreateLspSession();
 		await saveAndBuild({ force: true });
 	}
 
@@ -579,15 +539,14 @@
 		exporting = true;
 
 		try {
+			await saveAndBuild({ force: true });
+
 			const [{ buildOverlayProjectZip, overlayProjectSlug }, { save }] = await Promise.all([
 				import('$lib/core/overlay/overlay-export'),
 				import('@tauri-apps/plugin-dialog')
 			]);
 
-			const persistentFiles = sourceFiles.filter(
-				(file) => !isTemporaryOverlayPath(file.path)
-			);
-			const bytes = buildOverlayProjectZip({ name: overlay.name, files: persistentFiles });
+			const bytes = await buildOverlayProjectZip(overlayId);
 
 			const targetPath = await save({
 				defaultPath: `${overlayProjectSlug(overlay.name)}.zip`,
@@ -612,6 +571,32 @@
 			});
 		} finally {
 			exporting = false;
+		}
+	}
+
+	async function openInEditor(): Promise<void> {
+		if (!overlay || !overlayId || openingInEditor || exporting) {
+			return;
+		}
+
+		openingInEditor = true;
+
+		try {
+			await saveAndBuild({ force: true });
+			await app.overlay.openInExternalEditor(overlayId, overlay.name);
+
+			app.toast.create({
+				title: t('Opened in editor'),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not open in editor'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+		} finally {
+			openingInEditor = false;
 		}
 	}
 </script>
@@ -684,16 +669,26 @@
 						</div>
 					</div>
 				</div>
-				<Button
-					class="mt-0.5 shrink-0"
-					variant="outline"
-					icon="ri:download-2-line"
-					isLoading={exporting}
-					disabled={exporting}
-					onclick={() => void downloadProjectZip()}
-				>
-					{t('Download ZIP')}
-				</Button>
+				<div class="mt-0.5 flex shrink-0 gap-2">
+					<Button
+						variant="outline"
+						icon="ri:code-box-line"
+						isLoading={openingInEditor}
+						disabled={openingInEditor || exporting}
+						onclick={() => void openInEditor()}
+					>
+						{t('Open in editor')}
+					</Button>
+					<Button
+						variant="outline"
+						icon="ri:download-2-line"
+						isLoading={exporting}
+						disabled={exporting || openingInEditor}
+						onclick={() => void downloadProjectZip()}
+					>
+						{t('Download ZIP')}
+					</Button>
+				</div>
 			</header>
 
 			<div
@@ -824,7 +819,7 @@
 										variant="ghost"
 										size="sm"
 										icon="ri:code-box-line"
-										disabled={!activeEditorView || !activeFileSupportsLsp}
+										disabled={!activeEditorView}
 										onclick={formatActiveEditorDocument}
 									>
 										{t('Format')}
@@ -833,54 +828,43 @@
 							</div>
 
 							<div class="relative min-h-0 flex-1 overflow-hidden">
-								{#if loaded && overlayLspSession}
-									{#key overlayLspSession}
-										{#each tabSourceFiles as file (file.path)}
-											<div
-												class={cn(
-													'absolute inset-0 flex min-h-0 flex-col',
-													activePath !== file.path &&
-														'pointer-events-none invisible'
-												)}
-											>
-												<InputCode
-													language={editorLanguage(file.path)}
-													value={file.content}
-													fillHeight
-													loadingLabel={t('Loading editor…')}
-													class="h-full min-h-0 rounded-none border-0 focus-within:ring-0"
-													sharedLanguageServer={overlayLspSession}
-													languageServerActive={activePath === file.path &&
-														!isTemporaryOverlayPath(file.path) &&
-														overlayFileSupportsLsp(file.path)}
-													activeDocumentUri={toWorkspaceUri(file.path)}
-													activeLanguageId={overlayFileLspLanguageId(file.path) ??
-														'typescript'}
-													onEditorReady={(view) => handleEditorReady(file.path, view)}
-													oninput={(event) => {
-														updateFileContent(
-															file.path,
-															event.currentTarget.value
-														);
-													}}
-												/>
-											</div>
-										{/each}
-									{/key}
-								{/if}
-								{#if !loaded || lspLoading || !overlayLspSession}
+								{#if loaded}
+									{#each tabSourceFiles as file (file.path)}
+										<div
+											class={cn(
+												'absolute inset-0 flex min-h-0 flex-col',
+												activePath !== file.path &&
+													'pointer-events-none invisible'
+											)}
+										>
+											<InputCode
+												language={editorLanguage(file.path)}
+												value={file.content}
+												fillHeight
+												class="h-full min-h-0 rounded-none border-0 focus-within:ring-0"
+												onEditorReady={(view) => handleEditorReady(file.path, view)}
+												oninput={(event) => {
+													updateFileContent(
+														file.path,
+														event.currentTarget.value
+													);
+												}}
+											/>
+										</div>
+									{/each}
+								{:else}
 									<div
 										class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-dark-900/90"
 										role="status"
 										aria-live="polite"
-										aria-label={t('Loading editor…')}
+										aria-label={t('Loading…')}
 									>
 										<Icon
 											icon="gg:spinner"
 											class="size-6 animate-spin text-primary"
 											aria-hidden="true"
 										/>
-										<p class="text-sm text-dark-300">{t('Loading editor…')}</p>
+										<p class="text-sm text-dark-300">{t('Loading…')}</p>
 									</div>
 								{/if}
 							</div>

@@ -7,7 +7,7 @@ import { defineConfig } from 'vite';
 import {
 	createPluginHostViteEntries,
 	getGeneratedVendorDir,
-	getUiSubpaths
+	getPluginHostUiSubpaths
 } from './plugin-host-config.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -33,7 +33,7 @@ export default defineConfig({
 		emptyOutDir: true,
 		cssCodeSplit: false,
 		lib: {
-			entry: createPluginHostViteEntries(vendorDir, getUiSubpaths()),
+			entry: createPluginHostViteEntries(vendorDir, getPluginHostUiSubpaths()),
 			formats: ['es']
 		},
 		rollupOptions: {

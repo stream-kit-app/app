@@ -4,8 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/sync-plugin-host-modules.mjs && node scripts/sync-svelte-lsp-types.mjs && pnpm build:overlay-sdk && vite dev",
-    "build": "node scripts/sync-svelte-lsp-types.mjs && pnpm build:overlay-sdk && pnpm build:plugin-host && vite build",
+    "dev": "node scripts/sync-plugin-host-modules.mjs && pnpm build:overlay-sdk && vite dev",
+    "build": "pnpm build:overlay-sdk && pnpm build:plugin-host && vite build",
     "build:overlay-sdk": "pnpm --filter @stream-kit/overlay-sdk build",
     "build:plugin-host": "node scripts/build-plugin-host.mjs",
     "sync:plugin-host": "node scripts/sync-plugin-host-modules.mjs",

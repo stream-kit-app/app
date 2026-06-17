@@ -1,11 +1,11 @@
-import { $n as e, Gt as t, Hr as n, Mt as r, On as i, Qn as a, Qr as o, Vr as s, Vt as c, Wn as l, Zn as u, Zr as d, ai as f, an as p, bt as m, dn as h, in as g, nn as _, on as v, pr as y, vt as b } from "../../chunks/index-client-BHp3UA-q.js";
+import { $n as e, Gt as t, Hr as n, Mt as r, On as i, Qn as a, Qr as o, Vr as s, Vt as c, Wn as l, Zn as u, Zr as d, an as f, bt as p, dn as m, in as h, ni as g, nn as _, on as v, pr as y, vt as b } from "../../chunks/index-client-BIJQxc2l.js";
 import "../../chunks/disclose-version-YhYaTdgb.js";
-import { t as x } from "../../chunks/utils-CRERhYYg.js";
-import { t as S } from "../../chunks/alert-CHDIJphX.js";
-import { t as C } from "../../chunks/badge-BNL5Y-hP.js";
-import { t as w } from "../../chunks/container-DRRXpJQY.js";
-import { t as T } from "../../chunks/heading-CWUYzyqJ.js";
-import { t as E } from "../../chunks/button-DWJNkhZM.js";
+import { t as x } from "../../chunks/utils-DVQ4nj8f.js";
+import { t as S } from "../../chunks/alert-BK4PV5Qa.js";
+import { t as C } from "../../chunks/badge-ClPbYbEF.js";
+import { t as w } from "../../chunks/container-BCIxS-nN.js";
+import { t as T } from "../../chunks/heading-D9_S_YIf.js";
+import { t as E } from "../../chunks/button-CZMpEwOs.js";
 //#region ../ui/src/lib/blocks/alert/alert-block.svelte
 function D(e, t) {
 	n(t, !0);
@@ -37,8 +37,8 @@ function O(e, t) {
 			},
 			children: (e, n) => {
 				d();
-				var r = h();
-				l(() => _(r, t.block.label)), g(e, r);
+				var r = m();
+				l(() => _(r, t.block.label)), h(e, r);
 			},
 			$$slots: { default: !0 }
 		});
@@ -62,61 +62,61 @@ function A(e, t) {
 			},
 			children: (e, n) => {
 				d();
-				var r = h();
-				l(() => _(r, t.block.label)), g(e, r);
+				var r = m();
+				l(() => _(r, t.block.label)), h(e, r);
 			},
 			$$slots: { default: !0 }
 		});
 	}
-	o(r), g(e, r), s();
+	o(r), h(e, r), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/card/card-block.svelte
 var j = v("<p class=\"text-sm text-dark-100\"> </p>"), M = v("<header class=\"mb-4 flex flex-col gap-1\"><!> <!></header>"), N = v("<section class=\"rounded-lg border border-dark-600 bg-dark-800 p-5\"><!> <div class=\"flex flex-col gap-4\"></div></section>");
-function P(f, m) {
-	n(m, !0);
+function P(p, g) {
+	n(g, !0);
 	var v = N(), y = u(v), b = (n) => {
 		var r = M(), i = u(r), a = (e) => {
 			T(e, {
 				level: "3",
 				children: (e, t) => {
 					d();
-					var n = h();
-					l(() => _(n, m.block.title)), g(e, n);
+					var n = m();
+					l(() => _(n, g.block.title)), h(e, n);
 				},
 				$$slots: { default: !0 }
 			});
 		};
 		t(i, (e) => {
-			m.block.title && e(a);
+			g.block.title && e(a);
 		});
 		var s = e(i, 2), c = (e) => {
 			var t = j(), n = u(t, !0);
-			o(t), l(() => _(n, m.block.description)), g(e, t);
+			o(t), l(() => _(n, g.block.description)), h(e, t);
 		};
 		t(s, (e) => {
-			m.block.description && e(c);
-		}), o(r), g(n, r);
+			g.block.description && e(c);
+		}), o(r), h(n, r);
 	};
 	t(y, (e) => {
-		(m.block.title || m.block.description) && e(b);
+		(g.block.title || g.block.description) && e(b);
 	});
 	var x = e(y, 2);
-	c(x, 23, () => m.block.blocks, (e, t) => `card-${t}`, (e, t) => {
-		var n = p();
-		r(a(n), () => m.renderBlock, () => i(t)), g(e, n);
-	}), o(x), o(v), g(f, v), s();
+	c(x, 23, () => g.block.blocks, (e, t) => `card-${t}`, (e, t) => {
+		var n = f();
+		r(a(n), () => g.renderBlock, () => i(t)), h(e, n);
+	}), o(x), o(v), h(p, v), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/form/form-block.svelte
 function F(e, n) {
-	var i = p(), o = a(i), s = (e) => {
-		var t = p();
-		r(a(t), () => n.renderForm, () => n.block), g(e, t);
+	var i = f(), o = a(i), s = (e) => {
+		var t = f();
+		r(a(t), () => n.renderForm, () => n.block), h(e, t);
 	};
 	t(o, (e) => {
 		n.renderForm && e(s);
-	}), g(e, i);
+	}), h(e, i);
 }
 //#endregion
 //#region ../ui/src/lib/blocks/grid/grid-block.svelte
@@ -125,13 +125,13 @@ function L(e, t) {
 	n(t, !0);
 	var i = I();
 	c(i, 20, () => t.block.blocks, (e) => e, (e, n) => {
-		var i = p();
-		r(a(i), () => t.renderBlock, () => n), g(e, i);
-	}), o(i), l((e) => b(i, 1, e), [() => m(x({
+		var i = f();
+		r(a(i), () => t.renderBlock, () => n), h(e, i);
+	}), o(i), l((e) => b(i, 1, e), [() => p(x({
 		"grid gap-4": t.block.columns === 1,
 		"grid gap-4 md:grid-cols-2": t.block.columns === 2,
 		"grid gap-4 md:grid-cols-3": t.block.columns === 3
-	}))]), g(e, i), s();
+	}))]), h(e, i), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/heading/heading-block.svelte
@@ -148,8 +148,8 @@ function R(e, t) {
 			},
 			children: (e, n) => {
 				d();
-				var r = h();
-				l(() => _(r, t.block.title)), g(e, r);
+				var r = m();
+				l(() => _(r, t.block.title)), h(e, r);
 			},
 			$$slots: { default: !0 }
 		});
@@ -163,9 +163,9 @@ function B(e, t) {
 	n(t, !0);
 	var i = z();
 	c(i, 20, () => t.block.blocks, (e) => e, (e, n) => {
-		var i = p();
-		r(a(i), () => t.renderBlock, () => n), g(e, i);
-	}), o(i), g(e, i), s();
+		var i = f();
+		r(a(i), () => t.renderBlock, () => n), h(e, i);
+	}), o(i), h(e, i), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/text/text-block.svelte
@@ -173,13 +173,13 @@ var V = v("<p class=\"max-w-3xl text-sm leading-6 text-dark-100\"> </p>");
 function H(e, t) {
 	n(t, !0);
 	var r = V(), i = u(r, !0);
-	o(r), l(() => _(i, t.block.text)), g(e, r), s();
+	o(r), l(() => _(i, t.block.text)), h(e, r), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/page-block.svelte
 function U(e, r) {
 	n(r, !0);
-	let i = (e, t = f) => {
+	let i = (e, t = g) => {
 		U(e, {
 			get block() {
 				return t();
@@ -189,7 +189,7 @@ function U(e, r) {
 			}
 		});
 	};
-	var o = p(), c = a(o), l = (e) => {
+	var o = f(), c = a(o), l = (e) => {
 		R(e, { get block() {
 			return r.block;
 		} });
@@ -201,11 +201,11 @@ function U(e, r) {
 		D(e, { get block() {
 			return r.block;
 		} });
-	}, m = (e) => {
+	}, p = (e) => {
 		O(e, { get block() {
 			return r.block;
 		} });
-	}, h = (e) => {
+	}, m = (e) => {
 		P(e, {
 			get block() {
 				return r.block;
@@ -247,8 +247,8 @@ function U(e, r) {
 		});
 	};
 	t(c, (e) => {
-		r.block.type === "heading" ? e(l) : r.block.type === "text" ? e(u, 1) : r.block.type === "alert" ? e(d, 2) : r.block.type === "badge" ? e(m, 3) : r.block.type === "card" ? e(h, 4) : r.block.type === "stack" ? e(_, 5) : r.block.type === "grid" ? e(v, 6) : r.block.type === "button" ? e(y, 7) : r.block.type === "form" && e(b, 8);
-	}), g(e, o), s();
+		r.block.type === "heading" ? e(l) : r.block.type === "text" ? e(u, 1) : r.block.type === "alert" ? e(d, 2) : r.block.type === "badge" ? e(p, 3) : r.block.type === "card" ? e(m, 4) : r.block.type === "stack" ? e(_, 5) : r.block.type === "grid" ? e(v, 6) : r.block.type === "button" ? e(y, 7) : r.block.type === "form" && e(b, 8);
+	}), h(e, o), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/page-blocks.svelte
@@ -266,18 +266,18 @@ function q(n, r) {
 						},
 						children: (e, t) => {
 							d();
-							var n = h();
-							l(() => _(n, r.title)), g(e, n);
+							var n = m();
+							l(() => _(n, r.title)), h(e, n);
 						},
 						$$slots: { default: !0 }
 					});
 				}, s = (e) => {
 					var t = W(), n = u(t, !0);
-					o(t), l(() => _(n, r.description)), g(e, t);
+					o(t), l(() => _(n, r.description)), h(e, t);
 				};
 				t(i, (e) => {
 					r.title ? e(a) : r.description && e(s, 1);
-				}), o(n), g(e, n);
+				}), o(n), h(e, n);
 			};
 			t(s, (e) => {
 				(r.title || r.description) && e(f);
@@ -292,7 +292,7 @@ function q(n, r) {
 						return r.renderForm;
 					}
 				});
-			}), o(p), o(a), g(n, a);
+			}), o(p), o(a), h(n, a);
 		},
 		$$slots: { default: !0 }
 	});

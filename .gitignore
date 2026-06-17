@@ -12,5 +12,4 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /packages/app/src/lib/core/plugins/host/vendor/_generated
-/packages/app/src/lib/codemirror/overlay-svelte-types.d.ts
 /src-tauri

@@ -1,6 +1,10 @@
+import type { TwitchChatBadge, TwitchChatEmote, TwitchChatMessage } from '@stream-kit/core';
+import type { HandlerFieldVariable } from '@stream-kit/plugin';
 import type { ChatMessage } from '@twurple/chat';
 
-import type { HandlerFieldVariable } from '@stream-kit/plugin';
+import { buildEmoteImageUrl } from '@twurple/chat';
+
+import { resolveBadgeUrl } from './badge-cache';
 
 export const USERNAME_VARIABLE: HandlerFieldVariable = {
 	key: 'username',
@@ -40,15 +44,42 @@ export const USER_TEXT_VARIABLES: HandlerFieldVariable[] = [USERNAME_VARIABLE, C
 /** For username fields that target the triggering user. */
 export const TARGET_USER_VARIABLES: HandlerFieldVariable[] = [USERNAME_VARIABLE];
 
-export const MESSAGE_TEXT_VARIABLES: HandlerFieldVariable[] = [
-	USERNAME_VARIABLE,
-	MESSAGE_VARIABLE
-];
+export const MESSAGE_TEXT_VARIABLES: HandlerFieldVariable[] = [USERNAME_VARIABLE, MESSAGE_VARIABLE];
 
-export function chatMessageToJson(msg: ChatMessage): string {
-	return JSON.stringify({
+export type { TwitchChatBadge, TwitchChatEmote, TwitchChatMessage } from '@stream-kit/core';
+
+function twitchEmoteUrl(emoteId: string): string {
+	return buildEmoteImageUrl(emoteId, { backgroundType: 'dark', size: '3.0' });
+}
+
+function mapToRecord(map: Map<string, string>): Record<string, string> {
+	return Object.fromEntries(map);
+}
+
+function badgesToContext(badges: Map<string, string>): TwitchChatBadge[] {
+	return [...badges.entries()].map(([id, version]) => ({
+		id,
+		version,
+		url: resolveBadgeUrl(id, version || '1')
+	}));
+}
+
+function emotesToContext(emoteOffsets: Map<string, string[]>): TwitchChatEmote[] {
+	return [...emoteOffsets.entries()].map(([id, positions]) => ({
+		id,
+		positions,
+		url: twitchEmoteUrl(id)
+	}));
+}
+
+export function chatMessageToContext(msg: ChatMessage, message = ''): TwitchChatMessage {
+	const { userInfo } = msg;
+
+	return {
 		channelId: msg.channelId,
 		id: msg.id,
+		message,
+		date: msg.date.toISOString(),
 		isCheer: msg.isCheer,
 		isRedemption: msg.isRedemption,
 		isHypeChat: msg.isHypeChat,
@@ -62,18 +93,28 @@ export function chatMessageToJson(msg: ChatMessage): string {
 		hypeChatLevel: msg.hypeChatLevel,
 		parentMessageUserName: msg.parentMessageUserName,
 		parentMessageText: msg.parentMessageText,
+		parentMessageUserDisplayName: msg.parentMessageUserDisplayName,
+		badges: badgesToContext(userInfo.badges),
+		badgeInfo: mapToRecord(userInfo.badgeInfo),
+		emotes: emotesToContext(msg.emoteOffsets),
 		userInfo: {
-			userId: msg.userInfo.userId,
-			userName: msg.userInfo.userName,
-			displayName: msg.userInfo.displayName,
-			isMod: msg.userInfo.isMod,
-			isBroadcaster: msg.userInfo.isBroadcaster,
-			isVip: msg.userInfo.isVip,
-			isSubscriber: msg.userInfo.isSubscriber,
-			isArtist: msg.userInfo.isArtist,
-			isFounder: msg.userInfo.isFounder
+			userId: userInfo.userId,
+			userName: userInfo.userName,
+			displayName: userInfo.displayName,
+			color: userInfo.color,
+			userType: userInfo.userType,
+			isMod: userInfo.isMod,
+			isBroadcaster: userInfo.isBroadcaster,
+			isVip: userInfo.isVip,
+			isSubscriber: userInfo.isSubscriber,
+			isArtist: userInfo.isArtist,
+			isFounder: userInfo.isFounder
 		}
-	});
+	};
+}
+
+export function chatMessageToJson(msg: ChatMessage, message = ''): string {
+	return JSON.stringify(chatMessageToContext(msg, message));
 }
 
 export function contextToVariables(context: unknown): Record<string, string> {
@@ -121,7 +162,7 @@ export function contextToVariables(context: unknown): Record<string, string> {
 	set('reason', record.reason);
 
 	if (record.msg && typeof record.msg === 'object') {
-		variables.msg = chatMessageToJson(record.msg as ChatMessage);
+		variables.msg = JSON.stringify(record.msg);
 	}
 
 	return variables;

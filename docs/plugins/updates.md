@@ -1,13 +1,13 @@
 # Plugin updates
 
-Stream Kit can check installed plugins for updates by fetching each plugin's remote `manifest.json`. There is no central marketplace or catalog — authors host their own releases on GitHub, GitLab, or any HTTPS server.
+Stream Kit can check installed plugins for updates by fetching each plugin's remote `manifest.json`. First-party plugins use the site manifest API; third-party authors can still host their own manifests on GitHub, GitLab, or any HTTPS server.
 
 ## How it works
 
-1. The author publishes `manifest.json` and a release zip at stable URLs.
+1. The author publishes release metadata (and a zip) at a stable manifest URL.
 2. The installed plugin stores `updateManifestUrl` from its manifest on disk.
 3. Stream Kit fetches the remote manifest and compares `version` (semver) with the installed version.
-4. If a newer version is available and `downloadUrl` is set, the user can update with one click.
+4. If a newer version is available and `downloadUrl` is set in the remote response, the user can update with one click.
 5. The app downloads the zip, verifies optional `sha256`, replaces `{app_data}/plugins/{key}/`, and reloads the plugin registration. Plugin settings (`plugin.{key}.json`) are preserved when the key stays the same.
 
 Dev-linked plugins are included in update checks. In development mode (`pnpm dev`), Stream Kit shows available updates but does not download or install them.
@@ -18,12 +18,12 @@ Add these optional fields to `manifest.json`:
 
 | Field | Required for updates | Description |
 |-------|----------------------|-------------|
-| `updateManifestUrl` | Yes | HTTPS URL to the published manifest (for example a raw GitHub URL) |
-| `downloadUrl` | Yes in remote manifest | HTTPS URL to the zip for the version described in that manifest |
-| `sha256` | No | Lowercase hex SHA-256 digest of the zip file |
+| `updateManifestUrl` | Yes | HTTPS URL to the published manifest |
+| `downloadUrl` | Yes in remote manifest response | HTTPS URL to the zip (not stored in repo manifests for first-party plugins) |
+| `sha256` | No | Lowercase hex SHA-256 digest of the zip file (provided by remote manifest) |
 | `streamKitVersion` | Recommended | Semver range the plugin supports (for example `>=0.1.0`). Prerelease app builds (for example `0.1.0-alpha.6`) satisfy `>=0.1.0` when their release components meet the requirement. |
 
-Example:
+### Third-party example (self-hosted)
 
 ```json
 {
@@ -38,43 +38,76 @@ Example:
 }
 ```
 
+### First-party example (repo manifest)
+
+Official plugins in this monorepo only set `updateManifestUrl`. Release zips and checksums live in PocketBase (`files` collection):
+
+```json
+{
+  "key": "twitch",
+  "name": "Twitch",
+  "version": "0.1.1-alpha.2",
+  "entry": "dist/index.js",
+  "dependencies": ["core"],
+  "streamKitVersion": ">=0.1.0",
+  "updateManifestUrl": "https://stream-kit.app/api/plugins/twitch/manifest.json"
+}
+```
+
+The manifest API returns `downloadUrl` (PocketBase file URL) and `sha256` derived from the linked `files` record.
+
+For local testing against the site dev server, point `updateManifestUrl` at `http://localhost:5173/api/plugins/{key}/manifest.json`.
+
 ## Author release workflow
+
+### Third-party (self-hosted)
 
 1. Bump `version` in `manifest.json`.
 2. Build the plugin zip (`pnpm --filter @stream-kit/plugin-template package` or your plugin's package script).
 3. Upload the zip to a release (GitHub Releases, GitLab Releases, etc.).
-4. Set `downloadUrl` to the release asset URL.
+4. Set `downloadUrl` to the release asset URL in the hosted manifest.
 5. Optionally compute and set `sha256` for the zip.
 6. Commit and push `manifest.json` so `updateManifestUrl` serves the new version.
 
-Keep `updateManifestUrl` stable across releases. Only `version`, `downloadUrl`, and `sha256` need to change per release.
+Keep `updateManifestUrl` stable across releases. Only `version`, `downloadUrl`, and `sha256` need to change per release in the remote manifest.
 
-## GitHub example
+### Official Stream Kit plugins (PocketBase)
+
+1. Bump `version` in `plugins/{key}/manifest.json`.
+2. Build the plugin zip (`pnpm package:plugins` or per-plugin package script).
+3. Upload the zip to PocketBase (`files` collection) via the admin UI or `pnpm --filter @stream-kit/site pb:seed`.
+4. Create or update the `plugin_versions` record, link the `files` record, and set `isLatest = true`.
+
+The site manifest API (`/api/plugins/{key}/manifest.json`) serves the update metadata to the desktop app automatically.
+
+## GitHub example (third-party)
 
 - Manifest: `https://raw.githubusercontent.com/your-org/my-plugin/main/manifest.json`
 - Zip: `https://github.com/your-org/my-plugin/releases/download/v0.2.0/my-plugin.zip`
 
 ## Official Stream Kit plugins
 
-First-party plugins are published as **distribution-only** repositories under [stream-kit-app](https://github.com/stream-kit-app). Each repo contains `manifest.json` and a README on `main`; release zips live in GitHub Releases.
+First-party plugins are catalogued on the site and stored in PocketBase. Source and development stay in the [stream-kit-app/app](https://github.com/stream-kit-app/app) monorepo.
 
-| Plugin | Distribution repo | Update manifest |
-|--------|-------------------|-----------------|
-| Bot | [plugin-bot](https://github.com/stream-kit-app/plugin-bot) | `https://raw.githubusercontent.com/stream-kit-app/plugin-bot/main/manifest.json` |
-| Core Handlers | [plugin-core](https://github.com/stream-kit-app/plugin-core) | `https://raw.githubusercontent.com/stream-kit-app/plugin-core/main/manifest.json` |
-| OBS | [plugin-obs](https://github.com/stream-kit-app/plugin-obs) | `https://raw.githubusercontent.com/stream-kit-app/plugin-obs/main/manifest.json` |
-| TTS | [plugin-tts](https://github.com/stream-kit-app/plugin-tts) | `https://raw.githubusercontent.com/stream-kit-app/plugin-tts/main/manifest.json` |
-| Twitch | [plugin-twitch](https://github.com/stream-kit-app/plugin-twitch) | `https://raw.githubusercontent.com/stream-kit-app/plugin-twitch/main/manifest.json` |
-| WebSocket | [plugin-websocket](https://github.com/stream-kit-app/plugin-websocket) | `https://raw.githubusercontent.com/stream-kit-app/plugin-websocket/main/manifest.json` |
-| YouTube | [plugin-youtube](https://github.com/stream-kit-app/plugin-youtube) | `https://raw.githubusercontent.com/stream-kit-app/plugin-youtube/main/manifest.json` |
+| Plugin | Update manifest |
+|--------|-----------------|
+| Bot | `https://stream-kit.app/api/plugins/bot/manifest.json` |
+| Core Handlers | `https://stream-kit.app/api/plugins/core/manifest.json` |
+| OBS | `https://stream-kit.app/api/plugins/obs/manifest.json` |
+| TTS | `https://stream-kit.app/api/plugins/tts/manifest.json` |
+| Twitch | `https://stream-kit.app/api/plugins/twitch/manifest.json` |
+| WebSocket | `https://stream-kit.app/api/plugins/websocket/manifest.json` |
+| YouTube | `https://stream-kit.app/api/plugins/youtube/manifest.json` |
 
-Example download URL pattern (Bot `v0.1.1-alpha.2`):
+Distribution-only GitHub repos under [stream-kit-app](https://github.com/stream-kit-app) may still host release zips used by the seed script. The desktop app fetches updates from the site manifest API, not from GitHub raw manifests.
 
+To seed the local PocketBase catalog from GitHub release zips:
+
+```bash
+POCKETBASE_ADMIN_EMAIL=you@example.com POCKETBASE_ADMIN_PASSWORD=your-password pnpm --filter @stream-kit/site pb:seed
 ```
-https://github.com/stream-kit-app/plugin-bot/releases/download/v0.1.1-alpha.2/plugin-bot.zip
-```
 
-Plugin source and development stay in the [stream-kit-app/app](https://github.com/stream-kit-app/app) monorepo. To publish a new plugin version from the monorepo:
+To publish distribution repos from the monorepo (legacy GitHub workflow):
 
 ```bash
 pnpm build:packages

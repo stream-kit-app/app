@@ -24,6 +24,8 @@ import type {
 	WhisperContext
 } from '../contexts';
 import { getBroadcasterId, getBroadcasterName } from './broadcaster';
+import { setBadgeUrl } from './badge-cache';
+import { chatMessageToContext } from './variables';
 
 function createBase(app: PluginAppApi) {
 	return {
@@ -35,6 +37,8 @@ function createBase(app: PluginAppApi) {
 function createMockChatMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
 	return {
 		channelId: '123456789',
+		id: 'test-message-id',
+		date: new Date('2024-01-01T12:00:00.000Z'),
 		isCheer: false,
 		isRedemption: false,
 		isHypeChat: false,
@@ -48,14 +52,22 @@ function createMockChatMessage(overrides: Partial<ChatMessage> = {}): ChatMessag
 		hypeChatLevel: 0,
 		parentMessageUserName: undefined,
 		parentMessageText: undefined,
+		parentMessageUserDisplayName: undefined,
+		emoteOffsets: new Map([['425618', ['0-5']]]),
 		userInfo: {
 			userId: '999001',
 			userName: 'TestUser',
 			displayName: 'TestUser',
+			color: '#9147FF',
+			badges: new Map([
+				['subscriber', '12'],
+				['premium', '1']
+			]),
+			badgeInfo: new Map([['subscriber', '25']]),
 			isMod: false,
 			isBroadcaster: false,
 			isVip: false,
-			isSubscriber: false
+			isSubscriber: true
 		},
 		...overrides
 	} as ChatMessage;
@@ -63,14 +75,18 @@ function createMockChatMessage(overrides: Partial<ChatMessage> = {}): ChatMessag
 
 export function createTestChatMessageContext(app: PluginAppApi): ChatMessageContext {
 	const base = createBase(app);
+	const message = '!test hello from stream kit';
+
+	setBadgeUrl('subscriber', '12', 'https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/3');
+	setBadgeUrl('premium', '1', 'https://static-cdn.jtvnw.net/badges/v1/bbbe0db0-a598-423e-86d0-f9fb98ca1933/3');
 
 	return {
 		...base,
 		user: 'TestUser',
 		userId: '999001',
-		message: '!test hello from stream kit',
+		message,
 		role: 'everyone',
-		msg: createMockChatMessage()
+		msg: chatMessageToContext(createMockChatMessage(), message)
 	};
 }
 

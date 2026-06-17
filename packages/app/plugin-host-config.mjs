@@ -13,6 +13,9 @@ export const PLUGIN_HOST_SVELTE_SUBPATHS = [
 /** UI subpaths that are exported but should not be pre-built in the plugin host. */
 export const PLUGIN_HOST_UI_EXCLUDED_SUBPATHS = new Set(['codemirror']);
 
+/** Non-Svelte UI subpaths that plugins may import at runtime via the plugin host import map. */
+export const PLUGIN_HOST_UI_ADDITIONAL_SUBPATHS = ['codemirror'];
+
 export const PLUGIN_HOST_ROOT_IMPORTS = [
 	['@stream-kit/plugin', 'plugin.js'],
 	['@stream-kit/plugin/action', 'action.js'],
@@ -68,6 +71,10 @@ export function getUiSubpaths(workspaceRoot = getWorkspaceRoot()) {
 		.sort();
 }
 
+export function getPluginHostUiSubpaths(workspaceRoot = getWorkspaceRoot()) {
+	return [...getUiSubpaths(workspaceRoot), ...PLUGIN_HOST_UI_ADDITIONAL_SUBPATHS].sort();
+}
+
 export function isPluginHostExternal(id) {
 	if (PLUGIN_HOST_EXTERNALS.has(id)) {
 		return true;
@@ -84,7 +91,7 @@ export function getGeneratedVendorDir(appRoot = configDir) {
 
 export function syncPluginHostVendorStubs(appRoot = configDir, workspaceRoot = getWorkspaceRoot()) {
 	const vendorDir = getGeneratedVendorDir(appRoot);
-	const uiSubpaths = getUiSubpaths(workspaceRoot);
+	const uiSubpaths = getPluginHostUiSubpaths(workspaceRoot);
 
 	mkdirSync(vendorDir, { recursive: true });
 
@@ -103,7 +110,7 @@ export function syncPluginHostVendorStubs(appRoot = configDir, workspaceRoot = g
 	return { vendorDir, uiSubpaths };
 }
 
-export function createPluginHostViteEntries(vendorDir, uiSubpaths = getUiSubpaths()) {
+export function createPluginHostViteEntries(vendorDir, uiSubpaths = getPluginHostUiSubpaths()) {
 	const entries = {
 		svelte: path.join(vendorDir, 'svelte.ts'),
 		'@iconify/svelte': path.join(vendorDir, 'iconify-svelte.ts')

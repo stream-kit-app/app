@@ -1,2 +1,2 @@
-import { t as e } from "../chunks/Icon-CzS4be53.js";
+import { t as e } from "../chunks/Icon-BoHmh-pv.js";
 export { e as default };

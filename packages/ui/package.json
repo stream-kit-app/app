@@ -125,6 +125,9 @@
 		"codemirror-lang-svelte": "^2.1.0",
 		"codemirror-languageserver": "^1.22.0",
 		"highlight.js": "^11.11.1",
+		"prettier": "^3.8.4",
+		"prettier-plugin-svelte": "^3.5.2",
+		"svelte": "^5.56.1",
 		"svelte-language-server-web": "^0.0.8",
 		"vscode-languageserver-protocol": "^3.18.0"
 	},

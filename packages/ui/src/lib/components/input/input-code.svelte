@@ -6,7 +6,6 @@
 	import type { HTMLTextareaAttributes } from 'svelte/elements';
 
 	import Icon from '@iconify/svelte';
-	import { Compartment } from '@codemirror/state';
 	import { useId } from 'bits-ui';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -33,10 +32,6 @@
 		class?: string;
 		extensions?: Extension[];
 		languageServer?: LanguageServerConfig | null;
-		sharedLanguageServer?: LanguageServerConnection | null;
-		languageServerActive?: boolean;
-		activeDocumentUri?: string;
-		activeLanguageId?: string;
 		loadingLabel?: string;
 		variables?: HandlerFieldVariable[];
 		variablesTitle?: string;
@@ -45,7 +40,6 @@
 	};
 
 	const WORKSPACE_SYNC_DELAY_MS = 450;
-	const lspCompartment = new Compartment();
 
 	let {
 		label,
@@ -60,10 +54,6 @@
 		class: className,
 		extensions = [],
 		languageServer = null,
-		sharedLanguageServer = null,
-		languageServerActive = false,
-		activeDocumentUri = '',
-		activeLanguageId = 'typescript',
 		loadingLabel = 'Loading...',
 		variables = [],
 		variablesTitle = 'Variables',
@@ -135,10 +125,6 @@
 		syncedSourceSignature = '';
 		clearWorkspaceSyncTimer();
 
-		if (sharedLanguageServer) {
-			return [...extensions, lspCompartment.of([]), ...sharedLanguageServer.extensions];
-		}
-
 		if (!languageServer) {
 			return [...extensions];
 		}
@@ -186,25 +172,7 @@
 	});
 
 	$effect(() => {
-		if (!view || !isReady || !sharedLanguageServer) {
-			return;
-		}
-
-		if (languageServerActive && activeDocumentUri && activeLanguageId) {
-			sharedLanguageServer.setActiveEditor(
-				view,
-				lspCompartment,
-				activeDocumentUri,
-				activeLanguageId
-			);
-			return;
-		}
-
-		sharedLanguageServer.clearActiveEditor(view, lspCompartment);
-	});
-
-	$effect(() => {
-		if (!isReady || !lspConnection || !languageServer || sharedLanguageServer) {
+		if (!isReady || !lspConnection || !languageServer) {
 			return;
 		}
 
@@ -236,9 +204,6 @@
 	onDestroy(() => {
 		cancelled = true;
 		clearWorkspaceSyncTimer();
-		if (sharedLanguageServer && view) {
-			sharedLanguageServer.clearActiveEditor(view, lspCompartment);
-		}
 		lspConnection?.destroy();
 		lspConnection = undefined;
 		onEditorReady?.(null);

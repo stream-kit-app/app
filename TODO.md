@@ -76,6 +76,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 ### Overlays & alerts
 
 - [ ] Lokale overlay-server (browser source URL) — basis geïmplementeerd; widget-editor drag-and-drop nog open
+- [ ] `@stream-kit/overlay-sdk` publiceren op npm en code bijwerken zodat overlay-projecten (scaffold, ZIP export, bundler) de package gebruiken i.p.v. `vendor/overlay-sdk` + Vite/TS aliases
 - [ ] Alert-widgets (follow, sub, bits, raid, channel points, donation)
 - [ ] Widget-editor (drag-and-drop of template-gebaseerd)
 - [ ] Chatbox-overlay widget

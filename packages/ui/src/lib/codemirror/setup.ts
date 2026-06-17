@@ -4,6 +4,7 @@ import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers, placeholder as placeholderExt } from '@codemirror/view';
 
 import { streamKitEditorExtensions } from './editor-extensions';
+import { editorDocumentLanguage } from './format-document';
 import { editorIndentExtensions } from './editor-indent';
 import { getLanguageExtensions } from './languages';
 import { streamKitSyntaxHighlighting } from './highlights';
@@ -37,6 +38,7 @@ export function createEditorView(options: CreateEditorOptions): EditorView {
 		EditorView.lineWrapping,
 		keymap.of([indentWithTab, ...defaultKeymap, ...historyKeymap]),
 		...getLanguageExtensions(options.language),
+		editorDocumentLanguage.of(options.language),
 		updateListener,
 		...(options.extensions ?? [])
 	];
