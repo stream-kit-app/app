@@ -15,10 +15,23 @@
 		groupId: string;
 		index: number;
 		children: Snippet;
+		count?: number;
 		isOverlay?: boolean;
+		collapsed?: boolean;
+		onCollapsedChange?: (collapsed: boolean) => void;
 	};
 
-	let { groupId, index, children, isOverlay = false }: Props = $props();
+	let {
+		groupId,
+		index,
+		children,
+		count,
+		isOverlay = false,
+		collapsed = false,
+		onCollapsedChange
+	}: Props = $props();
+
+	const collapsible = $derived(!isOverlay && onCollapsedChange != null);
 	const { t } = useI18n();
 
 	const displayName = $derived(capitalize(groupId));
@@ -46,12 +59,42 @@
 		>
 			<Icon icon="ri:draggable" class="size-4" aria-hidden="true" />
 		</button>
-		<Heading level="4" class="text-dark-300 uppercase">{displayName}</Heading>
+
+		{#if collapsible}
+			<button
+				type="button"
+				class="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-dark-800"
+				aria-expanded={!collapsed}
+				aria-label={collapsed
+					? t('Expand group {name}', { name: displayName })
+					: t('Collapse group {name}', { name: displayName })}
+				onclick={() => onCollapsedChange?.(!collapsed)}
+			>
+				<Icon
+					icon={collapsed ? 'ri:arrow-right-s-line' : 'ri:arrow-down-s-line'}
+					class="size-4 shrink-0 text-dark-400"
+					aria-hidden="true"
+				/>
+				<Heading level="4" class="text-dark-300 uppercase">{displayName}</Heading>
+				{#if count != null}
+					<span class="text-xs font-normal text-dark-500">({count})</span>
+				{/if}
+			</button>
+		{:else}
+			<div class="flex min-w-0 flex-1 items-center gap-2 px-1">
+				<Heading level="4" class="text-dark-300 uppercase">{displayName}</Heading>
+				{#if count != null}
+					<span class="text-xs font-normal text-dark-500">({count})</span>
+				{/if}
+			</div>
+		{/if}
 	</div>
 
-	<div class="relative">
-		<div class={cn(isDragging.current && !isOverlay && 'pointer-events-none select-none')}>
-			{@render children()}
+	{#if !collapsed || isOverlay}
+		<div class="relative">
+			<div class={cn(isDragging.current && !isOverlay && 'pointer-events-none select-none')}>
+				{@render children()}
+			</div>
 		</div>
-	</div>
+	{/if}
 </section>

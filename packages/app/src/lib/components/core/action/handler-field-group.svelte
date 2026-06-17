@@ -6,8 +6,10 @@
 	import type {
 		HandlerFieldDefinition,
 		HandlerFieldInstance,
+		HandlerFieldScalarValue,
 		HandlerFieldVariable,
 		KeyValueEntry,
+		OneOfFieldValue,
 		ResolvedHandlerFieldDefinition,
 		TextSelectTextFieldValue
 	} from '$lib/core/action/handler/field';
@@ -25,8 +27,11 @@
 		InputText,
 		InputTextSelect,
 		InputTextSelectText,
-		InputTextVariables
+		InputTextVariables,
+		InputOneOf
 	} from '@stream-kit/ui/input';
+
+	import HandlerSubFieldInput from './handler-sub-field-input.svelte';
 
 	import { MapContentPopover } from '$lib/components/core/map';
 	import { getApp } from '$lib/core/registry';
@@ -131,6 +136,20 @@
 	}
 	function isExistingMapNameField(config: ResolvedHandlerFieldDefinition): boolean {
 		return config.type === 'combobox' && config.key === 'map-name' && config.allowCustomValue === false;
+	}
+
+	function getOneOfValue(field: HandlerFieldInstance): OneOfFieldValue {
+		const value = field.value;
+
+		if (value && typeof value === 'object' && 'variant' in value && 'values' in value) {
+			return value as OneOfFieldValue;
+		}
+
+		return { variant: '', values: {} };
+	}
+
+	function setOneOfValue(field: HandlerFieldInstance, next: OneOfFieldValue): void {
+		field.value = next;
 	}
 </script>
 
@@ -306,7 +325,29 @@
 				{error}
 			/>
 		{/if}
-	{/if}
+{:else if config.type === 'one-of'}
+	<InputOneOf
+		label={config.name}
+		required={config.required}
+		error={error}
+		variants={config.variants.map((variant) => ({ id: variant.id, label: variant.label }))}
+		bind:value={() => getOneOfValue(field), (next) => setOneOfValue(field, next as OneOfFieldValue)}
+	>
+		{#snippet panel({ variantId, value, setValue })}
+			{@const activeVariant = config.variants.find((variant) => variant.id === variantId)}
+			{#if activeVariant}
+				<HandlerSubFieldInput
+					{handler}
+					config={activeVariant.field}
+					value={value as HandlerFieldScalarValue}
+					{error}
+					{contextVariables}
+					onValueChange={(next) => setValue(next)}
+				/>
+			{/if}
+		{/snippet}
+	</InputOneOf>
+{/if}
 {/snippet}
 
 <div class={cn('grid gap-4')}>

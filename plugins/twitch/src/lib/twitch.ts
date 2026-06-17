@@ -164,6 +164,7 @@ export function createTwitchPluginApi(
 		void refreshBadgeCache(app).finally(() => {
 			rebindExistingMessageHandlers(app);
 		});
+		app.actions.reactivateAll();
 		notify();
 	}
 
@@ -242,6 +243,7 @@ export function createTwitchPluginApi(
 			isConnected = false;
 			isAuthenticating = false;
 			accessToken = undefined;
+			app.actions.reactivateAll();
 			notify();
 		},
 		subscribe(listener) {

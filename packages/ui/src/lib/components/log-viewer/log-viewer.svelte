@@ -100,7 +100,16 @@
 			);
 		}
 
-		return list;
+		const seenIds = new Set<string>();
+
+		return list.filter((entry) => {
+			if (seenIds.has(entry.id)) {
+				return false;
+			}
+
+			seenIds.add(entry.id);
+			return true;
+		});
 	});
 
 	const levelIcons: Record<LogViewerLevel, string> = {

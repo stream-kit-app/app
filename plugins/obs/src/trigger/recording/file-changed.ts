@@ -1,18 +1,18 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
 import type { TriggerDefinitionProps } from '@stream-kit/plugin';
 
-import type { OutputStateContext } from '../../contexts';
+import type { RecordFileChangedContext } from '../../contexts';
 import { OBS_EVENTS } from '../../lib/event-hub';
-import { createTestRecordingStoppedContext } from '../../lib/test-contexts';
+import { createTestRecordFileChangedContext } from '../../lib/test-contexts';
 import { createOnTest, createSimpleActivate, createDeactivate } from '../../lib/trigger-helpers';
 import { subscribeObsEvent } from '../../lib/websocket-setup';
 
-export const createRecordingStoppedTrigger = (_app: PluginAppApi) =>
+export const createRecordFileChangedTrigger = (_app: PluginAppApi) =>
 	({
-		name: 'Recording Stopped',
+		name: 'Record File Changed',
 		activate: createSimpleActivate((handler) =>
-			subscribeObsEvent<OutputStateContext>(OBS_EVENTS.RECORDING_STOPPED, handler)
+			subscribeObsEvent<RecordFileChangedContext>(OBS_EVENTS.RECORD_FILE_CHANGED, handler)
 		),
-		onTest: createOnTest(() => createTestRecordingStoppedContext()),
+		onTest: createOnTest(() => createTestRecordFileChangedContext()),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;

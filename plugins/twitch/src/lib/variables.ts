@@ -149,6 +149,7 @@ export function contextToVariables(context: unknown): Record<string, string> {
 	set('viewers', record.viewers);
 	set('duration', record.duration);
 	set('rewardId', record.rewardId);
+	set('reward', record.rewardId);
 	set('rewardTitle', record.rewardTitle);
 	set('redemptionId', record.redemptionId);
 	set('input', record.input);

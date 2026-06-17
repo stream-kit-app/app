@@ -70,7 +70,7 @@
 <div class="relative min-w-0">
 	<div
 		class={cn(
-			'grid grid-cols-[auto_1fr_200px_200px_auto] items-center rounded-xl border transition-colors',
+			'grid grid-cols-[auto_1fr_auto_auto_auto] items-center overflow-hidden rounded-xl border transition-colors',
 			{
 				'border-destructive-500 bg-destructive-800 hover:bg-destructive-600':
 					action.hasUnavailableDefinitions,
@@ -100,12 +100,10 @@
 		</div>
 		<button
 			type="button"
-			class={cn(
-				'group col-span-3 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left transition-colors'
-			)}
+			class="group col-span-3 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left transition-colors"
 			onclick={() => action.open()}
 		>
-			<span class={cn(!action.enabled && 'text-dark-400')}>{action.name.trim()}</span>
+			<span class={cn('font-medium', !action.enabled ? 'text-dark-400' : 'text-dark-50')}>{action.name.trim()}</span>
 			<Badge
 				size="lg"
 				variant={action.triggers.some((trigger) => !trigger.definition.isAvailable)

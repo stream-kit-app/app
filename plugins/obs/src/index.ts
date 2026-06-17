@@ -2,7 +2,22 @@ import type { ObsPluginApi, ObsPluginController } from './lib/obs';
 import type { Plugin } from '@stream-kit/plugin';
 
 import { configureFieldValueResolver } from './get-field-value';
+import {
+	createCreateFilterHandler,
+	createDisableFilterHandler,
+	createEnableFilterHandler,
+	createRemoveFilterHandler,
+	createSetFilterSettingsHandler,
+	createToggleFilterHandler
+} from './handler/filter/index';
 import { createTriggerHotkeyHandler } from './handler/hotkey/trigger';
+import {
+	createGetMediaStatusHandler,
+	createOffsetMediaCursorHandler,
+	createSetMediaCursorHandler,
+	createSetMediaInputFileHandler,
+	createTriggerMediaActionHandler
+} from './handler/media/index';
 import {
 	createPauseRecordHandler,
 	createResumeRecordHandler,
@@ -25,12 +40,14 @@ import {
 	createSetInputTextHandler,
 	createSetInputVolumeHandler,
 	createShowSceneItemHandler,
-	createToggleFilterHandler,
 	createToggleInputMuteHandler,
-	createTriggerMediaActionHandler,
 	createUnmuteInputHandler
 } from './handler/source/index';
 import {
+	createCreateRecordChapterHandler,
+	createGetRecordStatusHandler,
+	createGetStreamStatusHandler,
+	createSendStreamCaptionHandler,
 	createStartStreamHandler,
 	createStopStreamHandler,
 	createToggleStreamHandler
@@ -50,13 +67,19 @@ import {
 	createToggleVirtualCamHandler
 } from './handler/virtualcam/index';
 import { createObsPluginApi } from './lib/obs';
+import { createRecordFileChangedTrigger } from './trigger/recording/file-changed';
 import { createRecordingStartedTrigger } from './trigger/recording/started';
+import {
+	createRecordingPausedTrigger,
+	createRecordingResumedTrigger
+} from './trigger/recording/states';
 import { createRecordingStoppedTrigger } from './trigger/recording/stopped';
 import {
 	createReplayBufferSavedTrigger,
 	createReplayBufferStartedTrigger,
 	createReplayBufferStoppedTrigger
 } from './trigger/replay-buffer/index';
+import { createMediaActionTriggeredTrigger } from './trigger/media/index';
 import {
 	createPreviewSceneChangedTrigger,
 	createSceneChangedTrigger
@@ -69,7 +92,13 @@ import {
 	createMediaEndedTrigger,
 	createMediaStartedTrigger
 } from './trigger/source/index';
+import { createFilterDisabledTrigger, createFilterEnabledTrigger } from './trigger/filter/index';
 import { createStreamStartedTrigger } from './trigger/stream/started';
+import {
+	createStreamReconnectingTrigger,
+	createStreamStartingTrigger,
+	createStreamStoppingTrigger
+} from './trigger/stream/states';
 import { createStreamStoppedTrigger } from './trigger/stream/stopped';
 import {
 	createStudioModeDisabledTrigger,
@@ -86,9 +115,12 @@ import {
 
 export type {
 	ObsContext,
+	FilterContext,
 	InputStateContext,
+	MediaActionContext,
 	MediaContext,
 	OutputStateContext,
+	RecordFileChangedContext,
 	SceneChangedContext,
 	StudioModeContext,
 	TransitionContext
@@ -157,7 +189,7 @@ const plugin: Plugin = (app) => {
 		icon: 'ri:live-line',
 		api: publicApi,
 		isConfigured: ({ getValue }) =>
-			getValue('host') && getValue('port') && getValue('password'),
+			Boolean(getValue('host') && getValue('port') && getValue('password')),
 		settings: [
 			{
 				type: 'alert',
@@ -292,13 +324,22 @@ const plugin: Plugin = (app) => {
 					},
 					{
 						name: 'Stream',
-						children: [createStreamStartedTrigger(app), createStreamStoppedTrigger(app)]
+						children: [
+							createStreamStartingTrigger(app),
+							createStreamStartedTrigger(app),
+							createStreamStoppingTrigger(app),
+							createStreamStoppedTrigger(app),
+							createStreamReconnectingTrigger(app)
+						]
 					},
 					{
 						name: 'Recording',
 						children: [
 							createRecordingStartedTrigger(app),
-							createRecordingStoppedTrigger(app)
+							createRecordingPausedTrigger(app),
+							createRecordingResumedTrigger(app),
+							createRecordingStoppedTrigger(app),
+							createRecordFileChangedTrigger(app)
 						]
 					},
 					{
@@ -322,9 +363,22 @@ const plugin: Plugin = (app) => {
 							createInputMutedTrigger(app),
 							createInputUnmutedTrigger(app),
 							createInputShownTrigger(app),
-							createInputHiddenTrigger(app),
+							createInputHiddenTrigger(app)
+						]
+					},
+					{
+						name: 'Media',
+						children: [
 							createMediaStartedTrigger(app),
-							createMediaEndedTrigger(app)
+							createMediaEndedTrigger(app),
+							createMediaActionTriggeredTrigger(app)
+						]
+					},
+					{
+						name: 'Filter',
+						children: [
+							createFilterEnabledTrigger(app),
+							createFilterDisabledTrigger(app)
 						]
 					},
 					{
@@ -358,7 +412,9 @@ const plugin: Plugin = (app) => {
 						children: [
 							createStartStreamHandler(app),
 							createStopStreamHandler(app),
-							createToggleStreamHandler(app)
+							createToggleStreamHandler(app),
+							createSendStreamCaptionHandler(app),
+							createGetStreamStatusHandler(app)
 						]
 					},
 					{
@@ -369,7 +425,9 @@ const plugin: Plugin = (app) => {
 							createToggleRecordHandler(app),
 							createPauseRecordHandler(app),
 							createResumeRecordHandler(app),
-							createSplitRecordHandler(app)
+							createSplitRecordHandler(app),
+							createGetRecordStatusHandler(app),
+							createCreateRecordChapterHandler(app)
 						]
 					},
 					{
@@ -397,14 +455,30 @@ const plugin: Plugin = (app) => {
 							createToggleInputMuteHandler(app),
 							createSetInputVolumeHandler(app),
 							createSetInputTextHandler(app),
-							createTriggerMediaActionHandler(app),
 							createShowSceneItemHandler(app),
 							createHideSceneItemHandler(app)
 						]
 					},
 					{
+						name: 'Media',
+						children: [
+							createSetMediaInputFileHandler(app),
+							createTriggerMediaActionHandler(app),
+							createSetMediaCursorHandler(app),
+							createOffsetMediaCursorHandler(app),
+							createGetMediaStatusHandler(app)
+						]
+					},
+					{
 						name: 'Filter',
-						children: [createToggleFilterHandler(app)]
+						children: [
+							createEnableFilterHandler(app),
+							createDisableFilterHandler(app),
+							createToggleFilterHandler(app),
+							createSetFilterSettingsHandler(app),
+							createCreateFilterHandler(app),
+							createRemoveFilterHandler(app)
+						]
 					},
 					{
 						name: 'Studio Mode',

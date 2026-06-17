@@ -1,5 +1,7 @@
 {
 	"Actions": "Acties",
+	"No actions yet": "Nog geen acties",
+	"Create your first action to automate tasks.": "Maak je eerste actie om taken te automatiseren.",
 	"Add Action": "Actie toevoegen",
 	"Add at least one handler": "Voeg minstens één handler toe",
 	"Add at least one trigger": "Voeg minstens één trigger toe",
@@ -35,6 +37,8 @@
 	"Disable selected": "Geselecteerde uitschakelen",
 	"Drag to reorder {name}": "Sleep om {name} te herschikken",
 	"Drag to reorder group {name}": "Sleep om groep {name} te herschikken",
+	"Collapse group {name}": "Groep {name} inklappen",
+	"Expand group {name}": "Groep {name} uitklappen",
 	"Moving: {name}": "Verplaatsen: {name}",
 	"Moving group: {name}": "Groep verplaatsen: {name}",
 	"Enable selected": "Geselecteerde inschakelen",

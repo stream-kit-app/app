@@ -3,6 +3,7 @@ import type { CorePluginApi } from '@stream-kit/plugin';
 import type { HandlerFieldVariable } from '@stream-kit/ui/types';
 
 import type { App } from '../app.svelte';
+import { getApp } from '../registry';
 import type { ActionHandler } from './action-handler.svelte';
 import type { Action } from './action.svelte';
 import type { ActionTrigger } from './action-trigger.svelte';
@@ -70,8 +71,15 @@ export function getTriggerVariables(action: Action, trigger: ActionTrigger): Han
 	}
 
 	const data = trigger.definition.onTest(action, trigger);
+	const core = getApp().plugins.tryGet<CorePluginApi>('core');
+	const variables =
+		core?.variables.resolve({
+			trigger: trigger.definition.name,
+			data,
+			actionVariables: {}
+		}) ?? contextToVariables(data);
 
-	return toVariableList(contextToVariables(data));
+	return toVariableList(variables);
 }
 
 export function getGlobalVariables(app: App): HandlerFieldVariable[] {

@@ -12,7 +12,18 @@ export type TextSelectTextFieldValue = {
 	negate?: boolean;
 };
 
-export type HandlerFieldValue = string | boolean | KeyValueEntry[] | TextSelectTextFieldValue;
+export type OneOfFieldValue = {
+	variant: string;
+	values: Record<string, HandlerFieldScalarValue>;
+};
+
+export type HandlerFieldScalarValue =
+	| string
+	| boolean
+	| KeyValueEntry[]
+	| TextSelectTextFieldValue;
+
+export type HandlerFieldValue = HandlerFieldScalarValue | OneOfFieldValue;
 
 export type HandlerFieldItemsContext = {
 	getFieldValue: (key: string) => HandlerFieldValue | undefined;
@@ -41,8 +52,12 @@ export type HandlerFileFilter = {
 	extensions: string[];
 };
 
-/** A selectable field definition for the Add Field dropdown on handlers. */
-export type HandlerFieldDefinition =
+export type HandlerOneOfMigrateFrom = {
+	keys: string[];
+	variantMap: Record<string, string>;
+};
+
+export type HandlerOneOfInnerFieldDefinition =
 	| (HandlerFieldBase & {
 			type: 'text';
 			variables?: HandlerFieldVariable[];
@@ -71,7 +86,17 @@ export type HandlerFieldDefinition =
 			type: 'code';
 			language?: 'typescript';
 			defaultValue?: string;
-	  })
+	  });
+
+export type HandlerOneOfVariantDefinition = {
+	id: string;
+	label: string;
+	field: HandlerOneOfInnerFieldDefinition;
+};
+
+/** A selectable field definition for the Add Field dropdown on handlers. */
+export type HandlerFieldDefinition =
+	| HandlerOneOfInnerFieldDefinition
 	| (HandlerFieldBase & {
 			type: 'key-value-list';
 			keyPlaceholder?: string;
@@ -86,6 +111,12 @@ export type HandlerFieldDefinition =
 			allowNegate?: boolean;
 			valuelessOperators?: readonly string[];
 			defaultValue?: TextSelectTextFieldValue;
+	  })
+	| (HandlerFieldBase & {
+			type: 'one-of';
+			defaultVariant?: string;
+			variants: HandlerOneOfVariantDefinition[];
+			migrateFrom?: HandlerOneOfMigrateFrom[];
 	  });
 
 export type ResolvedHandlerFieldDefinition = HandlerFieldDefinition & {

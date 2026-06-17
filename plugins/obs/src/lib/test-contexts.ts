@@ -1,18 +1,30 @@
 import type {
+	FilterContext,
 	InputStateContext,
+	MediaActionContext,
 	MediaContext,
 	OutputStateContext,
+	RecordFileChangedContext,
 	ReplayBufferContext,
 	SceneChangedContext,
 	StudioModeContext,
 	TransitionContext,
 	VirtualCamContext
 } from '../contexts';
+import { OBS_OUTPUT_STATES } from './event-hub';
 
 export function createTestOutputStateContext(): OutputStateContext {
 	return {
 		outputActive: true,
-		outputState: 'OBS_WEBSOCKET_OUTPUT_STARTED'
+		outputState: OBS_OUTPUT_STATES.STARTED
+	};
+}
+
+export function createTestRecordingStoppedContext(): OutputStateContext {
+	return {
+		outputActive: false,
+		outputState: OBS_OUTPUT_STATES.STOPPED,
+		outputPath: 'C:/Videos/recording.mp4'
 	};
 }
 
@@ -36,6 +48,28 @@ export function createTestMediaContext(): MediaContext {
 	return {
 		inputName: 'Test Media Source',
 		inputUuid: 'test-media-uuid'
+	};
+}
+
+export function createTestMediaActionContext(): MediaActionContext {
+	return {
+		inputName: 'Test Media Source',
+		inputUuid: 'test-media-uuid',
+		mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'
+	};
+}
+
+export function createTestFilterContext(): FilterContext {
+	return {
+		sourceName: 'Test Input',
+		filterName: 'Color Correction',
+		filterEnabled: true
+	};
+}
+
+export function createTestRecordFileChangedContext(): RecordFileChangedContext {
+	return {
+		newOutputPath: 'C:/Videos/recording-001.mp4'
 	};
 }
 

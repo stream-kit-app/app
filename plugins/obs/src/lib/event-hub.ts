@@ -5,8 +5,14 @@ export const OBS_EVENTS = {
 	TRANSITION_ENDED: 'obs:transition-ended',
 	STREAM_STARTED: 'obs:stream-started',
 	STREAM_STOPPED: 'obs:stream-stopped',
+	STREAM_STARTING: 'obs:stream-starting',
+	STREAM_STOPPING: 'obs:stream-stopping',
+	STREAM_RECONNECTING: 'obs:stream-reconnecting',
 	RECORDING_STARTED: 'obs:recording-started',
 	RECORDING_STOPPED: 'obs:recording-stopped',
+	RECORDING_PAUSED: 'obs:recording-paused',
+	RECORDING_RESUMED: 'obs:recording-resumed',
+	RECORD_FILE_CHANGED: 'obs:record-file-changed',
 	REPLAY_BUFFER_STARTED: 'obs:replay-buffer-started',
 	REPLAY_BUFFER_STOPPED: 'obs:replay-buffer-stopped',
 	REPLAY_BUFFER_SAVED: 'obs:replay-buffer-saved',
@@ -18,6 +24,19 @@ export const OBS_EVENTS = {
 	INPUT_HIDDEN: 'obs:input-hidden',
 	MEDIA_STARTED: 'obs:media-started',
 	MEDIA_ENDED: 'obs:media-ended',
+	MEDIA_ACTION_TRIGGERED: 'obs:media-action-triggered',
+	FILTER_ENABLED: 'obs:filter-enabled',
+	FILTER_DISABLED: 'obs:filter-disabled',
 	STUDIO_MODE_ENABLED: 'obs:studio-mode-enabled',
 	STUDIO_MODE_DISABLED: 'obs:studio-mode-disabled'
+} as const;
+
+export const OBS_OUTPUT_STATES = {
+	STARTING: 'OBS_WEBSOCKET_OUTPUT_STARTING',
+	STARTED: 'OBS_WEBSOCKET_OUTPUT_STARTED',
+	STOPPING: 'OBS_WEBSOCKET_OUTPUT_STOPPING',
+	STOPPED: 'OBS_WEBSOCKET_OUTPUT_STOPPED',
+	RECONNECTING: 'OBS_WEBSOCKET_OUTPUT_RECONNECTING',
+	PAUSED: 'OBS_WEBSOCKET_OUTPUT_PAUSED',
+	RESUMED: 'OBS_WEBSOCKET_OUTPUT_RESUMED'
 } as const;

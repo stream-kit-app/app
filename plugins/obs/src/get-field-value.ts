@@ -2,6 +2,7 @@ import type { CorePluginApi, PluginAppApi } from '@stream-kit/plugin';
 import {
 	getFieldValue as getFieldValueCore,
 	interpolateVariables,
+	resolveOneOfFieldText as resolveOneOfFieldTextCore,
 	type HandlerFieldInstance,
 	type HandlerTriggerContext
 } from '@stream-kit/core';
@@ -33,4 +34,12 @@ export function resolveFieldText(
 	}
 
 	return interpolateVariables(value, resolveVariables(context));
+}
+
+export function resolveOneOfFieldText(
+	fields: HandlerFieldInstance[],
+	key: string,
+	context: HandlerTriggerContext
+): string | undefined {
+	return resolveOneOfFieldTextCore(fields, key, context, resolveVariables);
 }

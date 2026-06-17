@@ -10,10 +10,13 @@ export {
 	getCronValidationError,
 	getFieldValue,
 	getLocalTimezone,
+	getOneOfFieldValue,
 	interpolateVariables,
+	isOneOfFieldValue,
 	isValidCronExpression,
 	normalizeCronExpression,
 	parseCommand,
 	resolveFieldText,
+	resolveOneOfFieldText,
 	splitCronParts
 } from '@stream-kit/core';

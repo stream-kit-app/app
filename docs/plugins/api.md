@@ -188,3 +188,81 @@ Every plugin needs a stable manifest `key`:
 ```
 
 See [Plugin Development](./development.md) for the full workflow.
+
+## Handler field types
+
+Handler definitions can include a `fields` array. Common field types include `text`, `select`, `combobox`, `select-file-or-folder`, `checkbox`, `switch`, `code`, and `key-value-list`.
+
+### `one-of` (tabbed input)
+
+Use `one-of` when the user should pick **one of several input methods** for the same logical value (for example a file path typed manually vs chosen with a file picker).
+
+```ts
+{
+	type: 'one-of',
+	name: 'Media file',
+	required: true,
+	defaultVariant: 'path',
+	variants: [
+		{
+			id: 'path',
+			label: 'Path',
+			field: {
+				type: 'text',
+				name: 'Path',
+				placeholder: 'C:/Videos/clip.mp4'
+			}
+		},
+		{
+			id: 'file',
+			label: 'File',
+			field: {
+				type: 'select-file-or-folder',
+				mode: 'file',
+				name: 'File'
+			}
+		}
+	]
+}
+```
+
+Stored value shape:
+
+```ts
+{
+	variant: 'path',
+	values: {
+		path: 'C:/Videos/clip.mp4',
+		file: ''
+	}
+}
+```
+
+Inactive variant values are preserved when switching tabs. Validation applies to the **active** variant only.
+
+Read values in handler `execute` with:
+
+```ts
+import { getOneOfFieldValue, resolveOneOfFieldText } from '@stream-kit/core';
+
+const oneOf = getOneOfFieldValue(handler.fields, 'media-file');
+const filePath = resolveOneOfFieldText(handler.fields, 'media-file', context, toVariables);
+```
+
+#### Legacy migration
+
+When replacing multiple flat fields with a single `one-of`, use `migrateFrom` so existing saved actions keep their values:
+
+```ts
+migrateFrom: [
+	{
+		keys: ['media-file-path', 'media-file'],
+		variantMap: {
+			'media-file-path': 'path',
+			'media-file': 'file'
+		}
+	}
+]
+```
+
+Nested `one-of` fields inside variants are not supported in v1.

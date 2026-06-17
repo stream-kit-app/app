@@ -6,6 +6,11 @@ export type SceneChangedContext = {
 export type OutputStateContext = {
 	outputActive: boolean;
 	outputState: string;
+	outputPath?: string;
+};
+
+export type RecordFileChangedContext = {
+	newOutputPath: string;
 };
 
 export type TransitionContext = {
@@ -25,6 +30,18 @@ export type MediaContext = {
 	inputUuid?: string;
 };
 
+export type MediaActionContext = {
+	inputName: string;
+	inputUuid?: string;
+	mediaAction: string;
+};
+
+export type FilterContext = {
+	sourceName: string;
+	filterName: string;
+	filterEnabled: boolean;
+};
+
 export type ReplayBufferContext = OutputStateContext;
 
 export type VirtualCamContext = OutputStateContext;
@@ -36,9 +53,12 @@ export type StudioModeContext = {
 export type ObsContext =
 	| SceneChangedContext
 	| OutputStateContext
+	| RecordFileChangedContext
 	| TransitionContext
 	| InputStateContext
 	| MediaContext
+	| MediaActionContext
+	| FilterContext
 	| ReplayBufferContext
 	| VirtualCamContext
 	| StudioModeContext;

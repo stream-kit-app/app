@@ -109,15 +109,9 @@
 		return filterSelectItems(resolvedItems.items, searchQuery);
 	});
 
-	$effect(() => {
-		searchQuery;
-
-		if (!open) {
-			return;
-		}
-
+	function handleSearchQueryChange(): void {
 		dropdownScroll.resetScroll();
-	});
+	}
 
 	async function handleOpenChange(nextOpen: boolean) {
 		open = nextOpen;
@@ -129,12 +123,6 @@
 		}
 
 		await tick();
-
-		if (showSearch) {
-			await tick();
-			searchInputElement?.focus();
-		}
-
 		dropdownScroll.scrollToValue(displayItems, selectedValue);
 	}
 </script>
@@ -212,7 +200,9 @@
 			{#if showSearch && !resolvedItems.loading}
 				<SelectDropdownSearch
 					bind:query={searchQuery}
+					onQueryChange={handleSearchQueryChange}
 					bind:inputElement={searchInputElement}
+					autofocus={open}
 					placeholder={resolvedSearchPlaceholder}
 					ariaLabel={resolvedSearchPlaceholder}
 				/>
@@ -232,11 +222,13 @@
 						{resolvedLoadingPlaceholder}
 					</div>
 				{:else if displayItems.length > 0}
-					<VirtualSelectItems
-						items={displayItems}
-						scrollTop={dropdownScroll.scrollTop}
-						item={selectItem}
-					/>
+					{#key `${searchQuery}:${displayItems.length}`}
+						<VirtualSelectItems
+							items={displayItems}
+							scrollTop={dropdownScroll.scrollTop}
+							item={selectItem}
+						/>
+					{/key}
 				{:else if showSearch && searchQuery.trim()}
 					<div class="px-3 py-1.5 text-sm text-dark-300">{resolvedNoResultsLabel}</div>
 				{/if}

@@ -9,6 +9,10 @@
 	import { watch } from 'runed';
 
 	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
+	import {
+		collapsedGroups,
+		setActionGroupCollapsed
+	} from '$lib/components/core/action/action-group-collapse.svelte';
 	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
 	import { applyDndMove, type DndDragEvent } from '$lib/components/core/action/dnd-events';
@@ -18,6 +22,8 @@
 		getGroupOrder,
 		type DndActionLayout
 	} from '$lib/core/action/action-layout';
+	import Icon from '@iconify/svelte';
+
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
@@ -135,7 +141,9 @@
 	</header>
 
 	{#if selectableActions.length > 0}
-		<div class="mt-6 flex flex-wrap items-center gap-4">
+		<div
+			class="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-dark-600 bg-dark-800 px-4 py-2.5"
+		>
 			<InputCheckbox
 				inline
 				label={t('Select all')}
@@ -145,6 +153,7 @@
 				<span class="text-sm text-dark-300">
 					{t('{count} selected', { count: selection.selectedIds.size })}
 				</span>
+				<div class="h-4 w-px bg-dark-600"></div>
 				<Button size="sm" variant="outline" onclick={() => void enableSelected()}>
 					{t('Enable selected')}
 				</Button>
@@ -172,10 +181,35 @@
 		onDragOver={handleDragOver}
 		onDragEnd={handleDragEnd}
 	>
+		{#if selectableActions.length === 0}
+			<div class="mt-12 flex flex-col items-center gap-4 py-12 text-center">
+				<div class="flex size-16 items-center justify-center rounded-2xl border border-dark-600 bg-dark-800">
+					<Icon icon="ri:flashlight-line" class="size-8 text-dark-400" aria-hidden="true" />
+				</div>
+				<div class="flex flex-col gap-1.5">
+					<p class="text-base font-medium text-dark-200">{t('No actions yet')}</p>
+					<p class="text-sm text-dark-400">{t('Create your first action to automate tasks.')}</p>
+				</div>
+				<Button
+					icon="ri:add-fill"
+					variant="outline"
+					onclick={() => Action.createDraft().open()}
+				>
+					{t('Add Action')}
+				</Button>
+			</div>
+		{/if}
+
 		<div class="mt-8 grid gap-6">
 			{#each groupOrder as groupId, groupIndex (groupId)}
 				{@const groupActions = layout[groupId] ?? []}
-				<ActionGroupSection {groupId} index={groupIndex}>
+				<ActionGroupSection
+					{groupId}
+					index={groupIndex}
+					count={groupActions.length}
+					collapsed={collapsedGroups.current[groupId] ?? false}
+					onCollapsedChange={(value) => setActionGroupCollapsed(groupId, value)}
+				>
 					{#snippet children()}
 						<div class="flex flex-col gap-2">
 							{#each groupActions as item, actionIndex (item.id)}

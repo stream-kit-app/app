@@ -13,7 +13,18 @@ export type TextSelectTextFieldValue = {
 	negate?: boolean;
 };
 
-export type HandlerFieldValue = string | boolean | KeyValueEntry[] | TextSelectTextFieldValue;
+export type HandlerFieldScalarValue =
+	| string
+	| boolean
+	| KeyValueEntry[]
+	| TextSelectTextFieldValue;
+
+export type OneOfFieldValue = {
+	variant: string;
+	values: Record<string, HandlerFieldScalarValue>;
+};
+
+export type HandlerFieldValue = HandlerFieldScalarValue | OneOfFieldValue;
 
 export type HandlerFieldInstance = {
 	key: string;
@@ -29,11 +40,31 @@ function normalizeLookupKey(value: string): string {
 		.replace(/^-+|-+$/g, '');
 }
 
+export function isOneOfFieldValue(value: HandlerFieldValue | undefined): value is OneOfFieldValue {
+	return Boolean(value && typeof value === 'object' && 'variant' in value && 'values' in value);
+}
+
 export function getFieldValue(
 	fields: HandlerFieldInstance[],
 	key: string
 ): HandlerFieldValue | undefined {
 	return fields.find((field) => normalizeLookupKey(field.key) === normalizeLookupKey(key))?.value;
+}
+
+export function getOneOfFieldValue(
+	fields: HandlerFieldInstance[],
+	key: string
+): { variant: string; value: HandlerFieldScalarValue | undefined } | undefined {
+	const value = getFieldValue(fields, key);
+
+	if (!isOneOfFieldValue(value)) {
+		return undefined;
+	}
+
+	return {
+		variant: value.variant,
+		value: value.values[value.variant]
+	};
 }
 
 export function resolveFieldText(
@@ -49,4 +80,25 @@ export function resolveFieldText(
 	}
 
 	return interpolateVariables(value, toVariables(context.data));
+}
+
+export function resolveOneOfFieldText(
+	fields: HandlerFieldInstance[],
+	key: string,
+	context: HandlerTriggerContext,
+	toVariables: (context: HandlerTriggerContext) => Record<string, string>
+): string | undefined {
+	const oneOf = getOneOfFieldValue(fields, key);
+
+	if (!oneOf) {
+		return undefined;
+	}
+
+	const activeValue = oneOf.value;
+
+	if (typeof activeValue !== 'string') {
+		return undefined;
+	}
+
+	return interpolateVariables(activeValue, toVariables(context));
 }

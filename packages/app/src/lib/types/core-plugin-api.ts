@@ -61,4 +61,7 @@ export type CorePluginApi = {
 	variables: CorePluginVariablesApi;
 	logs: CorePluginLogsApi;
 	maps: CorePluginMapsApi;
+	registerContextVariableEnricher: (
+		enricher: (data: unknown) => Record<string, string>
+	) => () => void;
 };

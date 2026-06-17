@@ -29,6 +29,7 @@ import { isProcessWatcherEnabled, shouldRunProcessWatcher } from './lib/process-
 import type { CorePluginApi } from './lib/plugin-api';
 import { ScheduleService } from './lib/schedule-service';
 import { MapStore } from './lib/maps/map-store';
+import { registerContextVariableEnricher } from './lib/variables/context-enrichers';
 import { VariableStore } from './lib/variables/variable-store';
 import { createAppLifecycleTrigger } from './trigger/app-lifecycle-trigger';
 import { createCronTrigger } from './trigger/cron-trigger';
@@ -97,7 +98,8 @@ const plugin = (app: PluginAppApi) => {
 			getLifetime: maps.getLifetime.bind(maps),
 			listMapNames: maps.listMapNames.bind(maps),
 			listEntries: maps.listEntries.bind(maps)
-		}
+		},
+		registerContextVariableEnricher
 	};
 
 	return {

@@ -1,5 +1,18 @@
 # @stream-kit/plugin-obs
 
+## 0.1.2-alpha.0
+
+### Minor Changes
+
+- Add **Set Media Input File** handler to change media source files from actions
+- Add streaming handlers: Send Stream Caption, Get Stream Status, Get Record Status, Create Record Chapter
+- Add streaming triggers: Stream Starting/Stopping/Reconnecting, Recording Paused/Resumed, Record File Changed
+- Add media handlers: Set/Offset Media Cursor, Get Media Status; move Trigger Media Action to Media group
+- Add media trigger: Media Action Triggered
+- Add filter handlers: Enable/Disable/Set Settings/Create/Remove Filter; improve Toggle Filter with combobox
+- Add filter triggers: Filter Enabled/Disabled
+- Add plugin documentation at `docs/plugins/obs.md`
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes

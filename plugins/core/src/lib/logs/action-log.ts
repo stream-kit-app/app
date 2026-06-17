@@ -11,6 +11,22 @@ const LOG_FILE = 'logs/actions.ndjson';
 
 type LogListener = () => void;
 
+function dedupeEntriesById(entries: ActionLogEntry[]): ActionLogEntry[] {
+	const seen = new Set<string>();
+	const deduped: ActionLogEntry[] = [];
+
+	for (const entry of entries) {
+		if (!entry.id || seen.has(entry.id)) {
+			continue;
+		}
+
+		seen.add(entry.id);
+		deduped.push(entry);
+	}
+
+	return deduped;
+}
+
 export class ActionLogService {
 	private entries: ActionLogEntry[] = [];
 	private listeners = new Set<LogListener>();
@@ -32,6 +48,7 @@ export class ActionLogService {
 
 			const lines = await fs.readTextFileLines(LOG_FILE, { baseDir: BaseDirectory.AppData });
 			const parsed: ActionLogEntry[] = [];
+			const seenIds = new Set<string>();
 
 			for await (const line of lines) {
 				const trimmed = line.trim();
@@ -41,13 +58,20 @@ export class ActionLogService {
 				}
 
 				try {
-					parsed.push(JSON.parse(trimmed) as ActionLogEntry);
+					const entry = JSON.parse(trimmed) as ActionLogEntry;
+
+					if (!entry.id || seenIds.has(entry.id)) {
+						continue;
+					}
+
+					seenIds.add(entry.id);
+					parsed.push(entry);
 				} catch {
 					// Skip malformed lines.
 				}
 			}
 
-			this.entries = parsed.slice(-MAX_MEMORY_ENTRIES);
+			this.entries = dedupeEntriesById(parsed).slice(-MAX_MEMORY_ENTRIES);
 		} catch (error) {
 			console.error('Failed to load action logs', error);
 		}
@@ -56,7 +80,7 @@ export class ActionLogService {
 	}
 
 	getEntries(): ActionLogEntry[] {
-		return [...this.entries];
+		return dedupeEntriesById(this.entries);
 	}
 
 	subscribe(listener: LogListener): () => void {
@@ -86,7 +110,9 @@ export class ActionLogService {
 			trigger: input.trigger
 		};
 
-		this.entries.push(entry);
+		if (!this.entries.some((existing) => existing.id === entry.id)) {
+			this.entries.push(entry);
+		}
 
 		if (this.entries.length > MAX_MEMORY_ENTRIES) {
 			this.entries.splice(0, this.entries.length - MAX_MEMORY_ENTRIES);

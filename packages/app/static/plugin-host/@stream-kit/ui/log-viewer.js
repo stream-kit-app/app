@@ -2,7 +2,7 @@ import { $n as e, Gn as t, Gt as n, Hr as r, N as i, On as a, Qn as o, Qr as s, 
 import "../../chunks/disclose-version-YhYaTdgb.js";
 import { t as C } from "../../chunks/Icon-BoHmh-pv.js";
 import { t as w } from "../../chunks/utils-DVQ4nj8f.js";
-import { a as T, u as E } from "../../chunks/input-DqSsCOhs.js";
+import { a as T, d as E } from "../../chunks/input-B66rOCii.js";
 import { t as D } from "../../chunks/scroll-area-99QA2aRD.js";
 import { t as O } from "../../chunks/button-CZMpEwOs.js";
 //#region ../ui/src/lib/components/log-viewer/log-viewer.svelte
@@ -25,7 +25,9 @@ function F(y, F) {
 		let e = F.entries;
 		a(I) !== "all" && (e = e.filter((e) => e.level === a(I)));
 		let t = a(L).trim().toLowerCase();
-		return t && (e = e.filter((e) => e.message.toLowerCase().includes(t) || e.actionName?.toLowerCase().includes(t) || e.trigger?.toLowerCase().includes(t))), e;
+		t && (e = e.filter((e) => e.message.toLowerCase().includes(t) || e.actionName?.toLowerCase().includes(t) || e.trigger?.toLowerCase().includes(t)));
+		let n = /* @__PURE__ */ new Set();
+		return e.filter((e) => n.has(e.id) ? !1 : (n.add(e.id), !0));
 	}), U = {
 		info: "ri:information-line",
 		warn: "ri:alert-line",

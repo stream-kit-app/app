@@ -14,18 +14,16 @@ let resolveVariables: (context: HandlerTriggerContext) => Record<string, string>
 	contextToVariables(context.data);
 
 export function configureFieldValueResolver(app: PluginAppApi): void {
-	resolveVariables = (context) => {
-		const core = app.plugins.tryGet<CorePluginApi>('core');
-		const twitchVariables = contextToVariables(context.data);
+	const core = app.plugins.tryGet<CorePluginApi>('core');
 
+	core?.registerContextVariableEnricher((data) => contextToVariables(data));
+
+	resolveVariables = (context) => {
 		if (!core) {
-			return twitchVariables;
+			return contextToVariables(context.data);
 		}
 
-		return {
-			...core.variables.resolve(context),
-			...twitchVariables
-		};
+		return core.variables.resolve(context);
 	};
 }
 

@@ -3,6 +3,7 @@ import InputCode from './input-code.svelte';
 import InputCronExpression from './input-cron-expression.svelte';
 import InputFilePath from './input-file-path.svelte';
 import InputKeyValueList from './input-key-value-list.svelte';
+import InputOneOf from './input-one-of.svelte';
 import InputSelectText from './input-select-text.svelte';
 import InputSelect from './input-select.svelte';
 import InputSlider from './input-slider.svelte';
@@ -21,6 +22,7 @@ export {
 	InputCronExpression,
 	InputFilePath,
 	InputKeyValueList,
+	InputOneOf,
 	InputSelect,
 	InputSelectText,
 	InputSlider,

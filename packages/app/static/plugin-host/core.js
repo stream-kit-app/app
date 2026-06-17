@@ -814,8 +814,21 @@ function getCronNextRunLabel(value) {
 function normalizeLookupKey(value) {
   return value.trim().replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
+function isOneOfFieldValue(value) {
+  return Boolean(value && typeof value === "object" && "variant" in value && "values" in value);
+}
 function getFieldValue(fields, key) {
   return fields.find((field) => normalizeLookupKey(field.key) === normalizeLookupKey(key))?.value;
+}
+function getOneOfFieldValue(fields, key) {
+  const value = getFieldValue(fields, key);
+  if (!isOneOfFieldValue(value)) {
+    return void 0;
+  }
+  return {
+    variant: value.variant,
+    value: value.values[value.variant]
+  };
 }
 function resolveFieldText(fields, key, context, toVariables) {
   const value = getFieldValue(fields, key);
@@ -823,6 +836,17 @@ function resolveFieldText(fields, key, context, toVariables) {
     return void 0;
   }
   return interpolateVariables(value, toVariables(context.data));
+}
+function resolveOneOfFieldText(fields, key, context, toVariables) {
+  const oneOf = getOneOfFieldValue(fields, key);
+  if (!oneOf) {
+    return void 0;
+  }
+  const activeValue = oneOf.value;
+  if (typeof activeValue !== "string") {
+    return void 0;
+  }
+  return interpolateVariables(activeValue, toVariables(context));
 }
 function parseCommand(message, prefix = "!") {
   const normalizedPrefix = prefix.trim();
@@ -844,10 +868,13 @@ export {
   getCronValidationError,
   getFieldValue,
   getLocalTimezone,
+  getOneOfFieldValue,
   interpolateVariables,
+  isOneOfFieldValue,
   isValidCronExpression,
   normalizeCronExpression,
   parseCommand,
   resolveFieldText,
+  resolveOneOfFieldText,
   splitCronParts
 };

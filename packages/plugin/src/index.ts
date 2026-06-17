@@ -105,17 +105,25 @@ export type {
 } from '../../app/src/lib/core/action/trigger/condition';
 export {
 	getFieldValue,
+	getOneOfFieldValue,
 	interpolateVariables,
+	isOneOfFieldValue,
 	parseCommand,
-	resolveFieldText
+	resolveFieldText,
+	resolveOneOfFieldText
 } from '@stream-kit/core';
 export type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,
+	HandlerFieldScalarValue,
 	HandlerFieldValue,
 	HandlerFieldVariable,
 	HandlerFileFilter,
+	HandlerOneOfInnerFieldDefinition,
+	HandlerOneOfMigrateFrom,
+	HandlerOneOfVariantDefinition,
 	KeyValueEntry,
+	OneOfFieldValue,
 	TextSelectTextFieldValue
 } from '../../app/src/lib/core/action/handler/field';
 export type { CronFieldKey, CronPreset } from '@stream-kit/core';

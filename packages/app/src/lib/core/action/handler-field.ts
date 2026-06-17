@@ -1,7 +1,9 @@
 import type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,
+	HandlerFieldScalarValue,
 	HandlerFieldValue,
+	OneOfFieldValue,
 	ResolvedHandlerFieldDefinition
 } from './handler/field';
 import type { ConditionGroupNode } from './trigger/condition';
@@ -16,16 +18,19 @@ export function createHandlerFields(
 		return {
 			id: existing?.id ?? crypto.randomUUID(),
 			key: definition.key,
-			value: existing?.value ?? initHandlerFieldValue(definition)
+			value:
+				existing?.value ??
+				migrateOneOfFieldValue(definition, stored) ??
+				initHandlerFieldValue(definition)
 		};
 	});
 }
 
-export function initHandlerFieldValue(
-	definition: ResolvedHandlerFieldDefinition
-): HandlerFieldValue {
+function initInnerHandlerFieldValue(
+	definition: HandlerFieldDefinition
+): HandlerFieldScalarValue {
 	if (definition.defaultValue !== undefined) {
-		return definition.defaultValue;
+		return definition.defaultValue as HandlerFieldScalarValue;
 	}
 
 	if (definition.type === 'key-value-list') {
@@ -49,6 +54,117 @@ export function initHandlerFieldValue(
 	return false;
 }
 
+export function initHandlerFieldValue(
+	definition: ResolvedHandlerFieldDefinition
+): HandlerFieldValue {
+	if (definition.type === 'one-of') {
+		const defaultVariant = definition.defaultVariant ?? definition.variants[0]?.id ?? '';
+		const values: Record<string, HandlerFieldScalarValue> = {};
+
+		for (const variant of definition.variants) {
+			values[variant.id] = initInnerHandlerFieldValue(variant.field);
+		}
+
+		return {
+			variant: defaultVariant,
+			values
+		} satisfies OneOfFieldValue;
+	}
+
+	return initInnerHandlerFieldValue(definition);
+}
+
+function migrateOneOfFieldValue(
+	definition: ResolvedHandlerFieldDefinition,
+	stored?: HandlerFieldInstance[]
+): OneOfFieldValue | undefined {
+	if (definition.type !== 'one-of' || !stored?.length || !definition.migrateFrom?.length) {
+		return undefined;
+	}
+
+	if (stored.some((field) => field.key === definition.key)) {
+		return undefined;
+	}
+
+	for (const migration of definition.migrateFrom) {
+		const legacyValues = new Map<string, HandlerFieldScalarValue>();
+
+		for (const legacyKey of migration.keys) {
+			const legacyField = stored.find((field) => field.key === legacyKey);
+
+			if (!legacyField) {
+				continue;
+			}
+
+			const variantId = migration.variantMap[legacyKey];
+
+			if (!variantId) {
+				continue;
+			}
+
+			legacyValues.set(variantId, legacyField.value as HandlerFieldScalarValue);
+		}
+
+		if (legacyValues.size === 0) {
+			continue;
+		}
+
+		const defaultVariant = definition.defaultVariant ?? definition.variants[0]?.id ?? '';
+		let activeVariant = defaultVariant;
+
+		for (const legacyKey of migration.keys) {
+			const variantId = migration.variantMap[legacyKey];
+			const legacyField = stored.find((field) => field.key === legacyKey);
+			const legacyValue = legacyField?.value;
+
+			if (
+				variantId &&
+				typeof legacyValue === 'string' &&
+				legacyValue.trim() &&
+				!isInnerHandlerFieldValueEmpty(
+					definition.variants.find((variant) => variant.id === variantId)?.field,
+					legacyValue
+				)
+			) {
+				activeVariant = variantId;
+				break;
+			}
+		}
+
+		const values: Record<string, HandlerFieldScalarValue> = {};
+
+		for (const variant of definition.variants) {
+			values[variant.id] =
+				legacyValues.get(variant.id) ?? initInnerHandlerFieldValue(variant.field);
+		}
+
+		return {
+			variant: activeVariant,
+			values
+		};
+	}
+
+	return undefined;
+}
+
+function isInnerHandlerFieldValueEmpty(
+	definition: HandlerFieldDefinition | undefined,
+	value: HandlerFieldScalarValue
+): boolean {
+	if (!definition) {
+		return true;
+	}
+
+	if (definition.type === 'one-of') {
+		return true;
+	}
+
+	return isHandlerFieldValueEmpty(
+		{ ...definition, key: 'inner' } as ResolvedHandlerFieldDefinition,
+		value
+	);
+}
+
 export function getHandlerFieldDefinition(
 	definitions: ResolvedHandlerFieldDefinition[] | undefined,
 	key: string
@@ -67,6 +183,23 @@ export function isHandlerFieldValueEmpty(
 	definition: ResolvedHandlerFieldDefinition,
 	value: HandlerFieldValue
 ): boolean {
+	if (definition.type === 'one-of') {
+		if (!value || typeof value !== 'object' || !('variant' in value) || !('values' in value)) {
+			return true;
+		}
+
+		const oneOf = value as OneOfFieldValue;
+		const activeVariant = definition.variants.find((variant) => variant.id === oneOf.variant);
+
+		if (!activeVariant) {
+			return true;
+		}
+
+		const activeValue = oneOf.values[oneOf.variant];
+
+		return isInnerHandlerFieldValueEmpty(activeVariant.field, activeValue);
+	}
+
 	if (definition.type === 'key-value-list') {
 		if (!Array.isArray(value) || value.length === 0) {
 			return true;
@@ -81,8 +214,7 @@ export function isHandlerFieldValueEmpty(
 		}
 
 		const compound = value as { path: string; type: string; value: string };
-		const valuelessOperators =
-			definition.type === 'text-select-text' ? (definition.valuelessOperators ?? []) : [];
+		const valuelessOperators = definition.valuelessOperators ?? [];
 
 		if (valuelessOperators.includes(compound.type)) {
 			return !compound.path.trim();
