@@ -70,15 +70,16 @@
 <div class="relative min-w-0">
 	<div
 		class={cn(
-			'grid grid-cols-[auto_1fr_auto_auto_auto] items-center overflow-hidden rounded-xl border transition-colors',
+			'group/card grid grid-cols-[auto_1fr_auto_auto_auto] items-center overflow-hidden rounded-xl border border-l-[3px] transition-colors',
 			{
-				'border-destructive-500 bg-destructive-800 hover:bg-destructive-600':
+				'border-destructive-500 border-l-destructive-500 bg-destructive-800 hover:bg-destructive-600':
 					action.hasUnavailableDefinitions,
-				'border-dark-600 bg-dark-800 hover:bg-dark-700':
+				'border-dark-600 border-l-dark-600 bg-dark-800 hover:bg-dark-700':
 					!action.hasUnavailableDefinitions && action.enabled,
+				'border-l-dark-700': !action.enabled && !action.hasUnavailableDefinitions,
 				'opacity-60': !action.enabled,
 				'pointer-events-none opacity-0 select-none': isDragging,
-				'border-success-500 bg-success-900': action.execution.state.isRunning
+				'border-success-500 border-l-success-400 bg-success-900': action.execution.state.isRunning
 			}
 		)}
 		aria-hidden={isDragging}
@@ -103,12 +104,17 @@
 			class="group col-span-3 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left transition-colors"
 			onclick={() => action.open()}
 		>
-			<span class={cn('font-medium', !action.enabled ? 'text-dark-400' : 'text-dark-50')}>{action.name.trim()}</span>
+			<span class={cn('inline-flex items-center gap-1.5 font-medium', !action.enabled ? 'text-dark-400' : 'text-dark-50')}>
+				{#if action.execution.state.isRunning}
+					<span class="size-1.5 shrink-0 rounded-full bg-success-400 animate-pulse" aria-hidden="true"></span>
+				{/if}
+				{action.name.trim()}
+			</span>
 			<Badge
 				size="lg"
 				variant={action.triggers.some((trigger) => !trigger.definition.isAvailable)
 					? 'destructive'
-					: 'default'}
+					: 'secondary'}
 				{@attach tooltip(() =>
 					tooltipSnippet(definitionList, {
 						title: t('Triggers'),
@@ -139,6 +145,7 @@
 					variant="ghost"
 					size="icon"
 					icon="clarity:clone-line"
+					class="opacity-0 transition-opacity group-hover/card:opacity-100"
 					aria-label={t('Clone action')}
 					onclick={handleClone}
 					{@attach tooltip(() => t('Clone action'))}
@@ -146,7 +153,7 @@
 			{/if}
 			<Icon
 				icon="ri:arrow-right-s-line"
-				class="size-5 shrink-0 text-dark-400"
+				class="size-5 shrink-0 text-dark-400 transition-transform group-hover/card:translate-x-0.5"
 				aria-hidden="true"
 			/>
 		</div>
@@ -154,7 +161,7 @@
 
 	{#if isDragging}
 		<div
-			class="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-dashed border-primary-300/70 bg-primary-950/50 px-4 text-sm font-medium text-primary-200"
+			class="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-dashed border-primary-300 bg-primary-950 px-4 text-sm font-medium text-primary-200"
 			aria-hidden="true"
 		>
 			{t('Moving: {name}', { name: movingLabel || action.name.trim() || t('this action') })}

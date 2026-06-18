@@ -70,7 +70,7 @@
 
 	<div
 		class={cn(
-			'inline-flex w-fit rounded-xl border border-dark-700 bg-dark-900 p-1',
+			'inline-flex w-fit gap-0.5 rounded-xl border border-dark-600 bg-dark-800 p-1',
 			error && 'border-red-500'
 		)}
 		role="tablist"
@@ -86,7 +86,7 @@
 				class={cn(
 					'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
 					activeVariantId === variant.id
-						? 'bg-dark-700 text-dark-50'
+						? 'bg-dark-600 text-dark-50'
 						: 'text-dark-200 hover:bg-dark-800 hover:text-dark-50'
 				)}
 				onclick={() => setActiveVariant(variant.id)}
@@ -96,11 +96,7 @@
 		{/each}
 	</div>
 
-	<div
-		role="tabpanel"
-		id={`panel-${activeVariantId}`}
-		aria-labelledby={`tab-${activeVariantId}`}
-	>
+	<div role="tabpanel" id={`panel-${activeVariantId}`} aria-labelledby={`tab-${activeVariantId}`}>
 		{@render panel({
 			variantId: activeVariantId,
 			value: value.values[activeVariantId],

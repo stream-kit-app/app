@@ -115,7 +115,7 @@ Media handlers use a dropdown limited to media input kinds (`ffmpeg_source`, `vl
 - **Media Source** (`ffmpeg_source`) and legacy **Media Source** use the `local_file` setting.
 - **VLC Video Source** replaces the playlist with the selected file.
 - Provide the media file via the **Path** or **File** tab on the single **Media file** field (path supports `{variables}`).
-- **Restart playback** (enabled by default) restarts the source after the file changes.
+- **Restart playback** (enabled by default) restarts the source after the file changes. When the same file is set again (for example a repeated channel point redeem), OBS is asked to stop and restart playback instead of skipping the update.
 
 After a successful update, the handler sets action variable `mediaFilePath` to the resolved path.
 

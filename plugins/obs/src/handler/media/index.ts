@@ -34,6 +34,68 @@ function buildMediaInputSettings(
 	return { local_file: filePath };
 }
 
+function normalizeMediaFilePath(path: string): string {
+	return path.trim().replace(/\\/g, '/').toLowerCase();
+}
+
+function getCurrentMediaFilePath(
+	inputKind: string | undefined,
+	inputSettings: Record<string, unknown> | undefined
+): string | undefined {
+	if (!inputSettings) {
+		return undefined;
+	}
+
+	if (inputKind === 'vlc_source') {
+		const playlist = inputSettings.playlist;
+
+		if (!Array.isArray(playlist) || playlist.length === 0) {
+			return undefined;
+		}
+
+		const selected = playlist.find(
+			(item) =>
+				item &&
+				typeof item === 'object' &&
+				'selected' in item &&
+				(item as { selected?: boolean }).selected
+		) as { value?: string } | undefined;
+		const entry = selected ?? (playlist[0] as { value?: string });
+
+		return typeof entry?.value === 'string' ? entry.value : undefined;
+	}
+
+	const localFile = inputSettings.local_file;
+
+	return typeof localFile === 'string' ? localFile : undefined;
+}
+
+async function restartMediaInput(
+	app: PluginAppApi,
+	inputName: string,
+	label: string
+): Promise<void> {
+	await callObs(
+		app,
+		'TriggerMediaInputAction',
+		{
+			inputName,
+			mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP'
+		},
+		{ label }
+	);
+
+	await callObs(
+		app,
+		'TriggerMediaInputAction',
+		{
+			inputName,
+			mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'
+		},
+		{ label }
+	);
+}
+
 export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 	({
 		name: 'Trigger Media Action',
@@ -81,19 +143,41 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 				return;
 			}
 
-			const settingsResponse = await callObsWithResponse<{ inputKind?: string }>(
+			const settingsResponse = await callObsWithResponse<{
+				inputKind?: string;
+				inputSettings?: Record<string, unknown>;
+			}>(
 				app,
 				'GetInputSettings',
 				{ inputName: inputName.trim() },
 				{ label: 'Set Media Input File' }
 			);
 
+			const inputKind = settingsResponse?.inputKind;
+			const currentPath = getCurrentMediaFilePath(inputKind, settingsResponse?.inputSettings);
+			const sameFile =
+				currentPath !== undefined &&
+				normalizeMediaFilePath(currentPath) === normalizeMediaFilePath(filePath);
+			const shouldRestart = restartPlayback !== false && restartPlayback !== 'false';
+
+			if (sameFile) {
+				if (shouldRestart) {
+					await restartMediaInput(app, inputName.trim(), 'Set Media Input File');
+				}
+
+				setActionVariables(context, {
+					mediaFilePath: filePath
+				});
+				next();
+				return;
+			}
+
 			const updated = await callObs(
 				app,
 				'SetInputSettings',
 				{
 					inputName: inputName.trim(),
-					inputSettings: buildMediaInputSettings(settingsResponse?.inputKind, filePath),
+					inputSettings: buildMediaInputSettings(inputKind, filePath),
 					overlay: true
 				},
 				{ label: 'Set Media Input File' }
@@ -107,16 +191,8 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 				mediaFilePath: filePath
 			});
 
-			if (restartPlayback !== false && restartPlayback !== 'false') {
-				await callObs(
-					app,
-					'TriggerMediaInputAction',
-					{
-						inputName: inputName.trim(),
-						mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'
-					},
-					{ label: 'Set Media Input File' }
-				);
+			if (shouldRestart) {
+				await restartMediaInput(app, inputName.trim(), 'Set Media Input File');
 			}
 
 			next();

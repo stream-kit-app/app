@@ -5,7 +5,7 @@
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 
-	import { Heading } from '@stream-kit/ui/heading';
+	import { Badge } from '@stream-kit/ui/badge';
 
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
@@ -48,12 +48,14 @@
 
 <section
 	{@attach ref}
-	class={isOverlay ? 'flex flex-col gap-2 rounded-xl shadow-2xl ring-1 ring-white/10' : 'flex flex-col gap-2'}
+	class={isOverlay
+		? 'overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10'
+		: 'overflow-hidden rounded-2xl border border-dark-700 bg-dark-900'}
 >
-	<div class="flex items-center gap-2">
+	<div class="flex items-stretch border-b border-dark-700 bg-dark-800">
 		<button
 			type="button"
-			class="flex size-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-dark-400 transition-colors hover:bg-dark-700 hover:text-dark-200 active:cursor-grabbing"
+			class="flex size-8 shrink-0 cursor-grab items-center justify-center self-center rounded-lg text-dark-400 transition-colors hover:bg-dark-700 hover:text-dark-200 active:cursor-grabbing ms-3"
 			{@attach handleRef}
 			aria-label={t('Drag to reorder group {name}', { name: displayName })}
 		>
@@ -63,7 +65,7 @@
 		{#if collapsible}
 			<button
 				type="button"
-				class="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-dark-800"
+				class="flex min-w-0 flex-1 items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-dark-700"
 				aria-expanded={!collapsed}
 				aria-label={collapsed
 					? t('Expand group {name}', { name: displayName })
@@ -71,27 +73,30 @@
 				onclick={() => onCollapsedChange?.(!collapsed)}
 			>
 				<Icon
-					icon={collapsed ? 'ri:arrow-right-s-line' : 'ri:arrow-down-s-line'}
-					class="size-4 shrink-0 text-dark-400"
+					icon="ri:arrow-down-s-line"
+					class={cn(
+						'size-4 shrink-0 text-dark-400 transition-transform duration-200',
+						collapsed && '-rotate-90'
+					)}
 					aria-hidden="true"
 				/>
-				<Heading level="4" class="text-dark-300 uppercase">{displayName}</Heading>
+				<span class="text-sm font-semibold tracking-wide text-dark-100 uppercase">{displayName}</span>
 				{#if count != null}
-					<span class="text-xs font-normal text-dark-500">({count})</span>
+					<Badge variant="outline" size="sm">{count}</Badge>
 				{/if}
 			</button>
 		{:else}
-			<div class="flex min-w-0 flex-1 items-center gap-2 px-1">
-				<Heading level="4" class="text-dark-300 uppercase">{displayName}</Heading>
+			<div class="flex min-w-0 flex-1 items-center gap-2 px-3 py-2.5">
+				<span class="text-sm font-semibold tracking-wide text-dark-100 uppercase">{displayName}</span>
 				{#if count != null}
-					<span class="text-xs font-normal text-dark-500">({count})</span>
+					<Badge variant="outline" size="sm">{count}</Badge>
 				{/if}
 			</div>
 		{/if}
 	</div>
 
 	{#if !collapsed || isOverlay}
-		<div class="relative">
+		<div class="p-3">
 			<div class={cn(isDragging.current && !isOverlay && 'pointer-events-none select-none')}>
 				{@render children()}
 			</div>
