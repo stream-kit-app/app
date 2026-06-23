@@ -98,7 +98,9 @@ export async function saveAction(
 	if (id != null) {
 		const existing = await getAction(id);
 		const groupChanged = existing.group !== group;
-		const groupSortOrder = groupChanged ? await getGroupSortOrder(group) : existing.groupSortOrder;
+		const groupSortOrder = groupChanged
+			? await getGroupSortOrder(group)
+			: existing.groupSortOrder;
 		const sortOrder = groupChanged ? await getNextSortOrder(group) : existing.sortOrder;
 
 		const [row] = await db
@@ -194,7 +196,6 @@ export async function updateActionsEnabled(ids: number[], enabled: boolean): Pro
 		})
 		.where(inArray(actions.id, ids));
 }
-
 
 export async function deleteAction(id: number) {
 	return deleteActions([id]);

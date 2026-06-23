@@ -21,7 +21,6 @@
 		setActionGroupCollapsed
 	} from '$lib/components/core/action/action-group-collapse.svelte';
 	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
-	import ActionBulkEditDialog from '$lib/components/core/action/action-bulk-edit-dialog.svelte';
 	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
 	import { applyDndMove } from '$lib/components/core/action/dnd-events';
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
@@ -43,7 +42,6 @@
 	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
 	let groupOrder = $state<string[]>(getGroupOrder(layout));
 	let isDragging = $state(false);
-	let bulkEditOpen = $state(false);
 
 	watch(
 		() =>
@@ -133,7 +131,7 @@
 	}
 </script>
 
-<Container class="px-6 py-6" size="lg">
+<Container class="px-6 py-6" size="md">
 	<header class="flex flex-wrap items-start justify-between gap-4">
 		<div class="flex flex-col gap-3">
 			<Heading level="1" subTitle={t('Manage your actions')}>{t('Actions')}</Heading>
@@ -142,13 +140,21 @@
 					<span
 						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
 					>
-						<Icon icon="ri:flashlight-line" class="size-3.5 text-primary" aria-hidden="true" />
+						<Icon
+							icon="ri:flashlight-line"
+							class="size-3.5 text-primary"
+							aria-hidden="true"
+						/>
 						{t('{count} actions', { count: totalCount })}
 					</span>
 					<span
 						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
 					>
-						<Icon icon="ri:folder-3-line" class="size-3.5 text-dark-400" aria-hidden="true" />
+						<Icon
+							icon="ri:folder-3-line"
+							class="size-3.5 text-dark-400"
+							aria-hidden="true"
+						/>
 						{t('{count} groups', { count: groupCount })}
 					</span>
 				</div>
@@ -196,15 +202,6 @@
 				</Button>
 				<Button
 					size="sm"
-					variant="outline"
-					icon="ri:edit-line"
-					tabindex={selection.hasSelection ? undefined : -1}
-					onclick={() => (bulkEditOpen = true)}
-				>
-					{t('Edit selected')}
-				</Button>
-				<Button
-					size="sm"
 					variant="destructive"
 					icon="ri:delete-bin-line"
 					tabindex={selection.hasSelection ? undefined : -1}
@@ -223,13 +220,6 @@
 			</div>
 		</div>
 	{/if}
-
-	<ActionBulkEditDialog
-		bind:open={bulkEditOpen}
-		selectedIds={[...selection.selectedIds]}
-		{groupOrder}
-		onApplied={selection.clearSelection}
-	/>
 
 	<DragDropProvider
 		{sensors}
@@ -253,7 +243,11 @@
 						{t('Create your first action to automate tasks.')}
 					</p>
 				</div>
-				<Button class="relative" icon="ri:add-fill" onclick={() => Action.createDraft().open()}>
+				<Button
+					class="relative"
+					icon="ri:add-fill"
+					onclick={() => Action.createDraft().open()}
+				>
 					{t('Add Action')}
 				</Button>
 			</div>
