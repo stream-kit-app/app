@@ -195,6 +195,7 @@ export async function updateActionsEnabled(ids: number[], enabled: boolean): Pro
 		.where(inArray(actions.id, ids));
 }
 
+
 export async function deleteAction(id: number) {
 	return deleteActions([id]);
 }

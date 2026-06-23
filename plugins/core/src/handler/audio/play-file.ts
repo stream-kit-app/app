@@ -3,6 +3,7 @@ import type { PluginAppApi } from '@stream-kit/plugin';
 
 import { getFieldValue } from '../../get-field-value';
 import { playAudioFile } from '../../lib/audio';
+import { resolveVolume, volumeField } from './volume-field';
 
 const AUDIO_FILTERS = [
 	{
@@ -21,16 +22,17 @@ export const createPlayAudioFileHandler = (app: PluginAppApi) => {
 				name: 'Audio file',
 				filters: AUDIO_FILTERS,
 				required: true
-			}
+			},
+			volumeField
 		],
-		execute: (_action, handler, _context, next) => {
+		execute: async (_action, handler, _context, next) => {
 			const filePath = getFieldValue(handler.fields, 'audio-file');
 
 			if (typeof filePath !== 'string' || !filePath.trim()) {
 				return;
 			}
 
-			void playAudioFile(app, filePath.trim());
+			await playAudioFile(app, filePath.trim(), resolveVolume(handler.fields));
 			next();
 		}
 	} satisfies HandlerDefinitionProps;

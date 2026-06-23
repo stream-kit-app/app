@@ -1,10 +1,8 @@
-import {
-	DEFAULT_ACTION_GROUP,
-	type StoredActionHandler,
-	type StoredActionTrigger
-} from '$lib/core/action/stored-action';
+import type { StoredActionHandler, StoredActionTrigger } from '$lib/core/action/stored-action';
 
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+import { DEFAULT_ACTION_GROUP } from '$lib/core/action/stored-action';
 
 export {
 	DEFAULT_ACTION_GROUP,

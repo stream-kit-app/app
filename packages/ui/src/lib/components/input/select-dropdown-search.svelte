@@ -9,7 +9,6 @@
 		placeholder?: string;
 		ariaLabel?: string;
 		inputElement?: HTMLInputElement | null;
-		autofocus?: boolean;
 		onQueryChange?: (query: string) => void;
 		class?: string;
 	};
@@ -19,7 +18,6 @@
 		placeholder = 'Search values',
 		ariaLabel = 'Search values',
 		inputElement = $bindable(null),
-		autofocus = false,
 		onQueryChange,
 		class: className
 	}: Props = $props();
@@ -42,14 +40,6 @@
 		query = event.currentTarget.value;
 		onQueryChange?.(query);
 	};
-
-	$effect(() => {
-		if (!autofocus || !inputElement) {
-			return;
-		}
-
-		inputElement.focus({ preventScroll: true });
-	});
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->

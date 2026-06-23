@@ -37,6 +37,10 @@ function initInnerHandlerFieldValue(
 		return [];
 	}
 
+	if (definition.type === 'slider') {
+		return definition.defaultValue ?? definition.min;
+	}
+
 	if (definition.type === 'text-select-text') {
 		return { path: '', type: 'equals', value: '', negate: false };
 	}

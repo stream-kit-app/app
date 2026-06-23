@@ -3,6 +3,7 @@ import type { PluginAppApi } from '@stream-kit/plugin';
 
 import { getFieldValue } from '../../get-field-value';
 import { playAudioFilesFromFolder } from '../../lib/audio';
+import { resolveVolume, volumeField } from './volume-field';
 
 export const createPlayAudioFolderHandler = (app: PluginAppApi) => {
 	return {
@@ -13,16 +14,17 @@ export const createPlayAudioFolderHandler = (app: PluginAppApi) => {
 				mode: 'folder' as const,
 				name: 'Folder',
 				required: true
-			}
+			},
+			volumeField
 		],
-		execute: (_action, handler, _context, next) => {
+		execute: async (_action, handler, _context, next) => {
 			const folderPath = getFieldValue(handler.fields, 'folder');
 
 			if (typeof folderPath !== 'string' || !folderPath.trim()) {
 				return;
 			}
 
-			void playAudioFilesFromFolder(app, folderPath.trim());
+			await playAudioFilesFromFolder(app, folderPath.trim(), resolveVolume(handler.fields));
 			next();
 		}
 	} satisfies HandlerDefinitionProps;

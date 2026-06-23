@@ -2,18 +2,30 @@
 	import type { SelectItem } from '../../types';
 	import type { Snippet } from 'svelte';
 
-	import { getVirtualListSlice, shouldVirtualizeList } from './select-dropdown-limits';
+	import {
+		DROPDOWN_VIEWPORT_HEIGHT_PX,
+		getVirtualListSlice,
+		shouldVirtualizeList
+	} from './select-dropdown-limits';
 
 	type Props = {
 		items: SelectItem[];
 		scrollTop: number;
+		viewportHeight?: number;
 		item: Snippet<[SelectItem]>;
 	};
 
-	let { items, scrollTop, item }: Props = $props();
+	let {
+		items,
+		scrollTop,
+		viewportHeight = DROPDOWN_VIEWPORT_HEIGHT_PX,
+		item
+	}: Props = $props();
 
 	const useVirtualList = $derived(shouldVirtualizeList(items.length));
-	const virtualSlice = $derived(useVirtualList ? getVirtualListSlice(items, scrollTop) : null);
+	const virtualSlice = $derived(
+		useVirtualList ? getVirtualListSlice(items, scrollTop, viewportHeight) : null
+	);
 	const renderedItems = $derived(useVirtualList && virtualSlice ? virtualSlice.items : items);
 </script>
 

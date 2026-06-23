@@ -21,6 +21,7 @@ tauri-build = { version = "2", features = [] }
 axum = { version = "0.8", features = ["ws"] }
 futures-util = "0.3"
 mime_guess = "2"
+mp4parse = "0.17"
 tauri = { version = "2", features = ["protocol-asset", "devtools"] }
 tokio = { version = "1", features = ["sync"] }
 tower-http = { version = "0.6", features = ["cors", "fs"] }

@@ -102,7 +102,9 @@ async function migrateAddSortOrderColumns(sqlite: Database): Promise<void> {
 	}
 
 	if (!hasSortOrder) {
-		await sqlite.execute(`ALTER TABLE actions ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`);
+		await sqlite.execute(
+			`ALTER TABLE actions ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`
+		);
 	}
 
 	if (hasGroupSortOrder && hasSortOrder) {
@@ -239,7 +241,18 @@ async function migrateOverlaysTable(sqlite: Database): Promise<void> {
 	}
 }
 
+async function migrateRemoveActionQueues(sqlite: Database): Promise<void> {
+	await sqlite.execute('DROP TABLE IF EXISTS action_queues');
+
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(actions)');
+
+	if (columns.some((column) => column.name === 'queue_id')) {
+		await sqlite.execute('ALTER TABLE actions DROP COLUMN queue_id');
+	}
+}
+
 export async function migrate(sqlite: Database): Promise<void> {
 	await migrateActionsTable(sqlite);
 	await migrateOverlaysTable(sqlite);
+	await migrateRemoveActionQueues(sqlite);
 }

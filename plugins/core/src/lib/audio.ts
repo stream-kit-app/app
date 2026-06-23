@@ -4,15 +4,6 @@ import { AudioQueue } from './audio-queue';
 
 const AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a']);
 
-const AUDIO_MIME_TYPES: Record<string, string> = {
-	mp3: 'audio/mpeg',
-	wav: 'audio/wav',
-	ogg: 'audio/ogg',
-	flac: 'audio/flac',
-	aac: 'audio/aac',
-	m4a: 'audio/mp4'
-};
-
 const audioQueue = new AudioQueue();
 
 function isAudioFileName(name: string): boolean {
@@ -20,21 +11,15 @@ function isAudioFileName(name: string): boolean {
 	return AUDIO_EXTENSIONS.has(extension);
 }
 
-function bytesToAudioBlob(path: string, bytes: Uint8Array): Blob {
-	const extension = path.split('.').pop()?.toLowerCase() ?? '';
-	const mimeType = AUDIO_MIME_TYPES[extension] ?? 'application/octet-stream';
-
-	return new Blob([Uint8Array.from(bytes)], { type: mimeType });
-}
-
 export function configureAudioPlayback(app: PluginAppApi): void {
-	audioQueue.setPlayback((blob, volume) => app.audio.play(blob, volume));
+	audioQueue.setPlayback({
+		playBlob: (blob, volume) => app.audio.play(blob, volume),
+		playFile: (path, volume) => app.audio.playFile(path, volume)
+	});
 }
 
 export async function playAudioFile(app: PluginAppApi, path: string, volume = 1): Promise<void> {
-	const bytes = await app.fs.readFile(path);
-	const blob = bytesToAudioBlob(path, bytes);
-	await app.audio.play(blob, volume);
+	await app.audio.playFile(path, volume);
 }
 
 export async function playAudioFilesFromFolder(
@@ -56,8 +41,6 @@ export async function playAudioFilesFromFolder(
 	files.sort((left, right) => left.toLowerCase().localeCompare(right.toLowerCase()));
 
 	for (const filePath of files) {
-		const bytes = await app.fs.readFile(filePath);
-		const blob = bytesToAudioBlob(filePath, bytes);
-		audioQueue.enqueue(blob, volume);
+		await audioQueue.enqueueFile(filePath, volume);
 	}
 }

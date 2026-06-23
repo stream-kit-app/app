@@ -28,6 +28,7 @@
 	import { cn } from '$lib/utils';
 
 	import Self from './condition-group.svelte';
+	import ConditionSelectValueLabel from './condition-select-value-label.svelte';
 
 	type Props = {
 		editor: ConditionEditor;
@@ -174,7 +175,7 @@
 			selectPlaceholder={config.selectPlaceholder}
 			variables={config.variables}
 			selectClass="w-32"
-			contentProps={{ align: 'start' }}
+			contentProps={{ align: 'start', collisionPadding: 8 }}
 			{error}
 			bind:value={node.value as { type: string; value: string }}
 		/>
@@ -187,7 +188,7 @@
 			selectPlaceholder={config.selectPlaceholder}
 			variables={config.variables}
 			selectClass="w-32"
-			contentProps={{ align: 'start' }}
+			contentProps={{ align: 'start', collisionPadding: 8 }}
 			{error}
 			bind:value={node.value as { path: string; type: string; value: string }}
 		/>
@@ -211,11 +212,17 @@
 			{#if config}
 				{@const renderableIndex = renderableIndexAt(index)}
 				<div class="grid gap-2">
-					<Label class="flex flex-wrap items-baseline gap-x-1.5 font-mono text-base">
-						<span class="font-bold text-green-500 uppercase">
+					<Label class="flex w-full min-w-0 items-baseline gap-x-1.5 font-mono text-base">
+						<span class="shrink-0 font-bold text-green-500 uppercase">
 							{renderableIndex === 0 ? t('if') : (child.operator ?? 'and')}
 						</span>
-						<span class="text-primary-100 italic">{config.name.toLowerCase()}</span>
+						<span class="shrink-0 text-primary-100 italic">{config.name.toLowerCase()}</span>
+						{#if config.type === 'select'}
+							<ConditionSelectValueLabel
+								items={translateSelectItems(config.items)}
+								value={(child.value as string) ?? ''}
+							/>
+						{/if}
 						{#if child.negate}
 							<span class="font-bold text-red-400 uppercase">{t('not')}</span>
 						{/if}

@@ -1,8 +1,8 @@
 import type { ActionProps } from './action.svelte';
 
-import { Action, Actions } from './action.svelte';
 import { ActionHandler } from './action-handler.svelte';
 import { ActionTrigger } from './action-trigger.svelte';
+import { Action, Actions } from './action.svelte';
 
 export { Action, Actions, ActionHandler, ActionTrigger, type ActionProps };
 export { HandlerDefinition, HandlerDefinitions } from './handler';

@@ -2,9 +2,9 @@ import { initDb, runRegisteredPluginMigrations } from '$db';
 
 import { app } from './app-init';
 import { registerOverlayHandlers } from './overlay/register-handlers';
+import { linkWorkspaceDevPlugins } from './plugins/plugin-dev-link';
 import { initPluginDevWatcher, syncPluginDevWatchers } from './plugins/plugin-dev-watcher';
 import { discoverAndLoadInstalledPlugins } from './plugins/plugin-loader';
-import { linkWorkspaceDevPlugins } from './plugins/plugin-dev-link';
 
 let bootPromise: Promise<void> | null = null;
 

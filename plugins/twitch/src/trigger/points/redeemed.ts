@@ -1,17 +1,12 @@
-import type { PluginAppApi } from '@stream-kit/plugin';
-import type { TriggerDefinitionProps } from '@stream-kit/plugin';
-
 import type { PointsRedemptionContext } from '../../contexts';
-import {
-	evaluateRewardId,
-	evaluateUserMatch,
-	userMatchCondition
-} from '../../lib/conditions';
-import { rewardSelectCondition } from '../../lib/rewards';
+import type { PluginAppApi, TriggerDefinitionProps } from '@stream-kit/plugin';
+
+import { evaluateRewardId, evaluateUserMatch, userMatchCondition } from '../../lib/conditions';
 import { subscribeRedemptionAdd } from '../../lib/eventsub-setup';
+import { rewardSelectCondition } from '../../lib/rewards';
 import { disposeTriggerSubscription, setTriggerSubscription } from '../../lib/subscription';
-import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 import { createTestPointsRedemptionContext } from '../../lib/test-contexts';
+import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 
 export const createPointsRedeemedTrigger = (app: PluginAppApi) =>
 	({

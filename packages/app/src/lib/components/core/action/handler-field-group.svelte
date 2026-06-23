@@ -28,7 +28,8 @@
 		InputTextSelect,
 		InputTextSelectText,
 		InputTextVariables,
-		InputOneOf
+		InputOneOf,
+		InputSlider
 	} from '@stream-kit/ui/input';
 
 	import HandlerSubFieldInput from './handler-sub-field-input.svelte';
@@ -347,6 +348,18 @@
 			{/if}
 		{/snippet}
 	</InputOneOf>
+{:else if config.type === 'slider'}
+	<InputSlider
+		label={config.name}
+		min={config.min}
+		max={config.max}
+		step={config.step ?? 1}
+		bind:value={
+			() => Number(field.value ?? config.defaultValue ?? config.min),
+			(value) => (field.value = value)
+		}
+		{error}
+	/>
 {/if}
 {/snippet}
 

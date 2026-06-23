@@ -1,7 +1,4 @@
-import type {
-	HandlerDefinitionProps,
-	PluginAppApi
-} from '@stream-kit/plugin';
+import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import { getFieldValue, resolveFieldText, resolveOneOfFieldText } from '../../get-field-value';
 import { setActionVariables } from '../../lib/action-variables';
@@ -18,7 +15,9 @@ import { callObs, callObsWithResponse } from '../../lib/obs-call';
 function buildMediaInputSettings(
 	inputKind: string | undefined,
 	filePath: string
-): { local_file: string } | { playlist: Array<{ value: string; hidden: boolean; selected: boolean }> } {
+):
+	| { local_file: string }
+	| { playlist: Array<{ value: string; hidden: boolean; selected: boolean }> } {
 	if (inputKind === 'vlc_source') {
 		return {
 			playlist: [
@@ -104,7 +103,11 @@ export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 			const inputName = resolveFieldText(handler.fields, 'media-input', context);
 			const mediaAction = getFieldValue(handler.fields, 'media-action');
 
-			if (typeof inputName !== 'string' || !inputName.trim() || typeof mediaAction !== 'string') {
+			if (
+				typeof inputName !== 'string' ||
+				!inputName.trim() ||
+				typeof mediaAction !== 'string'
+			) {
 				return;
 			}
 

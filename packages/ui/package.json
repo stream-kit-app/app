@@ -43,6 +43,16 @@
 			"svelte": "./src/lib/components/container/index.ts",
 			"import": "./src/lib/components/container/index.ts"
 		},
+		"./command": {
+			"types": "./src/lib/components/command/index.ts",
+			"svelte": "./src/lib/components/command/index.ts",
+			"import": "./src/lib/components/command/index.ts"
+		},
+		"./dialog": {
+			"types": "./src/lib/components/dialog/index.ts",
+			"svelte": "./src/lib/components/dialog/index.ts",
+			"import": "./src/lib/components/dialog/index.ts"
+		},
 		"./dropdown": {
 			"types": "./src/lib/components/dropdown/index.ts",
 			"svelte": "./src/lib/components/dropdown/index.ts",

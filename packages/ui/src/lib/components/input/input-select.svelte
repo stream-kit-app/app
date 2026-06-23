@@ -3,17 +3,15 @@
 	import type { WithoutChildren } from 'bits-ui';
 
 	import Icon from '@iconify/svelte';
-	import { Select, useId } from 'bits-ui';
-	import { tick } from 'svelte';
+	import { Command as CommandPrimitive, Dialog as DialogPrimitive, useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
+	import * as Command from '../command';
+	import * as Dialog from '../dialog';
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
-	import { DROPDOWN_SEARCH_THRESHOLD, filterSelectItems } from './select-dropdown-limits';
-	import SelectDropdownSearch from './select-dropdown-search.svelte';
-	import { DropdownScroll } from './use-dropdown-scroll.svelte';
-	import VirtualSelectItems from './virtual-select-items.svelte';
+	import { DROPDOWN_SEARCH_THRESHOLD } from './select-dropdown-limits';
 
 	type SharedProps = {
 		label?: string;
@@ -27,25 +25,29 @@
 		id?: string;
 		class?: string;
 		error?: string;
+		required?: boolean;
 		reloadKey?: () => unknown;
-		contentProps?: WithoutChildren<Select.ContentProps>;
+		dialogTitle?: string;
+		dialogDescription?: string;
+		dialogProps?: WithoutChildren<DialogPrimitive.ContentProps>;
+		commandProps?: WithoutChildren<CommandPrimitive.RootProps>;
 	};
 
-	type SingleRootRest = Omit<
-		WithoutChildren<Extract<Select.RootProps, { type: 'single' }>>,
-		'type' | 'items' | 'disabled' | 'value'
-	>;
+	type SingleRootRest = {
+		type?: 'single';
+		disabled?: boolean;
+		value?: string;
+		onValueChange?: (value: string) => void;
+	};
 
-	type MultipleRootRest = Omit<
-		WithoutChildren<Extract<Select.RootProps, { type: 'multiple' }>>,
-		'type' | 'items' | 'disabled' | 'value'
-	>;
+	type MultipleRootRest = {
+		type: 'multiple';
+		disabled?: boolean;
+		value?: string[];
+		onValueChange?: (value: string[]) => void;
+	};
 
-	type Props = SharedProps &
-		(
-			| Omit<WithoutChildren<Extract<Select.RootProps, { type: 'single' }>>, 'items'>
-			| Omit<WithoutChildren<Extract<Select.RootProps, { type: 'multiple' }>>, 'items'>
-		);
+	type Props = SharedProps & (SingleRootRest | MultipleRootRest);
 
 	let {
 		label,
@@ -56,15 +58,19 @@
 		noResultsLabel,
 		searchable = 'auto',
 		prependIcon,
-		contentProps,
+		dialogTitle = 'Select option',
+		dialogDescription = 'Search and select an option from the list.',
+		dialogProps,
+		commandProps,
 		id = useId(),
 		class: className,
 		error,
+		required = false,
 		reloadKey,
-		type,
+		type = 'single',
 		disabled: disabledProp,
 		value = $bindable(),
-		...rootProps
+		onValueChange
 	}: Props = $props();
 
 	const resolvedPlaceholder = $derived(placeholder ?? 'Select an option');
@@ -73,17 +79,15 @@
 	const resolvedNoResultsLabel = $derived(noResultsLabel ?? 'No matches found');
 
 	let open = $state(false);
-	let searchQuery = $state('');
-	let searchInputElement = $state<HTMLInputElement | null>(null);
-
-	const dropdownScroll = new DropdownScroll();
+	let commandSearch = $state('');
+	const commandListId = useId();
 
 	const resolvedItems = resolveSelectItems(
 		() => itemsSource,
 		() => reloadKey?.()
 	);
-	const disabled = $derived(disabledProp);
-	const selectedValue = $derived(type === 'multiple' ? undefined : (value as string | undefined));
+	const disabled = $derived(disabledProp ?? false);
+	const isMultiple = $derived(type === 'multiple');
 
 	const showSearch = $derived.by(() => {
 		if (searchable === true) {
@@ -97,180 +101,194 @@
 		return resolvedItems.items.length >= DROPDOWN_SEARCH_THRESHOLD;
 	});
 
-	const displayItems = $derived.by(() => {
+	const selectedLabel = $derived.by(() => {
 		if (resolvedItems.loading) {
-			return [];
+			return resolvedLoadingPlaceholder;
 		}
 
-		if (!showSearch || !searchQuery.trim()) {
-			return resolvedItems.items;
+		if (isMultiple) {
+			const selected = value as string[];
+			if (selected.length === 0) {
+				return resolvedPlaceholder;
+			}
+
+			const labels = selected
+				.map(
+					(itemValue) =>
+						resolvedItems.items.find((item) => item.value === itemValue)?.label
+				)
+				.filter(Boolean);
+
+			return labels.length > 0 ? labels.join(', ') : resolvedPlaceholder;
 		}
 
-		return filterSelectItems(resolvedItems.items, searchQuery);
+		const singleValue = value as string | undefined;
+		if (!singleValue) {
+			return resolvedPlaceholder;
+		}
+
+		return resolvedItems.items.find((item) => item.value === singleValue)?.label ?? singleValue;
 	});
 
-	function handleSearchQueryChange(): void {
-		dropdownScroll.resetScroll();
-	}
+	const hasValue = $derived.by(() => {
+		if (isMultiple) {
+			return (value as string[]).length > 0;
+		}
 
-	async function handleOpenChange(nextOpen: boolean) {
+		return Boolean(value);
+	});
+
+	function handleOpenChange(nextOpen: boolean): void {
 		open = nextOpen;
 
 		if (!nextOpen) {
-			searchQuery = '';
-			dropdownScroll.resetScroll();
+			commandSearch = '';
+		}
+	}
+
+	function isSelected(itemValue: string): boolean {
+		if (isMultiple) {
+			return (value as string[]).includes(itemValue);
+		}
+
+		return value === itemValue;
+	}
+
+	function selectItem(item: SelectItem): void {
+		if (item.disabled) {
 			return;
 		}
 
-		await tick();
-		dropdownScroll.scrollToValue(displayItems, selectedValue);
+		if (isMultiple) {
+			const current = [...(value as string[])];
+			const index = current.indexOf(item.value);
+
+			if (index >= 0) {
+				current.splice(index, 1);
+			} else {
+				current.push(item.value);
+			}
+
+			value = current;
+			onValueChange?.(current as never);
+			return;
+		}
+
+		value = item.value;
+		onValueChange?.(item.value as never);
+		open = false;
+	}
+
+	function openDialog(): void {
+		if (disabled) {
+			return;
+		}
+
+		open = true;
 	}
 </script>
-
-{#snippet selectItem(item: SelectItem)}
-	{@const itemValue = item.value}
-	{@const itemLabel = item.label}
-	{@const itemDisabled = item.disabled}
-	<Select.Item
-		value={itemValue}
-		label={itemLabel}
-		disabled={itemDisabled}
-		class={cn(
-			'flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-1.5 text-dark-50 outline-none',
-			'data-disabled:cursor-default data-disabled:opacity-50 data-highlighted:bg-dark-700'
-		)}
-	>
-		{#snippet children({ selected })}
-			{itemLabel}
-			{#if selected}
-				<Icon icon="ri:check-line" class="size-5 text-primary" />
-			{/if}
-		{/snippet}
-	</Select.Item>
-{/snippet}
-
-{#snippet selectBody()}
-	<div
-		class={cn(
-			'relative flex w-full items-center rounded-xl',
-			'has-focus:ring-2 has-focus:ring-primary',
-			error && 'has-focus:ring-red-500',
-			className
-		)}
-	>
-		<Select.Trigger {id} class="flex w-full cursor-pointer items-center outline-none">
-			{#if prependIcon}
-				<span
-					class="grid h-full min-w-10 place-items-center rounded-l-xl border border-r-0 border-dark-700 text-dark-50"
-				>
-					<Icon icon={prependIcon} class="size-6" />
-				</span>
-			{/if}
-			<span
-				class={cn(
-					'flex w-full items-center justify-between gap-2 border bg-dark-700 text-dark-50 outline-none',
-					inputSizeClasses.md,
-					error ? 'border-red-500' : 'border-dark-500',
-					{
-						'rounded-l-none rounded-r-xl border-l-0': prependIcon,
-						'rounded-xl': !prependIcon
-					}
-				)}
-			>
-				<Select.Value
-					placeholder={resolvedItems.loading
-						? resolvedLoadingPlaceholder
-						: resolvedPlaceholder}
-					class="truncate data-placeholder:text-dark-300"
-				/>
-				<Icon icon="ri:expand-up-down-line" class="size-5 shrink-0 text-dark-300" />
-			</span>
-		</Select.Trigger>
-	</div>
-	<Select.Portal>
-		<Select.Content
-			{...contentProps}
-			sideOffset={contentProps?.sideOffset ?? 4}
-			class={cn(
-				'z-50 max-h-60 w-(--bits-select-anchor-width) min-w-(--bits-select-anchor-width)',
-				'rounded-xl border border-dark-600 bg-dark-800 shadow-md outline-none',
-				contentProps?.class
-			)}
-		>
-			{#if showSearch && !resolvedItems.loading}
-				<SelectDropdownSearch
-					bind:query={searchQuery}
-					onQueryChange={handleSearchQueryChange}
-					bind:inputElement={searchInputElement}
-					autofocus={open}
-					placeholder={resolvedSearchPlaceholder}
-					ariaLabel={resolvedSearchPlaceholder}
-				/>
-			{/if}
-			<Select.ScrollUpButton
-				class="flex w-full items-center justify-center py-1 text-dark-300"
-			>
-				<Icon icon="ri:arrow-up-s-line" />
-			</Select.ScrollUpButton>
-			<Select.Viewport
-				bind:ref={dropdownScroll.viewportRef}
-				onscroll={dropdownScroll.handleViewportScroll}
-				class=" p-[5px]"
-			>
-				{#if resolvedItems.loading}
-					<div class="px-3 py-1.5 text-sm text-dark-300">
-						{resolvedLoadingPlaceholder}
-					</div>
-				{:else if displayItems.length > 0}
-					{#key `${searchQuery}:${displayItems.length}`}
-						<VirtualSelectItems
-							items={displayItems}
-							scrollTop={dropdownScroll.scrollTop}
-							item={selectItem}
-						/>
-					{/key}
-				{:else if showSearch && searchQuery.trim()}
-					<div class="px-3 py-1.5 text-sm text-dark-300">{resolvedNoResultsLabel}</div>
-				{/if}
-			</Select.Viewport>
-			<Select.ScrollDownButton
-				class="flex w-full items-center justify-center py-1 text-dark-300"
-			>
-				<Icon icon="ri:arrow-down-s-line" />
-			</Select.ScrollDownButton>
-		</Select.Content>
-	</Select.Portal>
-{/snippet}
 
 <div class={cn('relative grid w-full gap-2')}>
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
-	{#if type === 'single'}
-		<Select.Root
-			type="single"
-			items={resolvedItems.items}
-			{disabled}
-			bind:open
-			onOpenChange={handleOpenChange}
-			bind:value={value as string}
-			{...rootProps as SingleRootRest}
+
+	<Dialog.Root bind:open onOpenChange={handleOpenChange}>
+		<div
+			class={cn(
+				'relative flex w-full items-center rounded-xl',
+				'has-focus:ring-2 has-focus:ring-primary',
+				error && 'has-focus:ring-red-500',
+				className
+			)}
 		>
-			{@render selectBody()}
-		</Select.Root>
-	{:else}
-		<Select.Root
-			type="multiple"
-			items={resolvedItems.items}
-			{disabled}
-			bind:open
-			onOpenChange={handleOpenChange}
-			bind:value={value as string[]}
-			{...rootProps as MultipleRootRest}
-		>
-			{@render selectBody()}
-		</Select.Root>
-	{/if}
+			<button
+				{id}
+				type="button"
+				role="combobox"
+				aria-haspopup="dialog"
+				aria-expanded={open}
+				aria-controls={open ? commandListId : undefined}
+				aria-required={required || undefined}
+				{disabled}
+				class="flex w-full cursor-pointer items-center outline-none disabled:cursor-not-allowed disabled:opacity-50"
+				onclick={openDialog}
+			>
+				{#if prependIcon}
+					<span
+						class="grid h-full min-w-10 place-items-center rounded-l-xl border border-r-0 border-dark-700 text-dark-50"
+					>
+						<Icon icon={prependIcon} class="size-6" />
+					</span>
+				{/if}
+				<span
+					class={cn(
+						'flex w-full items-center justify-between gap-2 border bg-dark-700 text-dark-50 outline-none',
+						inputSizeClasses.md,
+						error ? 'border-red-500' : 'border-dark-500',
+						{
+							'rounded-l-none rounded-r-xl border-l-0': prependIcon,
+							'rounded-xl': !prependIcon
+						}
+					)}
+				>
+					<span class={cn('truncate', !hasValue && 'text-dark-300')}>
+						{selectedLabel}
+					</span>
+					<Icon icon="ri:expand-up-down-line" class="size-5 shrink-0 text-dark-300" />
+				</span>
+			</button>
+		</div>
+
+		<Dialog.Portal>
+			<Dialog.Overlay />
+			<Dialog.Content {...dialogProps}>
+				<Dialog.Title class="sr-only">{dialogTitle}</Dialog.Title>
+				<Dialog.Description class="sr-only">{dialogDescription}</Dialog.Description>
+
+				<Command.Root
+					{...commandProps}
+					shouldFilter={!resolvedItems.loading}
+					class={cn(commandProps?.class)}
+				>
+					{#if showSearch}
+						<Command.Input
+							bind:value={commandSearch}
+							placeholder={resolvedSearchPlaceholder}
+							aria-label={resolvedSearchPlaceholder}
+						/>
+					{/if}
+
+					<Command.List id={commandListId} class="mt-2">
+						<Command.Viewport>
+							{#if resolvedItems.loading}
+								<Command.Loading>{resolvedLoadingPlaceholder}</Command.Loading>
+							{:else}
+								<Command.Empty>{resolvedNoResultsLabel}</Command.Empty>
+								{#each resolvedItems.items as item (item.value)}
+									<Command.Item
+										value={item.value}
+										keywords={[item.label, item.value]}
+										disabled={item.disabled}
+										onSelect={() => selectItem(item)}
+									>
+										{item.label}
+										{#if isSelected(item.value)}
+											<Icon
+												icon="ri:check-line"
+												class="size-5 text-primary"
+											/>
+										{/if}
+									</Command.Item>
+								{/each}
+							{/if}
+						</Command.Viewport>
+					</Command.List>
+				</Command.Root>
+			</Dialog.Content>
+		</Dialog.Portal>
+	</Dialog.Root>
+
 	{#if error}
 		<p class="text-sm text-red-400">{error}</p>
 	{/if}

@@ -67,6 +67,8 @@ import {
 	createToggleVirtualCamHandler
 } from './handler/virtualcam/index';
 import { createObsPluginApi } from './lib/obs';
+import { createFilterDisabledTrigger, createFilterEnabledTrigger } from './trigger/filter/index';
+import { createMediaActionTriggeredTrigger } from './trigger/media/index';
 import { createRecordFileChangedTrigger } from './trigger/recording/file-changed';
 import { createRecordingStartedTrigger } from './trigger/recording/started';
 import {
@@ -79,7 +81,6 @@ import {
 	createReplayBufferStartedTrigger,
 	createReplayBufferStoppedTrigger
 } from './trigger/replay-buffer/index';
-import { createMediaActionTriggeredTrigger } from './trigger/media/index';
 import {
 	createPreviewSceneChangedTrigger,
 	createSceneChangedTrigger
@@ -92,7 +93,6 @@ import {
 	createMediaEndedTrigger,
 	createMediaStartedTrigger
 } from './trigger/source/index';
-import { createFilterDisabledTrigger, createFilterEnabledTrigger } from './trigger/filter/index';
 import { createStreamStartedTrigger } from './trigger/stream/started';
 import {
 	createStreamReconnectingTrigger,

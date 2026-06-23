@@ -21,6 +21,7 @@
 		setActionGroupCollapsed
 	} from '$lib/components/core/action/action-group-collapse.svelte';
 	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
+	import ActionBulkEditDialog from '$lib/components/core/action/action-bulk-edit-dialog.svelte';
 	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
 	import { applyDndMove } from '$lib/components/core/action/dnd-events';
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
@@ -42,6 +43,7 @@
 	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
 	let groupOrder = $state<string[]>(getGroupOrder(layout));
 	let isDragging = $state(false);
+	let bulkEditOpen = $state(false);
 
 	watch(
 		() =>
@@ -131,86 +133,103 @@
 	}
 </script>
 
-<Container class="px-6 py-6" size="md">
-	<header class="flex justify-between gap-4">
-		<div class="flex flex-col gap-1">
+<Container class="px-6 py-6" size="lg">
+	<header class="flex flex-wrap items-start justify-between gap-4">
+		<div class="flex flex-col gap-3">
 			<Heading level="1" subTitle={t('Manage your actions')}>{t('Actions')}</Heading>
 			{#if totalCount > 0}
-				<p class="text-sm text-dark-400">
-					{t('{count} actions', { count: totalCount })} &middot; {t('{count} groups', {
-						count: groupCount
-					})}
-				</p>
+				<div class="flex flex-wrap items-center gap-2 text-xs font-medium text-dark-200">
+					<span
+						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
+					>
+						<Icon icon="ri:flashlight-line" class="size-3.5 text-primary" aria-hidden="true" />
+						{t('{count} actions', { count: totalCount })}
+					</span>
+					<span
+						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
+					>
+						<Icon icon="ri:folder-3-line" class="size-3.5 text-dark-400" aria-hidden="true" />
+						{t('{count} groups', { count: groupCount })}
+					</span>
+				</div>
 			{/if}
 		</div>
-		<Button
-			icon="ri:add-fill"
-			size="lg"
-			variant="outline"
-			onclick={() => Action.createDraft().open()}
-		>
+		<Button icon="ri:add-fill" size="lg" onclick={() => Action.createDraft().open()}>
 			{t('Add Action')}
 		</Button>
 	</header>
 
 	{#if selectableActions.length > 0}
 		<div
-			class="sticky top-4 z-10 mt-6 flex h-12 flex-nowrap items-center gap-3 overflow-x-auto rounded-xl border border-dark-600 bg-dark-800 px-4"
+			class="sticky top-4 z-10 mt-6 flex h-12 items-center justify-between gap-3 rounded-xl border border-dark-700 bg-dark-800 px-3 shadow-lg shadow-dark-950/40"
 		>
 			<InputCheckbox
 				inline
 				label={t('Select all')}
 				bind:checked={() => selection.allSelected, selection.selectAll}
 			/>
-			<span
-				class={cn('shrink-0 text-sm text-dark-300', !selection.hasSelection && 'invisible')}
-				aria-hidden={!selection.hasSelection}
-			>
-				{t('{count} selected', { count: selection.selectedIds.size })}
-			</span>
 			<div
-				class={cn('h-4 w-px shrink-0 bg-dark-600', !selection.hasSelection && 'invisible')}
+				class={cn(
+					'flex items-center gap-2 transition-opacity',
+					!selection.hasSelection && 'pointer-events-none invisible'
+				)}
 				aria-hidden={!selection.hasSelection}
-			></div>
-			<Button
-				size="sm"
-				variant="outline"
-				class={cn(!selection.hasSelection && 'pointer-events-none invisible')}
-				tabindex={selection.hasSelection ? undefined : -1}
-				onclick={() => void enableSelected()}
 			>
-				{t('Enable selected')}
-			</Button>
-			<Button
-				size="sm"
-				variant="outline"
-				class={cn(!selection.hasSelection && 'pointer-events-none invisible')}
-				tabindex={selection.hasSelection ? undefined : -1}
-				onclick={() => void disableSelected()}
-			>
-				{t('Disable selected')}
-			</Button>
-			<Button
-				size="sm"
-				variant="destructive"
-				icon="ri:delete-bin-line"
-				class={cn(!selection.hasSelection && 'pointer-events-none invisible')}
-				tabindex={selection.hasSelection ? undefined : -1}
-				onclick={() => void deleteSelected()}
-			>
-				{t('Delete selected')}
-			</Button>
-			<Button
-				size="sm"
-				variant="ghost"
-				class={cn(!selection.hasSelection && 'pointer-events-none invisible')}
-				tabindex={selection.hasSelection ? undefined : -1}
-				onclick={selection.clearSelection}
-			>
-				{t('Clear selection')}
-			</Button>
+				<span class="mr-1 text-sm text-dark-300">
+					{t('{count} selected', { count: selection.selectedIds.size })}
+				</span>
+				<Button
+					size="sm"
+					variant="outline"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={() => void enableSelected()}
+				>
+					{t('Enable selected')}
+				</Button>
+				<Button
+					size="sm"
+					variant="outline"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={() => void disableSelected()}
+				>
+					{t('Disable selected')}
+				</Button>
+				<Button
+					size="sm"
+					variant="outline"
+					icon="ri:edit-line"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={() => (bulkEditOpen = true)}
+				>
+					{t('Edit selected')}
+				</Button>
+				<Button
+					size="sm"
+					variant="destructive"
+					icon="ri:delete-bin-line"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={() => void deleteSelected()}
+				>
+					{t('Delete selected')}
+				</Button>
+				<Button
+					size="sm"
+					variant="ghost"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={selection.clearSelection}
+				>
+					{t('Clear selection')}
+				</Button>
+			</div>
 		</div>
 	{/if}
+
+	<ActionBulkEditDialog
+		bind:open={bulkEditOpen}
+		selectedIds={[...selection.selectedIds]}
+		{groupOrder}
+		onApplied={selection.clearSelection}
+	/>
 
 	<DragDropProvider
 		{sensors}
@@ -219,30 +238,22 @@
 		onDragEnd={handleDragEnd}
 	>
 		{#if selectableActions.length === 0}
-			<div class="mt-12 flex flex-col items-center gap-4 py-12 text-center">
-				<div class="relative flex items-center justify-center">
-					<div class="absolute size-32 rounded-full bg-primary-950 blur-2xl"></div>
-					<div
-						class="relative flex size-20 items-center justify-center rounded-2xl border border-dark-600 bg-dark-800"
-					>
-						<Icon
-							icon="ri:flashlight-line"
-							class="size-8 text-dark-400"
-							aria-hidden="true"
-						/>
-					</div>
+			<div
+				class="relative mt-8 flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
+			>
+				<div class="boot-ambient pointer-events-none opacity-30"></div>
+				<div
+					class="relative flex size-16 items-center justify-center rounded-2xl bg-dark-800 text-primary"
+				>
+					<Icon icon="ri:flashlight-line" class="size-7" aria-hidden="true" />
 				</div>
-				<div class="flex flex-col gap-1.5">
-					<p class="text-base font-medium text-dark-200">{t('No actions yet')}</p>
-					<p class="text-sm text-dark-400">
+				<div class="relative flex flex-col gap-1.5">
+					<p class="text-lg font-semibold text-dark-50">{t('No actions yet')}</p>
+					<p class="text-sm text-dark-300">
 						{t('Create your first action to automate tasks.')}
 					</p>
 				</div>
-				<Button
-					icon="ri:add-fill"
-					variant="outline"
-					onclick={() => Action.createDraft().open()}
-				>
+				<Button class="relative" icon="ri:add-fill" onclick={() => Action.createDraft().open()}>
 					{t('Add Action')}
 				</Button>
 			</div>

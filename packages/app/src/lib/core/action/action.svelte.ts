@@ -26,8 +26,9 @@ import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
 import { getApp } from '../registry';
 import { ActionExecution } from './action-execution.svelte';
 import { ActionHandler } from './action-handler.svelte';
-import { applyLayoutUpdates, compareActionsByLayout } from './action-layout';
+import { applyLayoutUpdates, buildDndLayout, compareActionsByLayout, dndLayoutToUpdates, getGroupOrder } from './action-layout';
 import { ActionTrigger } from './action-trigger.svelte';
+import { resolveHandlerDefinition, resolveTriggerDefinition } from './definition-id';
 import { HandlerDefinitions } from './handler';
 import { migrateLegacyHandlerFields } from './handler-field';
 import { HandlerDefinition } from './handler/handler-definition.svelte';
@@ -35,10 +36,6 @@ import { runHandlerChain } from './run-handler-chain';
 import { DEFAULT_ACTION_GROUP } from './stored-action';
 import { TriggerDefinitions } from './trigger';
 import { TriggerDefinition } from './trigger/trigger-definition.svelte';
-import {
-	resolveHandlerDefinition,
-	resolveTriggerDefinition
-} from './definition-id';
 import { validateActionForm } from './validate-form';
 
 type ActionFormSnapshot = {
@@ -259,6 +256,52 @@ export class Actions {
 					: '{count} actions have been disabled.',
 				{ count: toUpdate.length }
 			),
+			variant: 'success'
+		});
+	}
+
+	async updateBulk(
+		ids: number[],
+		changes: { group?: string; groupOrder?: string[] }
+	): Promise<void> {
+		if (ids.length === 0 || changes.group === undefined) {
+			return;
+		}
+
+		const app = getApp();
+		const targetGroup = normalizeActionGroup(changes.group);
+		const idSet = new Set(ids);
+		const layout = buildDndLayout(this.items);
+
+		for (const group of Object.keys(layout)) {
+			layout[group] = (layout[group] ?? []).filter((item) => !idSet.has(item.id));
+		}
+
+		if (!layout[targetGroup]) {
+			layout[targetGroup] = [];
+		}
+
+		for (const id of ids) {
+			const action = this.items.find((item) => item.id === id);
+
+			if (action?.id != null) {
+				layout[targetGroup].push({ id: action.id, action });
+			}
+		}
+
+		let nextGroupOrder = changes.groupOrder ?? getGroupOrder(layout);
+
+		if (!nextGroupOrder.includes(targetGroup)) {
+			nextGroupOrder = [...nextGroupOrder, targetGroup];
+		}
+
+		nextGroupOrder = nextGroupOrder.filter((group) => (layout[group]?.length ?? 0) > 0);
+
+		await this.applyLayout(dndLayoutToUpdates(layout, nextGroupOrder));
+
+		app.toast.create({
+			title: translate('Selected actions updated'),
+			description: translate('Moved {count} actions to group.', { count: ids.length }),
 			variant: 'success'
 		});
 	}

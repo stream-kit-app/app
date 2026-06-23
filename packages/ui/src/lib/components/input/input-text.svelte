@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { InputSize } from './input-size-classes';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	import Icon from '@iconify/svelte';
@@ -8,8 +9,7 @@
 	import {
 		inputAdornmentSizeClasses,
 		inputIconSizeClasses,
-		inputSizeClasses,
-		type InputSize
+		inputSizeClasses
 	} from './input-size-classes';
 	import Label from './label.svelte';
 

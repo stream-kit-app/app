@@ -1,14 +1,13 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod audio;
 mod dev;
 mod local_tts;
+mod media;
 mod overlay_server;
 mod plugins;
 mod process_watcher;
 mod run_program;
 
-use std::io::Cursor;
-
-use rodio::{Decoder, OutputStream, Sink, Source};
 use tauri::Manager;
 
 #[cfg(windows)]
@@ -29,23 +28,12 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 async fn play_audio(data: Vec<u8>, volume: f32) -> Result<(), String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let cursor = Cursor::new(data);
-        let source = Decoder::new(cursor)
-            .map_err(|error| format!("failed to decode audio stream: {error}"))?
-            .amplify(volume.clamp(0.0, 1.0));
-        let (_stream, stream_handle) = OutputStream::try_default()
-            .map_err(|error| format!("failed to open default audio output: {error}"))?;
-        let sink = Sink::try_new(&stream_handle)
-            .map_err(|error| format!("failed to create audio sink: {error}"))?;
+    audio::play_audio_bytes(data, volume).await
+}
 
-        sink.append(source);
-        sink.sleep_until_end();
-
-        Ok::<(), String>(())
-    })
-    .await
-    .map_err(|error| format!("audio playback task failed: {error}"))?
+#[tauri::command]
+async fn play_audio_file(path: String, volume: f32) -> Result<(), String> {
+    audio::play_audio_file(path, volume).await
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -65,6 +53,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             play_audio,
+            play_audio_file,
+            media::get_media_file_duration_ms,
             local_tts::list_local_tts_voices,
             local_tts::get_local_tts_runtime_info,
             local_tts::download_local_tts_runtime,

@@ -15,6 +15,7 @@ export type TextSelectTextFieldValue = {
 
 export type HandlerFieldScalarValue =
 	| string
+	| number
 	| boolean
 	| KeyValueEntry[]
 	| TextSelectTextFieldValue;

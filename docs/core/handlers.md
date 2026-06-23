@@ -20,21 +20,23 @@ Handlers run top to bottom in the order shown in the editor. Each handler calls
 
 Plays a single audio file through the app audio player.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Audio file | file | yes | mp3, wav, ogg, flac, aac, m4a |
+| Field      | Type   | Required | Description                                                 |
+| ---------- | ------ | -------- | ----------------------------------------------------------- |
+| Audio file | file   | yes      | mp3, wav, ogg, flac, aac, m4a                               |
+| Volume     | slider | no       | Playback volume (0–200%, default 100%; 100% = normal level) |
 
-The file is read via `app.fs.readFile` and played as a blob.
+The file is read via `app.fs.readFile` and played through the app audio player. The handler waits until playback finishes before continuing the chain.
 
 ### Play all audio from folder
 
-Plays all audio files in a folder sequentially (sorted by filename).
+Plays all audio files in a folder sequentially (sorted by filename). Files are read and played one at a time from disk.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Folder | folder | yes | Folder containing audio files |
+| Field  | Type   | Required | Description                                                 |
+| ------ | ------ | -------- | ----------------------------------------------------------- |
+| Folder | folder | yes      | Folder containing audio files                               |
+| Volume | slider | no       | Playback volume (0–200%, default 100%; 100% = normal level) |
 
-Files are queued and played one after another.
+Files are queued and played one after another. Only files directly in the chosen folder are included (no subfolders).
 
 ---
 
@@ -46,9 +48,9 @@ Runs TypeScript-like user code inside an isolated Web Worker. The worker has its
 own global scope with no access to the app, the DOM, or Tauri APIs, so a script
 can only read the trigger context passed to it and write action variables back.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Script | code (TypeScript) | yes | Default template with `export default (context) => { ... }` |
+| Field  | Type              | Required | Description                                                 |
+| ------ | ----------------- | -------- | ----------------------------------------------------------- |
+| Script | code (TypeScript) | yes      | Default template with `export default (context) => { ... }` |
 
 The script receives an array of `HandlerTriggerContext` objects:
 
@@ -78,14 +80,14 @@ Notes:
 
 Launches an external program via `app.process.run`.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Program | file | yes | exe, bat, cmd, ps1, com, msi |
-| Working directory | folder | no | Working directory for the process |
-| Arguments | text | no | Command-line arguments; supports `{variables}` |
-| Environment variables | key-value list | no | Environment variables; values support interpolation |
-| Hide window | switch | no | Hide the process window |
-| Run in shell | checkbox | no | Run via shell |
+| Field                 | Type           | Required | Description                                         |
+| --------------------- | -------------- | -------- | --------------------------------------------------- |
+| Program               | file           | yes      | exe, bat, cmd, ps1, com, msi                        |
+| Working directory     | folder         | no       | Working directory for the process                   |
+| Arguments             | text           | no       | Command-line arguments; supports `{variables}`      |
+| Environment variables | key-value list | no       | Environment variables; values support interpolation |
+| Hide window           | switch         | no       | Hide the process window                             |
+| Run in shell          | checkbox       | no       | Run via shell                                       |
 
 Arguments and environment variables are resolved through the variable system before execution. The process is not awaited (`waitSeconds: 0`).
 
@@ -97,11 +99,11 @@ Arguments and environment variables are resolved through the variable system bef
 
 Stores a value in the selected scope.
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| Scope | select | Action | Global, User, or Action |
-| Variable name | text | — | Variable name (required) |
-| Value | text | — | Value; supports `{variables}` |
+| Field         | Type   | Default | Description                   |
+| ------------- | ------ | ------- | ----------------------------- |
+| Scope         | select | Action  | Global, User, or Action       |
+| Variable name | text   | —       | Variable name (required)      |
+| Value         | text   | —       | Value; supports `{variables}` |
 
 For **User** scope, a username in the trigger context is required (`username`, `userName`, `user`, or `login`). Otherwise a warning toast is shown.
 
@@ -109,11 +111,11 @@ For **User** scope, a username in the trigger context is required (`username`, `
 
 Reads a variable from a scope and stores the result in an action variable.
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| From scope | select | Global | Source scope |
-| Variable name | text | — | Variable to read (required) |
-| Target name | text | — | Action variable to write the result into (required) |
+| Field         | Type   | Default | Description                                         |
+| ------------- | ------ | ------- | --------------------------------------------------- |
+| From scope    | select | Global  | Source scope                                        |
+| Variable name | text   | —       | Variable to read (required)                         |
+| Target name   | text   | —       | Action variable to write the result into (required) |
 
 Missing values are stored as an empty string in the target.
 
@@ -129,74 +131,74 @@ All map handlers except **Create map** use a **Map name** dropdown that lists ev
 
 Creates an empty map. Fails if the name already exists (session or persistent).
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| Map name | text | — | Unique map name (required) |
+| Field    | Type   | Default | Description                                  |
+| -------- | ------ | ------- | -------------------------------------------- |
+| Map name | text   | —       | Unique map name (required)                   |
 | Lifetime | select | Session | Session or Persistent — set only at creation |
 
 ### Set value
 
 Upserts a key in an existing map. Creates the key if it does not exist, or overwrites it if it does.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| Map name | combobox | Existing maps (label shows session or persistent) |
-| Key | text | Key to set (required); supports trigger, global, user, and action variables |
-| Value | text | Value; supports trigger, global, user, and action variables |
+| Field    | Type     | Description                                                                 |
+| -------- | -------- | --------------------------------------------------------------------------- |
+| Map name | combobox | Existing maps (label shows session or persistent)                           |
+| Key      | text     | Key to set (required); supports trigger, global, user, and action variables |
+| Value    | text     | Value; supports trigger, global, user, and action variables                 |
 
 ### Update value
 
 Updates an existing key only. Fails if the map or key does not exist.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| Map name | combobox | Existing maps |
-| Key | text | Key to update (required) |
-| Value | text | New value; supports `{variables}` |
+| Field    | Type     | Description                       |
+| -------- | -------- | --------------------------------- |
+| Map name | combobox | Existing maps                     |
+| Key      | text     | Key to update (required)          |
+| Value    | text     | New value; supports `{variables}` |
 
 ### Get value
 
 Reads a value from a map into an action variable.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| Map name | combobox | Existing maps |
-| Key | text | Key to read (required); supports trigger, global, user, and action variables |
-| Target name | text | Action variable to write into (required) |
+| Field       | Type     | Description                                                                  |
+| ----------- | -------- | ---------------------------------------------------------------------------- |
+| Map name    | combobox | Existing maps                                                                |
+| Key         | text     | Key to read (required); supports trigger, global, user, and action variables |
+| Target name | text     | Action variable to write into (required)                                     |
 
 ### Has key
 
 Checks whether a key exists and writes `true` or `false` to an action variable.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| Map name | combobox | Existing maps |
-| Key | text | Key to check (required); supports trigger, global, user, and action variables |
-| Target name | text | Action variable for the result (required) |
+| Field       | Type     | Description                                                                   |
+| ----------- | -------- | ----------------------------------------------------------------------------- |
+| Map name    | combobox | Existing maps                                                                 |
+| Key         | text     | Key to check (required); supports trigger, global, user, and action variables |
+| Target name | text     | Action variable for the result (required)                                     |
 
 ### Delete key
 
 Removes a single key from a map.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| Map name | combobox | Existing maps |
-| Key | text | Key to delete (required) |
+| Field    | Type     | Description              |
+| -------- | -------- | ------------------------ |
+| Map name | combobox | Existing maps            |
+| Key      | text     | Key to delete (required) |
 
 ### Clear map
 
 Removes all keys from a map but keeps the map itself.
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field    | Type     | Description   |
+| -------- | -------- | ------------- |
 | Map name | combobox | Existing maps |
 
 ### Delete map
 
 Removes the entire map from the registry.
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field    | Type     | Description   |
+| -------- | -------- | ------------- |
 | Map name | combobox | Existing maps |
 
 ---
@@ -207,12 +209,12 @@ Removes the entire map from the registry.
 
 Evaluates a text condition and continues the handler chain only when it passes. When the condition fails, all remaining handlers are skipped.
 
-The action editor shows a live summary above the inputs, using the same style as trigger conditions (for example: **if** `{score}` *is empty*).
+The action editor shows a live summary above the inputs, using the same style as trigger conditions (for example: **if** `{score}` _is empty_).
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Condition | text-select-text | yes | Left: variable or text to check; middle: operator; right: comparison value (not used for empty checks) |
-| Not | checkbox | no | Inverts the result (passes when the match fails) |
+| Field     | Type             | Required | Description                                                                                            |
+| --------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| Condition | text-select-text | yes      | Left: variable or text to check; middle: operator; right: comparison value (not used for empty checks) |
+| Not       | checkbox         | no       | Inverts the result (passes when the match fails)                                                       |
 
 **Operators:** equals, contains, starts with, ends with, is empty.
 
@@ -230,10 +232,10 @@ Example chain:
 
 Writes a log entry to the action log system.
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| Message | text | — | Message; supports `{variables}` (required) |
-| Level | select | Info | Info, Warning, Error, or Debug |
+| Field   | Type   | Default | Description                                |
+| ------- | ------ | ------- | ------------------------------------------ |
+| Message | text   | —       | Message; supports `{variables}` (required) |
+| Level   | select | Info    | Info, Warning, Error, or Debug             |
 
 Each entry also includes `actionId`, `actionName`, and `trigger` from the current execution context. See [Logging](./logging.md).
 
@@ -243,8 +245,8 @@ Each entry also includes `actionId`, `actionName`, and `trigger` from the curren
 
 Pauses the handler chain for a given duration.
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| Duration (ms) | text | `1000` | Duration in milliseconds (required) |
+| Field         | Type | Default | Description                         |
+| ------------- | ---- | ------- | ----------------------------------- |
+| Duration (ms) | text | `1000`  | Duration in milliseconds (required) |
 
 Invalid or negative values are ignored (handler stops without calling `next()`).

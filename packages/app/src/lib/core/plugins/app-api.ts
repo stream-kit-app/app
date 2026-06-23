@@ -4,6 +4,8 @@ import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
 import type { CommandRecord } from '$lib/types/command-types';
 import { createFilesystemApi } from '../filesystem/create-api';
+import { getVideoFileDurationMs } from '../media/file-duration';
+import { withResourceLock } from '../resource-lock';
 import { getSettingsFieldValue } from '../settings/settings-field';
 import { db } from '$db/index';
 import { registerPluginMigrations, type PluginMigration } from '$db/plugin-migrations';
@@ -90,7 +92,11 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		},
 		fs: createFilesystemApi(app.fs),
 		audio: {
-			play: app.audio.play.bind(app.audio)
+			play: app.audio.play.bind(app.audio),
+			playFile: app.audio.playFile.bind(app.audio)
+		},
+		media: {
+			getFileDurationMs: getVideoFileDurationMs
 		},
 		localTts: {
 			listVoices: app.localTts.listVoices.bind(app.localTts),
@@ -174,7 +180,8 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		},
 		opener: {
 			openUrl: app.opener.openUrl.bind(app.opener)
-		}
+		},
+		withResourceLock
 	} satisfies PluginAppApi;
 }
 

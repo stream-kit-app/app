@@ -1,5 +1,7 @@
 {
 	"Actions": "Acties",
+	"{count} actions": "{count} acties",
+	"{count} groups": "{count} groepen",
 	"No actions yet": "Nog geen acties",
 	"Create your first action to automate tasks.": "Maak je eerste actie om taken te automatiseren.",
 	"Add Action": "Actie toevoegen",

@@ -349,11 +349,19 @@ export interface PluginAppProcessApi {
 }
 
 /**
+ * Local media file helpers (duration probing, etc.).
+ */
+export interface PluginAppMediaApi {
+	/** Returns the duration of a local video/audio file in milliseconds, or null when unknown. */
+	getFileDurationMs(filePath: string): Promise<number | null>;
+}
+
+/**
  * Audio playback helpers.
  */
 export interface PluginAppAudioApi {
 	/**
-	 * Play audio from a blob. Volume is clamped between `0` and `1`.
+	 * Play audio from a blob. Volume is clamped between `0` and `2` (`1` = 100%).
 	 *
 	 * @example
 	 * ```ts
@@ -362,6 +370,11 @@ export interface PluginAppAudioApi {
 	 * ```
 	 */
 	play(blob: Blob, volume?: number): Promise<void>;
+	/**
+	 * Play audio from a file path. The file is read and decoded in the app layer.
+	 * Prefer this over `play` for local files to avoid loading large files into memory.
+	 */
+	playFile(path: string, volume?: number): Promise<void>;
 }
 
 /**
@@ -582,6 +595,9 @@ export interface PluginAppApi {
 	/** Play audio blobs. */
 	audio: PluginAppAudioApi;
 
+	/** Probe local media files (for example video duration). */
+	media: PluginAppMediaApi;
+
 	/** Bridge to the local (Piper) TTS runtime. */
 	localTts: PluginAppLocalTtsApi;
 
@@ -608,4 +624,16 @@ export interface PluginAppApi {
 
 	/** Open URLs in the default browser. */
 	opener: PluginAppOpenerApi;
+
+	/**
+	 * Serialize work that touches the same shared resource across concurrent action runs.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.withResourceLock('obs:media:alerts', async () => {
+	 *   await updateObsMediaSource();
+	 * });
+	 * ```
+	 */
+	withResourceLock<T>(key: string, fn: () => Promise<T>): Promise<T>;
 }

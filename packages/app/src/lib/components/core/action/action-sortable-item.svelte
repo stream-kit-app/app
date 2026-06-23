@@ -35,7 +35,7 @@
 	});
 </script>
 
-<div class="flex min-w-0 items-center gap-2">
+<div class="group/row flex min-w-0 items-center gap-2">
 	<div class="flex w-8 shrink-0 justify-center">
 		{#if isOverlay}
 			<div
@@ -47,7 +47,7 @@
 		{:else}
 			<button
 				type="button"
-				class="flex size-8 cursor-grab items-center justify-center rounded-lg text-dark-400 transition-colors hover:bg-dark-700 hover:text-dark-200 active:cursor-grabbing"
+				class="flex size-8 cursor-grab items-center justify-center rounded-lg text-dark-400 opacity-0 transition hover:bg-dark-700 hover:text-dark-200 focus-visible:opacity-100 active:cursor-grabbing group-hover/row:opacity-100"
 				{@attach handleRef}
 				aria-label={t('Drag to reorder {name}', { name: displayName })}
 				onclick={(event) => event.stopPropagation()}

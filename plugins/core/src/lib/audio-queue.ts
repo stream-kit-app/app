@@ -1,9 +1,25 @@
-type QueueItem = {
-	blob: Blob;
-	volume: number;
+type QueueItem =
+	| {
+			kind: 'blob';
+			blob: Blob;
+			volume: number;
+			done?: () => void;
+	  }
+	| {
+			kind: 'file';
+			path: string;
+			volume: number;
+			done?: () => void;
+	  };
+
+export type AudioPlayback = {
+	playBlob: (blob: Blob, volume: number) => Promise<void>;
+	playFile: (path: string, volume: number) => Promise<void>;
 };
 
-export type AudioPlayback = (blob: Blob, volume: number) => Promise<void>;
+function clampVolume(volume: number): number {
+	return Math.min(2, Math.max(0, volume));
+}
 
 export class AudioQueue {
 	private queue: QueueItem[] = [];
@@ -14,9 +30,21 @@ export class AudioQueue {
 		this.playback = playback;
 	}
 
-	enqueue(blob: Blob, volume: number): void {
-		this.queue.push({ blob, volume: Math.min(1, Math.max(0, volume)) });
+	enqueue(blob: Blob, volume: number): Promise<void> {
+		return new Promise((resolve) => {
+			this.queue.push({ kind: 'blob', blob, volume: clampVolume(volume), done: resolve });
+			this.startIfIdle();
+		});
+	}
 
+	enqueueFile(path: string, volume: number): Promise<void> {
+		return new Promise((resolve) => {
+			this.queue.push({ kind: 'file', path, volume: clampVolume(volume), done: resolve });
+			this.startIfIdle();
+		});
+	}
+
+	private startIfIdle(): void {
 		if (!this.playing) {
 			void this.playNext();
 		}
@@ -35,11 +63,17 @@ export class AudioQueue {
 		if (!this.playback) {
 			console.error('Audio playback is not configured.');
 		} else {
-			await this.playback(item.blob, item.volume).catch((error: unknown) => {
+			const play =
+				item.kind === 'file'
+					? this.playback.playFile(item.path, item.volume)
+					: this.playback.playBlob(item.blob, item.volume);
+
+			await play.catch((error: unknown) => {
 				console.error('Failed to play audio', error);
 			});
 		}
 
+		item.done?.();
 		await this.playNext();
 	}
 }

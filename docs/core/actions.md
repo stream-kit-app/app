@@ -10,10 +10,10 @@ Each action belongs to a **group** (default: `default`). Groups are shown as sec
 
 On the Actions page you can drag items to change layout:
 
-| Drag target | Effect |
-|-------------|--------|
-| Action handle (left of the row) | Reorder within a group, or move the action into another group |
-| Group handle (left of the group heading) | Reorder entire group sections |
+| Drag target                              | Effect                                                        |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| Action handle (left of the row)          | Reorder within a group, or move the action into another group |
+| Group handle (left of the group heading) | Reorder entire group sections                                 |
 
 In the action editor, triggers and handlers can be reordered with the drag handle on each row. Handler order is the execution order when an action runs.
 
@@ -25,13 +25,19 @@ When you change an action’s group in the editor, it is placed at the end of th
 
 You can duplicate actions, triggers, and handlers:
 
-| Location | What it does |
-|----------|--------------|
-| Clone button on an action row | Opens a pre-filled draft named “Copy of …”. Save to create the new action. |
-| Clone button in the action editor footer | Same as above while editing an existing action. |
+| Location                                 | What it does                                                                      |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
+| Clone button on an action row            | Opens a pre-filled draft named “Copy of …”. Save to create the new action.        |
+| Clone button in the action editor footer | Same as above while editing an existing action.                                   |
 | Clone button on a trigger or handler row | Inserts a copy directly after that item in the chain. Save the action to persist. |
 
 Cloned triggers and handlers receive new instance IDs. Their configuration (conditions, field values) is deep-copied from the source.
+
+## Select fields (command menu)
+
+Trigger and handler **select** fields use `@stream-kit/ui` `InputSelect`. The field looks like a normal dropdown trigger, but clicking it opens a **centered command menu** (dialog with search and keyboard navigation) instead of an anchored dropdown.
+
+This avoids clipping inside scroll areas and the Tauri window edge, and gives a consistent search experience for long option lists. Other select-style inputs (`InputSelectText`, `InputTextSelect`, and similar) still use inline dropdowns.
 
 ## Related docs
 

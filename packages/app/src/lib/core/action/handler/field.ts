@@ -19,6 +19,7 @@ export type OneOfFieldValue = {
 
 export type HandlerFieldScalarValue =
 	| string
+	| number
 	| boolean
 	| KeyValueEntry[]
 	| TextSelectTextFieldValue;
@@ -86,6 +87,13 @@ export type HandlerOneOfInnerFieldDefinition =
 			type: 'code';
 			language?: 'typescript';
 			defaultValue?: string;
+	  })
+	| (HandlerFieldBase & {
+			type: 'slider';
+			min: number;
+			max: number;
+			step?: number;
+			defaultValue?: number;
 	  });
 
 export type HandlerOneOfVariantDefinition = {

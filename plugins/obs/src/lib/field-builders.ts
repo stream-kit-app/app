@@ -1,13 +1,20 @@
-import type { PluginAppApi } from '@stream-kit/plugin';
-import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
+import type { HandlerFieldDefinition, PluginAppApi, SelectItem } from '@stream-kit/plugin';
 
-import { loadHotkeyItems, loadInputItems, loadSceneItems, loadTransitionItems, loadFilterItems, loadFilterKindItems, loadMediaInputItems } from './catalog';
 import {
+	loadFilterItems,
+	loadFilterKindItems,
+	loadHotkeyItems,
+	loadInputItems,
+	loadMediaInputItems,
+	loadSceneItems,
+	loadTransitionItems
+} from './catalog';
+import {
+	FILTER_TEXT_VARIABLES,
 	HOTKEY_TEXT_VARIABLES,
 	INPUT_TEXT_VARIABLES,
 	SCENE_TEXT_VARIABLES,
-	TRANSITION_TEXT_VARIABLES,
-	FILTER_TEXT_VARIABLES
+	TRANSITION_TEXT_VARIABLES
 } from './variables';
 
 function selectItems(

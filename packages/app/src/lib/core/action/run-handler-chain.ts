@@ -1,5 +1,5 @@
-import type { Action } from './action.svelte';
 import type { ActionHandler } from './action-handler.svelte';
+import type { Action } from './action.svelte';
 import type { HandlerTriggerContext } from './handler-context';
 
 export type HandlerChainCallbacks = {

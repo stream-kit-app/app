@@ -1,5 +1,7 @@
 {
 	"Actions": "Actions",
+	"{count} actions": "{count} actions",
+	"{count} groups": "{count} groups",
 	"No actions yet": "No actions yet",
 	"Create your first action to automate tasks.": "Create your first action to automate tasks.",
 	"Add Action": "Add Action",

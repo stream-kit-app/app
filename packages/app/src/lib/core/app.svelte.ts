@@ -8,22 +8,22 @@ import { translate } from '$lib/i18n';
 
 import { Actions } from './action/action.svelte';
 import { Audio } from './audio';
-import { AppLifecycle } from './lifecycle';
-import { ProcessWatcher } from './process';
 import { Bootable } from './bootable.svelte';
 import { Confirm } from './confirm';
 import { Filesystem } from './filesystem';
+import { AppLifecycle } from './lifecycle';
 import { Menu } from './menu';
 import { Modal } from './modal';
 import { OAuth } from './oauth';
 import { Opener } from './opener';
+import { OverlayService } from './overlay/overlay-service.svelte';
 import { Plugins } from './plugins';
 import { createPluginAppApi } from './plugins/app-api';
 import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
+import { ProcessWatcher } from './process';
 import { Settings } from './settings';
 import { Toast } from './toast';
 import { LocalTts } from './tts';
-import { OverlayService } from './overlay/overlay-service.svelte';
 
 export class App extends Bootable {
 	public menu = new Menu();
@@ -90,5 +90,4 @@ export class App extends Bootable {
 			});
 		}
 	}
-
 }

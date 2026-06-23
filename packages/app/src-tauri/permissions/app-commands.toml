@@ -4,6 +4,8 @@ description = "Allows all built-in application IPC commands."
 commands.allow = [
 	"greet",
 	"play_audio",
+	"play_audio_file",
+	"get_media_file_duration_ms",
 	"list_local_tts_voices",
 	"get_local_tts_runtime_info",
 	"download_local_tts_runtime",
