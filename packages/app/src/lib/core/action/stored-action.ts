@@ -16,6 +16,7 @@ export type StoredActionHandler = {
 };
 
 export const DEFAULT_ACTION_GROUP = 'default';
+export const DEFAULT_ACTION_QUEUE_NAME = 'default';
 
 export type ActionRecord = {
 	id: number;
@@ -24,6 +25,7 @@ export type ActionRecord = {
 	groupSortOrder: number;
 	sortOrder: number;
 	enabled: boolean;
+	queueId?: number | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 	createdAt: Date;
@@ -37,6 +39,7 @@ export type NewActionRecord = {
 	groupSortOrder?: number;
 	sortOrder?: number;
 	enabled?: boolean;
+	queueId?: number | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 	createdAt: Date;

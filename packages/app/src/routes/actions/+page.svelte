@@ -21,6 +21,7 @@
 		setActionGroupCollapsed
 	} from '$lib/components/core/action/action-group-collapse.svelte';
 	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
+	import ActionBulkEditDialog from '$lib/components/core/action/action-bulk-edit-dialog.svelte';
 	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
 	import { applyDndMove } from '$lib/components/core/action/dnd-events';
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
@@ -42,6 +43,8 @@
 	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
 	let groupOrder = $state<string[]>(getGroupOrder(layout));
 	let isDragging = $state(false);
+	let bulkEditOpen = $state(false);
+	let bulkEditIds = $state<number[]>([]);
 
 	watch(
 		() =>
@@ -129,6 +132,19 @@
 		await app.actions.deleteBulk([...selection.selectedIds]);
 		selection.clearSelection();
 	}
+
+	function openBulkEdit(ids: number[]): void {
+		if (ids.length === 0) {
+			return;
+		}
+
+		bulkEditIds = ids;
+		bulkEditOpen = true;
+	}
+
+	function openGlobalBulkEdit(): void {
+		openBulkEdit([...selection.selectedIds]);
+	}
 </script>
 
 <Container class="px-6 py-6" size="md">
@@ -184,6 +200,14 @@
 				<span class="mr-1 text-sm text-dark-300">
 					{t('{count} selected', { count: selection.selectedIds.size })}
 				</span>
+				<Button
+					size="sm"
+					variant="outline"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={openGlobalBulkEdit}
+				>
+					{t('Edit selected')}
+				</Button>
 				<Button
 					size="sm"
 					variant="outline"
@@ -256,10 +280,13 @@
 		<div class="mt-8 grid gap-4">
 			{#each groupOrder as groupId, groupIndex (groupId)}
 				{@const groupActions = layout[groupId] ?? []}
+				{@const groupActionIds = groupActions.map((item) => item.id)}
 				<ActionGroupSection
 					{groupId}
 					index={groupIndex}
 					count={groupActions.length}
+					groupActionIds={groupActionIds}
+					{selection}
 					collapsed={collapsedGroups.current[groupId] ?? false}
 					onCollapsedChange={(value) => setActionGroupCollapsed(groupId, value)}
 				>
@@ -318,3 +345,14 @@
 		</DragOverlay>
 	</DragDropProvider>
 </Container>
+
+<ActionBulkEditDialog
+	bind:open={bulkEditOpen}
+	selectedIds={bulkEditIds}
+	{groupOrder}
+	onApplied={() => {
+		selection.clearSelection();
+		layout = buildDndLayout(app.actions.items);
+		groupOrder = getGroupOrder(layout);
+	}}
+/>

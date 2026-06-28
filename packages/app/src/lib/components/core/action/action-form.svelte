@@ -7,7 +7,7 @@
 	import { getActionGroups } from '$db/repositories/actions';
 
 	import { Button } from '@stream-kit/ui/button';
-	import { InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
+	import { InputSelect, InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
 	import { VariablePopover } from '@stream-kit/ui/variable-popover';
 
 	import { tooltip } from '$lib/attachments';
@@ -114,6 +114,24 @@
 			action.handlers.length > 0
 	);
 
+	const NO_QUEUE_VALUE = 'none';
+
+	const queueItems = $derived([
+		{ value: NO_QUEUE_VALUE, label: t('No queue') },
+		...getApp().actionQueues.definitions.map((queue) => ({
+			value: String(queue.id),
+			label: queue.name
+		}))
+	]);
+
+	const selectedQueueValue = $derived(
+		action.queueId != null ? String(action.queueId) : NO_QUEUE_VALUE
+	);
+
+	function onQueueChange(value: string): void {
+		action.queueId = value === NO_QUEUE_VALUE ? null : Number(value);
+	}
+
 	const globalVariables = $derived(getGlobalVariables(getApp()));
 	const baseContextVariables = $derived(
 		mergeContextVariables(
@@ -149,6 +167,13 @@
 		placeholder={t('Select or enter a group')}
 		items={getActionGroups}
 		bind:value={action.group}
+	/>
+
+	<InputSelect
+		label={t('Queue')}
+		items={queueItems}
+		value={selectedQueueValue}
+		onValueChange={onQueueChange}
 	/>
 
 	<section class="grid gap-3">

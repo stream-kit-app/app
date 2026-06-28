@@ -241,18 +241,72 @@ async function migrateOverlaysTable(sqlite: Database): Promise<void> {
 	}
 }
 
-async function migrateRemoveActionQueues(sqlite: Database): Promise<void> {
-	await sqlite.execute('DROP TABLE IF EXISTS action_queues');
+async function createActionQueuesTable(sqlite: Database): Promise<void> {
+	await sqlite.execute(`
+		CREATE TABLE IF NOT EXISTS action_queues (
+			id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+			name TEXT NOT NULL,
+			concurrency INTEGER NOT NULL DEFAULT 1,
+			max_length INTEGER,
+			sort_order INTEGER NOT NULL DEFAULT 0,
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL
+		)
+	`);
+}
 
+async function addActionsQueueIdColumn(sqlite: Database): Promise<void> {
 	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(actions)');
 
-	if (columns.some((column) => column.name === 'queue_id')) {
-		await sqlite.execute('ALTER TABLE actions DROP COLUMN queue_id');
+	if (!columns.some((column) => column.name === 'queue_id')) {
+		await sqlite.execute('ALTER TABLE actions ADD COLUMN queue_id INTEGER');
 	}
+}
+
+const DEFAULT_ACTION_QUEUE_NAME = 'default';
+
+async function ensureDefaultActionQueue(sqlite: Database): Promise<number> {
+	const rows = await sqlite.select<Array<{ id: number }>>(
+		`SELECT id FROM action_queues WHERE name = $1 LIMIT 1`,
+		[DEFAULT_ACTION_QUEUE_NAME]
+	);
+
+	if (rows[0]) {
+		return rows[0].id;
+	}
+
+	const now = Date.now();
+
+	await sqlite.execute(
+		`INSERT INTO action_queues (name, concurrency, max_length, sort_order, created_at, updated_at)
+		 VALUES ($1, 1, NULL, 0, $2, $2)`,
+		[DEFAULT_ACTION_QUEUE_NAME, now]
+	);
+
+	const created = await sqlite.select<Array<{ id: number }>>(
+		`SELECT id FROM action_queues WHERE name = $1 LIMIT 1`,
+		[DEFAULT_ACTION_QUEUE_NAME]
+	);
+
+	if (!created[0]) {
+		throw new Error('Failed to create default action queue during migration');
+	}
+
+	return created[0].id;
+}
+
+async function assignUnqueuedActionsToDefault(sqlite: Database): Promise<void> {
+	const defaultQueueId = await ensureDefaultActionQueue(sqlite);
+
+	await sqlite.execute(`UPDATE actions SET queue_id = $1 WHERE queue_id IS NULL`, [
+		defaultQueueId
+	]);
 }
 
 export async function migrate(sqlite: Database): Promise<void> {
 	await migrateActionsTable(sqlite);
 	await migrateOverlaysTable(sqlite);
-	await migrateRemoveActionQueues(sqlite);
+	await createActionQueuesTable(sqlite);
+	await addActionsQueueIdColumn(sqlite);
+	await assignUnqueuedActionsToDefault(sqlite);
 }

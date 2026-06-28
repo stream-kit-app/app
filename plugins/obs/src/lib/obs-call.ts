@@ -35,15 +35,41 @@ function notifyObsCallError(
 	});
 }
 
+async function performObsCall(
+	app: PluginAppApi,
+	request: Parameters<OBSWebSocket['call']>[0],
+	data: Parameters<OBSWebSocket['call']>[1] | undefined,
+	options: CallObsOptions
+): Promise<{ ok: boolean; data?: unknown }> {
+	const client = getObsClient(app);
+	const label = options.label ?? request;
+
+	if (!client) {
+		notifyObsCallError(app, label, undefined, true);
+		return { ok: false };
+	}
+
+	try {
+		const responseData = await client.call(request, data);
+		return { ok: true, data: responseData };
+	} catch (error) {
+		notifyObsCallError(app, label, error);
+		return { ok: false };
+	}
+}
+
 export async function callObs(
 	app: PluginAppApi,
 	request: Parameters<OBSWebSocket['call']>[0],
 	data?: Parameters<OBSWebSocket['call']>[1],
 	options: CallObsOptions = {}
 ): Promise<boolean> {
-	const response = await callObsWithResponse(app, request, data, options);
+	// Success is determined by whether the request threw, not by whether it
+	// returned data. Many OBS requests (e.g. TriggerMediaInputAction) are void
+	// and resolve with no response payload.
+	const { ok } = await performObsCall(app, request, data, options);
 
-	return response !== undefined;
+	return ok;
 }
 
 export async function callObsWithResponse<T>(
@@ -52,18 +78,7 @@ export async function callObsWithResponse<T>(
 	data?: Parameters<OBSWebSocket['call']>[1],
 	options: CallObsOptions = {}
 ): Promise<T | undefined> {
-	const client = getObsClient(app);
-	const label = options.label ?? request;
+	const { ok, data: responseData } = await performObsCall(app, request, data, options);
 
-	if (!client) {
-		notifyObsCallError(app, label, undefined, true);
-		return undefined;
-	}
-
-	try {
-		return (await client.call(request, data)) as T;
-	} catch (error) {
-		notifyObsCallError(app, label, error);
-		return undefined;
-	}
+	return ok ? (responseData as T) : undefined;
 }

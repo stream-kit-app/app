@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { SelectableListController } from '$lib/components/core/list/selectable-list.svelte';
 	import type { Snippet } from 'svelte';
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
@@ -6,6 +7,7 @@
 	import { capitalize } from 'es-toolkit';
 
 	import { Badge } from '@stream-kit/ui/badge';
+	import { InputCheckbox } from '@stream-kit/ui/input';
 
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
@@ -15,6 +17,8 @@
 		index: number;
 		children: Snippet;
 		count?: number;
+		groupActionIds?: number[];
+		selection?: SelectableListController;
 		isOverlay?: boolean;
 		collapsed?: boolean;
 		onCollapsedChange?: (collapsed: boolean) => void;
@@ -25,6 +29,8 @@
 		index,
 		children,
 		count,
+		groupActionIds = [],
+		selection,
 		isOverlay = false,
 		collapsed = false,
 		onCollapsedChange
@@ -34,6 +40,12 @@
 	const { t } = useI18n();
 
 	const displayName = $derived(capitalize(groupId));
+	const showGroupSelect = $derived(
+		!isOverlay && selection != null && groupActionIds.length > 0
+	);
+	const groupAllSelected = $derived(
+		showGroupSelect ? selection!.subsetAllSelected(groupActionIds) : false
+	);
 
 	const { ref, handleRef, isDragging } = useSortable({
 		id: () => groupId,
@@ -80,6 +92,18 @@
 					)}
 					aria-hidden="true"
 				/>
+				{#if showGroupSelect}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<span class="shrink-0" onclick={(event) => event.stopPropagation()}>
+						<InputCheckbox
+							inline
+							aria-label={t('Select all in group {name}', { name: displayName })}
+							bind:checked={() => groupAllSelected, (value) =>
+								selection!.selectSubset(groupActionIds, value)}
+						/>
+					</span>
+				{/if}
 				<span class="truncate text-sm font-semibold text-dark-50">{displayName}</span>
 				{#if count != null}
 					<Badge variant="outline" size="sm">{count}</Badge>
@@ -87,6 +111,14 @@
 			</button>
 		{:else}
 			<div class="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-3">
+				{#if showGroupSelect}
+					<InputCheckbox
+						inline
+						aria-label={t('Select all in group {name}', { name: displayName })}
+						bind:checked={() => groupAllSelected, (value) =>
+							selection!.selectSubset(groupActionIds, value)}
+					/>
+				{/if}
 				<span class="truncate text-sm font-semibold text-dark-50">{displayName}</span>
 				{#if count != null}
 					<Badge variant="outline" size="sm">{count}</Badge>

@@ -7,6 +7,10 @@ export type SelectableListController = {
 	setSelected: (id: number, selected: boolean) => void;
 	handleSelectedChange: (id: number, selected: boolean, shiftKey: boolean) => void;
 	selectAll: (selected: boolean) => void;
+	subsetAllSelected: (ids: number[]) => boolean;
+	subsetSelectedCount: (ids: number[]) => number;
+	subsetSelectedIds: (ids: number[]) => number[];
+	selectSubset: (ids: number[], selected: boolean) => void;
 	clearSelection: () => void;
 };
 
@@ -89,6 +93,24 @@ export function createSelectableList(orderedIds: () => number[]): SelectableList
 			if (selected) {
 				for (const id of orderedIds()) {
 					selectedIds.add(id);
+				}
+			}
+		},
+		subsetAllSelected(ids) {
+			return ids.length > 0 && ids.every((id) => selectedIds.has(id));
+		},
+		subsetSelectedCount(ids) {
+			return ids.filter((id) => selectedIds.has(id)).length;
+		},
+		subsetSelectedIds(ids) {
+			return ids.filter((id) => selectedIds.has(id));
+		},
+		selectSubset(ids, selected) {
+			for (const id of ids) {
+				if (selected) {
+					selectedIds.add(id);
+				} else {
+					selectedIds.delete(id);
 				}
 			}
 		},

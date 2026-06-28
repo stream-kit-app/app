@@ -9,6 +9,7 @@
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
 	import { Action } from '$lib/core/action/action.svelte';
+	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
@@ -40,6 +41,11 @@
 	);
 	const handlersUnavailable = $derived(
 		action.handlers.some((handler) => !handler.definition.isAvailable)
+	);
+	const queueName = $derived(
+		action.queueId != null
+			? (getApp().actionQueues.getDefinition(action.queueId)?.name ?? null)
+			: null
 	);
 
 	function handleClone(event: MouseEvent): void {
@@ -171,6 +177,16 @@
 					<Icon icon="ri:list-check" />
 					{t('handlers ({count})', { count: action.handlers.length })}
 				</Badge>
+				{#if queueName}
+					<Badge
+						size="sm"
+						variant="secondary"
+						{@attach tooltip(() => t('Runs in queue "{name}"', { name: queueName }))}
+					>
+						<Icon icon="ri:list-ordered" />
+						{queueName}
+					</Badge>
+				{/if}
 			</span>
 		</button>
 

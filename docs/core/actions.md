@@ -39,9 +39,14 @@ Trigger and handler **select** fields use `@stream-kit/ui` `InputSelect`. The fi
 
 This avoids clipping inside scroll areas and the Tauri window edge, and gives a consistent search experience for long option lists. Other select-style inputs (`InputSelectText`, `InputTextSelect`, and similar) still use inline dropdowns.
 
+## Queues
+
+An action can be assigned to a **queue** via the Queue field in the editor (or the bulk edit dialog). Queued actions run serially through a per-queue worker instead of immediately. See [Action queues](./action-queues.md).
+
 ## Related docs
 
 - [Handlers](./handlers.md) — handler chains inside an action
+- [Action queues](./action-queues.md) — serialize action execution
 - [Triggers](./triggers.md) — what starts an action
 - [Schedule triggers](./schedule-triggers.md) — time-based triggers
 - [Variables](./variables.md) — interpolation in handler fields

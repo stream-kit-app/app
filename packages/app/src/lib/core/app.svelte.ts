@@ -7,6 +7,7 @@ import { SvelteMap } from 'svelte/reactivity';
 import { translate } from '$lib/i18n';
 
 import { Actions } from './action/action.svelte';
+import { ActionQueues } from './action-queue/action-queues.svelte';
 import { Audio } from './audio';
 import { Bootable } from './bootable.svelte';
 import { Confirm } from './confirm';
@@ -30,6 +31,7 @@ export class App extends Bootable {
 	public plugins = new Plugins();
 	public pluginMenuPages = new PluginMenuPages();
 	public actions = new Actions();
+	public actionQueues = new ActionQueues();
 	public settings = new Settings();
 	public oauth = new OAuth();
 	public opener = new Opener();

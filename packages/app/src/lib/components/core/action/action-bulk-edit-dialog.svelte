@@ -5,7 +5,7 @@
 	import { watch } from 'runed';
 
 	import { Button } from '@stream-kit/ui/button';
-	import { InputCheckbox, InputTextSelect } from '@stream-kit/ui/input';
+	import { InputCheckbox, InputSelect, InputTextSelect } from '@stream-kit/ui/input';
 
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
@@ -27,17 +27,33 @@
 
 	const { t } = useI18n();
 
+	const NO_QUEUE_VALUE = 'none';
+
 	let changeGroup = $state(false);
 	let groupValue = $state('');
+	let changeQueue = $state(false);
+	let queueValue = $state(NO_QUEUE_VALUE);
 	let applying = $state(false);
 
 	const selectedCount = $derived(selectedIds.length);
 
-	const canApply = $derived(changeGroup && groupValue.trim().length > 0);
+	const canApply = $derived(
+		(changeGroup && groupValue.trim().length > 0) || changeQueue
+	);
+
+	const queueItems = $derived([
+		{ value: NO_QUEUE_VALUE, label: t('No queue') },
+		...getApp().actionQueues.definitions.map((queue) => ({
+			value: String(queue.id),
+			label: queue.name
+		}))
+	]);
 
 	function resetForm(): void {
 		changeGroup = false;
 		groupValue = '';
+		changeQueue = false;
+		queueValue = NO_QUEUE_VALUE;
 	}
 
 	function handleOpenChange(value: boolean): void {
@@ -53,6 +69,7 @@
 		(isOpen) => {
 			if (isOpen) {
 				groupValue = '';
+				queueValue = NO_QUEUE_VALUE;
 			}
 		}
 	);
@@ -65,10 +82,20 @@
 		applying = true;
 
 		try {
-			await getApp().actions.updateBulk(selectedIds, {
-				group: groupValue,
-				groupOrder
-			});
+			const app = getApp();
+
+			if (changeGroup && groupValue.trim().length > 0) {
+				await app.actions.updateBulk(selectedIds, {
+					group: groupValue,
+					groupOrder
+				});
+			}
+
+			if (changeQueue) {
+				const queueId = queueValue === NO_QUEUE_VALUE ? null : Number(queueValue);
+				await app.actions.assignQueueBulk(selectedIds, queueId);
+			}
+
 			open = false;
 			resetForm();
 			onApplied?.();
@@ -110,6 +137,15 @@
 						items={getActionGroups}
 						bind:value={groupValue}
 						disabled={!changeGroup}
+					/>
+				</div>
+				<div class="grid gap-3">
+					<InputCheckbox inline label={t('Assign to queue')} bind:checked={changeQueue} />
+					<InputSelect
+						label={t('Queue')}
+						items={queueItems}
+						bind:value={queueValue}
+						disabled={!changeQueue}
 					/>
 				</div>
 			</div>

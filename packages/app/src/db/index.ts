@@ -47,9 +47,29 @@ export async function runRegisteredPluginMigrations(): Promise<void> {
 	await runPluginMigrations(sqlite);
 }
 
-export { saveAction, getActions, getAction, getActionGroups } from './repositories/actions';
+export {
+	saveAction,
+	getActions,
+	getAction,
+	getActionGroups,
+	updateActionsQueue
+} from './repositories/actions';
 export type { SaveActionInput } from './repositories/actions';
 export type { ActionRecord, NewActionRecord } from './schemas/actions';
+export {
+	getActionQueues,
+	getActionQueue,
+	getDefaultActionQueue,
+	getDefaultActionQueueId,
+	ensureDefaultActionQueue,
+	saveActionQueue,
+	deleteActionQueue,
+	isDefaultActionQueue,
+	normalizeConcurrency,
+	normalizeMaxLength,
+	DEFAULT_ACTION_QUEUE_NAME
+} from './repositories/action-queues';
+export type { ActionQueueRecord, SaveActionQueueInput } from './repositories/action-queues';
 
 function returnsRows(sql: string): boolean {
 	return /^\s*select/i.test(sql) || /\breturning\b/i.test(sql);

@@ -41,7 +41,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Persistente globale variabelen (Core Set/Get handlers, PluginStore)
 - [x] Per-gebruiker variabelen (Core user scope, persistent per username)
 - [ ] Sub-actions / herbruikbare actiegroepen
-- [ ] Actie-queues (algemene handler-queue)
+- [x] Actie-queues (algemene handler-queue)
 - [ ] Quote-systeem
 - [ ] Credits / rollen-systeem
 - [~] Timers & geplande triggers — Core Cron/Scheduled + Bot interval timers; geavanceerde planning nog open

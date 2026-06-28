@@ -1,5 +1,3 @@
-import type { OBSWebSocket } from 'obs-websocket-js';
-
 import type {
 	FilterContext,
 	InputStateContext,
@@ -11,6 +9,8 @@ import type {
 	StudioModeContext,
 	TransitionContext
 } from '../contexts';
+import type { OBSWebSocket } from 'obs-websocket-js';
+
 import { OBS_EVENTS, OBS_OUTPUT_STATES } from './event-hub';
 
 type ObsEventHandler = (context: unknown) => void;
@@ -217,10 +217,7 @@ export function bindObsWebSocket(obs: OBSWebSocket): () => void {
 			filterEnabled: data.filterEnabled
 		};
 
-		emit(
-			data.filterEnabled ? OBS_EVENTS.FILTER_ENABLED : OBS_EVENTS.FILTER_DISABLED,
-			context
-		);
+		emit(data.filterEnabled ? OBS_EVENTS.FILTER_ENABLED : OBS_EVENTS.FILTER_DISABLED, context);
 	};
 
 	const onRecordFileChanged = (data: { newOutputPath: string }) => {
@@ -237,7 +234,9 @@ export function bindObsWebSocket(obs: OBSWebSocket): () => void {
 		};
 
 		emit(
-			data.studioModeEnabled ? OBS_EVENTS.STUDIO_MODE_ENABLED : OBS_EVENTS.STUDIO_MODE_DISABLED,
+			data.studioModeEnabled
+				? OBS_EVENTS.STUDIO_MODE_ENABLED
+				: OBS_EVENTS.STUDIO_MODE_DISABLED,
 			context
 		);
 	};

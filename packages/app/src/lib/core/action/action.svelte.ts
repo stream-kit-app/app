@@ -16,7 +16,8 @@ import {
 	reorderActionsLayout,
 	saveAction,
 	updateActionEnabled,
-	updateActionsEnabled
+	updateActionsEnabled,
+	updateActionsQueue
 } from '$db/repositories/actions';
 
 import ActionForm from '$lib/components/core/action/action-form.svelte';
@@ -41,6 +42,7 @@ import { validateActionForm } from './validate-form';
 type ActionFormSnapshot = {
 	name: string;
 	group: string;
+	queueId: number | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 };
@@ -52,6 +54,7 @@ export type ActionProps = {
 	sortOrder?: number;
 	id?: number;
 	enabled?: boolean;
+	queueId?: number | null;
 	triggers?: ActionTrigger[];
 	handlers?: ActionHandler[];
 };
@@ -115,6 +118,7 @@ export class Actions {
 						name: row.name,
 						group: row.group,
 						enabled: row.enabled ?? true,
+						queueId: row.queueId ?? null,
 						triggers: migratedRecord.triggers,
 						handlers: migratedRecord.handlers
 					},
@@ -306,6 +310,28 @@ export class Actions {
 		});
 	}
 
+	async assignQueueBulk(ids: number[], queueId: number | null): Promise<void> {
+		if (ids.length === 0) {
+			return;
+		}
+
+		await updateActionsQueue(ids, queueId);
+
+		const idSet = new Set(ids);
+
+		for (const action of this.items) {
+			if (action.id != null && idSet.has(action.id)) {
+				action.queueId = queueId;
+			}
+		}
+
+		getApp().toast.create({
+			title: translate('Selected actions updated'),
+			description: translate('Updated queue for {count} actions.', { count: ids.length }),
+			variant: 'success'
+		});
+	}
+
 	runById(id: number, context: HandlerTriggerContext): boolean {
 		const action = this.items.find((item) => item.id === id);
 
@@ -329,6 +355,7 @@ export class Action {
 	groupSortOrder: number = $state(0);
 	sortOrder: number = $state(0);
 	enabled: boolean = $state(true);
+	queueId: number | null = $state(null);
 	triggers: ActionTrigger[] = $state([]);
 	handlers: ActionHandler[] = $state([]);
 
@@ -343,6 +370,7 @@ export class Action {
 		this.groupSortOrder = props.groupSortOrder ?? 0;
 		this.sortOrder = props.sortOrder ?? 0;
 		this.enabled = props.enabled ?? true;
+		this.queueId = props.queueId ?? null;
 		this.triggers = props.triggers ?? [];
 		this.handlers = props.handlers ?? [];
 	}
@@ -365,7 +393,7 @@ export class Action {
 	}
 
 	static createDraft(): Action {
-		return new Action();
+		return new Action({ queueId: getApp().actionQueues.defaultQueueId });
 	}
 
 	static createFrom(source: Action): Action {
@@ -375,6 +403,7 @@ export class Action {
 			name: translate('Copy of {name}', { name: sourceName }),
 			group: source.group,
 			enabled: source.enabled,
+			queueId: source.queueId,
 			triggers: source.triggers.map((trigger) => ActionTrigger.clone(trigger)),
 			handlers: source.handlers.map((handler) => ActionHandler.clone(handler))
 		});
@@ -414,6 +443,7 @@ export class Action {
 			groupSortOrder: record.groupSortOrder,
 			sortOrder: record.sortOrder,
 			enabled: record.enabled ?? true,
+			queueId: record.queueId ?? getApp().actionQueues.defaultQueueId,
 			triggers,
 			handlers
 		});
@@ -487,6 +517,7 @@ export class Action {
 		this._formSnapshot = {
 			name: this.name,
 			group: this.group,
+			queueId: this.queueId,
 			triggers: this.triggers.map((trigger) => structuredClone(trigger.toStored())),
 			handlers: this.handlers.map((handler) => structuredClone(handler.toStored()))
 		};
@@ -512,6 +543,7 @@ export class Action {
 
 		this.name = snapshot.name;
 		this.group = snapshot.group;
+		this.queueId = snapshot.queueId;
 		this.triggers = this.triggersFromStored(snapshot.triggers);
 		this.handlers = this.handlersFromStored(snapshot.handlers);
 		this.formErrors = null;
@@ -713,8 +745,13 @@ export class Action {
 		const showFormVisual = this.isFormOpen;
 		const trackExecution = !options.bypassEnabled;
 		const trackVisual = trackExecution || showFormVisual;
+		// The Test button bypasses queueing; queue-less actions run inline as before.
+		const shouldQueue = !options.bypassEnabled && this.queueId != null;
 
-		if (trackVisual) {
+		// For queued runs the "running" indicator must reflect the actual run
+		// start (when the worker picks up the job), not the moment we enqueue, so
+		// begin()/end() are deferred into the job below.
+		if (trackVisual && !shouldQueue) {
 			this.execution.begin();
 		}
 
@@ -723,21 +760,41 @@ export class Action {
 		}
 
 		if (!trigger.evaluate(data)) {
-			if (trackVisual) {
+			if (trackVisual && !shouldQueue) {
 				await this.execution.end();
 			}
 
 			return;
 		}
 
-		await this.runHandlers(data, trigger.definition.name, {
-			bypassEnabled: options.bypassEnabled,
-			showVisual: showFormVisual
-		});
+		const runChain = async (): Promise<void> => {
+			if (trackVisual && shouldQueue) {
+				this.execution.begin();
+			}
 
-		if (trackVisual) {
-			await this.execution.end();
+			try {
+				await this.runHandlers(data, trigger.definition.name, {
+					bypassEnabled: options.bypassEnabled,
+					showVisual: showFormVisual
+				});
+			} finally {
+				if (trackVisual) {
+					await this.execution.end();
+				}
+			}
+		};
+
+		if (shouldQueue && this.queueId != null) {
+			getApp().actionQueues.enqueue(this.queueId, {
+				jobId: crypto.randomUUID(),
+				actionId: this.id ?? null,
+				actionName: this.name.trim() || translate('Untitled action'),
+				run: runChain
+			});
+			return;
 		}
+
+		await runChain();
 	}
 
 	async runHandlers(
@@ -802,6 +859,7 @@ export class Action {
 				name: this.name.trim(),
 				group: this.group,
 				enabled: this.enabled,
+				queueId: this.queueId,
 				triggers: this.triggers.map((trigger) => trigger.toStored()),
 				handlers: this.handlers.map((handler) => handler.toStored())
 			},
@@ -823,6 +881,7 @@ export class Action {
 		this.groupSortOrder = row.groupSortOrder;
 		this.sortOrder = row.sortOrder;
 		this.enabled = row.enabled;
+		this.queueId = row.queueId ?? null;
 
 		if (wasNew) {
 			app.actions.add(this);

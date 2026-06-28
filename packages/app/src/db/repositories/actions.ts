@@ -10,11 +10,13 @@ import { asc, eq, inArray, max, sql } from 'drizzle-orm';
 
 import { db } from '../index';
 import { actions, DEFAULT_ACTION_GROUP } from '../schemas/actions';
+import { getDefaultActionQueueId } from './action-queues';
 
 export type SaveActionInput = {
 	name: string;
 	group: string;
 	enabled: boolean;
+	queueId: number | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 };
@@ -111,6 +113,7 @@ export async function saveAction(
 				groupSortOrder,
 				sortOrder,
 				enabled: input.enabled,
+				queueId: input.queueId,
 				triggers: input.triggers,
 				handlers: input.handlers,
 				updatedAt: now
@@ -123,6 +126,7 @@ export async function saveAction(
 
 	const groupSortOrder = await getGroupSortOrder(group);
 	const sortOrder = await getNextSortOrder(group);
+	const queueId = input.queueId ?? (await getDefaultActionQueueId());
 
 	const [row] = await db
 		.insert(actions)
@@ -132,6 +136,7 @@ export async function saveAction(
 			groupSortOrder,
 			sortOrder,
 			enabled: input.enabled,
+			queueId,
 			triggers: input.triggers,
 			handlers: input.handlers,
 			createdAt: now,
@@ -192,6 +197,23 @@ export async function updateActionsEnabled(ids: number[], enabled: boolean): Pro
 		.update(actions)
 		.set({
 			enabled,
+			updatedAt: new Date()
+		})
+		.where(inArray(actions.id, ids));
+}
+
+export async function updateActionsQueue(
+	ids: number[],
+	queueId: number | null
+): Promise<void> {
+	if (ids.length === 0) {
+		return;
+	}
+
+	await db
+		.update(actions)
+		.set({
+			queueId,
 			updatedAt: new Date()
 		})
 		.where(inArray(actions.id, ids));

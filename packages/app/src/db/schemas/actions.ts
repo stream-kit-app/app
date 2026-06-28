@@ -23,6 +23,7 @@ export const actions = sqliteTable('actions', {
 	triggers: text('triggers', { mode: 'json' }).$type<StoredActionTrigger[]>().notNull(),
 	handlers: text('handlers', { mode: 'json' }).$type<StoredActionHandler[]>().notNull(),
 	enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
+	queueId: integer('queue_id'),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 });

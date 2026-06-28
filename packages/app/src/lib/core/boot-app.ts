@@ -38,6 +38,7 @@ async function runBoot(): Promise<void> {
 	await app.boot();
 	await app.overlay.init();
 	registerOverlayHandlers(app);
+	await app.actionQueues.load();
 	await app.actions.load();
 	await app.plugins.ready(app);
 	app.lifecycle.emitStarted();

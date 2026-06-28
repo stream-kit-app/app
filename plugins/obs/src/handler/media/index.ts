@@ -11,6 +11,26 @@ import {
 	restartMediaPlaybackField
 } from '../../lib/field-builders';
 import { callObs, callObsWithResponse } from '../../lib/obs-call';
+import { waitForMediaPlayback } from '../../lib/media-playback-wait';
+
+const PLAYBACK_MEDIA_ACTIONS = new Set([
+	'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY',
+	'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART',
+	'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NEXT',
+	'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PREVIOUS'
+]);
+
+function withMediaInputLock<T>(
+	app: PluginAppApi,
+	inputName: string,
+	fn: () => Promise<T>
+): Promise<T> {
+	if (typeof app.withResourceLock !== 'function') {
+		return fn();
+	}
+
+	return app.withResourceLock(`obs:media-input:${inputName.trim().toLowerCase()}`, fn);
+}
 
 function buildMediaInputSettings(
 	inputKind: string | undefined,
@@ -73,18 +93,12 @@ async function restartMediaInput(
 	app: PluginAppApi,
 	inputName: string,
 	label: string
-): Promise<void> {
-	await callObs(
-		app,
-		'TriggerMediaInputAction',
-		{
-			inputName,
-			mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP'
-		},
-		{ label }
-	);
-
-	await callObs(
+): Promise<boolean> {
+	// A single RESTART replays from the beginning whether the source is currently
+	// playing or stopped. We deliberately avoid a STOP+RESTART pair because the
+	// STOP emits a `MediaInputPlaybackEnded` event that is indistinguishable from
+	// the real end of playback and would resolve the playback wait too early.
+	return callObs(
 		app,
 		'TriggerMediaInputAction',
 		{
@@ -99,7 +113,7 @@ export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 	({
 		name: 'Trigger Media Action',
 		fields: [mediaInputSelectField(app), mediaActionField()],
-		execute: (_action, handler, context, next) => {
+		execute: async (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'media-input', context);
 			const mediaAction = getFieldValue(handler.fields, 'media-action');
 
@@ -111,15 +125,37 @@ export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 				return;
 			}
 
-			void callObs(
-				app,
-				'TriggerMediaInputAction',
-				{
-					inputName: inputName.trim(),
-					mediaAction
-				},
-				{ label: 'Trigger Media Action' }
-			);
+			const trimmed = inputName.trim();
+			const shouldWaitForPlayback = PLAYBACK_MEDIA_ACTIONS.has(mediaAction);
+			let completed = false;
+
+			await withMediaInputLock(app, trimmed, async () => {
+				const updated = await callObs(
+					app,
+					'TriggerMediaInputAction',
+					{
+						inputName: trimmed,
+						mediaAction
+					},
+					{ label: 'Trigger Media Action' }
+				);
+
+				if (!updated) {
+					return;
+				}
+
+				if (shouldWaitForPlayback) {
+					// Duration comes from OBS here since we do not know the file.
+					await waitForMediaPlayback(app, trimmed);
+				}
+
+				completed = true;
+			});
+
+			if (!completed) {
+				return;
+			}
+
 			next();
 		}
 	}) satisfies HandlerDefinitionProps;
@@ -162,40 +198,68 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 				currentPath !== undefined &&
 				normalizeMediaFilePath(currentPath) === normalizeMediaFilePath(filePath);
 			const shouldRestart = restartPlayback !== false && restartPlayback !== 'false';
+			const trimmed = inputName.trim();
 
-			if (sameFile) {
-				if (shouldRestart) {
-					await restartMediaInput(app, inputName.trim(), 'Set Media Input File');
+			// Probe the file length up front so the running indicator can stay
+			// active for the full clip, independent of OBS playback events.
+			let expectedDurationMs: number | null = null;
+
+			if (shouldRestart) {
+				expectedDurationMs = await app.media.getFileDurationMs(filePath).catch(() => null);
+			}
+
+			let completed = false;
+
+			await withMediaInputLock(app, trimmed, async () => {
+				if (sameFile) {
+					setActionVariables(context, {
+						mediaFilePath: filePath
+					});
+
+					if (shouldRestart) {
+						const restarted = await restartMediaInput(app, trimmed, 'Set Media Input File');
+
+						if (restarted) {
+							await waitForMediaPlayback(app, trimmed, { expectedDurationMs });
+						}
+					}
+
+					completed = true;
+					return;
+				}
+
+				const updated = await callObs(
+					app,
+					'SetInputSettings',
+					{
+						inputName: trimmed,
+						inputSettings: buildMediaInputSettings(inputKind, filePath),
+						overlay: true
+					},
+					{ label: 'Set Media Input File' }
+				);
+
+				if (!updated) {
+					return;
 				}
 
 				setActionVariables(context, {
 					mediaFilePath: filePath
 				});
-				next();
-				return;
-			}
 
-			const updated = await callObs(
-				app,
-				'SetInputSettings',
-				{
-					inputName: inputName.trim(),
-					inputSettings: buildMediaInputSettings(inputKind, filePath),
-					overlay: true
-				},
-				{ label: 'Set Media Input File' }
-			);
+				if (shouldRestart) {
+					const restarted = await restartMediaInput(app, trimmed, 'Set Media Input File');
 
-			if (!updated) {
-				return;
-			}
+					if (restarted) {
+						await waitForMediaPlayback(app, trimmed, { expectedDurationMs });
+					}
+				}
 
-			setActionVariables(context, {
-				mediaFilePath: filePath
+				completed = true;
 			});
 
-			if (shouldRestart) {
-				await restartMediaInput(app, inputName.trim(), 'Set Media Input File');
+			if (!completed) {
+				return;
 			}
 
 			next();
