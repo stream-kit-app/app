@@ -1,8 +1,8 @@
-import { $n as e, Gt as t, Hr as n, Mt as r, On as i, Qn as a, Qr as o, Vr as s, Vt as c, Wn as l, Zn as u, an as d, bt as f, f as p, fr as m, hn as h, in as g, it as _, mn as v, ni as y, nn as b, on as x, ot as S, p as C, pr as w, ti as T, vt as E } from "../../chunks/index-client-BIJQxc2l.js";
+import { $ as e, $n as t, Dt as n, Hr as r, On as i, Qn as a, Qr as o, Qt as s, Vr as c, Wn as l, Z as u, Zn as d, a as f, cn as p, dt as m, fr as h, jt as g, ln as _, ni as v, o as y, on as b, pr as x, pt as S, ti as C, un as w, vn as T, yn as E } from "../../chunks/client-xxWnFgeR.js";
 import "../../chunks/disclose-version-YhYaTdgb.js";
-import { t as D } from "../../chunks/Icon-BoHmh-pv.js";
-import { a as O } from "../../chunks/index-client-b6iB98U7.js";
-import { t as k } from "../../chunks/utils-DVQ4nj8f.js";
+import { t as D } from "../../chunks/Icon-AeqJGRQj.js";
+import { a as O } from "../../chunks/index-client-DLfVeyOI.js";
+import { t as k } from "../../chunks/utils-DJt177zd.js";
 //#region ../ui/src/lib/components/nav/nav-link.svelte
 var A = new Set([
 	"$$slots",
@@ -11,20 +11,20 @@ var A = new Set([
 	"children",
 	"variant",
 	"activePath"
-]), j = x("<a><!></a>");
+]), j = w("<a><!></a>");
 function M(e, t) {
-	n(t, !0);
-	let a = p(t, "variant", 3, "default"), c = C(t, A), l = w(() => t.href != null && t.href === t.activePath);
-	var d = j();
-	_(d, (e) => ({
-		...c,
+	r(t, !0);
+	let n = f(t, "variant", 3, "default"), a = y(t, A), l = x(() => t.href != null && t.href === t.activePath);
+	var m = j();
+	u(m, (e) => ({
+		...a,
 		"data-active": i(l),
 		class: e
 	}), [() => k("font-medium", "flex items-center gap-4 rounded-xl px-4 py-2", {
-		"hover:bg-dark-700": a() === "default",
-		" bg-primary/15 text-primary shadow-sm hover:bg-dark-700 not-[data-active]:hover:bg-dark-600": a() === "default" && i(l),
-		"text-primary-50 hover:bg-dark-800 not-[data-active]:hover:bg-transparent": a() === "sidebar" && i(l)
-	}, t.class)]), r(u(d), () => t.children ?? y), o(d), g(e, d), s();
+		"hover:bg-dark-700": n() === "default",
+		" bg-primary/15 text-primary shadow-sm hover:bg-dark-700 not-[data-active]:hover:bg-dark-600": n() === "default" && i(l),
+		"text-primary-50 hover:bg-dark-800 not-[data-active]:hover:bg-transparent": n() === "sidebar" && i(l)
+	}, t.class)]), s(d(m), () => t.children ?? v), o(m), p(e, m), c();
 }
 //#endregion
 //#region ../ui/src/lib/components/nav/nav.svelte
@@ -36,98 +36,98 @@ var N = new Set([
 	"activePath",
 	"translateTitle",
 	"children"
-]), P = x("<!> ", 1), F = x("<button type=\"button\"><!></button>"), I = x("<button type=\"button\"><!> <!></button>"), L = x("<li><!></li>"), R = x("<ul class=\"mt-1 flex flex-col gap-1\"></ul>"), z = x("<!> <!>", 1), B = x("<div class=\"flex flex-col gap-1\"><!></div>"), V = x("<nav><!></nav>");
-function H(p, v) {
-	n(v, !0);
-	let x = (n, r = y, o) => {
-		let s = m(() => T(o?.(), !1));
-		var c = P(), u = a(c), d = (e) => {
+]), P = w("<!> ", 1), F = w("<button type=\"button\"><!></button>"), I = w("<button type=\"button\"><!> <!></button>"), L = w("<li><!></li>"), R = w("<ul class=\"mt-1 flex flex-col gap-1\"></ul>"), z = w("<!> <!>", 1), B = w("<div class=\"flex flex-col gap-1\"><!></div>"), V = w("<nav><!></nav>");
+function H(f, w) {
+	r(w, !0);
+	let T = (e, n = v, r) => {
+		let o = h(() => C(r?.(), !1));
+		var s = P(), c = a(s), u = (e) => {
 			D(e, {
 				get icon() {
-					return r().icon;
+					return n().icon;
 				},
 				width: 22
 			});
 		};
-		t(u, (e) => {
-			i(s) && r().icon && e(d);
+		g(c, (e) => {
+			i(o) && n().icon && e(u);
 		});
-		var f = e(u);
-		l((e) => b(f, ` ${e ?? ""}`), [() => K(r())]), g(n, c);
-	}, A = (e, n = y, r = y, s) => {
-		let c = m(() => T(s?.(), !1));
-		var p = d(), _ = a(p), b = (e) => {
-			var t = F();
-			x(u(t), n, () => i(c)), o(t), l((e) => E(t, 1, e), [() => f(k("flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600", r()))]), h("click", t, function(...e) {
-				n().onClick?.apply(this, e);
-			}), g(e, t);
-		}, S = (e) => {
+		var d = t(c);
+		l((e) => b(d, ` ${e ?? ""}`), [() => K(n())]), p(e, s);
+	}, A = (e, t = v, n = v, r) => {
+		let s = h(() => C(r?.(), !1));
+		var c = _(), u = a(c), f = (e) => {
+			var r = F();
+			T(d(r), t, () => i(s)), o(r), l((e) => m(r, 1, e), [() => S(k("flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600", n()))]), E("click", r, function(...e) {
+				t().onClick?.apply(this, e);
+			}), p(e, r);
+		}, y = (e) => {
 			{
-				let t = w(() => k("flex", r()));
+				let r = x(() => k("flex", n()));
 				M(e, {
 					get href() {
-						return n().path;
+						return t().path;
 					},
 					get class() {
-						return i(t);
+						return i(r);
 					},
 					get activePath() {
-						return v.activePath;
+						return w.activePath;
 					},
-					children: (e, t) => {
-						x(e, n, () => i(c));
+					children: (e, n) => {
+						T(e, t, () => i(s));
 					},
 					$$slots: { default: !0 }
 				});
 			}
 		};
-		t(_, (e) => {
-			n().onClick ? e(b) : e(S, -1);
-		}), g(e, p);
-	}, j = (t, n = y) => {
-		var r = I(), a = u(r);
-		x(a, n, () => !0);
-		var s = e(a, 2);
+		g(u, (e) => {
+			t().onClick ? e(f) : e(y, -1);
+		}), p(e, c);
+	}, j = (n, r = v) => {
+		var a = I(), s = d(a);
+		T(s, r, () => !0);
+		var c = t(s, 2);
 		{
-			let e = w(() => k("ms-auto transition-transform", J(n()) && "rotate-180"));
-			D(s, {
+			let e = x(() => k("ms-auto transition-transform", J(r()) && "rotate-180"));
+			D(c, {
 				icon: "gg:chevron-down",
 				get class() {
 					return i(e);
 				}
 			});
 		}
-		o(r), l((e, t) => {
-			S(r, "aria-expanded", e), E(r, 1, t);
-		}, [() => J(n()), () => f(k("flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-700", q(n()) && "bg-dark-600"))]), h("click", r, () => Y(n().path)), g(t, r);
-	}, H = (e, t = y) => {
+		o(a), l((t, n) => {
+			e(a, "aria-expanded", t), m(a, 1, n);
+		}, [() => J(r()), () => S(k("flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-700", q(r()) && "bg-dark-600"))]), E("click", a, () => Y(r().path)), p(n, a);
+	}, H = (e, t = v) => {
 		var n = L();
-		A(u(n), t, () => "ps-14 font-normal hover:bg-dark-700 data-[active=true]:bg-dark-700"), o(n), g(e, n);
-	}, U = (n, r = y) => {
-		var s = B(), l = u(s), d = (n) => {
-			var s = z(), l = a(s);
-			j(l, r);
-			var u = e(l, 2), d = (e) => {
+		A(d(n), t, () => "ps-14 font-normal hover:bg-dark-700 data-[active=true]:bg-dark-700"), o(n), p(e, n);
+	}, U = (e, r = v) => {
+		var s = B(), c = d(s), l = (e) => {
+			var s = z(), c = a(s);
+			j(c, r);
+			var l = t(c, 2), u = (e) => {
 				var t = R();
-				c(t, 21, () => r().children, (e) => e.path, (e, t) => {
+				n(t, 21, () => r().children, (e) => e.path, (e, t) => {
 					H(e, () => i(t));
-				}), o(t), g(e, t);
-			}, f = w(() => J(r()));
-			t(u, (e) => {
-				i(f) && e(d);
-			}), g(n, s);
-		}, f = (e) => {
+				}), o(t), p(e, t);
+			}, d = x(() => J(r()));
+			g(l, (e) => {
+				i(d) && e(u);
+			}), p(e, s);
+		}, u = (e) => {
 			A(e, r, () => void 0, () => !0);
 		};
-		t(l, (e) => {
-			r().children?.length ? e(d) : e(f, -1);
-		}), o(s), g(n, s);
-	}, W = C(v, N), G = new O();
+		g(c, (e) => {
+			r().children?.length ? e(l) : e(u, -1);
+		}), o(s), p(e, s);
+	}, W = y(w, N), G = new O();
 	function K(e) {
-		return e.title ? v.translateTitle?.(e.title) ?? e.title : "";
+		return e.title ? w.translateTitle?.(e.title) ?? e.title : "";
 	}
 	function q(e) {
-		return e.children?.some((e) => e.path === v.activePath) ?? !1;
+		return e.children?.some((e) => e.path === w.activePath) ?? !1;
 	}
 	function J(e) {
 		return G.has(e.path) || q(e);
@@ -136,23 +136,23 @@ function H(p, v) {
 		G.has(e) ? G.delete(e) : G.add(e);
 	}
 	var X = V();
-	_(X, (e) => ({
+	u(X, (e) => ({
 		...W,
 		class: e
-	}), [() => k("flex flex-col gap-1", v.class)]);
-	var Z = u(X), Q = (e) => {
-		var t = d();
-		r(a(t), () => v.children, () => ({ items: v.items })), g(e, t);
+	}), [() => k("flex flex-col gap-1", w.class)]);
+	var Z = d(X), Q = (e) => {
+		var t = _();
+		s(a(t), () => w.children, () => ({ items: w.items })), p(e, t);
 	}, $ = (e) => {
-		var t = d();
-		c(a(t), 17, () => v.items, (e) => e.path, (e, t) => {
+		var t = _();
+		n(a(t), 17, () => w.items, (e) => e.path, (e, t) => {
 			U(e, () => i(t));
-		}), g(e, t);
+		}), p(e, t);
 	};
-	t(Z, (e) => {
-		v.children ? e(Q) : e($, -1);
-	}), o(X), g(p, X), s();
+	g(Z, (e) => {
+		w.children ? e(Q) : e($, -1);
+	}), o(X), p(f, X), c();
 }
-v(["click"]);
+T(["click"]);
 //#endregion
 export { M as Link, H as Root };

@@ -1,6 +1,6 @@
 import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
-import { getFieldValue, resolveFieldText } from '../../get-field-value';
+import { resolveFieldText, resolveVoiceFieldText } from '../../get-field-value';
 import { streamelements } from '../../lib/streamelements';
 import { voiceSelectField } from '../../lib/streamelements/voices';
 import { TTS_TEXT_VARIABLES } from '../../lib/variables';
@@ -22,12 +22,10 @@ export const createStreamElementsSpeakHandler = () => {
 
 		execute: async (_action, handler, context, next) => {
 			const text = resolveFieldText(handler.fields, 'text', context);
-			const voiceField = getFieldValue(handler.fields, 'voice');
-
-			const voiceId =
-				typeof voiceField === 'string' && voiceField.trim()
-					? voiceField.trim()
-					: streamelements.defaultVoice;
+			const resolvedVoice = resolveVoiceFieldText(handler.fields, context);
+			const voiceId = resolvedVoice?.trim()
+				? resolvedVoice.trim()
+				: streamelements.defaultVoice;
 
 			if (typeof text !== 'string' || !text.trim()) {
 				return;

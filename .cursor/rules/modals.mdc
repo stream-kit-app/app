@@ -1,0 +1,41 @@
+---
+description: Use the app built-in modal system for overlays and forms in the main app layer
+globs:
+  - packages/app/**/*.svelte
+  - packages/app/**/*.svelte.ts
+---
+
+# App modals
+
+In `@stream-kit/app`, use the **built-in modal system** (`app.createModal` / `app.modals`) for dialogs and slide-over panels. Do **not** add standalone `bits-ui` `Dialog` wrappers in app components unless you are editing the modal shell itself (`$lib/components/core/modal/modal.svelte`).
+
+## Opening a modal
+
+```ts
+import { app } from '$lib/core';
+import MyForm from './my-form.svelte';
+
+app.createModal({
+  id: 'unique-modal-id',
+  title: t('Modal title'),
+  description: t('Optional subtitle'),
+  content: MyForm,
+  props: { /* forwarded to MyForm */ },
+  size: 'md' // 'sm' | 'md' | 'lg' | 'full'
+}).open();
+```
+
+Modals are rendered globally in `+layout.svelte` from `app.modals`.
+
+## Modal content components
+
+- Render **body content only** — no `Dialog.Root`, overlay, or title markup.
+- Title and description come from `createModal`.
+- Close with `getApp().modals.get(modalId)?.close()` (pass `modalId` as a prop when needed).
+- Follow existing examples: `ActionForm`, `PluginSettingsForm`, `CollectionCreateForm`, `CollectionEditorForm`.
+
+## When not to use app modals
+
+- **Confirmations** → `app.confirm.ask()` (`ConfirmDialog` in layout).
+- **Small popovers/tooltips** → `@stream-kit/ui/popover` or `tooltip` attachment.
+- **Plugin zip content** → declarative page blocks; built-in npm plugins may use `app.modal.create` via plugin API.

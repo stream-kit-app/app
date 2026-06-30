@@ -12,6 +12,7 @@ import { BotSettings } from './settings/bot-settings';
 import { Timers } from './timers/app/lib/timers.svelte';
 import TimersPage from './timers/app/ui/timers-page.svelte';
 import OverviewPage from './ui/overview-page.svelte';
+import CommandsWidget from './widgets/commands-widget.svelte';
 import { createChatMessageTrigger } from './trigger/chat-message';
 import { createModerationRuleTrigger } from './trigger/moderation-rule';
 
@@ -121,8 +122,18 @@ export function botPlugin(
 			overview: overviewPageComponent,
 			commands: commandsPageComponent,
 			timers: timersPageComponent,
-			moderation: moderationPageComponent
+			moderation: moderationPageComponent,
+			'commands-widget': CommandsWidget
 		},
+		widgets: [
+			{
+				key: 'commands',
+				title: 'Commands',
+				icon: 'ri:robot-2-line',
+				columns: 1,
+				view: 'commands-widget'
+			}
+		],
 		menuItems: [
 			{
 				title: 'Bot',

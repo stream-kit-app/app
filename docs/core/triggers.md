@@ -1,6 +1,6 @@
 # Process triggers
 
-The Core plugin provides system triggers under **Core**, **Processes**, and **App**. For cron and date/time triggers, see [Schedule triggers](./schedule-triggers.md). For map triggers, see [Maps](./maps.md). For application lifecycle triggers, see [App triggers](./app-triggers.md).
+The Core plugin provides system triggers under **Core**, **Processes**, and **App**. For cron and date/time triggers, see [Schedule triggers](./schedule-triggers.md). For collection triggers, see [Collections](./collections.md). For application lifecycle triggers, see [App triggers](./app-triggers.md).
 
 ## Processes
 
@@ -67,11 +67,11 @@ These fields are available as trigger variables in handlers and conditions.
 
 Both triggers support **Test** via a simulated `ProcessEventContext` (see `createTestProcessEventContext`).
 
-## Map triggers
+## Collection triggers
 
 | Trigger | Event |
 |---------|-------|
-| Map created | A map was created via the Create map handler |
-| Map value changed | A key was set, updated, deleted, or a map was cleared |
+| Collection created | A collection was created via the Create collection handler |
+| Collection value changed | A key was set, updated, deleted, or a collection was cleared |
 
-These triggers live under **Core → Map** in the trigger picker. See [Maps](./maps.md) for conditions, trigger context, and examples.
+These triggers live under **Core → Collection** in the trigger picker. See [Collections](./collections.md) for conditions, trigger context, and examples.

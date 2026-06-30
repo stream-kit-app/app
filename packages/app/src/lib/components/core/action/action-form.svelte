@@ -2,6 +2,7 @@
 	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
 	import type { ActionTrigger } from '$lib/core/action/action-trigger.svelte';
 	import type { Action as ActionType } from '$lib/core/action/action.svelte';
+	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { getActionGroups } from '$db/repositories/actions';
@@ -12,10 +13,9 @@
 
 	import { tooltip } from '$lib/attachments';
 	import { Action } from '$lib/core/action/action.svelte';
-	import { isIfHandler } from '$lib/core/action/if-condition';
 	import {
 		getGlobalVariables,
-		getPrecedingActionVariables,
+		getPrecedingActionVariablesForHandler,
 		getTriggerVariables,
 		mergeContextVariables
 	} from '$lib/core/action/variable-helpers';
@@ -25,8 +25,7 @@
 
 	import ConditionGroup from './condition-group.svelte';
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
-	import HandlerFieldGroup from './handler-field-group.svelte';
-	import IfConditionSummary from './if-condition-summary.svelte';
+	import HandlerChainEditor from './handler-chain-editor.svelte';
 	import SortableChainList from './sortable-chain-list.svelte';
 
 	type Props = {
@@ -54,26 +53,16 @@
 		action.triggers = triggers;
 	}
 
-	function reorderHandlers(handlers: ActionHandler[]): void {
-		action.handlers = handlers;
-	}
-
 	function triggerLabel(trigger: ActionTrigger): string {
 		return trigger.definition.name;
 	}
 
-	function handlerLabel(handler: ActionHandler): string {
-		return handler.definition.name;
-	}
-
-	function addHandler(definition: { id: string }) {
-		const found = getApp().actions.actions.find(definition.id);
-
-		if (!found || found.isGroup || !found.isAvailable) {
+	function addHandler(definition: HandlerDefinition) {
+		if (definition.isGroup || !definition.isAvailable) {
 			return;
 		}
 
-		action.addHandler(found);
+		action.addHandler(definition);
 	}
 
 	const onNameInput: FormEventHandler<HTMLInputElement> = (event) => {
@@ -141,11 +130,9 @@
 	);
 
 	function contextVariablesForHandler(handler: ActionHandler): typeof baseContextVariables {
-		const handlerIndex = action.handlers.findIndex((item) => item.id === handler.id);
-
 		return mergeContextVariables(
 			baseContextVariables,
-			getPrecedingActionVariables(action.handlers, handlerIndex)
+			getPrecedingActionVariablesForHandler(action.handlers, handler.id)
 		);
 	}
 </script>
@@ -304,125 +291,15 @@
 		{/if}
 	</section>
 
-	<section class="grid gap-3">
-		<div class="flex flex-wrap items-center justify-between gap-2">
-			<Label>{t('Handlers')}</Label>
-			<DefinitionPickerDropdown
-				label={t('Add Handler')}
-				definitions={getApp().actions.actions.items}
-				onSelect={addHandler}
-			/>
-		</div>
-
-		{#if action.formErrors?.handlers}
-			<p class="text-sm text-destructive-50">{action.formErrors.handlers}</p>
-		{/if}
-
-		{#if action.handlers.length === 0}
-			<p class="text-sm text-dark-300">{t('No handlers added yet.')}</p>
-		{/if}
-
-		{#if action.handlers.length > 0}
-			<SortableChainList
-				items={action.handlers}
-				getId={(handler: ActionHandler) => handler.id}
-				getLabel={handlerLabel}
-				sortableType="handler"
-				onReorder={reorderHandlers}
-			>
-				{#snippet itemContent(handler: ActionHandler)}
-					<div
-						class={cn(
-							'grid min-w-0 gap-2 rounded-xl border px-4 py-4 transition-colors duration-200',
-							{
-								'border-green-500 ring-1 ring-green-500/50':
-									handler.definition.isAvailable &&
-									action.execution.state.activeHandlerId === handler.id,
-								'border-green-600/70':
-									handler.definition.isAvailable &&
-									action.execution.state.activeHandlerId !== handler.id &&
-									action.execution.state.completedHandlerIds.includes(handler.id),
-								'border-dark-600':
-									handler.definition.isAvailable &&
-									action.execution.state.activeHandlerId !== handler.id &&
-									!action.execution.state.completedHandlerIds.includes(
-										handler.id
-									),
-								'border-destructive-500 bg-destructive-800':
-									!handler.definition.isAvailable
-							}
-						)}
-					>
-						<div class="flex items-center justify-between gap-2">
-							{#if isIfHandler(handler)}
-								<div
-									class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1"
-								>
-									<IfConditionSummary {handler} />
-									{#if !handler.definition.isAvailable}
-										<span class="text-sm font-normal text-destructive-50">
-											{t('Unavailable')}
-										</span>
-									{/if}
-								</div>
-							{:else}
-								<p class="min-w-0 font-medium text-dark-50">
-									{handler.definition.name}
-									{#if !handler.definition.isAvailable}
-										<span class="ml-2 text-sm font-normal text-destructive-50">
-											{t('Unavailable')}
-										</span>
-									{/if}
-								</p>
-							{/if}
-							<div class="flex shrink-0 items-center gap-1">
-								<Button
-									variant="ghost"
-									size="icon"
-									icon="clarity:clone-line"
-									aria-label={t('Clone handler')}
-									onclick={() => action.cloneHandler(handler.id)}
-									{@attach tooltip(() => t('Clone handler'))}
-								/>
-								<Button
-									variant="ghost"
-									size="icon"
-									icon="ri:close-line"
-									aria-label={t('Remove')}
-									onclick={() => action.removeHandler(handler.id)}
-									{@attach tooltip(() => t('Remove handler'))}
-								/>
-							</div>
-						</div>
-
-						{#if !handler.definition.isAvailable}
-							<p class="text-sm text-destructive-50">
-								{t(
-									'This handler is not available. The plugin may be disabled or missing.'
-								)}
-							</p>
-						{/if}
-
-						{#if action.formErrors?.handlerErrors[handler.id]?.missingFields.length}
-							<ul class="grid gap-1 text-sm text-destructive-50">
-								{#each action.formErrors.handlerErrors[handler.id].missingFields as name (name)}
-									<li>{t('{field} is required', { field: name })}</li>
-								{/each}
-							</ul>
-						{/if}
-
-						{#if handler.fieldDefinitions?.length}
-							<HandlerFieldGroup
-								{handler}
-								contextVariables={contextVariablesForHandler(handler)}
-								fieldErrors={action.formErrors?.handlerErrors[handler.id]}
-							/>
-						{/if}
-					</div>
-				{/snippet}
-			</SortableChainList>
-		{/if}
-	</section>
+	<HandlerChainEditor
+		host={action}
+		definitions={getApp().actions.actions.items}
+		formErrors={action.formErrors}
+		contextVariablesForHandler={contextVariablesForHandler}
+		globalVariables={globalVariables}
+		showVariablePopover
+		onAddHandler={addHandler}
+	/>
 
 	<div class="flex flex-wrap items-center gap-2">
 		{#if action.id != null}

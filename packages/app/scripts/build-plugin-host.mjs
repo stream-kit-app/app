@@ -44,10 +44,4 @@ await esbuild.build({
 	outfile: path.resolve(outDir, 'plugin.js')
 });
 
-await esbuild.build({
-	...shared,
-	entryPoints: [path.resolve(root, 'src/lib/core/plugins/host/action.ts')],
-	outfile: path.resolve(outDir, 'action.js')
-});
-
 console.log(`Built plugin host assets in ${outDir}`);

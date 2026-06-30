@@ -16,11 +16,7 @@ type IfConditionField = {
 };
 
 export function isIfHandler(handler: ActionHandler): boolean {
-	return (
-		handler.fieldDefinitions?.some(
-			(definition) => definition.type === 'text-select-text' && definition.allowNegate
-		) ?? false
-	);
+	return handler.definition.id.endsWith(':if');
 }
 
 export function getIfConditionField(handler: ActionHandler): IfConditionField | undefined {

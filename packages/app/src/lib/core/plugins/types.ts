@@ -69,6 +69,21 @@ export type PluginCustomViewProps = {
 	description?: string;
 };
 
+export type PluginWidgetColumns = 1 | 2 | 3 | 4;
+
+export type PluginWidgetProps = {
+	app: PluginAppApi;
+};
+
+export type PluginWidgetDefinition = {
+	key: string;
+	title: string;
+	description?: string;
+	icon?: string;
+	columns?: PluginWidgetColumns;
+	view: string;
+};
+
 export type PluginMenuItemChildDefinition = {
 	title: string;
 	page: PluginPageDefinition;
@@ -97,6 +112,7 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 	triggers?: TriggerDefinitionProps<any>[];
 	handlers?: HandlerDefinitionProps[];
 	menuItems?: PluginMenuItemDefinition[];
+	widgets?: PluginWidgetDefinition[];
 	settings?: PluginSettingsFieldItem[];
 	customViews?: Record<string, Component>;
 	api?: TApi;

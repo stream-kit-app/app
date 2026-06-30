@@ -21,7 +21,8 @@ export const PLUGIN_HOST_ROOT_IMPORTS = [
 	['@stream-kit/plugin/action', 'action.js'],
 	['@stream-kit/core', 'core.js'],
 	['@iconify/svelte', '@iconify/svelte.js'],
-	['svelte', 'svelte.js']
+	['svelte', 'svelte.js'],
+	['runed', 'runed.js']
 ];
 
 export const PLUGIN_HOST_EXTERNAL_PREFIXES = [
@@ -97,6 +98,7 @@ export function syncPluginHostVendorStubs(appRoot = configDir, workspaceRoot = g
 
 	writeFileSync(path.join(vendorDir, 'svelte.ts'), `export * from 'svelte';\n`);
 	writeFileSync(path.join(vendorDir, 'iconify-svelte.ts'), `export { default } from '@iconify/svelte';\n`);
+	writeFileSync(path.join(vendorDir, 'runed.ts'), `export * from 'runed';\n`);
 
 	for (const subpath of PLUGIN_HOST_SVELTE_SUBPATHS) {
 		const fileName = `svelte-${subpath.replace(/\//g, '-')}.ts`;
@@ -110,10 +112,16 @@ export function syncPluginHostVendorStubs(appRoot = configDir, workspaceRoot = g
 	return { vendorDir, uiSubpaths };
 }
 
-export function createPluginHostViteEntries(vendorDir, uiSubpaths = getPluginHostUiSubpaths()) {
+export function getPluginHostActionEntry(appRoot = configDir) {
+	return path.resolve(appRoot, 'src/lib/core/plugins/host/action.ts');
+}
+
+export function createPluginHostViteEntries(vendorDir, uiSubpaths = getPluginHostUiSubpaths(), appRoot = configDir) {
 	const entries = {
+		action: getPluginHostActionEntry(appRoot),
 		svelte: path.join(vendorDir, 'svelte.ts'),
-		'@iconify/svelte': path.join(vendorDir, 'iconify-svelte.ts')
+		'@iconify/svelte': path.join(vendorDir, 'iconify-svelte.ts'),
+		runed: path.join(vendorDir, 'runed.ts')
 	};
 
 	for (const subpath of PLUGIN_HOST_SVELTE_SUBPATHS) {

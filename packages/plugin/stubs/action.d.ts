@@ -1,4 +1,4 @@
-export type { HandlerFieldFormErrors } from '../../../app/src/lib/core/action/action-handler.svelte';
+export type { HandlerFieldFormErrors, HandlerBranch } from '../../../app/src/lib/core/action/action-handler.svelte';
 export type { ConditionEditor } from '../../../app/src/lib/core/action/condition-editor';
 export type { StoredActionHandler } from '../../../app/src/lib/core/action/stored-action';
 export type { Modal } from '../../../app/src/lib/core/modal/modal.svelte';
@@ -9,7 +9,26 @@ export type { ConditionFormErrors } from '../../../app/src/lib/core/action/valid
 export { ActionHandler } from '../../../app/src/lib/core/action/action-handler.svelte';
 export { HandlerDefinition } from '../../../app/src/lib/core/action/handler/handler-definition.svelte';
 export { runHandlerChain } from '../../../app/src/lib/core/action/run-handler-chain';
-export { migrateLegacyHandlerFields } from '../../../app/src/lib/core/action/handler-field';
+export { migrateLegacyHandlerFields, getHandlerFieldValue } from '../../../app/src/lib/core/action/handler-field';
+export {
+	findHandler,
+	findHandlerLocation,
+	handlerFromStored,
+	handlerFromStoredWithResolver,
+	flattenActionHandlers
+} from '../../../app/src/lib/core/action/handler-tree';
+export {
+	addHandlerToChain,
+	removeHandlerFromChain,
+	cloneHandlerInChain,
+	reorderBranchHandlersInChain
+} from '../../../app/src/lib/core/action/handler-chain-mutations';
+export {
+	getGlobalVariables,
+	getPrecedingActionVariables,
+	getPrecedingActionVariablesForHandler,
+	mergeContextVariables
+} from '../../../app/src/lib/core/action/variable-helpers';
 export {
 	hasHandlerErrors,
 	isFieldValueEmpty,

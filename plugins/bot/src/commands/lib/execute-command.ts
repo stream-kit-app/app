@@ -1,3 +1,4 @@
+import type { CommandMatch } from '@stream-kit/core';
 import type { PluginAppApi } from '@stream-kit/plugin';
 import type { CommandRecord } from '@stream-kit/plugin';
 
@@ -6,18 +7,32 @@ import { hasPermission } from './permissions';
 
 type CommandContext = Record<string, unknown> & {
 	command: string;
+	args?: Record<string, string>;
 	user: string;
 	userId: string;
 	message: string;
 	role: string;
 };
 
+function buildCommandContext(
+	context: CommandContext,
+	match: CommandMatch
+): CommandContext {
+	return {
+		...context,
+		command: match.command,
+		args: match.args,
+		...match.args
+	};
+}
+
 export function executeCommand(
 	app: PluginAppApi,
 	command: CommandRecord,
 	context: CommandContext,
 	source: CommandRecord['sources'][number],
-	cooldownState: CooldownState
+	cooldownState: CooldownState,
+	match: CommandMatch
 ): void {
 	if (!command.sources.includes(source)) {
 		return;
@@ -41,7 +56,7 @@ export function executeCommand(
 
 	app.commands.runById(command.id, {
 		trigger: 'Command',
-		data: context
+		data: buildCommandContext(context, match)
 	});
 
 	markCooldown(

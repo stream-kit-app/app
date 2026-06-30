@@ -1,5 +1,11 @@
 import type { ConditionDefinition, FieldValue, HandlerFieldVariable } from '@stream-kit/plugin';
 
+import {
+	hasCommandArgPlaceholders,
+	matchCommandPattern,
+	parseCommand
+} from '@stream-kit/core';
+
 import { matchText } from '../match-text';
 
 export const messageMatchOperators = [
@@ -116,6 +122,24 @@ export function evaluateCommandMatch(command: string | null, value: FieldValue):
 	}
 
 	return matchText(command, match.type, match.value);
+}
+
+export function evaluateCommandMessageMatch(
+	message: string,
+	prefix: string,
+	value: FieldValue
+): boolean {
+	const match = value as { type: string; value: string };
+
+	if (!match.value?.trim()) {
+		return true;
+	}
+
+	if (hasCommandArgPlaceholders(match.value)) {
+		return matchCommandPattern(match.value, message, prefix) !== null;
+	}
+
+	return evaluateCommandMatch(parseCommand(message, prefix), value);
 }
 
 export function evaluateBooleanFilter(actual: boolean, _value: FieldValue): boolean {

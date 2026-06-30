@@ -28,6 +28,7 @@ function isIfConditionValue(value: unknown): value is IfConditionValue {
 
 export const createIfHandler = ({ variables }: CorePluginContext) =>
 	({
+		id: 'if',
 		name: 'If',
 		fields: [
 			{
@@ -43,24 +44,24 @@ export const createIfHandler = ({ variables }: CorePluginContext) =>
 				valuelessOperators: [...valuelessTextOperatorValues]
 			}
 		],
-		execute: (_action, handler, context, next) => {
+		execute: async (action, handler, context, next) => {
 			const condition = getFieldValue(handler.fields, 'condition');
+			let branchHandlers = handler.elseHandlers;
 
-			if (!isIfConditionValue(condition)) {
-				return;
+			if (isIfConditionValue(condition)) {
+				const resolvedVariables = variables.resolve(context);
+				const left = interpolateVariables(condition.path, resolvedVariables);
+				const right = interpolateVariables(condition.value, resolvedVariables);
+				let passed = matchText(left, condition.type, right);
+
+				if (condition.negate) {
+					passed = !passed;
+				}
+
+				branchHandlers = passed ? handler.thenHandlers : handler.elseHandlers;
 			}
 
-			const resolvedVariables = variables.resolve(context);
-			const left = interpolateVariables(condition.path, resolvedVariables);
-			const right = interpolateVariables(condition.value, resolvedVariables);
-			let passed = matchText(left, condition.type, right);
-
-			if (condition.negate) {
-				passed = !passed;
-			}
-
-			if (passed) {
-				next();
-			}
+			await action.runHandlerBranch(branchHandlers, context);
+			next();
 		}
 	}) as HandlerDefinitionProps;

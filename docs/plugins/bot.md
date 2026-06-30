@@ -35,7 +35,32 @@ Settings are stored in `plugin.bot.json`.
 
 Custom commands work like Actions handler chains: each command has aliases, permissions, cooldowns, platform sources, and a handler chain.
 
+The command editor uses the same handler chain UI as Actions:
+
+- Drag handlers by the handle to reorder (execution order matches editor order)
+- Clone handlers with the clone button on each row
+- **If** handlers show a live condition summary and support **Then** / **Else** branches
+- Text fields offer command context variables, global variables, and variables from earlier handlers in the chain
+
 Chat messages matching `{prefix}{command}` are processed after moderation and before built-in commands.
+
+### Command arguments
+
+Commands can include positional arguments using `<arg>` placeholders in the command pattern:
+
+| Pattern | Example chat | Variables in handlers |
+|---------|--------------|------------------------|
+| `setalias <target>` | `!setalias CoolUser` | `{target}` = `CoolUser` |
+| `say <message>` | `!say hello world` | `{message}` = `hello world` |
+
+Rules:
+
+- The **last** `<arg>` captures the rest of the message (greedy).
+- Earlier arguments match a single word each.
+- Use `{argName}` in handler fields (Send Message, variables, etc.).
+- Reserved argument names (`user`, `username`, `message`, `role`, `command`, `channel`, and other context fields) are not allowed — use names like `<target>` or `<alias>` when you also need `{username}` for the person who ran the command.
+
+The same pattern syntax works in **Twitch** and **YouTube** Chat Message trigger conditions under **Command**.
 
 ## Built-in commands
 
@@ -51,6 +76,7 @@ Custom commands with the same name override built-ins.
 
 Timers run handler chains on a random interval, similar to commands:
 
+- Handler chain editor matches Actions (reorder, clone, If branches, variable popovers)
 - Handler chain (Twitch Send Message, OBS, variables, etc.)
 - Random interval between min/max seconds (minimum 30s)
 - Optional minimum chat messages between runs

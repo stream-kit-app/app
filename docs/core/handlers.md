@@ -7,8 +7,7 @@ All handlers live under **Core** in the action editor.
 Handlers run top to bottom in the order shown in the editor. Each handler calls
 `next()` to continue the chain.
 
-- A handler **stops** the chain by intentionally not calling `next()` (this is how
-  the **If** handler skips the rest of the chain when its condition fails).
+- A handler **stops** the chain by intentionally not calling `next()` (for example, **Delay** with an invalid duration).
 - A handler that **throws** is treated as an unexpected failure: the error is
   logged and the chain continues with the next handler rather than aborting.
 - Async handlers are awaited, so handlers run sequentially and earlier handlers'
@@ -121,85 +120,85 @@ Missing values are stored as an empty string in the target.
 
 ---
 
-## Maps
+## Collections
 
-Named key-value stores with session or persistent lifetime. See [Maps](./maps.md) for lifetimes, triggers, and examples.
+Named key-value stores with session or persistent lifetime. See [Collections](./collections.md) for lifetimes, triggers, and examples.
 
-All map handlers except **Create map** use a **Map name** dropdown that lists every existing map (labels show session or persistent). Create a map first before using the other handlers. Map names are globally unique.
+All collection handlers except **Create collection** use a **Collection name** dropdown that lists every existing collection (labels show session or persistent). Create a collection first before using the other handlers. Collection names are globally unique.
 
-### Create map
+### Create collection
 
-Creates an empty map. Fails if the name already exists (session or persistent).
+Creates an empty collection. Fails if the name already exists (session or persistent).
 
-| Field    | Type   | Default | Description                                  |
-| -------- | ------ | ------- | -------------------------------------------- |
-| Map name | text   | —       | Unique map name (required)                   |
-| Lifetime | select | Session | Session or Persistent — set only at creation |
+| Field           | Type   | Default | Description                                  |
+| --------------- | ------ | ------- | -------------------------------------------- |
+| Collection name | text   | —       | Unique collection name (required)            |
+| Lifetime        | select | Session | Session or Persistent — set only at creation |
 
 ### Set value
 
-Upserts a key in an existing map. Creates the key if it does not exist, or overwrites it if it does.
+Upserts a key in an existing collection. Creates the key if it does not exist, or overwrites it if it does.
 
-| Field    | Type     | Description                                                                 |
-| -------- | -------- | --------------------------------------------------------------------------- |
-| Map name | combobox | Existing maps (label shows session or persistent)                           |
-| Key      | text     | Key to set (required); supports trigger, global, user, and action variables |
-| Value    | text     | Value; supports trigger, global, user, and action variables                 |
+| Field           | Type     | Description                                                                 |
+| --------------- | -------- | --------------------------------------------------------------------------- |
+| Collection name | combobox | Existing collections (label shows session or persistent)                    |
+| Key             | text     | Key to set (required); supports trigger, global, user, and action variables |
+| Value           | text     | Value; supports trigger, global, user, and action variables                 |
 
 ### Update value
 
-Updates an existing key only. Fails if the map or key does not exist.
+Updates an existing key only. Fails if the collection or key does not exist.
 
-| Field    | Type     | Description                       |
-| -------- | -------- | --------------------------------- |
-| Map name | combobox | Existing maps                     |
-| Key      | text     | Key to update (required)          |
-| Value    | text     | New value; supports `{variables}` |
+| Field           | Type     | Description                       |
+| --------------- | -------- | --------------------------------- |
+| Collection name | combobox | Existing collections              |
+| Key             | text     | Key to update (required)          |
+| Value           | text     | New value; supports `{variables}` |
 
 ### Get value
 
-Reads a value from a map into an action variable.
+Reads a value from a collection into an action variable.
 
-| Field       | Type     | Description                                                                  |
-| ----------- | -------- | ---------------------------------------------------------------------------- |
-| Map name    | combobox | Existing maps                                                                |
-| Key         | text     | Key to read (required); supports trigger, global, user, and action variables |
-| Target name | text     | Action variable to write into (required)                                     |
+| Field           | Type     | Description                                                                  |
+| --------------- | -------- | ---------------------------------------------------------------------------- |
+| Collection name | combobox | Existing collections                                                         |
+| Key             | text     | Key to read (required); supports trigger, global, user, and action variables |
+| Target name     | text     | Action variable to write into (required)                                     |
 
 ### Has key
 
 Checks whether a key exists and writes `true` or `false` to an action variable.
 
-| Field       | Type     | Description                                                                   |
-| ----------- | -------- | ----------------------------------------------------------------------------- |
-| Map name    | combobox | Existing maps                                                                 |
-| Key         | text     | Key to check (required); supports trigger, global, user, and action variables |
-| Target name | text     | Action variable for the result (required)                                     |
+| Field           | Type     | Description                                                                   |
+| --------------- | -------- | ----------------------------------------------------------------------------- |
+| Collection name | combobox | Existing collections                                                        |
+| Key             | text     | Key to check (required); supports trigger, global, user, and action variables |
+| Target name     | text     | Action variable for the result (required)                                     |
 
 ### Delete key
 
-Removes a single key from a map.
+Removes a single key from a collection.
 
-| Field    | Type     | Description              |
-| -------- | -------- | ------------------------ |
-| Map name | combobox | Existing maps            |
-| Key      | text     | Key to delete (required) |
+| Field           | Type     | Description              |
+| --------------- | -------- | ------------------------ |
+| Collection name | combobox | Existing collections   |
+| Key             | text     | Key to delete (required) |
 
-### Clear map
+### Clear collection
 
-Removes all keys from a map but keeps the map itself.
+Removes all keys from a collection but keeps the collection itself.
 
-| Field    | Type     | Description   |
-| -------- | -------- | ------------- |
-| Map name | combobox | Existing maps |
+| Field           | Type     | Description            |
+| --------------- | -------- | ---------------------- |
+| Collection name | combobox | Existing collections |
 
-### Delete map
+### Delete collection
 
-Removes the entire map from the registry.
+Removes the entire collection from the registry.
 
-| Field    | Type     | Description   |
-| -------- | -------- | ------------- |
-| Map name | combobox | Existing maps |
+| Field           | Type     | Description            |
+| --------------- | -------- | ---------------------- |
+| Collection name | combobox | Existing collections |
 
 ---
 
@@ -207,7 +206,12 @@ Removes the entire map from the registry.
 
 ### If
 
-Evaluates a text condition and continues the handler chain only when it passes. When the condition fails, all remaining handlers are skipped.
+Evaluates a text condition and runs one of two nested handler branches:
+
+- **Then** — runs when the condition passes
+- **Else** — runs when the condition fails
+
+After the chosen branch finishes, the main handler chain **always** continues with any handlers placed after the If block. Add handlers inside the Then or Else sections in the action editor; they are not part of the flat main chain.
 
 The action editor shows a live summary above the inputs, using the same style as trigger conditions (for example: **if** `{score}` _is empty_).
 
@@ -218,15 +222,19 @@ The action editor shows a live summary above the inputs, using the same style as
 
 **Operators:** equals, contains, starts with, ends with, is empty.
 
-For **Is empty**, only the left field is used. Use the **Not** checkbox to invert the check (passes when the value is not empty). A value is empty when it is missing, whitespace-only, or an empty string (for example after **Get value** on a non-existent map key).
+For **Is empty**, only the left field is used. Use the **Not** checkbox to invert the check (passes when the value is not empty). A value is empty when it is missing, whitespace-only, or an empty string (for example after **Get value** on a non-existent collection key).
 
-Both the left and right fields support `{variable}` interpolation from trigger data, global variables, user variables, and action-scoped variables set earlier in the chain.
+Both the left and right fields support `{variable}` interpolation from trigger data, global variables, user variables, and action-scoped variables set earlier in the chain (including handlers in parent branches before the If block).
+
+If handlers can be nested (an If inside a Then or Else branch).
 
 Example chain:
 
-1. **Get value** — map `scores`, key `{username}`, target `score`
+1. **Get value** — collection `scores`, key `{username}`, target `score`
 2. **If** — `{score}` is empty
-3. **Log** — runs only when the user has no score yet
+   - **Then:** **Log** — "No score yet"
+   - **Else:** **Log** — "Score: {score}"
+3. **Log** — "Done" (runs after the If block, regardless of the condition)
 
 ### Log
 

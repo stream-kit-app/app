@@ -7,6 +7,7 @@ import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
 import { fetchElevenLabsVoices } from './api';
 import { elevenlabs } from './service';
+import { createVoiceOneOfField } from '../voice-one-of-field';
 
 export async function loadElevenLabsVoiceItems(): Promise<SelectItem[]> {
 	if (!elevenlabs.isConfigured) {
@@ -32,17 +33,20 @@ export function elevenlabsVoiceSelectItems(emptyOption: SelectItem): () => Promi
 export function elevenlabsVoiceSelectField(
 	options: { name?: string; emptyLabel?: string; required?: boolean } = {}
 ): HandlerFieldDefinition {
-	return {
-		type: 'select',
-		name: options.name ?? 'Voice',
-		placeholder: options.emptyLabel ?? 'Use default voice',
-		loadingPlaceholder: 'Loading voices…',
-		required: options.required,
-		items: elevenlabsVoiceSelectItems({
-			value: '',
-			label: options.emptyLabel ?? 'Use default voice'
-		})
-	};
+	return createVoiceOneOfField(
+		{
+			type: 'select',
+			name: options.name ?? 'Voice',
+			placeholder: options.emptyLabel ?? 'Use default voice',
+			loadingPlaceholder: 'Loading voices…',
+			required: options.required,
+			items: elevenlabsVoiceSelectItems({
+				value: '',
+				label: options.emptyLabel ?? 'Use default voice'
+			})
+		},
+		{ name: options.name, required: options.required }
+	);
 }
 
 function elevenlabsVoiceSelectSettingsItems(): (context: SettingsContext) => Promise<SelectItem[]> {

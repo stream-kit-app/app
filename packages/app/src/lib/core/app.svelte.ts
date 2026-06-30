@@ -11,6 +11,7 @@ import { ActionQueues } from './action-queue/action-queues.svelte';
 import { Audio } from './audio';
 import { Bootable } from './bootable.svelte';
 import { Confirm } from './confirm';
+import { Dashboard } from './dashboard';
 import { Filesystem } from './filesystem';
 import { AppLifecycle } from './lifecycle';
 import { Menu } from './menu';
@@ -32,6 +33,7 @@ export class App extends Bootable {
 	public pluginMenuPages = new PluginMenuPages();
 	public actions = new Actions();
 	public actionQueues = new ActionQueues();
+	public dashboard = new Dashboard();
 	public settings = new Settings();
 	public oauth = new OAuth();
 	public opener = new Opener();

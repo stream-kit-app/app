@@ -14,6 +14,7 @@
 		TextSelectTextFieldValue
 	} from '$lib/core/action/handler/field';
 	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
+	import type { PluginAppApi } from '@stream-kit/plugin';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { tooltip } from '@stream-kit/ui/attachments';
@@ -34,9 +35,9 @@
 
 	import HandlerSubFieldInput from './handler-sub-field-input.svelte';
 
-	import { MapContentPopover } from '$lib/components/core/map';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
+	import { CollectionContentPopover } from '$lib/components/core/collection';
+	import { resolveApp } from './resolve-app';
+	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 	import { buildScriptLspWorkspace } from '$lib/codemirror/script-lsp-workspace';
 	import { cn } from '$lib/utils';
 
@@ -44,11 +45,20 @@
 		handler: ActionHandler;
 		fieldErrors?: HandlerFieldFormErrors;
 		contextVariables?: HandlerFieldVariable[];
+		app?: PluginAppApi;
+		t?: TranslateFn;
 	};
 
-	let { handler, fieldErrors, contextVariables = [] }: Props = $props();
+	let {
+		handler,
+		fieldErrors,
+		contextVariables = [],
+		app: appProp,
+		t: translateProp
+	}: Props = $props();
 
-	const { t } = useI18n();
+	const app = $derived(resolveApp(appProp));
+	const t = $derived(resolveTranslate(translateProp));
 
 	const onTextInput =
 		(field: HandlerFieldInstance): FormEventHandler<HTMLInputElement> =>
@@ -135,8 +145,12 @@
 
 		return () => handler.getField(fieldKey)?.value;
 	}
-	function isExistingMapNameField(config: ResolvedHandlerFieldDefinition): boolean {
-		return config.type === 'combobox' && config.key === 'map-name' && config.allowCustomValue === false;
+	function isExistingCollectionNameField(config: ResolvedHandlerFieldDefinition): boolean {
+		return (
+			config.type === 'combobox' &&
+			config.key === 'collection-name' &&
+			config.allowCustomValue === false
+		);
 	}
 
 	function getOneOfValue(field: HandlerFieldInstance): OneOfFieldValue {
@@ -201,7 +215,7 @@
 			{error}
 		/>
 	{:else if config.type === 'combobox'}
-		{#if isExistingMapNameField(config)}
+		{#if isExistingCollectionNameField(config)}
 			<div class="flex items-end gap-2">
 				<div class="min-w-0 flex-1">
 					<InputTextSelect
@@ -216,7 +230,7 @@
 						{error}
 					/>
 				</div>
-				<MapContentPopover mapName={String(field.value ?? '')} />
+				<CollectionContentPopover collectionName={String(field.value ?? '')} {app} {t} />
 			</div>
 		{:else}
 			<InputTextSelect
@@ -244,7 +258,7 @@
 			emptyFileLabel={t('No file selected')}
 			emptyFolderLabel={t('No folder selected')}
 			onBrowse={() =>
-				getApp().fs.select({
+				app.fs.select({
 					type: config.mode,
 					filters: config.filters
 				})}
@@ -343,6 +357,8 @@
 					value={value as HandlerFieldScalarValue}
 					{error}
 					{contextVariables}
+					{app}
+					{t}
 					onValueChange={(next) => setValue(next)}
 				/>
 			{/if}

@@ -7,6 +7,7 @@ import type {
 	ResolvedHandlerFieldDefinition
 } from './handler/field';
 import type { ConditionGroupNode } from './trigger/condition';
+import { isOneOfFieldValue } from '@stream-kit/core';
 
 export function createHandlerFields(
 	definitions: ResolvedHandlerFieldDefinition[] | undefined,
@@ -19,11 +20,38 @@ export function createHandlerFields(
 			id: existing?.id ?? crypto.randomUUID(),
 			key: definition.key,
 			value:
-				existing?.value ??
+				coerceLegacyOneOfFieldValue(definition, existing?.value) ??
 				migrateOneOfFieldValue(definition, stored) ??
 				initHandlerFieldValue(definition)
 		};
 	});
+}
+
+function coerceLegacyOneOfFieldValue(
+	definition: ResolvedHandlerFieldDefinition,
+	value: HandlerFieldValue | undefined
+): HandlerFieldValue | undefined {
+	if (value === undefined || definition.type !== 'one-of' || isOneOfFieldValue(value)) {
+		return value;
+	}
+
+	if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
+		return value;
+	}
+
+	const defaultVariant = definition.defaultVariant ?? definition.variants[0]?.id ?? '';
+	const scalarValue = value as HandlerFieldScalarValue;
+	const values: Record<string, HandlerFieldScalarValue> = {};
+
+	for (const variant of definition.variants) {
+		values[variant.id] =
+			variant.id === defaultVariant ? scalarValue : initInnerHandlerFieldValue(variant.field);
+	}
+
+	return {
+		variant: defaultVariant,
+		values
+	} satisfies OneOfFieldValue;
 }
 
 function initInnerHandlerFieldValue(

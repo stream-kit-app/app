@@ -7,7 +7,7 @@ import { createStreamElementsSpeakHandler } from './handler/streamelements/speak
 import { elevenlabs } from './lib/elevenlabs';
 import { elevenlabsModelSelectSettingsField } from './lib/elevenlabs/models';
 import { elevenlabsVoiceSelectSettingsField } from './lib/elevenlabs/voices';
-import { local } from './lib/local';
+import { local, resolveDefaultVoiceFromSettings, resolveVolumeFromSettings } from './lib/local';
 import { createLocalTtsVoiceSelectField } from './lib/local/settings';
 import { localVoiceSelectSettingsField } from './lib/local/voices';
 import { streamelements } from './lib/streamelements';
@@ -102,13 +102,19 @@ const plugin: Plugin = (app) => {
 						type: 'button',
 						name: 'Test voice',
 						variant: 'outline',
-						visible: () => {
-							const voiceId = local.defaultVoice?.trim();
+						visible: ({ getValue }) => {
+							const voiceId = resolveDefaultVoiceFromSettings(
+								getValue,
+								local.defaultVoice
+							);
+
 							return Boolean(voiceId && local.isVoiceInstalled(voiceId));
 						},
-						onClick: async () => {
-							await local.syncFromStore();
-							const voiceId = local.defaultVoice?.trim();
+						onClick: async ({ getValue }) => {
+							const voiceId = resolveDefaultVoiceFromSettings(
+								getValue,
+								local.defaultVoice
+							);
 
 							if (!voiceId) {
 								app.toast.create({
@@ -122,7 +128,8 @@ const plugin: Plugin = (app) => {
 							try {
 								await local.testVoice(
 									voiceId,
-									'This is a local text-to-speech test.'
+									'This is a local text-to-speech test.',
+									resolveVolumeFromSettings(getValue) ?? local.volume
 								);
 								app.toast.create({
 									title: 'Test started',

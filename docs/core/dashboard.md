@@ -1,43 +1,62 @@
 # Dashboard
 
-The Dashboard is the home page of Stream Kit (`/`). It provides a read-only overview of the app state after boot completes.
+The Dashboard is the home page of Stream Kit (`/`). It shows a customizable grid of widgets that summarize app state after boot completes.
 
 Source: `packages/app/src/routes/+page.svelte`  
-Components: `packages/app/src/lib/components/core/dashboard/`
+Components: `packages/app/src/lib/components/core/dashboard/`  
+Architecture: [widgets.md](widgets.md)
 
-## Overview
+## Layout
 
-The Dashboard aggregates data from the global `app` singleton and plugin APIs. It does not expose configuration controls — use the **Plugins** page or plugin-specific pages (for example Bot → Overview) to change settings.
+The dashboard is a **4-column CSS grid**. Each widget spans 1–4 columns. Order (`sort_order`) and width (`columns`) are persisted in SQLite (`dashboard_widgets`). Widgets flow left-to-right, top-to-bottom in sort order.
 
-## Sections
+## Edit mode
 
-### Stat cards
+Use **Customize** in the page header to:
 
-| Card | Data source | Link |
-|------|-------------|------|
-| Actions | Enabled count / total from `app.actions.items` | `/actions` |
-| Plugins | Configured count / enabled total from `app.plugins.items` | `/plugins` |
-| Commands | Bot command count; timers shown as subtitle | — |
-| Log entries | Total entries from `CorePluginApi.logs` | `/logs` |
+- Drag widgets by the handle to reorder (via `@dnd-kit-svelte`)
+- Set widget width with the column selector (1–4)
+- Remove widgets from the dashboard
+- Add widgets with **Add widget** (lists definitions from enabled plugins and app built-ins)
 
-When the Bot plugin is unavailable, the Commands card shows `—` with a “Bot plugin unavailable” subtitle.
+Outside edit mode, the grid is static (no drag).
 
-### Connections
+## Default widgets
 
-Live status for:
+On first launch, the dashboard is seeded with:
 
-- **Twitch** — `twitch.isConnected`
-- **YouTube** — `youtube.isConnected` and optional Live badge
-- **OBS** — connection state, connecting state, and version when connected
-- **WebSocket** — connected count / total saved connections
+| Widget | Source | Columns |
+|--------|--------|---------|
+| Actions | `app:stat-actions` | 1 |
+| Plugins | `app:stat-plugins` | 1 |
+| Commands | `bot:commands` | 1 |
+| Log entries | `core:logs` | 1 |
+| Connections | `app:connections` | 2 |
+| Plugin status | `app:plugin-status` | 2 |
+| Collections | `core:collections` | 4 |
 
-### Plugin status
+## Widget content
 
-Compact read-only list of all registered plugins with enabled/disabled and configured/BROKEN/not configured badges. Mirrors the status logic from the Plugins page cards without toggles or configure actions.
+### App built-ins
+
+- **Actions / Plugins** — stat cards with links to `/actions` and `/plugins`
+- **Connections** — Twitch, YouTube, OBS, and WebSocket status
+- **Plugin status** — read-only plugin list with configuration badges
+
+### Core plugin
+
+- **Log entries** — count with link to `/logs`
+- **Maps** — full map management (create, edit, delete)
+
+### Bot plugin
+
+- **Commands** — command count and timer subtitle
+
+When a plugin is disabled, its widgets show “Widget unavailable” but remain on the layout until removed.
 
 ## Reactivity
 
-Plugin connection APIs and the core logs API expose `subscribe()` listeners. The Dashboard uses the same `$effect` + revision pattern as the Logs page and PluginCard so connection badges and log counts update in real time.
+Widget components subscribe to plugin APIs and core services where needed (connections, logs, collections). Stats read from `app.actions` and `app.plugins` on each render cycle.
 
 ## i18n
 

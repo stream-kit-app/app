@@ -3,9 +3,15 @@ import type { Action, Modal } from '@stream-kit/plugin/action';
 import {
 	ActionHandler,
 	HandlerDefinition,
+	addHandlerToChain,
+	cloneHandlerInChain,
+	flattenActionHandlers,
+	handlerFromStoredWithResolver,
 	hasHandlerErrors,
-	migrateLegacyHandlerFields,
+	removeHandlerFromChain,
+	reorderBranchHandlersInChain,
 	runHandlerChain,
+	type HandlerBranch,
 	validateHandlerFields
 } from '@stream-kit/plugin/action';
 import type { CommandPermissions, CommandRecord, CommandSource } from './stored-command';
@@ -79,16 +85,16 @@ export class Command {
 	}
 
 	static fromRecord(record: CommandRecord, app: PluginAppApi): Command {
-		const handlers = record.handlers.map((stored) => {
-			const definition =
-				app.actions.findHandler(stored.handlerTypeId) ??
-				Command.createUnavailableHandlerDefinition(stored.handlerTypeId);
+		const resolveDefinition = (handlerTypeId: string) =>
+			app.actions.findHandler(handlerTypeId);
 
-			return new ActionHandler(definition, {
-				id: stored.id,
-				fields: migrateLegacyHandlerFields(stored)
-			});
-		});
+		const handlers = record.handlers.map((stored) =>
+			handlerFromStoredWithResolver(
+				stored,
+				resolveDefinition,
+				Command.createUnavailableHandlerDefinition
+			)
+		);
 
 		return new Command({
 			id: record.id,
@@ -177,12 +183,38 @@ export class Command {
 		getCommandsService().requireApp().modal.get(this.modalId)?.close();
 	}
 
-	addHandler(definition: HandlerDefinition): void {
-		this.handlers = [...this.handlers, new ActionHandler(definition)];
+	addHandler(
+		definition: HandlerDefinition,
+		target?: { parentId: string; branch: HandlerBranch }
+	): void {
+		this.handlers = addHandlerToChain(this.handlers, definition, target);
 	}
 
 	removeHandler(handlerId: string): void {
-		this.handlers = this.handlers.filter((handler) => handler.id !== handlerId);
+		this.handlers = removeHandlerFromChain(this.handlers, handlerId);
+	}
+
+	cloneHandler(handlerId: string): void {
+		this.handlers = cloneHandlerInChain(this.handlers, handlerId);
+	}
+
+	reorderHandlers(handlers: ActionHandler[]): void {
+		this.handlers = handlers;
+	}
+
+	reorderBranchHandlers(
+		parentId: string,
+		branch: HandlerBranch,
+		handlers: ActionHandler[]
+	): void {
+		this.handlers = reorderBranchHandlersInChain(this.handlers, parentId, branch, handlers);
+	}
+
+	async runHandlerBranch(
+		handlers: ActionHandler[],
+		context: HandlerTriggerContext
+	): Promise<void> {
+		await runHandlerChain(handlers, this as unknown as Action, context);
 	}
 
 	runHandlers(data: unknown, triggerLabel = 'Command'): void {
@@ -195,9 +227,7 @@ export class Command {
 			data
 		};
 
-		const actionProxy = this as unknown as Action;
-
-		runHandlerChain(this.handlers, actionProxy, context);
+		void runHandlerChain(this.handlers, this as unknown as Action, context);
 	}
 
 	validateForm(): boolean {
@@ -214,7 +244,7 @@ export class Command {
 
 		const handlerErrors: Record<string, ReturnType<typeof validateHandlerFields>> = {};
 
-		for (const handler of this.handlers) {
+		for (const handler of flattenActionHandlers(this.handlers)) {
 			const errors = validateHandlerFields(handler.fields, handler.fieldDefinitions);
 
 			if (hasHandlerErrors(errors)) {

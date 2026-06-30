@@ -28,6 +28,7 @@ export type RedemptionContext = ChatMessageContext & {
 
 export type CommandContext = ChatMessageContext & {
 	command: string;
+	args: Record<string, string>;
 };
 
 export type HypeChatContext = ChatMessageContext & {

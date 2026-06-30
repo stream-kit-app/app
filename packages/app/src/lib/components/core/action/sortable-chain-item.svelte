@@ -5,8 +5,9 @@
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 
-	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
+
+	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 
 	type Props = {
 		id: string;
@@ -15,11 +16,22 @@
 		group: string;
 		label: string;
 		isOverlay?: boolean;
+		t?: TranslateFn;
 		children: Snippet;
 	};
 
-	let { id, index, sortableType, group, label, isOverlay = false, children }: Props = $props();
-	const { t } = useI18n();
+	let {
+		id,
+		index,
+		sortableType,
+		group,
+		label,
+		isOverlay = false,
+		t: translateProp,
+		children
+	}: Props = $props();
+
+	const t = $derived(resolveTranslate(translateProp));
 
 	const { ref, handleRef, isDragging } = useSortable({
 		id: () => id,

@@ -848,32 +848,224 @@ function resolveOneOfFieldText(fields, key, context, toVariables) {
   }
   return interpolateVariables(activeValue, toVariables(context));
 }
-function parseCommand(message, prefix = "!") {
+var RESERVED_COMMAND_ARG_NAMES = /* @__PURE__ */ new Set([
+  "user",
+  "username",
+  "userid",
+  "message",
+  "role",
+  "command",
+  "channel",
+  "channelid",
+  "broadcasterid",
+  "livechatid",
+  "messageid",
+  "source",
+  "args",
+  "amount",
+  "tier",
+  "title",
+  "broadcastid"
+]);
+var ARG_PLACEHOLDER_PATTERN = /^<([a-zA-Z_][a-zA-Z0-9_]*)>$/;
+function normalizePattern(pattern) {
+  return pattern.trim().replace(/^!+/, "");
+}
+function tokenizePattern(pattern) {
+  const normalized = normalizePattern(pattern);
+  if (!normalized) {
+    return [];
+  }
+  return normalized.split(/\s+/).map((part) => {
+    const argMatch = part.match(ARG_PLACEHOLDER_PATTERN);
+    if (argMatch) {
+      return { type: "arg", name: argMatch[1] };
+    }
+    return { type: "literal", value: part };
+  });
+}
+function getMessageBody(message, prefix) {
   const normalizedPrefix = prefix.trim();
   if (!normalizedPrefix || !message.startsWith(normalizedPrefix)) {
     return null;
   }
-  const parts = message.slice(normalizedPrefix.length).trim().split(/\s+/);
-  return parts[0]?.toLowerCase() ?? null;
+  return message.slice(normalizedPrefix.length).trim();
+}
+function hasCommandArgPlaceholders(pattern) {
+  return /<[a-zA-Z_][a-zA-Z0-9_]*>/.test(pattern);
+}
+function extractCommandArgNames(pattern) {
+  return tokenizePattern(pattern).filter((token) => token.type === "arg").map((token) => token.name);
+}
+function parseCommand(message, prefix = "!") {
+  const parsed = parseCommandMessage(message, prefix);
+  return parsed.command;
+}
+function parseCommandMessage(message, prefix = "!") {
+  const body = getMessageBody(message, prefix);
+  if (body === null) {
+    return {
+      isCommand: false,
+      command: null,
+      tokens: [],
+      remainder: ""
+    };
+  }
+  if (!body) {
+    return {
+      isCommand: false,
+      command: null,
+      tokens: [],
+      remainder: ""
+    };
+  }
+  const tokens = body.split(/\s+/);
+  return {
+    isCommand: true,
+    command: tokens[0]?.toLowerCase() ?? null,
+    tokens,
+    remainder: body
+  };
+}
+function matchCommandPattern(pattern, message, prefix = "!") {
+  const body = getMessageBody(message, prefix);
+  if (body === null) {
+    return null;
+  }
+  const tokens = tokenizePattern(pattern);
+  if (tokens.length === 0) {
+    return null;
+  }
+  const hasArgs = tokens.some((token) => token.type === "arg");
+  if (!hasArgs) {
+    if (!body) {
+      return null;
+    }
+    const bodyTokens = body.split(/\s+/);
+    if (bodyTokens.length !== tokens.length) {
+      return null;
+    }
+    for (let index = 0; index < tokens.length; index++) {
+      const token = tokens[index];
+      if (token.type !== "literal") {
+        return null;
+      }
+      if (token.value.toLowerCase() !== bodyTokens[index].toLowerCase()) {
+        return null;
+      }
+    }
+    const firstToken2 = tokens[0];
+    return {
+      command: firstToken2.type === "literal" ? firstToken2.value.toLowerCase() : "",
+      args: {}
+    };
+  }
+  const firstToken = tokens[0];
+  if (firstToken.type !== "literal") {
+    return null;
+  }
+  const commandName = firstToken.value;
+  if (!body.toLowerCase().startsWith(commandName.toLowerCase())) {
+    return null;
+  }
+  let remaining = body.slice(commandName.length).trimStart();
+  const argTokens = tokens.slice(1);
+  if (argTokens.length === 0) {
+    return remaining ? null : { command: commandName.toLowerCase(), args: {} };
+  }
+  const args = {};
+  for (let index = 0; index < argTokens.length - 1; index++) {
+    const token = argTokens[index];
+    if (token.type !== "arg") {
+      return null;
+    }
+    const spaceIndex = remaining.indexOf(" ");
+    if (spaceIndex === -1) {
+      return null;
+    }
+    const value = remaining.slice(0, spaceIndex);
+    if (!value) {
+      return null;
+    }
+    args[token.name] = value;
+    remaining = remaining.slice(spaceIndex + 1).trimStart();
+  }
+  const lastToken = argTokens[argTokens.length - 1];
+  if (lastToken.type !== "arg" || !remaining) {
+    return null;
+  }
+  args[lastToken.name] = remaining.trim();
+  return {
+    command: commandName.toLowerCase(),
+    args
+  };
+}
+function findCommandConditionPattern(conditions) {
+  for (const child of conditions.children ?? []) {
+    if (child.kind === "condition" && child.key === "command") {
+      const value = child.value;
+      const pattern = value?.value?.trim();
+      if (pattern) {
+        return pattern;
+      }
+    }
+    if (child.kind === "group" && child.children) {
+      const found = findCommandConditionPattern({ children: child.children });
+      if (found) {
+        return found;
+      }
+    }
+  }
+  return null;
+}
+function enrichChatMessageWithCommand(context, conditions, prefix = "!") {
+  const pattern = findCommandConditionPattern(conditions);
+  if (pattern && hasCommandArgPlaceholders(pattern)) {
+    const match = matchCommandPattern(pattern, context.message, prefix);
+    if (match) {
+      return {
+        ...context,
+        command: match.command,
+        args: match.args,
+        ...match.args
+      };
+    }
+  }
+  const command = parseCommand(context.message, prefix);
+  if (!command) {
+    return context;
+  }
+  return {
+    ...context,
+    command,
+    args: {}
+  };
 }
 export {
   CRON_FIELD_COUNT,
   CRON_FIELD_KEYS,
   DEFAULT_CRON_PRESETS,
+  RESERVED_COMMAND_ARG_NAMES,
   computeCronNextRun,
   contextToVariables,
   contextValueToVariableString,
+  enrichChatMessageWithCommand,
+  extractCommandArgNames,
+  findCommandConditionPattern,
   getCronFieldCount,
   getCronNextRunLabel,
   getCronValidationError,
   getFieldValue,
   getLocalTimezone,
   getOneOfFieldValue,
+  hasCommandArgPlaceholders,
   interpolateVariables,
   isOneOfFieldValue,
   isValidCronExpression,
+  matchCommandPattern,
   normalizeCronExpression,
   parseCommand,
+  parseCommandMessage,
   resolveFieldText,
   resolveOneOfFieldText,
   splitCronParts

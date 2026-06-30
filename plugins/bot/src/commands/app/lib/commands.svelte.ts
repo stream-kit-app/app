@@ -133,7 +133,13 @@ export class Commands {
 		const normalized = trigger.trim().replace(/^!+/, '').toLowerCase();
 
 		return this.items.find(
-			(command) => command.enabled && command.displayCommandNames.includes(normalized)
+			(command) =>
+				command.enabled &&
+				command.displayCommandNames.some((pattern) => {
+					const baseName = pattern.split(/\s+/)[0]?.toLowerCase();
+
+					return pattern.toLowerCase() === normalized || baseName === normalized;
+				})
 		);
 	}
 

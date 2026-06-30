@@ -1,10 +1,11 @@
 import type { ChatMessageContext } from '../../contexts';
 import type { PluginAppApi, TriggerDefinitionProps } from '@stream-kit/plugin';
 
-import { parseCommand } from '../../lib/command';
+import { enrichChatMessageWithCommand } from '@stream-kit/core';
+
 import {
 	evaluateBooleanFilter,
-	evaluateCommandMatch,
+	evaluateCommandMessageMatch,
 	evaluateMessageMatch,
 	evaluateMinNumber,
 	evaluateRewardId,
@@ -53,7 +54,7 @@ export const createChatMessageTrigger = (app: PluginAppApi) =>
 				match: (value) => evaluateMessageMatch(message, value),
 				user: (value) => evaluateUserMatch(user, value),
 				role: (value) => evaluateRole(role, value),
-				command: (value) => evaluateCommandMatch(parseCommand(message), value),
+				command: (value) => evaluateCommandMessageMatch(message, '!', value),
 				rewardId: (value) => evaluateRewardId(msg.rewardId ?? '', value),
 				minBits: (value) => evaluateMinNumber(msg.bits, value),
 				minAmount: (value) => evaluateMinNumber(msg.hypeChatLocalizedAmount ?? 0, value),
@@ -74,7 +75,8 @@ export const createChatMessageTrigger = (app: PluginAppApi) =>
 				app,
 				() => true,
 				(context) => {
-					action.fire(trigger, context);
+					const enriched = enrichChatMessageWithCommand(context, trigger.conditions);
+					action.fire(trigger, enriched);
 				}
 			);
 

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { FormEventHandler } from 'svelte/elements';
 
+	import type { PluginAppApi } from '@stream-kit/plugin';
+
 	import {
 		InputCheckbox,
 		InputCode,
@@ -19,8 +21,8 @@
 	} from '$lib/core/action/handler/field';
 	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
 	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
+	import { resolveApp } from './resolve-app';
+	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 	import { buildScriptLspWorkspace } from '$lib/codemirror/script-lsp-workspace';
 
 	type Props = {
@@ -29,12 +31,24 @@
 		value: HandlerFieldScalarValue | undefined;
 		error?: string;
 		contextVariables?: HandlerFieldVariable[];
+		app?: PluginAppApi;
+		t?: TranslateFn;
 		onValueChange: (value: HandlerFieldScalarValue) => void;
 	};
 
-	let { handler, config, value, error, contextVariables = [], onValueChange }: Props = $props();
+	let {
+		handler,
+		config,
+		value,
+		error,
+		contextVariables = [],
+		app: appProp,
+		t: translateProp,
+		onValueChange
+	}: Props = $props();
 
-	const { t } = useI18n();
+	const app = $derived(resolveApp(appProp));
+	const t = $derived(resolveTranslate(translateProp));
 
 	const scalarValue = $derived(value);
 
@@ -165,7 +179,7 @@
 		emptyFileLabel={t('No file selected')}
 		emptyFolderLabel={t('No folder selected')}
 		onBrowse={() =>
-			getApp().fs.select({
+			app.fs.select({
 				type: config.mode,
 				filters: config.filters
 			})}

@@ -13,7 +13,7 @@
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
-	type Definition = { name: string; isAvailable: boolean };
+	type Definition = { id: string; name: string; isAvailable: boolean };
 
 	type Props = {
 		action: ActionType;
@@ -60,7 +60,7 @@
 			{title} · {definitions.length}
 		</span>
 		<ul class="flex flex-col gap-1">
-			{#each definitions as { name, isAvailable } (name)}
+			{#each definitions as { id, name, isAvailable } (id)}
 				<li class="flex items-center gap-2">
 					<span
 						class={cn(
@@ -157,7 +157,11 @@
 					{@attach tooltip(() =>
 						tooltipSnippet(definitionList, {
 							title: t('Triggers'),
-							definitions: action.triggers.map((trigger) => trigger.definition)
+							definitions: action.triggers.map((trigger) => ({
+								id: trigger.id,
+								name: trigger.definition.name,
+								isAvailable: trigger.definition.isAvailable
+							}))
 						})
 					)}
 				>
@@ -170,7 +174,11 @@
 					{@attach tooltip(() =>
 						tooltipSnippet(definitionList, {
 							title: t('Handlers'),
-							definitions: action.handlers.map((handler) => handler.definition)
+							definitions: action.handlers.map((handler) => ({
+								id: handler.id,
+								name: handler.definition.name,
+								isAvailable: handler.definition.isAvailable
+							}))
 						})
 					)}
 				>

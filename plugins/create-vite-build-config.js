@@ -23,6 +23,7 @@ export function createPluginViteBuildConfig(options = {}) {
 			],
 			resolve: {
 				alias: {
+					'$lib': path.resolve(appRoot, 'lib'),
 					'@stream-kit/plugin/action-ui': path.resolve(
 						appRoot,
 						'lib/components/core/action'

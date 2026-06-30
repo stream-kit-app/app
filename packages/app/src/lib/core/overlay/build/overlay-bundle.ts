@@ -17,7 +17,10 @@ const EXTERNAL_PACKAGES = [
 	'svelte/internal/flags/legacy',
 	'svelte/internal/flags/async',
 	'svelte/internal/flags/tracing',
-	'svelte/reactivity'
+	'svelte/reactivity',
+	'svelte/transition',
+	'svelte/easing',
+	'svelte/animate'
 ];
 
 let esbuildReady: Promise<void> | undefined;

@@ -1,2 +1,2 @@
-import { t as e } from "../../chunks/heading-D9_S_YIf.js";
+import { t as e } from "../../chunks/heading-DkoXAyj9.js";
 export { e as Heading };

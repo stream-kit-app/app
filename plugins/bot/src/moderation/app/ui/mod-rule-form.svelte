@@ -69,6 +69,7 @@
 			group={rule.parameters.conditions}
 			fieldErrors={rule.formErrors ?? undefined}
 			root
+			{t}
 		/>
 		{#if rule.formErrors?.conditions}
 			<p class="text-sm text-destructive">{rule.formErrors.conditions}</p>

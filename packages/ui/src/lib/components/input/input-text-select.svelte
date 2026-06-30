@@ -72,6 +72,10 @@
 			return [];
 		}
 
+		if (!isSearching) {
+			return resolvedItems.items;
+		}
+
 		const query = debouncedQuery.current.trim();
 
 		return query ? filterSelectItems(resolvedItems.items, query) : resolvedItems.items;

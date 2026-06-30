@@ -93,6 +93,28 @@ createOverlay({
 - Routes WebSocket messages to named handlers
 - Reconnects automatically if the connection drops
 
+### Svelte imports in the in-app editor
+
+The overlay preview serves a small Svelte runtime via import maps. In addition to `svelte` (mount, etc.), these submodules are available without a full `node_modules` install:
+
+- `svelte/transition` — `fade`, `fly`, `slide`, `scale`, `blur`, `draw`, `crossfade`
+- `svelte/easing` — easing functions for transitions and animations
+- `svelte/animate` — `flip` and related helpers
+
+Example:
+
+```svelte
+<script lang="ts">
+	import { fly } from 'svelte/transition';
+</script>
+
+{#each items as item (item.id)}
+	<li in:fly={{ y: 20 }}>{item.text}</li>
+{/each}
+```
+
+When you export the overlay as a ZIP or open it in an external editor, the full `svelte` package from `package.json` is used instead.
+
 ## Sending events from actions
 
 Use the built-in **Overlay → Send to Overlay** handler in the action editor:

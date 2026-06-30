@@ -11,6 +11,7 @@
 
 	import SortableChainItem from './sortable-chain-item.svelte';
 	import { applyDndMove, type DndDragEvent } from './dnd-events';
+	import type { TranslateFn } from './resolve-translate';
 
 	type ChainEntry = {
 		id: string;
@@ -24,9 +25,10 @@
 		sortableType: string;
 		onReorder: (items: T[]) => void;
 		itemContent: Snippet<[item: T]>;
+		t?: TranslateFn;
 	};
 
-	let { items, getId, getLabel, sortableType, onReorder, itemContent }: Props = $props();
+	let { items, getId, getLabel, sortableType, onReorder, itemContent, t }: Props = $props();
 
 	const sensors = [KeyboardSensor, PointerSensor];
 
@@ -86,6 +88,7 @@
 				{sortableType}
 				group={sortableType}
 				label={getLabel(entry.item)}
+				{t}
 			>
 				{#snippet children()}
 					{@render itemContent(entry.item)}
@@ -105,6 +108,7 @@
 					group={sortableType}
 					label={getLabel(entry.item)}
 					isOverlay
+					{t}
 				>
 					{#snippet children()}
 						{@render itemContent(entry.item)}

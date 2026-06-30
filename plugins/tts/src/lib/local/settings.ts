@@ -1,7 +1,7 @@
 import type { PluginAppApi, PluginSettingsFieldDefinition } from '@stream-kit/plugin';
 
 import { local } from './service';
-import { loadLocalCatalogVoiceItems, loadLocalVoiceItems } from './voices';
+import { formatLocalVoiceLabel, loadLocalCatalogVoiceItems, loadLocalVoiceItems } from './voices';
 
 export function createLocalTtsVoiceSelectField(
 	app: PluginAppApi
@@ -23,7 +23,7 @@ export function createLocalTtsVoiceSelectField(
 		isChecked: (_context, voiceId) => local.isVoiceInstalled(voiceId),
 		onCheck: async (_context, voiceId) => {
 			const voice = local.voices.find((item) => item.id === voiceId);
-			const label = voice ? `${voice.name} (${voice.language})` : voiceId;
+			const label = voice ? formatLocalVoiceLabel(voice) : voiceId;
 
 			app.toast.create({
 				title: 'Downloading voice',
@@ -50,7 +50,7 @@ export function createLocalTtsVoiceSelectField(
 		},
 		onUncheck: async (_context, voiceId) => {
 			const voice = local.voices.find((item) => item.id === voiceId);
-			const label = voice ? `${voice.name} (${voice.language})` : voiceId;
+			const label = voice ? formatLocalVoiceLabel(voice) : voiceId;
 
 			try {
 				await local.removeVoice(voiceId);

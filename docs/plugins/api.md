@@ -2,7 +2,7 @@
 
 External plugins import their public contract from `@stream-kit/plugin`.
 
-Runtime helpers such as `getFieldValue`, `interpolateVariables`, and `parseCommand` come from `@stream-kit/core`.
+Runtime helpers such as `getFieldValue`, `interpolateVariables`, `parseCommand`, and `matchCommandPattern` come from `@stream-kit/core`.
 
 ## Package imports
 
@@ -158,6 +158,44 @@ app.i18n.t('Commands'); // in Svelte templates/components
 app.i18n.translate('Saved'); // in .ts modules
 ```
 
+## Dashboard widgets
+
+Plugins can register dashboard widgets alongside menu pages. Widgets reuse `customViews` for their Svelte components.
+
+```ts
+import type { Plugin, PluginWidgetProps } from '@stream-kit/plugin';
+
+const plugin: Plugin = (app) => ({
+  name: 'My Plugin',
+  customViews: {
+    'my-widget': MyWidget
+  },
+  widgets: [
+    {
+      key: 'my-widget',
+      title: 'My Widget',
+      description: 'Optional subtitle in the add-widget dialog',
+      icon: 'ri:layout-grid-line',
+      columns: 2, // default width: 1 | 2 | 3 | 4
+      view: 'my-widget'
+    }
+  ]
+});
+```
+
+Widget components receive `PluginWidgetProps`:
+
+```svelte
+<script lang="ts">
+  import type { PluginWidgetProps } from '@stream-kit/plugin';
+
+  let { app }: PluginWidgetProps = $props();
+  const t = $derived(app.i18n.t);
+</script>
+```
+
+Users place widget instances on the dashboard from the app UI. Layout (order and column width) is persisted in SQLite. See [widgets.md](../core/widgets.md).
+
 ### Actions and modals
 
 ```ts
@@ -266,3 +304,31 @@ migrateFrom: [
 ```
 
 Nested `one-of` fields inside variants are not supported in v1.
+
+## Command parsing
+
+`@stream-kit/core` exposes helpers for chat command names and argument patterns:
+
+```ts
+import {
+	matchCommandPattern,
+	parseCommand,
+	parseCommandMessage,
+	enrichChatMessageWithCommand,
+	hasCommandArgPlaceholders,
+	extractCommandArgNames,
+	RESERVED_COMMAND_ARG_NAMES
+} from '@stream-kit/core';
+
+// First token only (legacy)
+parseCommand('!setalias CoolUser'); // "setalias"
+
+// Full pattern match with arguments
+matchCommandPattern('setalias <target>', '!setalias CoolUser');
+// { command: "setalias", args: { target: "CoolUser" } }
+
+// Enrich trigger context from saved Command conditions
+enrichChatMessageWithCommand(chatContext, trigger.conditions);
+```
+
+Patterns use `<argName>` placeholders. The last placeholder is greedy and captures the rest of the message. Use `{argName}` in handler text fields via `interpolateVariables`.

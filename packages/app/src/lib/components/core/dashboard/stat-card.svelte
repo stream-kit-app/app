@@ -6,36 +6,55 @@
 	type Props = {
 		icon: string;
 		value: string;
-		label: string;
+		label?: string;
 		description?: string;
 		href?: string;
+		embedded?: boolean;
 		class?: string;
 	};
 
-	let { icon, value, label, description, href, class: className }: Props = $props();
+	let {
+		icon,
+		value,
+		label,
+		description,
+		href,
+		embedded = false,
+		class: className
+	}: Props = $props();
 
 	const cardClass = $derived(
 		cn(
-			'rounded-xl border border-dark-600 bg-dark-800 p-4',
-			href && 'transition-colors hover:border-dark-500 hover:bg-dark-700',
+			embedded
+				? cn('text-sm', href && 'block transition hover:opacity-90')
+				: cn(
+						'rounded-lg border border-dark-600 bg-dark-800 p-4',
+						href && 'transition hover:border-dark-500'
+					),
 			className
 		)
 	);
 </script>
 
 {#if href}
-	<a {href} class={cn('block', cardClass)}>
+	<a {href} class={cardClass}>
 		<div class="flex items-start gap-3">
-			<div
-				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
-			>
-				<Icon {icon} class="size-4.5" />
-			</div>
+			{#if !embedded}
+				<div
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-dark-700"
+				>
+					<Icon {icon} class="h-5 w-5" />
+				</div>
+			{/if}
 			<div class="min-w-0 flex-1">
 				<p class="text-2xl font-semibold text-dark-50">{value}</p>
-				<p class="text-sm text-dark-200">{label}</p>
+				{#if label && !embedded}
+					<p class="text-sm text-dark-100">{label}</p>
+				{/if}
 				{#if description}
-					<p class="mt-0.5 text-xs text-dark-400">{description}</p>
+					<p class={cn('text-dark-100', embedded ? 'mt-1' : 'mt-0.5 text-xs text-dark-300')}>
+						{description}
+					</p>
 				{/if}
 			</div>
 		</div>
@@ -43,16 +62,22 @@
 {:else}
 	<div class={cardClass}>
 		<div class="flex items-start gap-3">
-			<div
-				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
-			>
-				<Icon {icon} class="size-4.5" />
-			</div>
+			{#if !embedded}
+				<div
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-dark-700"
+				>
+					<Icon {icon} class="h-5 w-5" />
+				</div>
+			{/if}
 			<div class="min-w-0 flex-1">
 				<p class="text-2xl font-semibold text-dark-50">{value}</p>
-				<p class="text-sm text-dark-200">{label}</p>
+				{#if label && !embedded}
+					<p class="text-sm text-dark-100">{label}</p>
+				{/if}
 				{#if description}
-					<p class="mt-0.5 text-xs text-dark-400">{description}</p>
+					<p class={cn('text-dark-100', embedded ? 'mt-1' : 'mt-0.5 text-xs text-dark-300')}>
+						{description}
+					</p>
 				{/if}
 			</div>
 		</div>

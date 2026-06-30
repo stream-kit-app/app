@@ -10,7 +10,7 @@ import type { SettingsFormErrors } from '../settings/validate-settings';
 import type { PluginSettingsContext } from './context';
 import type { PluginSource, RegisterPluginOptions } from './installed-plugin';
 import type { PluginStore } from './store';
-import type { PluginMenuItemDefinition, PluginPublicApi, PluginRegistration } from './types';
+import type { PluginMenuItemDefinition, PluginPublicApi, PluginRegistration, PluginWidgetDefinition } from './types';
 import type { LazyStore } from '@tauri-apps/plugin-store';
 import type { Component } from 'svelte';
 
@@ -62,7 +62,9 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	private registeredTriggers: TriggerDefinition[] = [];
 	private registeredHandlers: HandlerDefinition[] = [];
 	private menuItems: PluginMenuItemDefinition[];
+	private widgets: PluginWidgetDefinition[];
 	private registeredMenuPaths: string[] = [];
+	private hasRegisteredWidgets = false;
 
 	constructor(
 		key: string,
@@ -97,6 +99,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.triggers = props.triggers ?? [];
 		this.handlers = props.handlers ?? [];
 		this.menuItems = props.menuItems ?? [];
+		this.widgets = props.widgets ?? [];
 	}
 
 	get hasSettings(): boolean {
@@ -173,6 +176,13 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		}
 	}
 
+	registerWidgetDefinitions(app: App): void {
+		if (!this.hasRegisteredWidgets && this.widgets.length > 0) {
+			app.dashboard.registerPluginWidgets(this, this.widgets);
+			this.hasRegisteredWidgets = true;
+		}
+	}
+
 	unregisterDefinitions(app: App): void {
 		for (const definition of this.registeredTriggers) {
 			definition.setAvailable(false);
@@ -208,6 +218,11 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 		this.registeredMenuPaths = [];
 		app.pluginMenuPages.unregister(this.key);
+
+		if (this.hasRegisteredWidgets) {
+			app.dashboard.unregisterPlugin(this.key);
+			this.hasRegisteredWidgets = false;
+		}
 	}
 
 	async teardown(app: App): Promise<void> {
@@ -226,6 +241,8 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		}
 
 		await this.loadEnabledState();
+
+		this.registerWidgetDefinitions(app);
 
 		if (this.isEnabled) {
 			this.registerDefinitions(app);
@@ -317,6 +334,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		await this.store.set(ENABLED_KEY, enabled);
 
 		if (enabled) {
+			this.registerWidgetDefinitions(app);
 			this.registerDefinitions(app);
 			await this.boot(app);
 			await this.ready(app);

@@ -25,6 +25,7 @@ export default defineConfig({
 	],
 	resolve: {
 		alias: {
+			$lib: path.resolve(root, 'src/lib'),
 			'@stream-kit/ui-internal': path.resolve(root, '../ui/src/lib')
 		}
 	},

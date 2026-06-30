@@ -87,8 +87,6 @@ function isTextSelectTextValue(
 }
 
 export function evaluateJsonFieldMatch(isJson: boolean, data: unknown, value: FieldValue): boolean {
-	console.log('evaluateJsonFieldMatch', isJson, data, value);
-
 	if (!isTextSelectTextValue(value)) {
 		return true;
 	}

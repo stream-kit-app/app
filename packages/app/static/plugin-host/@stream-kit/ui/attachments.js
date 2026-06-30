@@ -1,5 +1,5 @@
-import { Nn as e } from "../../chunks/index-client-BIJQxc2l.js";
-import { t } from "../../chunks/tooltip-CydwcNzR.js";
+import { Nn as e } from "../../chunks/client-xxWnFgeR.js";
+import { t } from "../../chunks/tooltip-BXRYT9Df.js";
 //#region ../ui/src/lib/attachments/tooltip-content.ts
 function n(e, t) {
 	return arguments.length === 1 ? {

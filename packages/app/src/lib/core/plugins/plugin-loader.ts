@@ -21,7 +21,8 @@ function createPluginHostImportMap(): Record<string, string> {
 		'@stream-kit/plugin/action': getPluginHostUrl('action.js'),
 		'@stream-kit/core': getPluginHostUrl('core.js'),
 		'@iconify/svelte': getPluginHostUrl('@iconify/svelte.js'),
-		svelte: getPluginHostUrl('svelte.js')
+		svelte: getPluginHostUrl('svelte.js'),
+		runed: getPluginHostUrl('runed.js')
 	};
 
 	for (const subpath of PLUGIN_HOST_SVELTE_SUBPATHS) {

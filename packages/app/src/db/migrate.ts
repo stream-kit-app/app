@@ -1,5 +1,10 @@
 import type Database from '@tauri-apps/plugin-sql';
 
+import {
+	migrateStoredActionHandlers,
+	migrateStoredActionTriggers
+} from './migrate-maps-to-collections';
+
 type LegacyTriggerTypeIdRow = {
 	id: number;
 	trigger_type_id: string;
@@ -303,10 +308,66 @@ async function assignUnqueuedActionsToDefault(sqlite: Database): Promise<void> {
 	]);
 }
 
+async function migrateDashboardWidgetsTable(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(dashboard_widgets)'
+	);
+
+	if (columns.length === 0) {
+		await sqlite.execute(`
+			CREATE TABLE IF NOT EXISTS dashboard_widgets (
+				id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+				definition_id TEXT NOT NULL,
+				columns INTEGER NOT NULL DEFAULT 1,
+				sort_order INTEGER NOT NULL DEFAULT 0,
+				created_at INTEGER NOT NULL,
+				updated_at INTEGER NOT NULL
+			)
+		`);
+	}
+}
+
+async function migrateMapsToCollections(sqlite: Database): Promise<void> {
+	const dashboardColumns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(dashboard_widgets)'
+	);
+
+	if (dashboardColumns.length > 0) {
+		await sqlite.execute(
+			`UPDATE dashboard_widgets SET definition_id = 'core:collections' WHERE definition_id = 'core:maps'`
+		);
+	}
+
+	const actionColumns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(actions)');
+
+	if (actionColumns.length === 0) {
+		return;
+	}
+
+	const rows = await sqlite.select<Array<{ id: number; triggers: string; handlers: string }>>(
+		'SELECT id, triggers, handlers FROM actions'
+	);
+
+	for (const row of rows) {
+		const triggers = migrateStoredActionTriggers(row.triggers);
+		const handlers = migrateStoredActionHandlers(row.handlers);
+
+		if (triggers !== row.triggers || handlers !== row.handlers) {
+			await sqlite.execute('UPDATE actions SET triggers = $1, handlers = $2 WHERE id = $3', [
+				triggers,
+				handlers,
+				row.id
+			]);
+		}
+	}
+}
+
 export async function migrate(sqlite: Database): Promise<void> {
 	await migrateActionsTable(sqlite);
 	await migrateOverlaysTable(sqlite);
 	await createActionQueuesTable(sqlite);
 	await addActionsQueueIdColumn(sqlite);
 	await assignUnqueuedActionsToDefault(sqlite);
+	await migrateDashboardWidgetsTable(sqlite);
+	await migrateMapsToCollections(sqlite);
 }

@@ -11,6 +11,8 @@ export type StoredActionHandler = {
 	id: string;
 	handlerTypeId: string;
 	fields: HandlerFieldInstance[];
+	thenHandlers?: StoredActionHandler[];
+	elseHandlers?: StoredActionHandler[];
 	/** @deprecated Legacy condition-tree config, migrated on load. */
 	config?: ConditionGroupNode;
 };

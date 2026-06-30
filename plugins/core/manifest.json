@@ -2,7 +2,7 @@
   "key": "core",
   "name": "Core Handlers",
   "version": "0.1.1-alpha.2",
-  "description": "Core action handlers, variables, maps, logs, and process triggers.",
+  "description": "Core action handlers, variables, collections, logs, and process triggers.",
   "icon": "ri:settings-3-line",
   "entry": "dist/index.js",
   "dependencies": [],

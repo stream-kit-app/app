@@ -4,7 +4,16 @@ export type {
 	ActionLogEntry,
 	ActionLogLevel,
 	CorePluginApi,
-	MapLifetime,
+	CorePluginCollectionsApi,
+	CollectionChangedContext,
+	CollectionCreateResult,
+	CollectionCreatedContext,
+	CollectionDeletedContext,
+	CollectionEntry,
+	CollectionLifetime,
+	CollectionMutationResult,
+	CollectionStoreEvent,
+	CollectionSummary,
 	VariableScope
 } from '../../app/src/lib/types/core-plugin-api';
 export type {
@@ -43,6 +52,9 @@ export type {
 	PluginCustomViewProps,
 	PluginMenuItemChildDefinition,
 	PluginMenuItemDefinition,
+	PluginWidgetColumns,
+	PluginWidgetDefinition,
+	PluginWidgetProps,
 	PluginPageBlock,
 	PluginPageButtonClickHandler,
 	PluginPageDefinition,
@@ -104,14 +116,20 @@ export type {
 	SelectItemsSource
 } from '../../app/src/lib/core/action/trigger/condition';
 export {
+	extractCommandArgNames,
 	getFieldValue,
 	getOneOfFieldValue,
+	hasCommandArgPlaceholders,
 	interpolateVariables,
 	isOneOfFieldValue,
+	matchCommandPattern,
 	parseCommand,
+	parseCommandMessage,
+	RESERVED_COMMAND_ARG_NAMES,
 	resolveFieldText,
 	resolveOneOfFieldText
 } from '@stream-kit/core';
+export type { CommandMatch, ParsedCommandMessage } from '@stream-kit/core';
 export type {
 	HandlerFieldDefinition,
 	HandlerFieldInstance,

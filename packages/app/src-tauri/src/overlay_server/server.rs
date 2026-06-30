@@ -325,7 +325,10 @@ fn overlay_import_map_script() -> &'static str {
     "svelte/internal/flags/legacy": "/overlay-sdk/overlay-runtime.js",
     "svelte/internal/flags/async": "/overlay-sdk/overlay-runtime.js",
     "svelte/internal/flags/tracing": "/overlay-sdk/overlay-runtime.js",
-    "svelte/reactivity": "/overlay-sdk/overlay-runtime.js"
+    "svelte/reactivity": "/overlay-sdk/overlay-runtime.js",
+    "svelte/transition": "/overlay-sdk/svelte/transition.js",
+    "svelte/easing": "/overlay-sdk/svelte/easing.js",
+    "svelte/animate": "/overlay-sdk/svelte/animate.js"
   }
 }
 </script>"#

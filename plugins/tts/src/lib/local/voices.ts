@@ -6,6 +6,16 @@ import type {
 import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
 import { local } from './service';
+import { createVoiceOneOfField } from '../voice-one-of-field';
+
+export function formatLocalVoiceLabel(voice: {
+	id: string;
+	name: string;
+	language: string;
+	quality: string;
+}): string {
+	return `${voice.name} (${voice.language}, ${voice.quality}) · ${voice.id}`;
+}
 
 export async function loadLocalCatalogVoiceItems(): Promise<SelectItem[]> {
 	if (local.voices.length === 0) {
@@ -15,8 +25,8 @@ export async function loadLocalCatalogVoiceItems(): Promise<SelectItem[]> {
 	return local.voices.map((voice) => ({
 		value: voice.id,
 		label: voice.installed
-			? `${voice.name} (${voice.language}) · installed`
-			: `${voice.name} (${voice.language})`
+			? `${formatLocalVoiceLabel(voice)} · installed`
+			: formatLocalVoiceLabel(voice)
 	}));
 }
 
@@ -27,7 +37,7 @@ export async function loadLocalVoiceItems(): Promise<SelectItem[]> {
 
 	return local.getInstalledVoices().map((voice) => ({
 		value: voice.id,
-		label: `${voice.name} (${voice.language})`
+		label: formatLocalVoiceLabel(voice)
 	}));
 }
 
@@ -38,17 +48,20 @@ export function localVoiceSelectItems(emptyOption: SelectItem): () => Promise<Se
 export function localVoiceSelectField(
 	options: { name?: string; emptyLabel?: string; required?: boolean } = {}
 ): HandlerFieldDefinition {
-	return {
-		type: 'select',
-		name: options.name ?? 'Voice',
-		placeholder: options.emptyLabel ?? 'Use default voice',
-		loadingPlaceholder: 'Loading voices…',
-		required: options.required,
-		items: localVoiceSelectItems({
-			value: '',
-			label: options.emptyLabel ?? 'Use default voice'
-		})
-	};
+	return createVoiceOneOfField(
+		{
+			type: 'select',
+			name: options.name ?? 'Voice',
+			placeholder: options.emptyLabel ?? 'Use default voice',
+			loadingPlaceholder: 'Loading voices…',
+			required: options.required,
+			items: localVoiceSelectItems({
+				value: '',
+				label: options.emptyLabel ?? 'Use default voice'
+			})
+		},
+		{ name: options.name, required: options.required }
+	);
 }
 
 function localVoiceSelectSettingsItems(): (context: SettingsContext) => Promise<SelectItem[]> {

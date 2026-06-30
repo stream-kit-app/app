@@ -1,0 +1,61 @@
+---
+description: Prefer @stream-kit/ui components over custom markup in app and plugin UIs
+globs:
+  - packages/app/**/*.svelte
+  - packages/app/**/*.svelte.ts
+  - plugins/**/*.svelte
+  - plugins/**/*.svelte.ts
+---
+
+# UI components (`@stream-kit/ui`)
+
+Before building custom markup for common UI patterns, check whether `@stream-kit/ui` already provides a component. Browse `packages/ui/src/lib/components/` or import from the package subpaths in `packages/ui/package.json`.
+
+## Available components
+
+| Import | Use for |
+|--------|---------|
+| `@stream-kit/ui/alert` | Info, success, warning, and error callouts |
+| `@stream-kit/ui/badge` | Status labels and counts |
+| `@stream-kit/ui/button` | Actions and icon buttons |
+| `@stream-kit/ui/container` | Page width constraints |
+| `@stream-kit/ui/dialog` | Low-level dialog primitives (prefer `app.createModal` in the app layer) |
+| `@stream-kit/ui/dropdown` | Menus and action lists |
+| `@stream-kit/ui/heading` | Section titles |
+| `@stream-kit/ui/input` | Text, select, checkbox, switch, slider inputs |
+| `@stream-kit/ui/popover` | Anchored popovers |
+| `@stream-kit/ui/scroll-area` | Scrollable regions |
+| `@stream-kit/ui/tooltip` | Hover/focus hints |
+
+See also `@stream-kit/ui/blocks` for declarative page blocks (settings, alerts, etc.).
+
+## Examples
+
+```svelte
+<!-- ❌ Custom alert markup -->
+<div class="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+  <Icon icon="ri:information-line" />
+  <p>{message}</p>
+</div>
+
+<!-- ✅ Alert component -->
+<Alert icon="ri:sparkling-2-line" description={message} />
+```
+
+```svelte
+<!-- ❌ Raw <button> for primary actions -->
+<button class="rounded-lg bg-primary px-4 py-2">Save</button>
+
+<!-- ✅ Button component -->
+<Button icon="ri:save-line" onclick={save}>Save</Button>
+```
+
+## App-layer exceptions
+
+- **Modals** → `app.createModal` (see `modals.mdc`), not `@stream-kit/ui/dialog` directly.
+- **Confirmations** → `app.confirm.ask()`, not a custom dialog.
+- **Domain-specific layouts** (dashboard grid, stat cards, empty states) may stay custom when no UI component fits.
+
+## When adding new UI
+
+If a pattern is reused in multiple places and no UI component exists yet, consider adding it to `packages/ui` instead of copying styles across the app.

@@ -1,17 +1,16 @@
-import type { PluginAppApi } from '@stream-kit/plugin';
-import type { CommandRecord } from '@stream-kit/plugin';
+import type { BotSettings } from '../settings/bot-settings';
+import type { ChatModerationContext } from './moderation-engine';
+import type { TimerScheduler } from './timer-scheduler';
+import type { CommandRecord, PluginAppApi } from '@stream-kit/plugin';
 
 import { parseCommand } from '@stream-kit/core';
 
-import type { BotSettings } from '../settings/bot-settings';
 import { createCooldownTracker } from '../commands/lib/cooldown';
 import { executeCommand } from '../commands/lib/execute-command';
 import { findMatchingCommand } from '../commands/lib/match-command';
 import { tryExecuteBuiltinCommand } from './builtin-commands';
-import type { ChatModerationContext } from './moderation-engine';
-import { evaluateModeration } from './moderation-engine';
 import { subscribeBotChatMessages } from './chat-message-hub';
-import type { TimerScheduler } from './timer-scheduler';
+import { evaluateModeration } from './moderation-engine';
 
 export type ChatRuntimeDeps = {
 	settings: BotSettings;
@@ -50,25 +49,30 @@ async function handleChatMessage(
 		return;
 	}
 
-	const commandName = parseCommand(context.message, deps.settings.prefix);
+	const matchResult = findMatchingCommand(
+		deps.getCommands(),
+		context.message,
+		deps.settings.prefix
+	);
 
-	if (!commandName) {
+	if (matchResult) {
+		executeCommand(
+			app,
+			matchResult.command,
+			{
+				...context,
+				command: matchResult.match.command
+			},
+			context.source,
+			cooldownState,
+			matchResult.match
+		);
 		return;
 	}
 
-	const customCommand = findMatchingCommand(deps.getCommands(), commandName);
+	const commandName = parseCommand(context.message, deps.settings.prefix);
 
-	if (customCommand) {
-		executeCommand(
-			app,
-			customCommand,
-			{
-				...context,
-				command: commandName
-			},
-			context.source,
-			cooldownState
-		);
+	if (!commandName) {
 		return;
 	}
 

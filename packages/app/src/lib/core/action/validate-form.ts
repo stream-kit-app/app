@@ -151,11 +151,7 @@ export function validateActionForm(input: {
 		definitions?: ResolvedConditionDefinition[];
 		validateForm?: (conditions: ConditionGroupNode) => TriggerFormErrors | undefined;
 	}>;
-	handlers: Array<{
-		id: string;
-		fields: HandlerFieldInstance[];
-		definitions?: ResolvedHandlerFieldDefinition[];
-	}>;
+	handlers: HandlerValidationInput[];
 }): ActionFormErrors | null {
 	const errors: ActionFormErrors = {
 		triggerErrors: {},
@@ -183,7 +179,7 @@ export function validateActionForm(input: {
 		}
 	}
 
-	for (const handler of input.handlers) {
+	for (const handler of flattenHandlersForValidation(input.handlers)) {
 		const handlerErrors = validateHandlerFields(handler.fields, handler.definitions);
 
 		if (hasHandlerErrors(handlerErrors)) {
@@ -199,4 +195,20 @@ export function validateActionForm(input: {
 		Object.keys(errors.handlerErrors).length > 0;
 
 	return hasErrors ? errors : null;
+}
+
+export type HandlerValidationInput = {
+	id: string;
+	fields: HandlerFieldInstance[];
+	definitions?: ResolvedHandlerFieldDefinition[];
+	thenHandlers?: HandlerValidationInput[];
+	elseHandlers?: HandlerValidationInput[];
+};
+
+function flattenHandlersForValidation(handlers: HandlerValidationInput[]): HandlerValidationInput[] {
+	return handlers.flatMap((handler) => [
+		handler,
+		...flattenHandlersForValidation(handler.thenHandlers ?? []),
+		...flattenHandlersForValidation(handler.elseHandlers ?? [])
+	]);
 }

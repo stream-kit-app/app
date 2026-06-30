@@ -1,6 +1,6 @@
 import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
-import { getFieldValue, resolveFieldText } from '../../get-field-value';
+import { resolveFieldText, resolveVoiceFieldText } from '../../get-field-value';
 import { elevenlabs } from '../../lib/elevenlabs';
 import { elevenlabsVoiceSelectField } from '../../lib/elevenlabs/voices';
 import { TTS_TEXT_VARIABLES } from '../../lib/variables';
@@ -20,11 +20,8 @@ export const createElevenLabsSpeakHandler = () => {
 		],
 		execute: async (_action, handler, context, next) => {
 			const text = resolveFieldText(handler.fields, 'text', context);
-			const voiceField = getFieldValue(handler.fields, 'voice');
-			const voiceId =
-				typeof voiceField === 'string' && voiceField.trim()
-					? voiceField.trim()
-					: elevenlabs.defaultVoice;
+			const resolvedVoice = resolveVoiceFieldText(handler.fields, context);
+			const voiceId = resolvedVoice?.trim() ? resolvedVoice.trim() : elevenlabs.defaultVoice;
 
 			if (typeof text !== 'string' || !text.trim()) {
 				return;

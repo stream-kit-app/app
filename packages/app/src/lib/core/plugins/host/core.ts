@@ -5,23 +5,32 @@ export {
 	CRON_FIELD_COUNT,
 	CRON_FIELD_KEYS,
 	DEFAULT_CRON_PRESETS,
+	enrichChatMessageWithCommand,
+	extractCommandArgNames,
+	findCommandConditionPattern,
 	getCronFieldCount,
 	getCronNextRunLabel,
 	getCronValidationError,
 	getFieldValue,
 	getLocalTimezone,
 	getOneOfFieldValue,
+	hasCommandArgPlaceholders,
 	interpolateVariables,
 	isOneOfFieldValue,
 	isValidCronExpression,
+	matchCommandPattern,
 	normalizeCronExpression,
 	parseCommand,
+	parseCommandMessage,
+	RESERVED_COMMAND_ARG_NAMES,
 	resolveFieldText,
 	resolveOneOfFieldText,
 	splitCronParts
 } from '@stream-kit/core';
 
 export type {
+	CommandMatch,
+	ConditionTree,
 	CronFieldKey,
 	CronPreset,
 	HandlerFieldInstance,
@@ -29,5 +38,6 @@ export type {
 	HandlerTriggerContext,
 	KeyValueEntry,
 	OneOfFieldValue,
+	ParsedCommandMessage,
 	TextSelectTextFieldValue
 } from '@stream-kit/core';

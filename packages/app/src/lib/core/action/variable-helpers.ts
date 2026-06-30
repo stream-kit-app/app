@@ -1,5 +1,5 @@
 import { contextToVariables as contextToVariablesCore } from '@stream-kit/core';
-import type { CorePluginApi } from '@stream-kit/plugin';
+import type { CorePluginApi, PluginAppApi } from '@stream-kit/plugin';
 import type { HandlerFieldVariable } from '@stream-kit/ui/types';
 
 import type { App } from '../app.svelte';
@@ -82,7 +82,7 @@ export function getTriggerVariables(action: Action, trigger: ActionTrigger): Han
 	return toVariableList(variables);
 }
 
-export function getGlobalVariables(app: App): HandlerFieldVariable[] {
+export function getGlobalVariables(app: App | PluginAppApi): HandlerFieldVariable[] {
 	const core = app.plugins.tryGet<CorePluginApi>('core');
 
 	if (!core) {
@@ -100,11 +100,51 @@ export function getPrecedingActionVariables(
 	handlers: ActionHandler[],
 	handlerIndex: number
 ): HandlerFieldVariable[] {
+	return collectActionVariablesFromHandlers(handlers.slice(0, handlerIndex));
+}
+
+/** Action-scoped variables from handlers that run before `targetId` in the tree. */
+export function getPrecedingActionVariablesForHandler(
+	rootHandlers: ActionHandler[],
+	targetId: string
+): HandlerFieldVariable[] {
+	return collectActionVariablesFromHandlers(findPrecedingHandlers(rootHandlers, targetId) ?? []);
+}
+
+function findPrecedingHandlers(
+	handlers: ActionHandler[],
+	targetId: string,
+	prefix: ActionHandler[] = []
+): ActionHandler[] | null {
+	for (let index = 0; index < handlers.length; index += 1) {
+		const handler = handlers[index]!;
+
+		if (handler.id === targetId) {
+			return [...prefix, ...handlers.slice(0, index)];
+		}
+
+		const parentPrefix = [...prefix, ...handlers.slice(0, index)];
+		const inThen = findPrecedingHandlers(handler.thenHandlers, targetId, parentPrefix);
+
+		if (inThen !== null) {
+			return inThen;
+		}
+
+		const inElse = findPrecedingHandlers(handler.elseHandlers, targetId, parentPrefix);
+
+		if (inElse !== null) {
+			return inElse;
+		}
+	}
+
+	return null;
+}
+
+function collectActionVariablesFromHandlers(handlers: ActionHandler[]): HandlerFieldVariable[] {
 	const variables: HandlerFieldVariable[] = [];
 	const seen = new Set<string>();
 
-	for (let index = 0; index < handlerIndex; index += 1) {
-		const handler = handlers[index];
+	for (const handler of handlers) {
 		const targetName = getHandlerFieldValue(handler.fields, 'target-name');
 
 		if (typeof targetName === 'string') {

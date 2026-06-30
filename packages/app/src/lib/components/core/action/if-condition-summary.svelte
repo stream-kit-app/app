@@ -3,16 +3,22 @@
 
 	import { Label } from '@stream-kit/ui/input';
 
-	import { getIfConditionField, resolveOperatorLabel, isValuelessIfOperator } from '$lib/core/action/if-condition';
-	import { useI18n } from '$lib/i18n';
+	import {
+		getIfConditionField,
+		resolveOperatorLabel,
+		isValuelessIfOperator
+	} from '$lib/core/action/if-condition';
+
+	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 
 	type Props = {
 		handler: ActionHandler;
+		t?: TranslateFn;
 	};
 
-	let { handler }: Props = $props();
+	let { handler, t: translateProp }: Props = $props();
 
-	const { t } = useI18n();
+	const t = $derived(resolveTranslate(translateProp));
 
 	const ifCondition = $derived(getIfConditionField(handler));
 

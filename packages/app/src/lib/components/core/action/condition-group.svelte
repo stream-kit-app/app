@@ -24,21 +24,22 @@
 		Label
 	} from '@stream-kit/ui/input';
 
-	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import Self from './condition-group.svelte';
 	import ConditionSelectValueLabel from './condition-select-value-label.svelte';
+	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 
 	type Props = {
 		editor: ConditionEditor;
 		group: ConditionGroupNode;
 		fieldErrors?: ConditionFormErrors;
 		root?: boolean;
+		t?: TranslateFn;
 	};
 
-	let { editor, group, fieldErrors, root = false }: Props = $props();
-	const { t } = useI18n();
+	let { editor, group, fieldErrors, root = false, t: translateProp }: Props = $props();
+	const t = $derived(resolveTranslate(translateProp));
 
 	const operatorItems = $derived([
 		{ value: 'and', label: t('AND') },
@@ -280,7 +281,7 @@
 			{/if}
 			<div class="flex items-center gap-2">
 				<div class="min-w-0 flex-1">
-					<Self {editor} group={child} {fieldErrors} />
+					<Self {editor} group={child} {fieldErrors} {t} />
 				</div>
 				<Button
 					variant="ghost"

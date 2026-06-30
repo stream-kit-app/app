@@ -8,6 +8,9 @@ const STORE_KEY_SUFFIXES = {
 	volume: 'local-tts-volume'
 } as const;
 
+export const LOCAL_DEFAULT_VOICE_SETTING_KEY = STORE_KEY_SUFFIXES.defaultVoice;
+export const LOCAL_VOLUME_SETTING_KEY = STORE_KEY_SUFFIXES.volume;
+
 function normalizeStoreKey(value: string): string {
 	return value
 		.trim()
@@ -187,9 +190,26 @@ export class LocalTtsService {
 		this.player.enqueue(blob, volume ?? this.volume);
 	}
 
-	async testVoice(voiceId: string, sampleText: string): Promise<void> {
-		await this.speak(sampleText, voiceId);
+	async testVoice(voiceId: string, sampleText: string, volume?: number): Promise<void> {
+		await this.speak(sampleText, voiceId, volume);
 	}
+}
+
+export function resolveDefaultVoiceFromSettings(
+	getValue: (key: string) => unknown,
+	fallback?: string
+): string | undefined {
+	const voiceId = String(getValue(LOCAL_DEFAULT_VOICE_SETTING_KEY) ?? fallback ?? '').trim();
+
+	return voiceId || undefined;
+}
+
+export function resolveVolumeFromSettings(
+	getValue: (key: string) => unknown
+): number | undefined {
+	const volume = getValue(LOCAL_VOLUME_SETTING_KEY);
+
+	return typeof volume === 'number' && !Number.isNaN(volume) ? volume / 100 : undefined;
 }
 
 export const local = new LocalTtsService();

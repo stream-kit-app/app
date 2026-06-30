@@ -26,18 +26,24 @@ import { translate } from '$lib/i18n';
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
 import { getApp } from '../registry';
 import { ActionExecution } from './action-execution.svelte';
-import { ActionHandler } from './action-handler.svelte';
+import { ActionHandler, type HandlerBranch } from './action-handler.svelte';
 import { applyLayoutUpdates, buildDndLayout, compareActionsByLayout, dndLayoutToUpdates, getGroupOrder } from './action-layout';
 import { ActionTrigger } from './action-trigger.svelte';
 import { resolveHandlerDefinition, resolveTriggerDefinition } from './definition-id';
 import { HandlerDefinitions } from './handler';
-import { migrateLegacyHandlerFields } from './handler-field';
+import { handlerFromStored } from './handler-tree';
+import {
+	addHandlerToChain,
+	cloneHandlerInChain,
+	removeHandlerFromChain,
+	reorderBranchHandlersInChain
+} from './handler-chain-mutations';
 import { HandlerDefinition } from './handler/handler-definition.svelte';
 import { runHandlerChain } from './run-handler-chain';
 import { DEFAULT_ACTION_GROUP } from './stored-action';
 import { TriggerDefinitions } from './trigger';
 import { TriggerDefinition } from './trigger/trigger-definition.svelte';
-import { validateActionForm } from './validate-form';
+import { validateActionForm, type HandlerValidationInput } from './validate-form';
 
 type ActionFormSnapshot = {
 	name: string;
@@ -425,16 +431,9 @@ export class Action {
 			});
 		});
 
-		const handlers = record.handlers.map((stored) => {
-			const definition =
-				resolveHandlerDefinition(app.actions.actions, stored.handlerTypeId) ??
-				Action.createUnavailableHandlerDefinition(stored.handlerTypeId);
-
-			return new ActionHandler(definition, {
-				id: stored.id,
-				fields: migrateLegacyHandlerFields(stored)
-			});
-		});
+		const handlers = record.handlers.map((stored) =>
+			handlerFromStored(stored, app.actions.actions, Action.createUnavailableHandlerDefinition)
+		);
 
 		return new Action({
 			id: record.id,
@@ -573,16 +572,9 @@ export class Action {
 	private handlersFromStored(stored: StoredActionHandler[]): ActionHandler[] {
 		const app = getApp();
 
-		return stored.map((item) => {
-			const definition =
-				resolveHandlerDefinition(app.actions.actions, item.handlerTypeId) ??
-				Action.createUnavailableHandlerDefinition(item.handlerTypeId);
-
-			return new ActionHandler(definition, {
-				id: item.id,
-				fields: structuredClone(item.fields)
-			});
-		});
+		return stored.map((item) =>
+			handlerFromStored(item, app.actions.actions, Action.createUnavailableHandlerDefinition)
+		);
 	}
 
 	open(): Modal {
@@ -653,27 +645,31 @@ export class Action {
 		];
 	}
 
-	addHandler(definition: HandlerDefinition): void {
-		this.handlers = [...this.handlers, new ActionHandler(definition)];
+	addHandler(
+		definition: HandlerDefinition,
+		target?: { parentId: string; branch: HandlerBranch }
+	): void {
+		this.handlers = addHandlerToChain(this.handlers, definition, target);
 	}
 
 	removeHandler(handlerId: string): void {
-		this.handlers = this.handlers.filter((handler) => handler.id !== handlerId);
+		this.handlers = removeHandlerFromChain(this.handlers, handlerId);
 	}
 
 	cloneHandler(handlerId: string): void {
-		const index = this.handlers.findIndex((handler) => handler.id === handlerId);
+		this.handlers = cloneHandlerInChain(this.handlers, handlerId);
+	}
 
-		if (index === -1) {
-			return;
-		}
+	reorderBranchHandlers(
+		parentId: string,
+		branch: HandlerBranch,
+		handlers: ActionHandler[]
+	): void {
+		this.handlers = reorderBranchHandlersInChain(this.handlers, parentId, branch, handlers);
+	}
 
-		const clone = ActionHandler.clone(this.handlers[index]!);
-		this.handlers = [
-			...this.handlers.slice(0, index + 1),
-			clone,
-			...this.handlers.slice(index + 1)
-		];
+	reorderHandlers(handlers: ActionHandler[]): void {
+		this.handlers = handlers;
 	}
 
 	fire(trigger: ActionTrigger, data: unknown): void {
@@ -797,6 +793,26 @@ export class Action {
 		await runChain();
 	}
 
+	private _runHandlersShowVisual = false;
+
+	async runHandlerBranch(
+		handlers: ActionHandler[],
+		context: HandlerTriggerContext
+	): Promise<void> {
+		await runHandlerChain(handlers, this, context, {
+			onHandlerStart: (handler) => {
+				if (this._runHandlersShowVisual) {
+					this.execution.markHandlerActive(handler.id);
+				}
+			},
+			onHandlerComplete: (handler) => {
+				if (this._runHandlersShowVisual) {
+					this.execution.markHandlerCompleted(handler.id);
+				}
+			}
+		});
+	}
+
 	async runHandlers(
 		data: unknown,
 		triggerLabel = 'Command',
@@ -814,18 +830,24 @@ export class Action {
 			actionVariables: {}
 		};
 
-		await runHandlerChain(this.handlers, this, context, {
-			onHandlerStart: (handler) => {
-				if (showVisual) {
-					this.execution.markHandlerActive(handler.id);
+		this._runHandlersShowVisual = showVisual;
+
+		try {
+			await runHandlerChain(this.handlers, this, context, {
+				onHandlerStart: (handler) => {
+					if (showVisual) {
+						this.execution.markHandlerActive(handler.id);
+					}
+				},
+				onHandlerComplete: (handler) => {
+					if (showVisual) {
+						this.execution.markHandlerCompleted(handler.id);
+					}
 				}
-			},
-			onHandlerComplete: (handler) => {
-				if (showVisual) {
-					this.execution.markHandlerCompleted(handler.id);
-				}
-			}
-		});
+			});
+		} finally {
+			this._runHandlersShowVisual = false;
+		}
 	}
 
 	validateForm(): boolean {
@@ -837,14 +859,20 @@ export class Action {
 				definitions: trigger.definition.conditions,
 				validateForm: trigger.definition.validateForm
 			})),
-			handlers: this.handlers.map((handler) => ({
-				id: handler.id,
-				fields: $state.snapshot(handler.fields),
-				definitions: handler.definition.fields
-			}))
+			handlers: this.handlers.map((handler) => this.handlerToValidationInput(handler))
 		});
 
 		return this.formErrors === null;
+	}
+
+	private handlerToValidationInput(handler: ActionHandler): HandlerValidationInput {
+		return {
+			id: handler.id,
+			fields: $state.snapshot(handler.fields),
+			definitions: handler.definition.fields,
+			thenHandlers: handler.thenHandlers.map((item) => this.handlerToValidationInput(item)),
+			elseHandlers: handler.elseHandlers.map((item) => this.handlerToValidationInput(item))
+		};
 	}
 
 	async save(): Promise<boolean> {

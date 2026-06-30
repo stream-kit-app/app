@@ -17,6 +17,7 @@ export type ChatMessageContext = YouTubeBaseContext & {
 
 export type CommandContext = ChatMessageContext & {
 	command: string;
+	args: Record<string, string>;
 };
 
 export type SuperChatContext = YouTubeBaseContext & {

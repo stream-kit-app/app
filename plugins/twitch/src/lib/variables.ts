@@ -166,5 +166,11 @@ export function contextToVariables(context: unknown): Record<string, string> {
 		variables.msg = JSON.stringify(record.msg);
 	}
 
+	if (record.args && typeof record.args === 'object' && !Array.isArray(record.args)) {
+		for (const [key, value] of Object.entries(record.args as Record<string, unknown>)) {
+			set(key, value);
+		}
+	}
+
 	return variables;
 }

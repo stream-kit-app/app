@@ -8,10 +8,10 @@ Source: `plugins/core/`
 
 The Core plugin provides general building blocks for actions:
 
-- **Handlers** — audio, scripts, programs, variables, maps, logging, and delays
-- **Triggers** — process started/stopped events, app start/exit, map events, and schedule triggers (cron, scheduled)
+- **Handlers** — audio, scripts, programs, variables, collections, logging, and delays
+- **Triggers** — process started/stopped events, app start/exit, collection events, and schedule triggers (cron, scheduled)
 - **Variables** — global, per-user, and per-action-run scopes
-- **Maps** — session and persistent key-value stores with change triggers
+- **Collections** — session and persistent key-value stores with change triggers
 - **Action logs** — in-memory ring buffer with disk persistence
 - **Plugin API** — `CorePluginApi` for other parts of the app
 
@@ -61,7 +61,7 @@ Core
 - [Handlers](./handlers.md) — all handlers and their fields
 - [Overlays](./overlays.md) — local OBS browser source overlays
 - [Variables](./variables.md) — scopes, interpolation, and storage
-- [Maps](./maps.md) — session and persistent key-value stores
+- [Collections](./collections.md) — session and persistent key-value stores
 - [Logging](./logging.md) — action logs and the LogViewer
 - [Triggers](./triggers.md) — process started/stopped
 - [App triggers](./app-triggers.md) — app started and app exit
@@ -72,7 +72,7 @@ Core
 
 | Hook | Behavior |
 |------|----------|
-| `onEnable` | Binds `VariableStore` and `MapStore` to `PluginStore`, configures audio, loads variables, maps, and logs |
+| `onEnable` | Binds `VariableStore` and `CollectionStore` to `PluginStore`, configures audio, loads variables, collections, and logs |
 | `onEnable` / `onReady` / `onSave` | Syncs process watcher based on settings and active triggers |
 | `onDisable` | Stops process watcher |
 

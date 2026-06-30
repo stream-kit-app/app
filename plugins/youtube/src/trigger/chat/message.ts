@@ -3,6 +3,7 @@ import type { TriggerDefinitionProps } from '@stream-kit/plugin';
 
 import type { ChatMessageContext } from '../../contexts';
 import {
+	evaluateCommandMessageMatch,
 	evaluateMessageMatch,
 	evaluateRole,
 	evaluateUserMatch,
@@ -11,13 +12,20 @@ import {
 	userMatchCondition
 } from '../../lib/conditions';
 import { subscribeChatMessages } from '../../lib/chat-setup';
+import { createActivateWithCommandContext } from '../../lib/command-trigger';
 import { createTestChatMessageContext } from '../../lib/test-contexts';
-import { createActivate, createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { createDeactivate, createOnTest, evaluateWith } from '../../lib/trigger-helpers';
+import { CHAT_TEXT_VARIABLES } from '../../lib/variables';
 
 export const createChatMessageTrigger = (_app: PluginAppApi) =>
 	({
 		name: 'Chat Message',
-		conditions: [messageMatchCondition(), userMatchCondition(), roleCondition()],
+		conditions: [
+			messageMatchCondition('match', 'Message', { variables: CHAT_TEXT_VARIABLES }),
+			userMatchCondition(),
+			roleCondition(),
+			messageMatchCondition('command', 'Command', { variables: [] })
+		],
 		validate: (conditions, context) => {
 			const ctx = context as ChatMessageContext;
 			const { message, role, user } = ctx;
@@ -25,21 +33,13 @@ export const createChatMessageTrigger = (_app: PluginAppApi) =>
 			return evaluateWith(conditions, context, {
 				match: (value) => evaluateMessageMatch(message, value),
 				user: (value) => evaluateUserMatch(user, value),
-				role: (value) => evaluateRole(role, value)
+				role: (value) => evaluateRole(role, value),
+				command: (value) => evaluateCommandMessageMatch(message, '!', value)
 			});
 		},
 		onTest: createOnTest(() => createTestChatMessageContext()),
-		activate: createActivate(
-			_app,
-			(handler) => subscribeChatMessages(() => true, handler),
-			(conditions, context) => {
-				const ctx = context as ChatMessageContext;
-				return evaluateWith(conditions, context, {
-					match: (value) => evaluateMessageMatch(ctx.message, value),
-					user: (value) => evaluateUserMatch(ctx.user, value),
-					role: (value) => evaluateRole(ctx.role, value)
-				});
-			}
+		activate: createActivateWithCommandContext(_app, (handler) =>
+			subscribeChatMessages(() => true, handler)
 		),
 		deactivate: createDeactivate()
 	}) satisfies TriggerDefinitionProps;

@@ -7,6 +7,7 @@ import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
 import { fetchStreamElementsVoices } from './api';
 import { streamelements } from './service';
+import { createVoiceOneOfField } from '../voice-one-of-field';
 
 export async function loadVoiceItems(): Promise<SelectItem[]> {
 	if (!streamelements.isConfigured) {
@@ -32,17 +33,20 @@ export function voiceSelectItems(emptyOption: SelectItem): () => Promise<SelectI
 export function voiceSelectField(
 	options: { name?: string; emptyLabel?: string; required?: boolean } = {}
 ): HandlerFieldDefinition {
-	return {
-		type: 'select',
-		name: options.name ?? 'Voice',
-		placeholder: options.emptyLabel ?? 'Use default voice',
-		loadingPlaceholder: 'Loading voices…',
-		required: options.required,
-		items: voiceSelectItems({
-			value: '',
-			label: options.emptyLabel ?? 'Use default voice'
-		})
-	};
+	return createVoiceOneOfField(
+		{
+			type: 'select',
+			name: options.name ?? 'Voice',
+			placeholder: options.emptyLabel ?? 'Use default voice',
+			loadingPlaceholder: 'Loading voices…',
+			required: options.required,
+			items: voiceSelectItems({
+				value: '',
+				label: options.emptyLabel ?? 'Use default voice'
+			})
+		},
+		{ name: options.name, required: options.required }
+	);
 }
 
 function voiceSelectSettingsItems(): (context: SettingsContext) => Promise<SelectItem[]> {

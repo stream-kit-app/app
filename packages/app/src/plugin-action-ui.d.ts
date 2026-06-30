@@ -15,3 +15,9 @@ declare module '@stream-kit/plugin/action-ui/condition-group.svelte' {
 	const component: Component;
 	export default component;
 }
+
+declare module '@stream-kit/plugin/action-ui/handler-chain-editor.svelte' {
+	import type { Component } from 'svelte';
+	const component: Component;
+	export default component;
+}

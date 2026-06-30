@@ -53,39 +53,93 @@ core.variables.listKeys(
 
 Returns all keys in a scope. User scope requires `context` with a username.
 
-## Maps API
+## Collections API
 
-Read-only access to map data. Mutations happen through action handlers.
-
-```typescript
-core.maps.get(mapName: string, key: string): string | undefined
-```
-
-Reads a value from a map. Returns `undefined` when the map or key does not exist.
+Read and write collection data. Mutations are also available through action handlers and the dashboard Collections widget.
 
 ```typescript
-core.maps.has(mapName: string, key: string): boolean
+core.collections.get(collectionName: string, key: string): string | undefined
 ```
 
-Returns whether a key exists in a map.
+Reads a value from a collection. Returns `undefined` when the collection or key does not exist.
 
 ```typescript
-core.maps.getLifetime(mapName: string): MapLifetime | undefined
+core.collections.has(collectionName: string, key: string): boolean
 ```
 
-Returns the lifetime of a map by name, or `undefined` when the map does not exist.
+Returns whether a key exists in a collection.
 
 ```typescript
-core.maps.listMapNames(): string[]
+core.collections.getLifetime(collectionName: string): CollectionLifetime | undefined
 ```
 
-Returns all map names. Names are globally unique across session and persistent maps.
+Returns the lifetime of a collection by name, or `undefined` when the collection does not exist.
 
 ```typescript
-core.maps.listEntries(mapName: string): MapEntry[]
+core.collections.listCollectionNames(): string[]
 ```
 
-Returns all key → value pairs in a map, sorted by key. Returns an empty array when the map does not exist.
+Returns all collection names. Names are globally unique across session and persistent collections.
+
+```typescript
+core.collections.listCollections(): CollectionSummary[]
+```
+
+Returns all collections with their lifetime, sorted by name.
+
+```typescript
+core.collections.listEntries(collectionName: string): CollectionEntry[]
+```
+
+Returns all key → value pairs in a collection, sorted by key. Returns an empty array when the collection does not exist.
+
+```typescript
+core.collections.collectionExists(collectionName: string): boolean
+```
+
+Returns whether a collection exists.
+
+```typescript
+core.collections.create(collectionName: string, lifetime: CollectionLifetime): Promise<CollectionCreateResult>
+```
+
+Creates an empty collection. Fails with `already-exists` or `invalid-name`.
+
+```typescript
+core.collections.set(collectionName: string, key: string, value: string): Promise<CollectionMutationResult>
+```
+
+Upserts a key in an existing collection.
+
+```typescript
+core.collections.update(collectionName: string, key: string, value: string): Promise<CollectionMutationResult>
+```
+
+Updates an existing key only.
+
+```typescript
+core.collections.deleteKey(collectionName: string, key: string): Promise<CollectionMutationResult>
+```
+
+Removes a single key from a collection.
+
+```typescript
+core.collections.clear(collectionName: string): Promise<CollectionMutationResult>
+```
+
+Removes all keys but keeps the collection.
+
+```typescript
+core.collections.delete(collectionName: string): Promise<CollectionMutationResult>
+```
+
+Deletes a collection entirely. Emits a `deleted` event.
+
+```typescript
+core.collections.subscribe(event: 'created' | 'changed' | 'deleted', listener): () => void
+```
+
+Subscribe to collection lifecycle events. Returns an unsubscribe function.
 
 ## Logs API
 
@@ -155,7 +209,7 @@ plugins/core/
 │   └── lib/
 │       ├── plugin-api.ts     # CorePluginApi types
 │       ├── variables/        # VariableStore
-│       ├── maps/             # MapStore
+│       ├── collections/      # CollectionStore
 │       └── logs/             # ActionLogService
 ```
 
