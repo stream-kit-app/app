@@ -34,9 +34,6 @@
 	"bundle": {
 		"active": true,
 		"publisher": "Stream Kit B.V.",
-		"resources": {
-			"../static/overlay-sdk/": "overlay-sdk"
-		},
 		"targets": ["nsis", "msi"],
 		"icon": [
 			"icons/32x32.png",

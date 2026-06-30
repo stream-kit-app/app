@@ -1,6 +1,17 @@
 import { runProgram, type RunProgramOptions } from '../process/run-program';
 
 const EDITORS = ['cursor', 'code', 'code-insiders'] as const;
+const VSCODE_DEV_URL = 'https://vscode.dev/';
+
+export type OpenProjectInEditorResult =
+	| { opened: 'editor' }
+	| { opened: 'folder'; projectPath: string };
+
+export type OpenProjectInEditorCallbacks = {
+	onOpenFolder: (path: string) => Promise<void>;
+	onCopyPath: (path: string) => Promise<void>;
+	onOpenUrl: (url: string) => Promise<void>;
+};
 
 function pathToFileUri(path: string): string {
 	const normalized = path.replace(/\\/g, '/');
@@ -54,16 +65,27 @@ async function openFolderInEditor(editor: string, projectPath: string): Promise<
 	throw new Error(lastError || `failed to start ${editor}`);
 }
 
-export async function openProjectInEditor(projectPath: string): Promise<void> {
+export async function openProjectInEditor(
+	projectPath: string,
+	callbacks?: OpenProjectInEditorCallbacks
+): Promise<OpenProjectInEditorResult> {
 	let lastError = '';
 
 	for (const editor of EDITORS) {
 		try {
 			await openFolderInEditor(editor, projectPath);
-			return;
+			return { opened: 'editor' };
 		} catch (error) {
 			lastError = error instanceof Error ? error.message : String(error);
 		}
+	}
+
+	if (callbacks) {
+		await callbacks.onOpenFolder(projectPath);
+		await callbacks.onCopyPath(projectPath);
+		await callbacks.onOpenUrl(VSCODE_DEV_URL);
+
+		return { opened: 'folder', projectPath };
 	}
 
 	throw new Error(

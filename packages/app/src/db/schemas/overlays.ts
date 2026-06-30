@@ -4,8 +4,6 @@ export const overlays = sqliteTable('overlays', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
 	template: text('template').notNull().default('blank'),
-	width: integer('width').notNull().default(800),
-	height: integer('height').notNull().default(600),
 	config: text('config', { mode: 'json' }).$type<Record<string, unknown>>().notNull(),
 	expectedEvents: text('expected_events', { mode: 'json' }).$type<string[]>().notNull(),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),

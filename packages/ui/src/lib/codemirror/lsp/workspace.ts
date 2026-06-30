@@ -9,9 +9,6 @@ const SVELTE_WORKSPACE_UPLOAD_ORDER = [
 	'file:///svelte.config.js',
 	'file:///node_modules/svelte/package.json',
 	'file:///node_modules/svelte/types/index.d.ts',
-	'file:///node_modules/@stream-kit/overlay-sdk/package.json',
-	'file:///node_modules/@stream-kit/overlay-sdk/index.d.ts',
-	'file:///node_modules/@stream-kit/overlay-sdk/index.js',
 	'file:///src/app.d.ts'
 ] as const;
 

@@ -1,33 +1,13 @@
 export { OverlayService } from './overlay-service.svelte';
 export { registerOverlayHandlers } from './register-handlers';
-export { OVERLAY_TEMPLATES, getOverlayTemplate } from './templates';
+export { OVERLAY_FRAMEWORKS, getOverlayFramework, OVERLAY_TEMPLATES, getOverlayTemplate } from './templates';
 export { buildOverlayProjectZip, overlayProjectSlug } from './overlay-export';
-export {
-	ensureOverlayScaffold,
-	getOverlayProjectDir,
-	migrateAllOverlayProjects
-} from './overlay-project';
-export { OVERLAY_TEMPLATE_ICONS, getOverlayTemplateIcon } from './template-meta';
-export {
-	OVERLAY_ENTRY_PATH,
-	createTemporaryOverlayPath,
-	isAllowedOverlayFileName,
-	isOverlayEntryFile,
-	isTemporaryOverlayPath,
-	normalizeOverlayComponentFileName,
-	overlayFileIcon,
-	overlayFileName,
-	overlaySourceLanguage,
-	overlaySourcePathsMatch,
-	resolveOverlayImportPath,
-	sortOverlaySourceFiles,
-	toOverlaySourcePath,
-	validateOverlayFileName
-} from './overlay-source-file';
+export { ensureOverlayScaffold, getOverlayProjectDir, isOverlayBuilt } from './overlay-project';
+export { OVERLAY_FRAMEWORK_ICONS, getOverlayFrameworkIcon, OVERLAY_TEMPLATE_ICONS, getOverlayTemplateIcon } from './template-meta';
 export type {
-	OverlayBuildResult,
+	OverlayFrameworkId,
 	OverlayManifest,
-	OverlayServerStatus,
-	OverlayTemplateId
+	OverlayProjectFile,
+	OverlayServerStatus
 } from './types';
 export { DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';

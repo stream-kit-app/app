@@ -7,8 +7,6 @@ export type SaveOverlayInput = {
 	id: string;
 	name: string;
 	template: string;
-	width: number;
-	height: number;
 	config: Record<string, unknown>;
 	expectedEvents: string[];
 };
@@ -33,8 +31,6 @@ export async function saveOverlay(input: SaveOverlayInput): Promise<OverlayRecor
 			.set({
 				name: input.name,
 				template: input.template,
-				width: input.width,
-				height: input.height,
 				config: input.config,
 				expectedEvents: input.expectedEvents,
 				updatedAt: now
@@ -48,8 +44,6 @@ export async function saveOverlay(input: SaveOverlayInput): Promise<OverlayRecor
 		id: input.id,
 		name: input.name,
 		template: input.template,
-		width: input.width,
-		height: input.height,
 		config: input.config,
 		expectedEvents: input.expectedEvents,
 		createdAt: now,

@@ -1,22 +1,16 @@
-import type { OverlayProjectFile } from './types';
-
 import { strToU8, zipSync, type Zippable } from 'fflate';
 import { BaseDirectory } from '@tauri-apps/plugin-fs';
 
-import { OVERLAY_ENTRY_PATH } from './overlay-source-file';
+import type { OverlayManifest, OverlayProjectFile } from './types';
+
 import { ensureOverlayScaffold, overlayDir } from './overlay-project';
-import type { OverlayManifest } from './types';
 
 const EXPORT_SKIP_FILES = new Set(['manifest.json']);
-const EXPORT_SKIP_DIRS = new Set(['dist']);
-
-function overlayProjectPath(id: string): string {
-	return overlayDir(id);
-}
+const EXPORT_SKIP_DIRS = new Set(['dist', 'node_modules']);
 
 export async function readOverlayExportFiles(id: string): Promise<OverlayProjectFile[]> {
 	const { exists, readDir, readTextFile } = await import('@tauri-apps/plugin-fs');
-	const root = overlayProjectPath(id);
+	const root = overlayDir(id);
 	const files: OverlayProjectFile[] = [];
 
 	if (!(await exists(root, { baseDir: BaseDirectory.AppData }))) {
@@ -58,23 +52,20 @@ export async function readOverlayExportFiles(id: string): Promise<OverlayProject
 	}));
 }
 
-/**
- * Build a standalone, runnable Svelte project archive from files on disk.
- */
 export async function buildOverlayProjectZip(overlayId: string): Promise<Uint8Array> {
 	const { readTextFile } = await import('@tauri-apps/plugin-fs');
 	const manifest = JSON.parse(
-		await readTextFile(`${overlayProjectPath(overlayId)}/manifest.json`, {
+		await readTextFile(`${overlayDir(overlayId)}/manifest.json`, {
 			baseDir: BaseDirectory.AppData
 		})
 	) as OverlayManifest;
 
-	await ensureOverlayScaffold(overlayId, manifest.name);
+	await ensureOverlayScaffold(overlayId, manifest.name, manifest.framework);
 
 	const files = await readOverlayExportFiles(overlayId);
 
-	if (!files.some((file) => file.path === OVERLAY_ENTRY_PATH)) {
-		throw new Error(`Overlay export is missing ${OVERLAY_ENTRY_PATH}`);
+	if (files.length === 0) {
+		throw new Error('Overlay export has no project files');
 	}
 
 	const tree: Zippable = {};

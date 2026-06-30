@@ -228,8 +228,6 @@ async function createOverlaysTable(sqlite: Database): Promise<void> {
 			id TEXT PRIMARY KEY NOT NULL,
 			name TEXT NOT NULL,
 			template TEXT NOT NULL DEFAULT 'blank',
-			width INTEGER NOT NULL DEFAULT 800,
-			height INTEGER NOT NULL DEFAULT 600,
 			config TEXT NOT NULL DEFAULT '{}',
 			expected_events TEXT NOT NULL DEFAULT '[]',
 			created_at INTEGER NOT NULL,
@@ -238,11 +236,56 @@ async function createOverlaysTable(sqlite: Database): Promise<void> {
 	`);
 }
 
+async function migrateOverlaysRemoveDimensions(sqlite: Database): Promise<void> {
+	await replaceTableWithBackup(
+		sqlite,
+		'overlays',
+		() => createOverlaysTable(sqlite),
+		async () => {
+			const rows = await sqlite.select<
+				Array<{
+					id: string;
+					name: string;
+					template: string;
+					config: string;
+					expected_events: string;
+					created_at: number;
+					updated_at: number;
+				}>
+			>(
+				`SELECT id, name, template, config, expected_events, created_at, updated_at
+				 FROM overlays_migration_backup`
+			);
+
+			for (const row of rows) {
+				await sqlite.execute(
+					`INSERT INTO overlays (id, name, template, config, expected_events, created_at, updated_at)
+					 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+					[
+						row.id,
+						row.name,
+						row.template,
+						row.config,
+						row.expected_events,
+						row.created_at,
+						row.updated_at
+					]
+				);
+			}
+		}
+	);
+}
+
 async function migrateOverlaysTable(sqlite: Database): Promise<void> {
 	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(overlays)');
 
 	if (columns.length === 0) {
 		await createOverlaysTable(sqlite);
+		return;
+	}
+
+	if (columns.some((column) => column.name === 'width')) {
+		await migrateOverlaysRemoveDimensions(sqlite);
 	}
 }
 

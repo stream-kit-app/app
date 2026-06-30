@@ -1,7 +1,8 @@
 use tauri::{AppHandle, State};
 
-use super::server::{find_available_port, resolve_overlays_dir, resolve_sdk_dir, run_server};
+use super::server::{find_available_port, resolve_overlays_dir, run_server};
 use super::state::{OverlayServerState, OverlayServerStatus};
+
 #[tauri::command]
 pub async fn overlay_server_start(
     app: AppHandle,
@@ -15,11 +16,10 @@ pub async fn overlay_server_start(
     let preferred_port = port.unwrap_or(7891);
     let actual_port = find_available_port(preferred_port).await;
     let overlays_dir = resolve_overlays_dir(&app)?;
-    let sdk_dir = resolve_sdk_dir(&app)?;
 
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
 
-    let inner = run_server(actual_port, overlays_dir, sdk_dir, shutdown_rx).await?;
+    let inner = run_server(actual_port, overlays_dir, shutdown_rx).await?;
 
     let mut inner_with_shutdown = inner;
     inner_with_shutdown.shutdown_tx = Some(shutdown_tx);

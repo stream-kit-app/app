@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { OverlayTemplateId } from '$lib/core/overlay';
+	import type { OverlayFrameworkId } from '$lib/core/overlay';
 
 	import Icon from '@iconify/svelte';
 
@@ -11,17 +11,131 @@
 	import { Heading } from '@stream-kit/ui/heading';
 
 	import { app } from '$lib/core';
-	import { getOverlayTemplateIcon } from '$lib/core/overlay';
+	import { getOverlayFrameworkIcon } from '$lib/core/overlay';
 	import { useI18n } from '$lib/i18n';
+	import { cn } from '$lib/utils';
 
 	const { t } = useI18n();
 
+	const COPY_FEEDBACK_MS = 2000;
+
+	let openingEditorId = $state<string | null>(null);
+	let exportingId = $state<string | null>(null);
+	let buildingId = $state<string | null>(null);
+	let copiedUrlId = $state<string | null>(null);
+	let copyFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function needsBuild(framework: OverlayFrameworkId): boolean {
+		return framework !== 'vanilla';
+	}
+
 	async function copyUrl(overlayId: string): Promise<void> {
 		await navigator.clipboard.writeText(app.overlay.getUrl(overlayId));
-		app.toast.create({
-			title: t('Copied browser source URL'),
-			variant: 'success'
-		});
+
+		if (copyFeedbackTimer) {
+			clearTimeout(copyFeedbackTimer);
+		}
+
+		copiedUrlId = overlayId;
+		copyFeedbackTimer = setTimeout(() => {
+			if (copiedUrlId === overlayId) {
+				copiedUrlId = null;
+			}
+		}, COPY_FEEDBACK_MS);
+	}
+
+	async function openInEditor(overlayId: string): Promise<void> {
+		openingEditorId = overlayId;
+
+		try {
+			const result = await app.overlay.openInExternalEditor(overlayId);
+
+			if (result.opened === 'editor') {
+				app.toast.create({
+					title: t('Opened in editor'),
+					variant: 'success'
+				});
+				return;
+			}
+
+			app.toast.create({
+				title: t('Opened project folder'),
+				description: t(
+					'No code editor found. The folder was opened in your file manager and the path was copied. You can also edit the project at vscode.dev — open the folder there manually or drag it into the browser.'
+				),
+				variant: 'warning'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not open in editor'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+		} finally {
+			openingEditorId = null;
+		}
+	}
+
+	async function openFolder(overlayId: string): Promise<void> {
+		try {
+			await app.overlay.openProjectFolder(overlayId);
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not open folder'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+		}
+	}
+
+	async function downloadZip(overlayId: string, name: string): Promise<void> {
+		exportingId = overlayId;
+
+		try {
+			await app.overlay.exportZip(overlayId, name);
+			app.toast.create({
+				title: t('Project downloaded'),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not export project'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+		} finally {
+			exportingId = null;
+		}
+	}
+
+	async function buildOverlay(overlayId: string): Promise<void> {
+		buildingId = overlayId;
+
+		try {
+			const result = await app.overlay.build(overlayId);
+
+			if (result.success) {
+				app.toast.create({
+					title: t('Overlay built'),
+					variant: 'success'
+				});
+				return;
+			}
+
+			app.toast.create({
+				title: t('Overlay build failed'),
+				description: result.error ?? t('Unknown build error'),
+				variant: 'error'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Overlay build failed'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+		} finally {
+			buildingId = null;
+		}
 	}
 </script>
 
@@ -112,8 +226,8 @@
 									class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
 								>
 									<Icon
-										icon={getOverlayTemplateIcon(
-											overlay.template as OverlayTemplateId
+										icon={getOverlayFrameworkIcon(
+											overlay.template as OverlayFrameworkId
 										)}
 										class="size-5"
 									/>
@@ -124,9 +238,11 @@
 									</h2>
 									<div class="mt-1.5 flex flex-wrap items-center gap-1.5">
 										<Badge variant="default">{overlay.template}</Badge>
-										<Badge variant="outline">
-											{overlay.width}&times;{overlay.height}
-										</Badge>
+										{#if app.overlay.isBuilt(overlay.id)}
+											<Badge variant="success">{t('Ready')}</Badge>
+										{:else}
+											<Badge variant="warning">{t('Not built')}</Badge>
+										{/if}
 										{#if overlay.expectedEvents.length > 0}
 											<Badge variant="ghost">
 												<Icon icon="ri:flashlight-line" />
@@ -141,19 +257,43 @@
 							<div class="flex flex-wrap gap-2">
 								<Button
 									size="sm"
-									variant="outline"
-									icon="ri:file-copy-line"
-									onclick={() => copyUrl(overlay.id)}
+									variant="secondary"
+									icon="ri:code-box-line"
+									disabled={openingEditorId === overlay.id}
+									isLoading={openingEditorId === overlay.id}
+									onclick={() => openInEditor(overlay.id)}
 								>
-									{t('Copy URL')}
+									{t('Open in editor')}
 								</Button>
 								<Button
 									size="sm"
-									variant="secondary"
-									icon="ri:edit-line"
-									onclick={() => goto(`/overlays/${overlay.id}`)}
+									variant="outline"
+									icon="ri:folder-open-line"
+									onclick={() => openFolder(overlay.id)}
 								>
-									{t('Edit')}
+									{t('Open folder')}
+								</Button>
+								{#if needsBuild(overlay.template as OverlayFrameworkId)}
+									<Button
+										size="sm"
+										variant="outline"
+										icon="ri:hammer-line"
+										disabled={buildingId === overlay.id}
+										isLoading={buildingId === overlay.id}
+										onclick={() => buildOverlay(overlay.id)}
+									>
+										{t('Build')}
+									</Button>
+								{/if}
+								<Button
+									size="sm"
+									variant="outline"
+									icon="ri:download-2-line"
+									disabled={exportingId === overlay.id}
+									isLoading={exportingId === overlay.id}
+									onclick={() => downloadZip(overlay.id, overlay.name)}
+								>
+									{t('Download ZIP')}
 								</Button>
 								<Button
 									size="sm"
@@ -177,11 +317,21 @@
 							</span>
 							<button
 								type="button"
-								class="shrink-0 rounded-md p-1 text-dark-300 transition-colors hover:bg-dark-700 hover:text-white"
-								aria-label={t('Copy URL')}
+								class={cn(
+									'shrink-0 rounded-md p-1 transition-colors',
+									copiedUrlId === overlay.id
+										? 'text-success'
+										: 'text-dark-300 hover:bg-dark-700 hover:text-white'
+								)}
+								aria-label={copiedUrlId === overlay.id ? t('Copied') : t('Copy URL')}
 								onclick={() => copyUrl(overlay.id)}
 							>
-								<Icon icon="ri:file-copy-line" class="size-4" />
+								<Icon
+									icon={copiedUrlId === overlay.id
+										? 'ri:checkbox-circle-fill'
+										: 'ri:file-copy-line'}
+									class="size-4"
+								/>
 							</button>
 						</div>
 					</article>

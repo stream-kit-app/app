@@ -1,13 +1,17 @@
-export type OverlayTemplateId = 'blank' | 'chat' | 'alert';
+export type OverlayFrameworkId =
+	| 'svelte'
+	| 'react'
+	| 'vue'
+	| 'vanilla'
+	| 'preact'
+	| 'solid'
+	| 'lit';
 
 export type OverlayManifest = {
 	id: string;
 	name: string;
-	width: number;
-	height: number;
-	entry: string;
+	framework: OverlayFrameworkId;
 	expectedEvents: string[];
-	template: OverlayTemplateId;
 };
 
 export type OverlayServerStatus = {
@@ -16,20 +20,9 @@ export type OverlayServerStatus = {
 	baseUrl: string;
 };
 
-export type OverlayBuildResult = {
-	success: boolean;
-	error?: string;
-	files?: OverlayProjectFile[];
-};
-
 export type OverlayProjectFile = {
 	path: string;
 	content: string;
-};
-
-export type OverlayBuildInput = {
-	overlayId: string;
-	files: OverlayProjectFile[];
 };
 
 export const DEFAULT_OVERLAY_PORT = 7891;

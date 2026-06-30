@@ -23,7 +23,6 @@ pub struct OverlayBroadcastMessage {
 pub struct OverlayServerInner {
     pub port: u16,
     pub overlays_dir: std::path::PathBuf,
-    pub sdk_dir: std::path::PathBuf,
     pub broadcast_tx: broadcast::Sender<OverlayBroadcastMessage>,
     pub shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
 }
