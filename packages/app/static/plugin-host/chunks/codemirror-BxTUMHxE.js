@@ -13859,7 +13859,7 @@ async function M_(e) {
 	let [a, o, s] = await Promise.all([
 		import("./html-DjU6FAoH.js"),
 		import("./postcss-CO3EvMqH.js"),
-		import("./browser-rKYcOgGL.js")
+		import("./browser-BuUSZCWY.js")
 	]);
 	return {
 		prettier: t,
@@ -35585,9 +35585,6 @@ var rL = [
 	"file:///svelte.config.js",
 	"file:///node_modules/svelte/package.json",
 	"file:///node_modules/svelte/types/index.d.ts",
-	"file:///node_modules/@stream-kit/overlay-sdk/package.json",
-	"file:///node_modules/@stream-kit/overlay-sdk/index.d.ts",
-	"file:///node_modules/@stream-kit/overlay-sdk/index.js",
 	"file:///src/app.d.ts"
 ];
 async function iL(e, t) {
