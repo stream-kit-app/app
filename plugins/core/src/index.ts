@@ -36,6 +36,10 @@ import { createDelayHandler } from './handler/delay';
 
 import { createLogHandler } from './handler/log';
 
+import { createPauseQueueHandler } from './handler/queue/pause';
+
+import { createResumeQueueHandler } from './handler/queue/resume';
+
 import { createRunProgramHandler } from './handler/program/run';
 
 import { createRunScriptHandler } from './handler/script/run';
@@ -72,7 +76,11 @@ import { createCollectionValueChangedTrigger } from './trigger/collection-value-
 
 import { createCronTrigger } from './trigger/cron-trigger';
 
+import { createHotkeyTrigger } from './trigger/hotkey-trigger';
+
 import { createProcessTrigger } from './trigger/process-trigger';
+
+import { createQueueStatusTrigger } from './trigger/queue-status-trigger';
 
 import { createScheduledTrigger } from './trigger/scheduled-trigger';
 
@@ -312,6 +320,36 @@ const plugin = (app: PluginAppApi) => {
 
 						]
 
+					},
+
+					{
+
+						name: 'Input',
+
+						children: [createHotkeyTrigger(app)]
+
+					},
+
+					{
+
+						name: 'Queue',
+
+						children: [
+
+							createQueueStatusTrigger(app, 'paused'),
+
+							createQueueStatusTrigger(app, 'resumed'),
+
+							createQueueStatusTrigger(app, 'idle'),
+
+							createQueueStatusTrigger(app, 'job_enqueued'),
+
+							createQueueStatusTrigger(app, 'job_started'),
+
+							createQueueStatusTrigger(app, 'job_completed')
+
+						]
+
 					}
 
 				]
@@ -421,6 +459,20 @@ const plugin = (app: PluginAppApi) => {
 							createClearCollectionHandler(ctx),
 
 							createDeleteCollectionHandler(ctx)
+
+						]
+
+					},
+
+					{
+
+						name: 'Queue',
+
+						children: [
+
+							createPauseQueueHandler(app),
+
+							createResumeQueueHandler(app)
 
 						]
 

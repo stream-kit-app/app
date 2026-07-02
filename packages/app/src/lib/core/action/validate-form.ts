@@ -41,7 +41,7 @@ export function isFieldValueEmpty(
 		return false;
 	}
 
-	if (definition.type === 'text' || definition.type === 'select' || definition.type === 'cron-expression') {
+	if (definition.type === 'text' || definition.type === 'select' || definition.type === 'cron-expression' || definition.type === 'hotkey') {
 		return !String(value ?? '').trim();
 	}
 

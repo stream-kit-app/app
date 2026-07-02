@@ -644,5 +644,11 @@
 	"Edit selected actions": "Edit selected actions",
 	"Apply changes": "Apply changes",
 	"Move to group": "Move to group",
-	"Select all in group {name}": "Select all in group {name}"
+	"Select all in group {name}": "Select all in group {name}",
+	"Click and press keys…": "Click and press keys…",
+	"Press shortcut…": "Press shortcut…",
+	"Not set": "Not set",
+	"Hotkey could not be registered": "Hotkey could not be registered",
+	"\"{shortcut}\" may already be in use by another application.": "\"{shortcut}\" may already be in use by another application.",
+	"Hotkey could not start": "Hotkey could not start"
 }

@@ -16,6 +16,7 @@
 	import {
 		InputCheckbox,
 		InputCronExpression,
+		InputHotkey,
 		InputSelect,
 		InputSelectText,
 		InputText,
@@ -143,6 +144,15 @@
 			value={(node.value as string) ?? ''}
 			error={error ? t(error) : undefined}
 			oninput={onConditionTextInput(node)}
+		/>
+	{:else if config.type === 'hotkey'}
+		<InputHotkey
+			placeholder={config.placeholder ?? t('Click and press keys…')}
+			required={config.required}
+			captureLabel={t('Press shortcut…')}
+			emptyLabel={t('Not set')}
+			bind:value={node.value as string}
+			error={error ? t(error) : undefined}
 		/>
 	{:else if config.type === 'checkbox'}
 		<div

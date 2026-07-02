@@ -123,6 +123,19 @@ export function createPluginAppApi(app: App): PluginAppApi {
 			onStopped: app.process.onStopped.bind(app.process),
 			run: app.process.run.bind(app.process)
 		},
+		hotkeys: {
+			register: app.hotkeys.register.bind(app.hotkeys),
+			isRegistered: app.hotkeys.isRegistered.bind(app.hotkeys)
+		},
+		actionQueues: {
+			get definitions() {
+				return app.actionQueues.definitions;
+			},
+			pause: app.actionQueues.pause.bind(app.actionQueues),
+			resume: app.actionQueues.resume.bind(app.actionQueues),
+			stats: app.actionQueues.stats.bind(app.actionQueues),
+			on: app.actionQueues.on.bind(app.actionQueues)
+		},
 		db: {
 			registerMigrations: (pluginKey: string, migrations: PluginMigration[]) => {
 				registerPluginMigrations(pluginKey, migrations);

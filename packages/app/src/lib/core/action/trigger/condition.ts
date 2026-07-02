@@ -20,6 +20,7 @@ export type ConditionDefinition =
 			type: 'cron-expression';
 			presets?: SelectItemsSource;
 	  })
+	| (ConditionBase & { type: 'hotkey' })
 	| (ConditionBase & { type: 'checkbox' })
 	| (ConditionBase & { type: 'select'; items: SelectItemsSource })
 	| (ConditionBase & {

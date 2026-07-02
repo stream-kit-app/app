@@ -23,6 +23,7 @@ import { Plugins } from './plugins';
 import { createPluginAppApi } from './plugins/app-api';
 import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
 import { ProcessWatcher } from './process';
+import { HotkeyManager } from './hotkeys';
 import { Settings } from './settings';
 import { Toast } from './toast';
 import { LocalTts } from './tts';
@@ -41,6 +42,7 @@ export class App extends Bootable {
 	public audio = new Audio();
 	public lifecycle = new AppLifecycle();
 	public process = new ProcessWatcher();
+	public hotkeys = new HotkeyManager();
 	public localTts = new LocalTts();
 	public overlay = new OverlayService(() => this);
 

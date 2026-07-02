@@ -83,6 +83,10 @@ pub fn run() {
             overlay_server::commands::overlay_get_overlays_dir
         ])
         .setup(|app| {
+            #[cfg(desktop)]
+            app.handle()
+                .plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
+
             app.manage(dev::PluginWatchers(std::sync::Mutex::new(
                 std::collections::HashMap::new(),
             )));

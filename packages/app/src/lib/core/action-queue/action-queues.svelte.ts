@@ -12,36 +12,28 @@ import {
 import { DEFAULT_ACTION_QUEUE_NAME } from '$lib/core/action/stored-action';
 
 import { QUEUE_CONCURRENCY_UNLIMITED } from './queue-mode';
+import type {
+	ActionQueueEvent,
+	ActionQueueEventContext,
+	ActionQueueJobContext
+} from './types';
 import { getApp } from '../registry';
 
-export type ActionQueueDefinition = {
-	id: number;
-	name: string;
-	concurrency: number;
-	maxLength: number | null;
-	sortOrder: number;
-};
+export type { ActionQueueDefinition, ActionQueueStats, QueuedActionEntry, QueueJob } from './action-queues-types';
+export type {
+	ActionQueueEvent,
+	ActionQueueEventContext,
+	ActionQueueJobContext
+} from './types';
 
-export type ActionQueueStats = {
-	pending: number;
-	active: number;
-	paused: boolean;
-	pendingActions: QueuedActionEntry[];
-	activeActions: QueuedActionEntry[];
-};
+import type {
+	ActionQueueDefinition,
+	ActionQueueStats,
+	QueuedActionEntry,
+	QueueJob
+} from './action-queues-types';
 
-export type QueuedActionEntry = {
-	jobId: string;
-	actionId: number | null;
-	actionName: string;
-};
-
-export type QueueJob = {
-	jobId: string;
-	actionId: number | null;
-	actionName: string;
-	run: () => Promise<void>;
-};
+type QueueEventHandler = (context: ActionQueueEventContext) => void;
 
 function toDefinition(record: ActionQueueRecord): ActionQueueDefinition {
 	return {
@@ -50,6 +42,14 @@ function toDefinition(record: ActionQueueRecord): ActionQueueDefinition {
 		concurrency: record.concurrency,
 		maxLength: record.maxLength,
 		sortOrder: record.sortOrder
+	};
+}
+
+function toJobContext(job: QueueJob): ActionQueueJobContext {
+	return {
+		jobId: job.jobId,
+		actionId: job.actionId,
+		actionName: job.actionName
 	};
 }
 
@@ -70,12 +70,16 @@ class QueueRuntime {
 
 	private jobs: QueueJob[] = [];
 
-	constructor(definition: ActionQueueDefinition) {
+	constructor(
+		private definition: ActionQueueDefinition,
+		private readonly emit: (event: ActionQueueEvent, job?: QueueJob) => void
+	) {
 		this.concurrency = definition.concurrency;
 		this.maxLength = definition.maxLength;
 	}
 
 	applyDefinition(definition: ActionQueueDefinition): void {
+		this.definition = definition;
 		this.concurrency = definition.concurrency;
 		this.maxLength = definition.maxLength;
 		this.pump();
@@ -88,7 +92,7 @@ class QueueRuntime {
 
 		this.jobs.push(job);
 		this.syncPending();
-
+		this.emit('job_enqueued', job);
 		this.pump();
 
 		return true;
@@ -105,10 +109,12 @@ class QueueRuntime {
 
 	pause(): void {
 		this.paused = true;
+		this.emit('paused');
 	}
 
 	resume(): void {
 		this.paused = false;
+		this.emit('resumed');
 		this.pump();
 	}
 
@@ -137,6 +143,7 @@ class QueueRuntime {
 				{ jobId: job.jobId, actionId: job.actionId, actionName: job.actionName }
 			];
 
+			this.emit('job_started', job);
 			void this.runJob(job);
 		}
 	}
@@ -149,8 +156,25 @@ class QueueRuntime {
 		} finally {
 			this.active -= 1;
 			this.activeActions = this.activeActions.filter((item) => item.jobId !== job.jobId);
+			this.emit('job_completed', job);
+
+			if (this.pending === 0 && this.active === 0) {
+				this.emit('idle');
+			}
+
 			this.pump();
 		}
+	}
+
+	buildContext(job?: QueueJob): ActionQueueEventContext {
+		return {
+			queueId: this.definition.id,
+			queueName: this.definition.name,
+			pending: this.pending,
+			active: this.active,
+			paused: this.paused,
+			...(job ? { job: toJobContext(job) } : {})
+		};
 	}
 }
 
@@ -159,6 +183,7 @@ export class ActionQueues {
 	defaultQueueId: number | null = $state(null);
 
 	private runtimes = new Map<number, QueueRuntime>();
+	private readonly listeners = new Map<ActionQueueEvent, Set<QueueEventHandler>>();
 
 	async load(): Promise<void> {
 		const defaultQueue = await ensureDefaultActionQueue();
@@ -190,6 +215,21 @@ export class ActionQueues {
 		const definition = this.getDefinition(id);
 
 		return definition != null && definition.name === DEFAULT_ACTION_QUEUE_NAME;
+	}
+
+	on(event: ActionQueueEvent, handler: QueueEventHandler): () => void {
+		let handlers = this.listeners.get(event);
+
+		if (!handlers) {
+			handlers = new Set();
+			this.listeners.set(event, handlers);
+		}
+
+		handlers.add(handler);
+
+		return () => {
+			handlers?.delete(handler);
+		};
 	}
 
 	async create(input: SaveActionQueueInput): Promise<ActionQueueDefinition | undefined> {
@@ -249,7 +289,6 @@ export class ActionQueues {
 		this.runtimes.get(id)?.clear();
 		this.runtimes.delete(id);
 
-		// Actions reassigned in the DB may still point at the old id in memory.
 		if (this.defaultQueueId != null) {
 			for (const action of getApp().actions.items) {
 				if (action.queueId === id) {
@@ -259,12 +298,10 @@ export class ActionQueues {
 		}
 	}
 
-	/** Returns false when the queue is full (the job is dropped). */
 	enqueue(queueId: number, job: QueueJob): boolean {
 		const definition = this.getDefinition(queueId);
 
 		if (!definition) {
-			// Unknown queue (e.g. deleted): run immediately rather than dropping.
 			void job.run().catch((error) => {
 				console.error('Action queue job failed', error);
 			});
@@ -321,10 +358,24 @@ export class ActionQueues {
 		let runtime = this.runtimes.get(definition.id);
 
 		if (!runtime) {
-			runtime = new QueueRuntime(definition);
+			runtime = new QueueRuntime(definition, (event, job) => {
+				this.emit(event, runtime!.buildContext(job));
+			});
 			this.runtimes.set(definition.id, runtime);
 		}
 
 		return runtime;
+	}
+
+	private emit(event: ActionQueueEvent, context: ActionQueueEventContext): void {
+		const handlers = this.listeners.get(event);
+
+		if (!handlers) {
+			return;
+		}
+
+		for (const handler of handlers) {
+			handler(context);
+		}
 	}
 }

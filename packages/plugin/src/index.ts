@@ -106,6 +106,14 @@ export type {
 	RunProgramResult
 } from '../../app/src/lib/core/process';
 export type {
+	ActionQueueDefinition,
+	ActionQueueEvent,
+	ActionQueueEventContext,
+	ActionQueueJobContext,
+	ActionQueueStats
+} from '../../app/src/lib/core/action-queue/types';
+export type { HotkeyEventContext } from '../../app/src/lib/core/hotkeys';
+export type {
 	ConditionDefinition,
 	ConditionGroupNode,
 	ConditionLeafNode,

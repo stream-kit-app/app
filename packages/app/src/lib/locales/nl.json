@@ -645,5 +645,11 @@
 	"Edit selected actions": "Geselecteerde acties bewerken",
 	"Apply changes": "Wijzigingen toepassen",
 	"Move to group": "Verplaats naar groep",
-	"Select all in group {name}": "Alles selecteren in groep {name}"
+	"Select all in group {name}": "Alles selecteren in groep {name}",
+	"Click and press keys…": "Klik en druk op toetsen…",
+	"Press shortcut…": "Druk sneltoets…",
+	"Not set": "Niet ingesteld",
+	"Hotkey could not be registered": "Sneltoets kon niet worden geregistreerd",
+	"\"{shortcut}\" may already be in use by another application.": "\"{shortcut}\" wordt mogelijk al gebruikt door een andere applicatie.",
+	"Hotkey could not start": "Sneltoets kon niet worden gestart"
 }

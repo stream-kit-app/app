@@ -1,4 +1,5 @@
 import type { AppLifecycleContext, AppLifecycleEvent, ProcessEventContext } from '../contexts';
+import type { ActionQueueEvent, ActionQueueEventContext, HotkeyEventContext } from '@stream-kit/plugin';
 import type { ScheduleEventContext } from '../contexts';
 
 export function createTestAppLifecycleContext(
@@ -18,6 +19,34 @@ export function createTestProcessEventContext(): ProcessEventContext {
 		parentProcessId: 1234,
 		path: 'C:\\Windows\\System32',
 		processId: 5678
+	};
+}
+
+export function createTestHotkeyContext(): HotkeyEventContext {
+	return {
+		shortcut: 'Shift+P',
+		modifiers: ['Shift'],
+		key: 'P'
+	};
+}
+
+export function createTestQueueEventContext(
+	event: ActionQueueEvent = 'job_started'
+): ActionQueueEventContext {
+	return {
+		queueId: 1,
+		queueName: 'default',
+		pending: event === 'job_enqueued' ? 2 : event === 'idle' ? 0 : 1,
+		active: event === 'job_started' || event === 'job_completed' ? 1 : 0,
+		paused: event === 'paused',
+		job:
+			event === 'idle' || event === 'paused' || event === 'resumed'
+				? undefined
+				: {
+						jobId: 'test-job',
+						actionId: 1,
+						actionName: 'Test action'
+					}
 	};
 }
 

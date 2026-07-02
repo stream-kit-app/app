@@ -37,6 +37,13 @@ import type { ProcessEventContext } from '../process/types';
 import type { RunProgramOptions, RunProgramResult } from '../process/run-program';
 import type { LocalTtsRuntimeInfo, LocalTtsVoiceInfo } from '../tts';
 import type { TranslationKey } from '$lib/i18n';
+import type {
+	ActionQueueDefinition,
+	ActionQueueEvent,
+	ActionQueueEventContext,
+	ActionQueueStats
+} from '../action-queue/types';
+import type { HotkeyEventContext } from '../hotkeys';
 
 /** Opaque Drizzle client returned by {@link PluginAppDbApi.getClient}. */
 export type PluginDbClient = unknown;
@@ -46,6 +53,35 @@ export type PluginDbClient = unknown;
  * Called when the commands plugin boots or is enabled.
  */
 export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
+
+/**
+ * Global keyboard shortcuts registered through the Tauri global-shortcut plugin.
+ */
+export interface PluginAppHotkeysApi {
+	/** Register a global shortcut listener. Returns an unsubscribe function. */
+	register(shortcut: string, handler: (context: HotkeyEventContext) => void): () => void;
+
+	/** Whether the shortcut is registered by this application. */
+	isRegistered(shortcut: string): Promise<boolean>;
+}
+
+/**
+ * Action queue runtime and control APIs.
+ */
+export interface PluginAppActionQueuesApi {
+	readonly definitions: ActionQueueDefinition[];
+
+	pause(queueId: number): void;
+
+	resume(queueId: number): void;
+
+	stats(queueId: number): ActionQueueStats;
+
+	on(
+		event: ActionQueueEvent,
+		handler: (context: ActionQueueEventContext) => void
+	): () => void;
+}
 
 /**
  * Toast notifications shown to the user.
@@ -682,6 +718,12 @@ export interface PluginAppApi {
 
 	/** Watch OS process start/stop events. */
 	process: PluginAppProcessApi;
+
+	/** Register global keyboard shortcut listeners. */
+	hotkeys: PluginAppHotkeysApi;
+
+	/** Control and observe action queues. */
+	actionQueues: PluginAppActionQueuesApi;
 
 	/** Register plugin database migrations. */
 	db: PluginAppDbApi;

@@ -11,7 +11,7 @@ External plugins import their public contract from `@stream-kit/plugin`.
 | Types (`Plugin`, `PluginAppApi`, definitions) | `@stream-kit/plugin` | Use `import type` |
 | Runtime helpers (`getFieldValue`, `parseCommand`, cron) | `@stream-kit/core` | Preferred for helpers |
 | `BaseDirectory`, `SeekMode` | `@stream-kit/plugin` | Required for `app.fs` options |
-| Platform features | `app` (`PluginAppApi`) | Filesystem, toast, process, audio, store |
+| Platform features | `app` (`PluginAppApi`) | Filesystem, toast, process, hotkeys, action queues, audio, store |
 
 Never import `@tauri-apps/*` in plugin code.
 
@@ -238,6 +238,39 @@ const handlers = app.actions.getHandlers();
 
 const modal = app.modal.get('edit-item') ?? app.modal.create({ ... });
 ```
+
+### Global hotkeys (`app.hotkeys`)
+
+Register system-wide keyboard shortcuts (desktop only, via Tauri global-shortcut):
+
+```ts
+const unsubscribe = app.hotkeys.register('Shift+P', (context) => {
+  console.log(context.shortcut, context.modifiers, context.key);
+});
+
+unsubscribe();
+```
+
+Returns an unsubscribe function. If the shortcut is already taken by another application, registration fails gracefully and a warning toast is shown.
+
+### Action queues (`app.actionQueues`)
+
+Control and observe action execution queues:
+
+```ts
+app.actionQueues.pause(queueId);
+app.actionQueues.resume(queueId);
+
+const stats = app.actionQueues.stats(queueId);
+
+const unsubscribe = app.actionQueues.on('job_started', (context) => {
+  console.log(context.queueName, context.job?.actionName);
+});
+```
+
+Events: `paused`, `resumed`, `idle`, `job_enqueued`, `job_started`, `job_completed`.
+
+Read `app.actionQueues.definitions` for the list of configured queues.
 
 ### Plugin settings store from a customView
 

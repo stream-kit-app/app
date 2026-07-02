@@ -44,7 +44,7 @@ export function initConditionValue(definition: ResolvedConditionDefinition): Fie
 		return true;
 	}
 
-	if (definition.type === 'cron-expression') {
+	if (definition.type === 'cron-expression' || definition.type === 'hotkey') {
 		return '';
 	}
 

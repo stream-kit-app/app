@@ -30,6 +30,9 @@
 		"fs:read-all",
 		"fs:allow-create",
 		"allow-app-commands",
+		"global-shortcut:allow-is-registered",
+		"global-shortcut:allow-register",
+		"global-shortcut:allow-unregister",
 		{
 			"identifier": "fs:scope",
 			"allow": [{ "path": "**" }]

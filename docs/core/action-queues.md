@@ -40,3 +40,13 @@ Queue definitions are stored in the local database (`action_queues`) and the ass
 - New actions start on the **default** queue.
 - In the action editor, pick a queue in the **Queue** field (or **No queue** to run concurrently).
 - On the Actions page, select multiple actions and use **Assign to queue** in the bulk edit dialog.
+
+## Plugin API
+
+Plugins can control queues through `app.actionQueues` (see [Plugin API](../plugins/api.md#action-queues-appactionqueues)):
+
+- `pause(queueId)` / `resume(queueId)` — runtime control
+- `on(event, handler)` — subscribe to queue status events (`paused`, `resumed`, `idle`, `job_enqueued`, `job_started`, `job_completed`)
+- `definitions` — list of configured queues
+
+The core plugin exposes **Pause Queue** and **Resume Queue** handlers, plus triggers for each queue status event.
