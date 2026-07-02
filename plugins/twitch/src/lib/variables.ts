@@ -26,6 +26,26 @@ export const ROLE_VARIABLE: HandlerFieldVariable = {
 	label: 'User role'
 };
 
+export const TIER_VARIABLE: HandlerFieldVariable = {
+	key: 'tier',
+	label: 'Subscription tier'
+};
+
+export const MONTHS_VARIABLE: HandlerFieldVariable = {
+	key: 'months',
+	label: 'Subscription months'
+};
+
+export const GIFT_COUNT_VARIABLE: HandlerFieldVariable = {
+	key: 'giftCount',
+	label: 'Gift count'
+};
+
+export const VIEWERS_VARIABLE: HandlerFieldVariable = {
+	key: 'viewers',
+	label: 'Raid viewers'
+};
+
 export const MSG_VARIABLE: HandlerFieldVariable = {
 	key: 'msg',
 	label: 'Chat message (JSON)'
@@ -45,6 +65,24 @@ export const USER_TEXT_VARIABLES: HandlerFieldVariable[] = [USERNAME_VARIABLE, C
 export const TARGET_USER_VARIABLES: HandlerFieldVariable[] = [USERNAME_VARIABLE];
 
 export const MESSAGE_TEXT_VARIABLES: HandlerFieldVariable[] = [USERNAME_VARIABLE, MESSAGE_VARIABLE];
+
+export const SUBSCRIPTION_TEXT_VARIABLES: HandlerFieldVariable[] = [
+	USERNAME_VARIABLE,
+	CHANNEL_VARIABLE,
+	TIER_VARIABLE,
+	MONTHS_VARIABLE
+];
+
+export const GIFT_SUB_TEXT_VARIABLES: HandlerFieldVariable[] = [
+	...SUBSCRIPTION_TEXT_VARIABLES,
+	GIFT_COUNT_VARIABLE
+];
+
+export const RAID_TEXT_VARIABLES: HandlerFieldVariable[] = [
+	USERNAME_VARIABLE,
+	CHANNEL_VARIABLE,
+	VIEWERS_VARIABLE
+];
 
 export type { TwitchChatBadge, TwitchChatEmote, TwitchChatMessage } from '@stream-kit/core';
 
@@ -136,6 +174,7 @@ export function contextToVariables(context: unknown): Record<string, string> {
 	set('channel', record.channel);
 	set('broadcasterId', record.broadcasterId);
 	set('username', record.user);
+	// Runtime alias for trigger context field `user`; use `{username}` in the UI.
 	set('user', record.user);
 	set('userId', record.userId);
 	set('message', record.message);

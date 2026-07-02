@@ -2,7 +2,18 @@
 
 External plugins import their public contract from `@stream-kit/plugin`.
 
-Runtime helpers such as `getFieldValue`, `interpolateVariables`, `parseCommand`, and `matchCommandPattern` come from `@stream-kit/core`.
+**First plugin?** See [Plugin getting started](./getting-started.md).
+
+## Import conventions
+
+| Need | Package | Notes |
+|------|---------|-------|
+| Types (`Plugin`, `PluginAppApi`, definitions) | `@stream-kit/plugin` | Use `import type` |
+| Runtime helpers (`getFieldValue`, `parseCommand`, cron) | `@stream-kit/core` | Preferred for helpers |
+| `BaseDirectory`, `SeekMode` | `@stream-kit/plugin` | Required for `app.fs` options |
+| Platform features | `app` (`PluginAppApi`) | Filesystem, toast, process, audio, store |
+
+Never import `@tauri-apps/*` in plugin code.
 
 ## Package imports
 
@@ -77,6 +88,29 @@ onSave: async ({ store }) => {
 ```
 
 Use `store.get`, `store.set`, and `store.delete` for settings, lists, and other plugin-owned state. You do not need SQLite unless you have a specific reason to use `app.db`.
+
+## Filesystem (`app.fs`)
+
+Plugins access the filesystem through `app.fs`. Import `BaseDirectory` from `@stream-kit/plugin` for relative paths:
+
+```ts
+import { BaseDirectory } from '@stream-kit/plugin';
+
+await app.fs.mkdir('logs', { baseDir: BaseDirectory.AppData, recursive: true });
+
+const text = await app.fs.readTextFile('config.json', {
+	baseDir: BaseDirectory.AppConfig
+});
+
+await app.fs.writeTextFile('logs/events.log', line, {
+	baseDir: BaseDirectory.AppData,
+	append: true
+});
+```
+
+`app.fs` also supports directory listing, file handles (`open` / `create`), copying, renaming, watching, and native file/folder pickers via `app.fs.select`.
+
+See [Plugin getting started](./getting-started.md#filesystem-appfs) for common `BaseDirectory` values and zip plugin constraints.
 
 ## Lifecycle hooks
 

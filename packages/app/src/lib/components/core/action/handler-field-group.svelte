@@ -379,7 +379,7 @@
 {/if}
 {/snippet}
 
-<div class={cn('grid gap-4')}>
+<div class={cn('grid min-w-0 gap-4')}>
 	{#each handler.fieldDefinitions ?? [] as config (config.key)}
 		{@const field = handler.getField(config.key)}
 		{#if field}

@@ -6,8 +6,10 @@ import { createLocalSpeakHandler } from './handler/local/speak';
 import { createStreamElementsSpeakHandler } from './handler/streamelements/speak';
 import { elevenlabs } from './lib/elevenlabs';
 import { elevenlabsModelSelectSettingsField } from './lib/elevenlabs/models';
+import { createElevenLabsVoiceOverviewField } from './lib/elevenlabs/settings';
 import { elevenlabsVoiceSelectSettingsField } from './lib/elevenlabs/voices';
 import { local, resolveDefaultVoiceFromSettings, resolveVolumeFromSettings } from './lib/local';
+import { LOCAL_DEFAULT_VOICE_SETTING_KEY, LOCAL_VOLUME_SETTING_KEY } from './lib/local/service';
 import { createLocalTtsVoiceSelectField } from './lib/local/settings';
 import { localVoiceSelectSettingsField } from './lib/local/voices';
 import { streamelements } from './lib/streamelements';
@@ -87,10 +89,12 @@ const plugin: Plugin = (app) => {
 					},
 					createLocalTtsVoiceSelectField(app),
 					localVoiceSelectSettingsField({
+						key: LOCAL_DEFAULT_VOICE_SETTING_KEY,
 						emptyLabel: 'Select a default voice',
 						visible: () => local.getInstalledVoices().length > 0
 					}),
 					{
+						key: LOCAL_VOLUME_SETTING_KEY,
 						type: 'slider',
 						name: 'Local TTS volume',
 						min: 0,
@@ -162,6 +166,7 @@ const plugin: Plugin = (app) => {
 						visible: ({ getValue }) => Boolean(String(getValue('apiKey') ?? '').trim())
 					},
 					{
+						key: 'apiKey',
 						type: 'text',
 						inputType: 'password',
 						name: 'API key',
@@ -204,6 +209,7 @@ const plugin: Plugin = (app) => {
 						}
 					},
 					{
+						key: 'volume',
 						type: 'slider',
 						name: 'Volume',
 						min: 0,
@@ -212,6 +218,7 @@ const plugin: Plugin = (app) => {
 						visible: ({ getValue }) => Boolean(String(getValue('apiKey') ?? '').trim())
 					},
 					voiceSelectSettingsField({
+						key: 'defaultVoice',
 						name: 'Default voice',
 						emptyLabel: 'Select a default voice',
 						visible: ({ getValue }) => Boolean(String(getValue('apiKey') ?? '').trim())
@@ -224,9 +231,10 @@ const plugin: Plugin = (app) => {
 				description: 'ElevenLabs integration',
 				fields: [
 					{
+						key: 'elevenlabsApiKey',
 						type: 'text',
 						inputType: 'password',
-						name: 'API key',
+						name: 'Elevenlabs API key',
 						placeholder: 'Paste your ElevenLabs API key'
 					},
 					{
@@ -266,12 +274,14 @@ const plugin: Plugin = (app) => {
 						}
 					},
 					elevenlabsModelSelectSettingsField({
+						key: 'elevenlabsModelId',
 						visible: ({ getValue }) =>
 							Boolean(String(getValue('elevenlabsApiKey') ?? '').trim())
 					}),
 					{
+						key: 'elevenlabsVolume',
 						type: 'slider',
-						name: 'Volume',
+						name: 'Elevenlabs volume',
 						min: 0,
 						max: 100,
 						defaultValue: 100,
@@ -279,11 +289,13 @@ const plugin: Plugin = (app) => {
 							Boolean(String(getValue('elevenlabsApiKey') ?? '').trim())
 					},
 					elevenlabsVoiceSelectSettingsField({
-						name: 'Default voice',
+						key: 'elevenlabsDefaultVoice',
+						name: 'Elevenlabs default voice',
 						emptyLabel: 'Select a default voice',
 						visible: ({ getValue }) =>
 							Boolean(String(getValue('elevenlabsApiKey') ?? '').trim())
-					})
+					}),
+					createElevenLabsVoiceOverviewField(app)
 				]
 			}
 		],
@@ -306,7 +318,8 @@ const plugin: Plugin = (app) => {
 				]
 			}
 		],
-		onLoad: async () => {
+		onLoad: async ({ store }) => {
+			elevenlabs.ensureStore(store);
 			await streamelements.syncFromStore();
 			await elevenlabs.syncFromStore();
 			await local.syncFromStore();

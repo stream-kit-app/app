@@ -26,6 +26,10 @@ export class ElevenLabsService {
 	private voicesCache: ElevenLabsVoice[] | undefined;
 	private voicesCacheExpiry = 0;
 
+	ensureStore(store: PluginStore): void {
+		this.store ??= store;
+	}
+
 	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
 		this.store = store;
 		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume));
@@ -71,13 +75,22 @@ export class ElevenLabsService {
 		return voices;
 	}
 
-	async speak(text: string, voiceId: string, volume?: number): Promise<void> {
+	async speak(
+		text: string,
+		voiceId: string,
+		options: { volume?: number; modelId?: string } = {}
+	): Promise<void> {
+		if (!this.apiKey) {
+			await this.syncFromStore();
+		}
+
 		if (!this.apiKey) {
 			throw new Error('ElevenLabs is not configured');
 		}
 
-		const blob = await fetchElevenLabsSpeech(this.apiKey, voiceId, text, this.modelId);
-		this.player.enqueue(blob, volume ?? this.volume);
+		const modelId = options.modelId?.trim() || this.modelId;
+		const blob = await fetchElevenLabsSpeech(this.apiKey, voiceId, text, modelId);
+		this.player.enqueue(blob, options.volume ?? this.volume);
 	}
 
 	private invalidateVoiceCache(): void {

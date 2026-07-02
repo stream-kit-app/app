@@ -28,7 +28,8 @@ import type { ToastCreateProps } from '../toast/toast.svelte';
 import type { ToastItem } from '../toast/toast-item.svelte';
 import type { CommandRecord } from '$lib/types/command-types';
 import type { PluginMigration } from '$db/plugin-migrations';
-import type { DirEntry, FileHandle, FileInfo, UnwatchFn } from '@tauri-apps/plugin-fs';
+import type { DirEntry, FileInfo, UnwatchFn } from '../filesystem/types';
+import type { FileHandle } from '../filesystem/file-handle';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import type { SettingsFieldValue } from '../settings';
 import type { AppLifecycleContext, AppLifecycleEvent } from '../lifecycle/types';
@@ -198,7 +199,7 @@ export interface PluginAppMenuApi {
 }
 
 /**
- * Filesystem access via Tauri. Paths and options follow `@tauri-apps/plugin-fs` semantics.
+ * Filesystem access through the app abstraction. Paths are relative to a {@link BaseDirectory} unless absolute.
  */
 export interface PluginAppFsApi {
 	/**
@@ -214,76 +215,151 @@ export interface PluginAppFsApi {
 	/** Join path segments using the platform separator. */
 	join(...paths: string[]): Promise<string>;
 
-	/** Create a file. Wraps Tauri `create`. */
+	/**
+	 * Create a file and return a handle for reading or writing.
+	 *
+	 * @example
+	 * ```ts
+	 * const handle = await app.fs.create('data.bin', { baseDir: BaseDirectory.AppData });
+	 * await handle.write(new Uint8Array([1, 2, 3]));
+	 * await handle.close();
+	 * ```
+	 */
 	create(path: string | URL, options?: CreateOptions): Promise<FileHandle>;
 
-	/** Open a file handle. Wraps Tauri `open`. */
+	/**
+	 * Open a file handle for reading, writing, or both.
+	 *
+	 * @example
+	 * ```ts
+	 * const handle = await app.fs.open('log.txt', {
+	 *   baseDir: BaseDirectory.AppData,
+	 *   read: true,
+	 *   append: true
+	 * });
+	 * ```
+	 */
 	open(path: string | URL, options?: OpenOptions): Promise<FileHandle>;
 
-	/** Copy a file. Wraps Tauri `copyFile`. */
+	/**
+	 * Copy a file from one path to another.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.fs.copyFile('backup.json', 'backup-old.json', {
+	 *   fromPathBaseDir: BaseDirectory.AppData,
+	 *   toPathBaseDir: BaseDirectory.AppData
+	 * });
+	 * ```
+	 */
 	copyFile(fromPath: string | URL, toPath: string | URL, options?: CopyFileOptions): Promise<void>;
 
-	/** Create a directory. Wraps Tauri `mkdir`. */
+	/**
+	 * Create a directory.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.fs.mkdir('cache', { baseDir: BaseDirectory.AppData, recursive: true });
+	 * ```
+	 */
 	mkdir(path: string | URL, options?: MkdirOptions): Promise<void>;
 
-	/** Read directory entries. Wraps Tauri `readDir`. */
+	/**
+	 * Read directory entries.
+	 *
+	 * @example
+	 * ```ts
+	 * const entries = await app.fs.readDir('.', { baseDir: BaseDirectory.AppData });
+	 * ```
+	 */
 	readDir(path: string | URL, options?: ReadDirOptions): Promise<DirEntry[]>;
 
-	/** Read a file as bytes. Wraps Tauri `readFile`. */
+	/** Read a file as bytes. */
 	readFile(path: string | URL, options?: ReadFileOptions): Promise<Uint8Array>;
 
-	/** Read a file as UTF-8 text. Wraps Tauri `readTextFile`. */
+	/**
+	 * Read a file as UTF-8 text.
+	 *
+	 * @example
+	 * ```ts
+	 * const json = await app.fs.readTextFile('settings.json', { baseDir: BaseDirectory.AppData });
+	 * ```
+	 */
 	readTextFile(path: string | URL, options?: ReadFileOptions): Promise<string>;
 
-	/** Read a file line-by-line. Wraps Tauri `readTextFileLines`. */
+	/** Read a file line-by-line. */
 	readTextFileLines(
 		path: string | URL,
 		options?: ReadFileOptions
 	): Promise<AsyncIterableIterator<string>>;
 
-	/** Delete a file or directory. Wraps Tauri `remove`. */
+	/**
+	 * Delete a file or directory.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.fs.remove('cache/temp.json', { baseDir: BaseDirectory.AppData });
+	 * ```
+	 */
 	remove(path: string | URL, options?: RemoveOptions): Promise<void>;
 
-	/** Rename or move a file. Wraps Tauri `rename`. */
+	/** Rename or move a file. */
 	rename(oldPath: string | URL, newPath: string | URL, options?: RenameOptions): Promise<void>;
 
-	/** Get file metadata. Wraps Tauri `stat`. */
+	/** Get file metadata. */
 	stat(path: string | URL, options?: StatOptions): Promise<FileInfo>;
 
-	/** Get symlink metadata without following links. Wraps Tauri `lstat`. */
+	/** Get symlink metadata without following links. */
 	lstat(path: string | URL, options?: StatOptions): Promise<FileInfo>;
 
-	/** Truncate a file to a length. Wraps Tauri `truncate`. */
+	/** Truncate a file to a length. */
 	truncate(path: string | URL, len?: number, options?: TruncateOptions): Promise<void>;
 
-	/** Write bytes to a file. Wraps Tauri `writeFile`. */
+	/** Write bytes to a file. */
 	writeFile(
 		path: string | URL,
 		data: Uint8Array | ReadableStream<Uint8Array>,
 		options?: WriteFileOptions
 	): Promise<void>;
 
-	/** Write UTF-8 text to a file. Wraps Tauri `writeTextFile`. */
+	/**
+	 * Write UTF-8 text to a file.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.fs.writeTextFile('settings.json', JSON.stringify(data), {
+	 *   baseDir: BaseDirectory.AppData,
+	 *   create: true
+	 * });
+	 * ```
+	 */
 	writeTextFile(path: string | URL, data: string, options?: WriteFileOptions): Promise<void>;
 
-	/** Check whether a path exists. Wraps Tauri `exists`. */
+	/**
+	 * Check whether a path exists.
+	 *
+	 * @example
+	 * ```ts
+	 * if (await app.fs.exists('settings.json', { baseDir: BaseDirectory.AppData })) { ... }
+	 * ```
+	 */
 	exists(path: string | URL, options?: ExistsOptions): Promise<boolean>;
 
-	/** Watch paths with debounced callbacks. Wraps Tauri `watch`. */
+	/** Watch paths with debounced callbacks. */
 	watch(
 		paths: string | string[] | URL | URL[],
 		callback: (event: WatchEvent) => void,
 		options?: DebouncedWatchOptions
 	): Promise<UnwatchFn>;
 
-	/** Watch paths with immediate callbacks. Wraps Tauri `watchImmediate`. */
+	/** Watch paths with immediate callbacks. */
 	watchImmediate(
 		paths: string | string[] | URL | URL[],
 		callback: (event: WatchEvent) => void,
 		options?: WatchOptions
 	): Promise<UnwatchFn>;
 
-	/** Return file size in bytes. Wraps Tauri `size`. */
+	/** Return file size in bytes. */
 	size(path: string | URL): Promise<number>;
 }
 
@@ -589,7 +665,7 @@ export interface PluginAppApi {
 	/** Register sidebar menu items at runtime. */
 	menu: PluginAppMenuApi;
 
-	/** Read and write files via Tauri. */
+	/** Read and write files through the app filesystem abstraction. */
 	fs: PluginAppFsApi;
 
 	/** Play audio blobs. */

@@ -1,4 +1,5 @@
-export { BaseDirectory, FileHandle, SeekMode } from '@tauri-apps/plugin-fs';
+export { BaseDirectory } from '../../app/src/lib/core/filesystem/base-directory';
+export { SeekMode } from '../../app/src/lib/core/filesystem/seek-mode';
 
 export {
 	computeCronNextRun,

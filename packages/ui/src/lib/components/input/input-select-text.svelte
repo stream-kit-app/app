@@ -203,13 +203,13 @@
 	};
 </script>
 
-<div class={cn('relative grid w-full gap-2', className)}>
+<div class={cn('relative grid w-full min-w-0 gap-2', className)}>
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
 	<div
 		class={cn(
-			'flex w-full items-stretch rounded-xl has-focus:ring-2 has-focus:ring-primary',
+			'flex w-full min-w-0 items-stretch rounded-xl has-focus:ring-2 has-focus:ring-primary',
 			error && 'has-focus:ring-red-500'
 		)}
 	>
@@ -275,24 +275,26 @@
 				</Select.Content>
 			</Select.Portal>
 		</Select.Root>
-		<input
-			bind:this={inputElement}
-			{id}
-			{placeholder}
-			bind:value={value.value}
-			class={cn(
-				'w-full rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
-				inputSizeClasses.md,
-				error ? 'border-red-500' : 'border-dark-500'
-			)}
-			aria-invalid={error ? true : undefined}
-			oninput={variables.length > 0 ? handleInput : undefined}
-			onkeydown={variables.length > 0 ? handleKeydown : undefined}
-			onblur={variables.length > 0 ? handleBlur : undefined}
-			onfocus={variables.length > 0 ? updateSuggestions : undefined}
-			onclick={variables.length > 0 ? updateSuggestions : undefined}
-			{...props}
-		/>
+		<div class="min-w-0 flex-1">
+			<input
+				bind:this={inputElement}
+				{id}
+				{placeholder}
+				bind:value={value.value}
+				class={cn(
+					'min-w-0 w-full truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+					inputSizeClasses.md,
+					error ? 'border-red-500' : 'border-dark-500'
+				)}
+				aria-invalid={error ? true : undefined}
+				oninput={variables.length > 0 ? handleInput : undefined}
+				onkeydown={variables.length > 0 ? handleKeydown : undefined}
+				onblur={variables.length > 0 ? handleBlur : undefined}
+				onfocus={variables.length > 0 ? updateSuggestions : undefined}
+				onclick={variables.length > 0 ? updateSuggestions : undefined}
+				{...props}
+			/>
+		</div>
 	</div>
 
 	{#if variables.length > 0}

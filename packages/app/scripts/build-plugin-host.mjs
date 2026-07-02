@@ -38,9 +38,11 @@ await esbuild.build({
 	outfile: path.resolve(outDir, 'core.js')
 });
 
+const workspaceRoot = path.resolve(root, '../..');
+
 await esbuild.build({
 	...shared,
-	entryPoints: [path.resolve(root, 'src/lib/core/plugins/host/plugin.ts')],
+	entryPoints: [path.resolve(workspaceRoot, 'packages/plugin/src/runtime.ts')],
 	outfile: path.resolve(outDir, 'plugin.js')
 });
 

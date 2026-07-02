@@ -17,6 +17,32 @@ export type SettingsButtonVariant =
 
 export type SettingsAlertVariant = 'default' | 'success' | 'error' | 'warning';
 
+export type SettingsTableRow = Record<string, string>;
+
+export type SettingsTableRowsSource =
+	| SettingsTableRow[]
+	| ((context: SettingsContext) => SettingsTableRow[] | Promise<SettingsTableRow[]>);
+
+export type SettingsTableColumnDefinition = {
+	key: string;
+	header: string;
+	mono?: boolean;
+	class?: string;
+};
+
+export type SettingsTableActionDefinition = {
+	type: 'copy';
+	key: string;
+	columnKey: string;
+	icon?: string;
+	ariaLabel?: string;
+	onCopy?: (
+		context: SettingsContext,
+		row: SettingsTableRow,
+		value: string
+	) => void | Promise<void>;
+};
+
 export type SettingsFieldDefinition =
 	| (SettingsFieldBase & {
 			type: 'text';
@@ -71,6 +97,23 @@ export type SettingsFieldDefinition =
 			isChecked?: (context: SettingsContext, value: string) => boolean;
 			onCheck: (context: SettingsContext, value: string) => void | Promise<void>;
 			onUncheck?: (context: SettingsContext, value: string) => void | Promise<void>;
+	  }
+	| {
+			type: 'table';
+			key: string;
+			name: string;
+			description?: string;
+			searchable?: boolean;
+			searchPlaceholder?: string;
+			loadingPlaceholder?: string;
+			emptyLabel?: string;
+			rowKey?: string;
+			visible?: (context: SettingsContext) => boolean;
+			columns: SettingsTableColumnDefinition[];
+			actions?: SettingsTableActionDefinition[];
+			rows: SettingsTableRowsSource;
+			rowsReload?: (context: SettingsContext) => unknown;
+			searchKeys?: string[];
 	  };
 
 export type SettingsFieldSectionDefinition = {

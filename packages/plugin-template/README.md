@@ -4,22 +4,25 @@ Boilerplate for building installable Stream Kit plugins.
 
 ## Quick start
 
-1. Copy this folder to a new plugin project.
-2. Update `manifest.json` and `src/index.ts`.
-3. Install dependencies from the monorepo root with `pnpm install`.
-4. Develop with hot rebuild:
+1. Copy this folder to a new plugin project (or use it in-place inside the monorepo).
+2. Start from [`src/minimal.ts`](src/minimal.ts) for a short reference plugin, or keep [`src/index.ts`](src/index.ts) as a full UI block showcase.
+3. Update `manifest.json` and your plugin entry file.
+4. Install dependencies from the monorepo root with `pnpm install`.
+5. Develop with hot rebuild:
 
 ```bash
 pnpm --filter @stream-kit/plugin-template dev
 ```
 
-5. Build a distributable zip:
+6. Build a distributable zip:
 
 ```bash
 pnpm --filter @stream-kit/plugin-template package
 ```
 
 The zip is written to `packages/plugin-template/dist/plugin.zip`.
+
+See [Plugin getting started](../../docs/plugins/getting-started.md) for the full author guide.
 
 ## Zip layout
 
@@ -32,73 +35,28 @@ plugin.zip
 
 ## Authoring rules
 
-- Use `import type` from `@stream-kit/plugin` or `@stream-kit/app-types` for plugin types.
-- Use `@stream-kit/core` for runtime helpers such as `getFieldValue`, `resolveFieldText`, `interpolateVariables`, and `parseCommand`.
+| Import from | Use for |
+|-------------|---------|
+| `@stream-kit/plugin` (type-only) | `Plugin`, `PluginAppApi`, handler/trigger definitions, settings schema |
+| `@stream-kit/plugin` (value) | `BaseDirectory`, `SeekMode` |
+| `@stream-kit/core` | Runtime helpers: `getFieldValue`, `interpolateVariables`, `parseCommand`, cron helpers |
+
+- Never import `@tauri-apps/*` in plugin code. Use `app.fs`, `app.process`, and other `PluginAppApi` surfaces instead.
 - Register plugin menu pages with declarative page definitions from `@stream-kit/plugin`.
 - Do not pass Svelte components, compiled HTML, raw HTML, or `{@html}` for **external zip** plugin menu pages.
 - Built-in npm plugins may register `customViews` with Svelte components; zip plugins must stay blocks-only.
 - Button blocks may define an `onClick` handler when they need plugin-owned behavior.
 - Bundle all other runtime dependencies into `dist/index.js`.
+- Externalize host modules (`@stream-kit/plugin`, `@stream-kit/core`, `svelte`, `@stream-kit/ui`, …).
 - Set a stable `key` in `manifest.json`. Stream Kit uses that key for install paths, settings, and dependencies.
-- Menu item keys, form keys, and handler/trigger ids are generated and scoped by Stream Kit.
 
-## Declarative menu page example
+## Reference files
 
-```ts
-import type { Plugin } from '@stream-kit/plugin';
-
-const plugin: Plugin = (app) => ({
-	name: 'Hello World',
-	menuItems: [
-		{
-			title: 'Hello World',
-			icon: 'ri:hand-heart-line',
-			children: [
-				{
-					title: 'Overview',
-					page: {
-						title: 'Overview',
-						blocks: [
-							{ type: 'text', text: 'Rendered by Stream Kit.' },
-							{
-								type: 'button',
-								label: 'Show toast',
-								onClick: () => app.toast.create({ title: 'Hello World' })
-							}
-						]
-					}
-				}
-			]
-		}
-	]
-});
-
-export default plugin;
-```
-
-## Handler context
-
-Handlers receive a single `HandlerTriggerContext` object:
-
-```ts
-import type { HandlerDefinitionProps } from '@stream-kit/plugin';
-
-export const createGreetHandler = (): HandlerDefinitionProps => ({
-	name: 'Greet chatter',
-	execute: (_action, handler, context) => {
-		const data = context.data as { user?: string };
-		console.info(`Hello ${data.user ?? 'there'} (trigger: ${context.trigger})`);
-	}
-});
-```
-
-Script handlers receive an array. The platform wraps the context automatically when running user scripts:
-
-```ts
-export default (context: HandlerTriggerContext[]) => {
-	const [{ trigger, data }] = context;
-};
-```
+| File | Purpose |
+|------|---------|
+| [`src/minimal.ts`](src/minimal.ts) | Minimal plugin: store, handler, `app.fs` + `BaseDirectory` |
+| [`src/index.ts`](src/index.ts) | Full declarative page block showcase |
+| [`src/handler/greet.ts`](src/handler/greet.ts) | Example handler using `getFieldValue` |
 
 ## Install in Stream Kit
 

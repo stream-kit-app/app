@@ -54,6 +54,9 @@ export type CorePluginVariablesApi = {
 
 	resolve(context: HandlerTriggerContext): Record<string, string>;
 
+	/** Trigger payload only (includes plugin context enrichers, excludes global/user/action vars). */
+	resolveTriggerContext(data: unknown): Record<string, string>;
+
 	get(scope: VariableScope, key: string, context: HandlerTriggerContext): string | undefined;
 
 	set(

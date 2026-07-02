@@ -27,4 +27,6 @@ export type {
 	WatchOptions,
 	WriteFileOptions
 } from './types';
-export { BaseDirectory, FileHandle, SeekMode } from './types';
+export { BaseDirectory } from './base-directory';
+export { SeekMode } from './seek-mode';
+export type { FileHandle } from './file-handle';

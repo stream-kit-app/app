@@ -23,14 +23,16 @@ import type {
 	UserJoinPartContext,
 	WhisperContext
 } from '../contexts';
-import { getBroadcasterId, getBroadcasterName } from './broadcaster';
 import { setBadgeUrl } from './badge-cache';
+import { tryGetTwitch } from './plugin-api';
 import { chatMessageToContext } from './variables';
 
 function createBase(app: PluginAppApi) {
+	const twitch = tryGetTwitch(app);
+
 	return {
-		broadcasterId: getBroadcasterId(app) ?? '123456789',
-		channel: getBroadcasterName(app) ?? 'testchannel'
+		broadcasterId: twitch?.userId ?? '123456789',
+		channel: twitch?.token?.userName ?? 'testchannel'
 	};
 }
 

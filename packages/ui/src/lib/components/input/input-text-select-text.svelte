@@ -274,7 +274,7 @@
 			placeholder={pathPlaceholder}
 			bind:value={value.path}
 			class={cn(
-				'min-w-0 flex-1 border border-r bg-dark-700 text-dark-50 outline-none',
+				'min-w-0 flex-1 truncate border border-r bg-dark-700 text-dark-50 outline-none',
 				'rounded-l-xl',
 				inputSizeClasses.md,
 				segmentBorder
@@ -384,7 +384,7 @@
 				placeholder={valuePlaceholder}
 				bind:value={value.value}
 				class={cn(
-					'min-w-0 flex-1 rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+					'min-w-0 flex-1 truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
 					inputSizeClasses.md,
 					segmentBorder
 				)}

@@ -192,13 +192,13 @@
 	});
 </script>
 
-<div class="relative grid w-full gap-2">
+<div class="relative grid w-full min-w-0 gap-2">
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
 	<div
 		class={cn(
-			'relative flex w-full items-center rounded-xl',
+			'relative flex w-full min-w-0 items-center rounded-xl',
 			'has-focus-within:ring-2 has-focus-within:ring-primary',
 			error && 'has-focus-within:ring-red-500',
 			className
@@ -210,7 +210,7 @@
 			{placeholder}
 			bind:value
 			class={cn(
-				'w-full rounded-xl border bg-dark-700 text-dark-50 outline-none',
+				'min-w-0 w-full truncate rounded-xl border bg-dark-700 text-dark-50 outline-none',
 				inputSizeClasses.md,
 				error ? 'border-red-500' : 'border-dark-500'
 			)}

@@ -4,15 +4,25 @@ import {
 	parseCommand
 } from './parse-command.js';
 
+/** Condition tree shape used by action trigger conditions (command matching). */
 export type ConditionTree = {
 	children?: Array<{
+		/** Node kind: `condition` or `group`. */
 		kind: string;
+		/** Condition key (for example `command`). */
 		key?: string;
+		/** Condition value payload. */
 		value?: unknown;
+		/** Nested condition children for group nodes. */
 		children?: ConditionTree['children'];
 	}>;
 };
 
+/**
+ * Find the command pattern from a trigger condition tree.
+ *
+ * @returns The configured command pattern string, or null when none is found.
+ */
 export function findCommandConditionPattern(conditions: ConditionTree): string | null {
 	for (const child of conditions.children ?? []) {
 		if (child.kind === 'condition' && child.key === 'command') {
@@ -36,6 +46,21 @@ export function findCommandConditionPattern(conditions: ConditionTree): string |
 	return null;
 }
 
+/**
+ * Enrich a chat message context with `command` and `args` when it matches trigger conditions.
+ *
+ * When the condition tree defines a pattern with `<placeholders>`, named args are extracted.
+ * Otherwise only the command name is set.
+ *
+ * @example
+ * ```ts
+ * const enriched = enrichChatMessageWithCommand(
+ *   { message: '!hello Alice' },
+ *   actionConditions
+ * );
+ * // enriched.command === 'hello', enriched.args === { name: 'Alice' } (when pattern matches)
+ * ```
+ */
 export function enrichChatMessageWithCommand<T extends { message: string }>(
 	context: T,
 	conditions: ConditionTree,

@@ -24,6 +24,10 @@ function extractPlainData(value: unknown): unknown {
 	return result;
 }
 
+/**
+ * Convert a single context value to a string suitable for `{variable}` interpolation.
+ * Objects are JSON-stringified; functions are omitted.
+ */
 export function contextValueToVariableString(value: unknown): string | undefined {
 	if (value === undefined || value === null) {
 		return undefined;
@@ -48,6 +52,15 @@ export function contextValueToVariableString(value: unknown): string | undefined
 	return undefined;
 }
 
+/**
+ * Build a flat variables map from a trigger context object for use with `interpolateVariables`.
+ *
+ * @example
+ * ```ts
+ * const vars = contextToVariables(context.data);
+ * interpolateVariables('Hello {user}!', vars);
+ * ```
+ */
 export function contextToVariables(context: unknown): Record<string, string> {
 	const variables: Record<string, string> = {};
 

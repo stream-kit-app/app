@@ -1,0 +1,123 @@
+# @stream-kit/plugin
+
+The **public TypeScript API** for Stream Kit plugin authors. Types are extracted from the app source and bundled into a standalone declaration file; runtime helpers are re-exported from `@stream-kit/core`.
+
+**Location:** `packages/plugin/`  
+**NPM name:** `@stream-kit/plugin`
+
+## Installation
+
+External plugins add this package as a dev dependency and externalize it at build time:
+
+```json
+{
+  "devDependencies": {
+    "@stream-kit/plugin": "^0.1.0"
+  }
+}
+```
+
+At runtime the app host resolves `@stream-kit/plugin` from `static/plugin-host/plugin.js` via the import map. **Do not bundle** `@stream-kit/plugin` into your plugin entry.
+
+The npm package also ships `dist/index.js`, but Stream Kit always loads the host bundle at runtime. Keep host modules externalized in your Vite/Rollup config.
+
+## Imports
+
+```ts
+import type {
+	Plugin,
+	PluginAppApi,
+	PluginRegistration,
+	HandlerDefinitionProps,
+	TriggerDefinitionProps,
+	Action,
+	ActionHandler,
+	ActionTrigger
+} from '@stream-kit/plugin';
+
+import { getFieldValue, interpolateVariables, parseCommand } from '@stream-kit/core';
+import { BaseDirectory } from '@stream-kit/plugin';
+```
+
+| Import | Package |
+|--------|---------|
+| Types | `@stream-kit/plugin` (`import type`) |
+| Helpers (`getFieldValue`, cron, commands) | `@stream-kit/core` |
+| `BaseDirectory`, `SeekMode` | `@stream-kit/plugin` |
+
+### Subpath stubs
+
+Type-only subpaths exist for tooling that expects separate entry points:
+
+| Subpath | Purpose |
+|---------|---------|
+| `@stream-kit/plugin/action` | Action-related type stubs |
+| `@stream-kit/plugin/utils` | Utility type stubs |
+
+Runtime code should import helpers from `@stream-kit/core` and `BaseDirectory` / `SeekMode` from `@stream-kit/plugin`.
+
+## IDE hover and autocomplete
+
+JSDoc in the source types flows into `dist/index.d.ts` when you build this package. Hover on imports from `@stream-kit/plugin` and `@stream-kit/core`, and on `app.` methods in handler `execute` functions, to read parameter descriptions and examples without leaving the editor.
+
+## What this package exports
+
+### Plugin contract
+
+- `Plugin`, `PluginRegistration` — entry function and return shape
+- `PluginAppApi` — filesystem, audio, process, OAuth, toast, plugins, db, …
+- `PluginStore` — per-plugin JSON persistence (`plugin.{key}.json`)
+- `PluginPublicApi` — optional API surface for other plugins via `app.plugins.get(key)`
+
+### Actions
+
+- `Action`, `ActionHandler`, `ActionTrigger`
+- `HandlerDefinitionProps`, `HandlerExecuteFn`, `HandlerNext`
+- `TriggerDefinitionProps`, `TriggerTestFn`, `TriggerValidateFormFn`
+- Handler field types (`HandlerFieldDefinition`, `HandlerFieldValue`, one-of variants, …)
+- Condition tree types (`ConditionNode`, `Operator`, …)
+
+### Settings and UI schema
+
+- `PluginSettingsFieldDefinition`, `PluginSettingsFieldSectionDefinition`
+- `PluginPageDefinition`, `PluginPageBlock`, form block types
+- `PluginMenuItemDefinition`, `PluginWidgetDefinition`
+- `PluginCustomViewProps` — for Svelte custom views registered by the app renderer
+
+### Platform types
+
+- Filesystem: `BaseDirectory`, `SeekMode`, `FileHandle` (type), `ReadFileOptions`, `WatchEvent`, …
+- Process: `RunProgramOptions`, `ProcessEventContext`
+- Lifecycle: `AppLifecycleEvent`, `AppLifecycleContext`
+- Core plugin API types: `CorePluginApi`, `VariableScope`, collection types
+- Bot command types: `CommandRecord`, `CommandPermissions`, …
+- TTS: `LocalTtsVoiceInfo`, `LocalTtsRuntimeInfo`
+
+### Runtime re-exports from `@stream-kit/core`
+
+`getFieldValue`, `interpolateVariables`, cron helpers, command parsers, and related types are re-exported so plugin code can use a single import path.
+
+## Build pipeline
+
+```bash
+pnpm --filter @stream-kit/plugin build
+```
+
+Steps:
+
+1. `svelte-kit sync` on `@stream-kit/app` (types depend on app source paths)
+2. `dts-bundle-generator` — bundles `src/index.ts` → `dist/index.d.ts` using `tsconfig.api.json`
+3. `scripts/build-runtime.mjs` — bundles `src/runtime.ts` → `dist/index.js` (same entry as `static/plugin-host/plugin.js`)
+
+`pnpm dev` watches both `packages/app/src/lib/**` and `packages/plugin/src/**`.
+
+## Type generation
+
+Declarations are generated from app source via path aliases in `tsconfig.api.json`. The plugin package does not duplicate type definitions; it mirrors the app’s public contract. When the app API changes, rebuild `@stream-kit/plugin` before publishing or packaging plugins.
+
+## Further reading
+
+- [Plugin getting started](../plugins/getting-started.md) — step-by-step author guide
+- [Plugin authoring API](../plugins/api.md) — full API reference with examples
+- [Plugin development](../plugins/development.md) — build, link, and distribution workflow
+- [Plugin updates](../plugins/updates.md) — `updateManifestUrl` and `downloadUrl`

@@ -13,10 +13,15 @@ export const getFieldValue = getFieldValueCore;
 let resolveVariables: (context: HandlerTriggerContext) => Record<string, string> = (context) =>
 	contextToVariables(context.data);
 
+let unregisterContextEnricher: (() => void) | undefined;
+
 export function configureFieldValueResolver(app: PluginAppApi): void {
 	const core = app.plugins.tryGet<CorePluginApi>('core');
 
-	core?.registerContextVariableEnricher((data) => contextToVariables(data));
+	unregisterContextEnricher?.();
+	unregisterContextEnricher = core?.registerContextVariableEnricher((data) =>
+		contextToVariables(data)
+	);
 
 	resolveVariables = (context) => {
 		if (!core) {

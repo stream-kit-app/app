@@ -188,7 +188,7 @@
 	}
 </script>
 
-<div class={cn('relative grid w-full gap-2')}>
+<div class={cn('relative grid w-full min-w-0 gap-2')}>
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
@@ -196,7 +196,7 @@
 	<Dialog.Root bind:open onOpenChange={handleOpenChange}>
 		<div
 			class={cn(
-				'relative flex w-full items-center rounded-xl',
+				'relative flex w-full min-w-0 items-center rounded-xl',
 				'has-focus:ring-2 has-focus:ring-primary',
 				error && 'has-focus:ring-red-500',
 				className
@@ -211,7 +211,7 @@
 				aria-controls={open ? commandListId : undefined}
 				aria-required={required || undefined}
 				{disabled}
-				class="flex w-full cursor-pointer items-center outline-none disabled:cursor-not-allowed disabled:opacity-50"
+				class="flex w-full min-w-0 cursor-pointer items-center outline-none disabled:cursor-not-allowed disabled:opacity-50"
 				onclick={openDialog}
 			>
 				{#if prependIcon}
@@ -232,7 +232,7 @@
 						}
 					)}
 				>
-					<span class={cn('truncate', !hasValue && 'text-dark-300')}>
+					<span class={cn('min-w-0 flex-1 truncate text-left', !hasValue && 'text-dark-300')}>
 						{selectedLabel}
 					</span>
 					<Icon icon="ri:expand-up-down-line" class="size-5 shrink-0 text-dark-300" />

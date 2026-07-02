@@ -14,7 +14,7 @@ export { Plugins, RegisteredPlugin } from './plugins';
 export type { OAuthStartOptions } from './oauth';
 export { OAuth } from './oauth';
 export { Opener } from './opener';
-export { BaseDirectory, FileHandle, Filesystem, SeekMode } from './filesystem';
+export { BaseDirectory, Filesystem, SeekMode } from './filesystem';
 export type {
 	CopyFileOptions,
 	CreateOptions,

@@ -90,7 +90,7 @@ The action editor provides variable reference popovers to help when writing `{va
 
 ### Trigger variables (per trigger)
 
-An info icon next to each trigger title opens a popover listing variables available from that trigger's context. Keys are derived from the trigger's `onTest` dummy data using the same top-level extraction as runtime interpolation (`string`, `number`, `boolean` fields only).
+An info icon next to each trigger title opens a popover listing variables available from that trigger's context. Keys are derived from the trigger's `onTest` dummy data using the same resolution as runtime interpolation (`core.variables.resolveTriggerContext`), including plugin context enrichers. Use `{username}` for the triggering chatter; `{user}` still works at runtime as an alias but is not shown in pickers.
 
 Click a variable to copy `{key}` to the clipboard.
 
@@ -99,7 +99,6 @@ Click a variable to copy `{key}` to the clipboard.
 - Triggers without `onTest` show an empty state
 - Object variables such as `msg` (Twitch chat) or `raw` (YouTube) are serialized as JSON strings for interpolation
 - Test data values may differ from live data (e.g. `role`), but keys are generally accurate
-- A few triggers use incorrect test factories; their key lists may be wrong until test contexts are fixed
 
 ### Global variables (Triggers section)
 

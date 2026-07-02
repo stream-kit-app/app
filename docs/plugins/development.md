@@ -2,6 +2,8 @@
 
 Stream Kit loads plugins from installed manifests. The app no longer registers first-party plugins directly at boot.
 
+**New to plugin authoring?** Start with [Plugin getting started](./getting-started.md) for a step-by-step guide.
+
 ## Public API
 
 Plugin authors should import types from `@stream-kit/plugin`:

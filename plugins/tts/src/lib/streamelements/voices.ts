@@ -80,6 +80,7 @@ export function voiceSelectSettingsField(
 	} = {}
 ): SettingsFieldDefinition {
 	return {
+		...(options.key ? { key: options.key } : {}),
 		type: 'select',
 		name: options.name ?? 'Default voice',
 		placeholder: options.emptyLabel ?? 'Select a default voice',

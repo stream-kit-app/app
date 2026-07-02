@@ -289,6 +289,7 @@ const plugin: Plugin = (app) => {
 			}
 		],
 		onEnable: async ({ store }) => {
+			configureFieldValueResolver(app);
 			twitchApi = createTwitchPluginApi(app, store);
 			await twitchApi.boot();
 		}

@@ -1,10 +1,11 @@
 import type { HandlerTriggerContext } from '@stream-kit/plugin';
 
-import { contextToVariables as contextToVariablesExtended } from '../context-variables';import { applyContextVariableEnrichers } from './context-enrichers';
+import { contextToVariables as contextToVariablesExtended } from '../context-variables';
+import { applyContextVariableEnrichers } from './context-enrichers';
 import { extractUsername } from './extract-username';
 import type { VariableStore } from './variable-store';
 
-function resolveTriggerContextVariables(data: unknown): Record<string, string> {
+export function resolveTriggerContextVariables(data: unknown): Record<string, string> {
 	const base = contextToVariablesExtended(data);
 
 	return applyContextVariableEnrichers(data, base);

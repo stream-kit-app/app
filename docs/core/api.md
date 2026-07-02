@@ -24,6 +24,12 @@ core.variables.resolve(context: HandlerTriggerContext): Record<string, string>
 Builds the full variable object for interpolation (trigger + global + user + action).
 
 ```typescript
+core.variables.resolveTriggerContext(data: unknown): Record<string, string>
+```
+
+Builds trigger-context variables only (includes plugin context enrichers; excludes global, user-store, and action-scoped variables). Used by the action editor trigger variable popover.
+
+```typescript
 core.variables.get(
   scope: VariableScope,
   key: string,

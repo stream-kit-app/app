@@ -1,0 +1,122 @@
+# @stream-kit/plugin-template
+
+Starter project for external Stream Kit plugins. Demonstrates handlers, settings, menu pages with every supported block type, and packaging for distribution.
+
+**Location:** `packages/plugin-template/`  
+**NPM name:** `@stream-kit/plugin-template` (private workspace package)
+
+## What it includes
+
+| File / folder | Purpose |
+|---------------|---------|
+| `manifest.json` | Plugin key, version, entry, update URLs |
+| `src/index.ts` | Plugin registration: handlers, menu items, lifecycle hooks |
+| `src/minimal.ts` | Minimal reference plugin (store, handler, filesystem) |
+| `src/handler/` | Example handler (`greet`) |
+| `vite.build.config.js` | Shared Vite build config (delegates to `plugins/create-vite-build-config.js`) |
+| `scripts/package.mjs` | Creates a distributable zip |
+
+Plugin key: `hello-world`
+
+## Getting started
+
+**New to plugin development?** Start with [Plugin getting started](../plugins/getting-started.md).
+
+1. Copy `packages/plugin-template/` to a new repository or folder outside the monorepo (or use it in-place for experimentation).
+
+2. Use [`src/minimal.ts`](../../packages/plugin-template/src/minimal.ts) as your starting point, or keep `src/index.ts` for the full block showcase.
+
+3. Update `manifest.json`:
+   - `key` — unique lowercase identifier (used for settings paths and definition IDs)
+   - `name`, `version`, `description`
+   - `updateManifestUrl` and `downloadUrl` when you publish releases
+
+4. Install dependencies and build:
+
+```bash
+pnpm install
+pnpm build
+```
+
+5. Link in Stream Kit:
+   - Open **Plugins**, enable **Developer mode**
+   - Click **Link dev plugin** and select this folder’s `manifest.json`
+   - Enable the plugin and turn on **Dev mode** on the plugin card
+
+When `pnpm dev` rebuilds `dist/index.js`, the app mirrors the output and reloads the plugin.
+
+## Example plugin shape
+
+```ts
+import type { Plugin } from '@stream-kit/plugin';
+
+const plugin: Plugin = (app) => ({
+	name: 'Hello World',
+	description: 'Example Stream Kit plugin.',
+	icon: 'ri:hand-heart-line',
+	handlers: [/* … */],
+	menuItems: [/* declarative pages */],
+	onLoad: async ({ store }) => { /* … */ },
+	onSave: async ({ store }) => { /* … */ }
+});
+
+export default plugin;
+```
+
+The template’s `src/index.ts` includes a full **page block showcase** — every block type the UI renderer supports — useful as a reference when building plugin menu pages.
+
+## Build output
+
+Vite produces a single ESM file:
+
+```text
+dist/
+└── index.js
+```
+
+External modules (not bundled):
+
+- `@stream-kit/plugin`, `@stream-kit/plugin/action`
+- `@stream-kit/core`
+- `svelte`, `@stream-kit/ui`, `bits-ui`, `runed`, `@iconify/svelte`
+
+## Package for distribution
+
+```bash
+pnpm --filter @stream-kit/plugin-template package
+```
+
+Creates a zip with this layout:
+
+```text
+plugin.zip
+├── manifest.json
+└── dist/
+    └── index.js
+```
+
+Users install the zip from the **Plugins** page in Stream Kit.
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `build` | Production bundle via Vite |
+| `dev` | Watch mode rebuild |
+| `check` | `tsc --noEmit` |
+| `package` | Build + zip for distribution |
+
+## Dependencies
+
+| Package | Role |
+|---------|------|
+| `@stream-kit/core` | Runtime helpers in handler logic |
+| `@stream-kit/plugin` (dev) | Types and API contract |
+| `@stream-kit/app` (dev) | Type resolution during development in the monorepo |
+
+## Further reading
+
+- [Plugin getting started](../plugins/getting-started.md)
+- [Plugin development](../plugins/development.md)
+- [Plugin authoring API](../plugins/api.md)
+- [Plugin updates](../plugins/updates.md)

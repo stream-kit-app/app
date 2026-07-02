@@ -58,7 +58,7 @@
 	}
 </script>
 
-<div class={cn('grid w-full gap-2')}>
+<div class={cn('grid w-full min-w-0 gap-2')}>
 	{#if label}
 		<Label>
 			{label}
@@ -96,7 +96,12 @@
 		{/each}
 	</div>
 
-	<div role="tabpanel" id={`panel-${activeVariantId}`} aria-labelledby={`tab-${activeVariantId}`}>
+	<div
+		class="min-w-0"
+		role="tabpanel"
+		id={`panel-${activeVariantId}`}
+		aria-labelledby={`tab-${activeVariantId}`}
+	>
 		{@render panel({
 			variantId: activeVariantId,
 			value: value.values[activeVariantId],

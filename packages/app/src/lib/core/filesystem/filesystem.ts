@@ -2,8 +2,10 @@ import type {
 	CopyFileOptions,
 	CreateOptions,
 	DebouncedWatchOptions,
+	DirEntry,
 	ExistsOptions,
-	FileSystemSelectOptions,
+	FileHandle,
+	FileInfo,
 	MkdirOptions,
 	OpenOptions,
 	ReadDirOptions,
@@ -12,11 +14,12 @@ import type {
 	RenameOptions,
 	StatOptions,
 	TruncateOptions,
+	UnwatchFn,
 	WatchEvent,
 	WatchOptions,
-	WriteFileOptions
+	WriteFileOptions,
+	FileSystemSelectOptions
 } from './types';
-import type { DirEntry, FileInfo, UnwatchFn } from '@tauri-apps/plugin-fs';
 
 import { join } from '@tauri-apps/api/path';
 import { open as openDialog } from '@tauri-apps/plugin-dialog';
@@ -42,6 +45,8 @@ import {
 	writeTextFile
 } from '@tauri-apps/plugin-fs';
 
+import { asTauriFsOptions } from './tauri-bridge';
+
 export class Filesystem {
 	async select(options: FileSystemSelectOptions): Promise<string | null> {
 		const selected = await openDialog({
@@ -61,12 +66,12 @@ export class Filesystem {
 		return join(...paths);
 	}
 
-	create(path: string | URL, options?: CreateOptions) {
-		return create(path, options);
+	create(path: string | URL, options?: CreateOptions): Promise<FileHandle> {
+		return create(path, asTauriFsOptions(options));
 	}
 
-	open(path: string | URL, options?: OpenOptions) {
-		return open(path, options);
+	open(path: string | URL, options?: OpenOptions): Promise<FileHandle> {
+		return open(path, asTauriFsOptions(options));
 	}
 
 	copyFile(
@@ -74,50 +79,50 @@ export class Filesystem {
 		toPath: string | URL,
 		options?: CopyFileOptions
 	): Promise<void> {
-		return copyFile(fromPath, toPath, options);
+		return copyFile(fromPath, toPath, asTauriFsOptions(options));
 	}
 
 	mkdir(path: string | URL, options?: MkdirOptions): Promise<void> {
-		return mkdir(path, options);
+		return mkdir(path, asTauriFsOptions(options));
 	}
 
 	readDir(path: string | URL, options?: ReadDirOptions): Promise<DirEntry[]> {
-		return readDir(path, options);
+		return readDir(path, asTauriFsOptions(options));
 	}
 
 	readFile(path: string | URL, options?: ReadFileOptions): Promise<Uint8Array> {
-		return readFile(path, options);
+		return readFile(path, asTauriFsOptions(options));
 	}
 
 	readTextFile(path: string | URL, options?: ReadFileOptions): Promise<string> {
-		return readTextFile(path, options);
+		return readTextFile(path, asTauriFsOptions(options));
 	}
 
 	readTextFileLines(
 		path: string | URL,
 		options?: ReadFileOptions
 	): Promise<AsyncIterableIterator<string>> {
-		return readTextFileLines(path, options);
+		return readTextFileLines(path, asTauriFsOptions(options));
 	}
 
 	remove(path: string | URL, options?: RemoveOptions): Promise<void> {
-		return remove(path, options);
+		return remove(path, asTauriFsOptions(options));
 	}
 
 	rename(oldPath: string | URL, newPath: string | URL, options?: RenameOptions): Promise<void> {
-		return rename(oldPath, newPath, options);
+		return rename(oldPath, newPath, asTauriFsOptions(options));
 	}
 
 	stat(path: string | URL, options?: StatOptions): Promise<FileInfo> {
-		return stat(path, options);
+		return stat(path, asTauriFsOptions(options));
 	}
 
 	lstat(path: string | URL, options?: StatOptions): Promise<FileInfo> {
-		return lstat(path, options);
+		return lstat(path, asTauriFsOptions(options));
 	}
 
 	truncate(path: string | URL, len?: number, options?: TruncateOptions): Promise<void> {
-		return truncate(path, len, options);
+		return truncate(path, len, asTauriFsOptions(options));
 	}
 
 	writeFile(
@@ -125,15 +130,15 @@ export class Filesystem {
 		data: Uint8Array | ReadableStream<Uint8Array>,
 		options?: WriteFileOptions
 	): Promise<void> {
-		return writeFile(path, data, options);
+		return writeFile(path, data, asTauriFsOptions(options));
 	}
 
 	writeTextFile(path: string | URL, data: string, options?: WriteFileOptions): Promise<void> {
-		return writeTextFile(path, data, options);
+		return writeTextFile(path, data, asTauriFsOptions(options));
 	}
 
 	exists(path: string | URL, options?: ExistsOptions): Promise<boolean> {
-		return exists(path, options);
+		return exists(path, asTauriFsOptions(options));
 	}
 
 	watch(
@@ -141,7 +146,7 @@ export class Filesystem {
 		callback: (event: WatchEvent) => void,
 		options?: DebouncedWatchOptions
 	): Promise<UnwatchFn> {
-		return watch(paths, callback, options);
+		return watch(paths, callback, asTauriFsOptions(options));
 	}
 
 	watchImmediate(
@@ -149,7 +154,7 @@ export class Filesystem {
 		callback: (event: WatchEvent) => void,
 		options?: WatchOptions
 	): Promise<UnwatchFn> {
-		return watchImmediate(paths, callback, options);
+		return watchImmediate(paths, callback, asTauriFsOptions(options));
 	}
 
 	size(path: string | URL): Promise<number> {

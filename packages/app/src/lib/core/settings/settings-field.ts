@@ -84,7 +84,7 @@ export function filterVisibleFieldItems(
 
 type NonPersistedSettingsField = Extract<
 	SettingsFieldDefinition,
-	{ type: 'alert' | 'button' | 'select-values' }
+	{ type: 'alert' | 'button' | 'select-values' | 'table' }
 >;
 
 export function isPersistedSettingsField(
@@ -93,7 +93,8 @@ export function isPersistedSettingsField(
 	return (
 		definition.type !== 'alert' &&
 		definition.type !== 'button' &&
-		definition.type !== 'select-values'
+		definition.type !== 'select-values' &&
+		definition.type !== 'table'
 	);
 }
 
@@ -118,7 +119,8 @@ export function initSettingsFieldValue(definition: SettingsFieldDefinition): Set
 	if (
 		definition.type === 'alert' ||
 		definition.type === 'button' ||
-		definition.type === 'select-values'
+		definition.type === 'select-values' ||
+		definition.type === 'table'
 	) {
 		return false;
 	}
@@ -163,7 +165,8 @@ export function isSettingsFieldValueEmpty(
 	if (
 		definition.type === 'alert' ||
 		definition.type === 'button' ||
-		definition.type === 'select-values'
+		definition.type === 'select-values' ||
+		definition.type === 'table'
 	) {
 		return false;
 	}
@@ -243,6 +246,16 @@ function withGeneratedSettingsFieldKey(
 	used: Set<string>
 ): SettingsFieldDefinition {
 	const definition = field as Record<string, unknown>;
+	const explicitKey = typeof definition.key === 'string' ? definition.key.trim() : '';
+
+	if (explicitKey) {
+		uniqueSlug(explicitKey, used, explicitKey);
+
+		return {
+			...definition,
+			key: explicitKey
+		} as SettingsFieldDefinition;
+	}
 
 	return {
 		...definition,

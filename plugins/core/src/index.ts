@@ -178,6 +178,8 @@ const plugin = (app: PluginAppApi) => {
 
 			resolve: variables.resolve.bind(variables),
 
+			resolveTriggerContext: variables.resolveTriggerContext.bind(variables),
+
 			get: variables.get.bind(variables),
 
 			set: variables.set.bind(variables),

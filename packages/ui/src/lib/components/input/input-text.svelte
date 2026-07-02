@@ -38,13 +38,13 @@
 	const sizeClasses = inputSizeClasses;
 </script>
 
-<div class={cn('relative grid w-full gap-2')}>
+<div class={cn('relative grid w-full min-w-0 gap-2')}>
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
 	<div
 		class={cn(
-			'relative flex w-full items-center rounded-xl',
+			'relative flex w-full min-w-0 items-center rounded-xl',
 			'has-focus:ring-2 has-focus:ring-primary',
 			error && 'has-focus:ring-red-500',
 			props.class
@@ -63,7 +63,7 @@
 		<input
 			{id}
 			class={cn(
-				'w-full border bg-dark-700 text-dark-50 outline-none',
+				'min-w-0 w-full truncate border bg-dark-700 text-dark-50 outline-none',
 				sizeClasses[size],
 				error ? 'border-red-500' : 'border-dark-500',
 				{

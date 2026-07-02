@@ -1,7 +1,7 @@
 import type { HandlerTriggerContext, PluginStore } from '@stream-kit/plugin';
 
 import { extractUsername } from './extract-username';
-import { resolveVariables } from './resolve-variables';
+import { resolveTriggerContextVariables, resolveVariables } from './resolve-variables';
 import type { VariableScope } from './types';
 
 const GLOBAL_KEY = 'variables';
@@ -41,6 +41,10 @@ export class VariableStore {
 
 	resolve(context: HandlerTriggerContext): Record<string, string> {
 		return resolveVariables(this, context);
+	}
+
+	resolveTriggerContext(data: unknown): Record<string, string> {
+		return resolveTriggerContextVariables(data);
 	}
 
 	getGlobalSnapshot(): Record<string, string> {

@@ -27,6 +27,7 @@
 	import { cn } from '$lib/utils';
 
 	import SelectValuesSettingsField from './select-values-settings-field.svelte';
+	import TableSettingsField from './table-settings-field.svelte';
 
 	type Props = {
 		context: SettingsContext;
@@ -128,6 +129,8 @@
 				</Button>
 			{:else if config.type === 'select-values'}
 				<SelectValuesSettingsField {config} {context} />
+			{:else if config.type === 'table'}
+				<TableSettingsField {config} {context} />
 			{:else}
 				{@const field = getField(config.key)}
 				{#if field}

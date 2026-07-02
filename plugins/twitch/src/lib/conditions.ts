@@ -7,6 +7,7 @@ import {
 } from '@stream-kit/core';
 
 import { matchText } from '../match-text';
+import { USER_TEXT_VARIABLES } from './variables';
 
 export const messageMatchOperators = [
 	{ value: 'startsWith', label: 'Starts with' },
@@ -74,7 +75,8 @@ export function userMatchCondition(
 		name,
 		placeholder,
 		defaultValue: { type: 'equals', value: '' },
-		items: [...userMatchOperators]
+		items: [...userMatchOperators],
+		variables: USER_TEXT_VARIABLES
 	};
 }
 

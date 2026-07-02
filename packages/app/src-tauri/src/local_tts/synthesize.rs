@@ -33,7 +33,8 @@ pub fn synthesize_speech(app: &AppHandle, voice_id: &str, text: &str) -> Result<
         .parent()
         .ok_or_else(|| "failed to resolve Piper runtime directory".to_string())?;
 
-    let mut child = Command::new(&piper_executable)
+    let mut command = Command::new(&piper_executable);
+    command
         .current_dir(piper_home)
         .arg("--model")
         .arg(&model_path)
@@ -42,7 +43,17 @@ pub fn synthesize_speech(app: &AppHandle, voice_id: &str, text: &str) -> Result<
         .arg("--output_file")
         .arg(&output_path)
         .arg("--quiet")
-        .stdin(Stdio::piped())
+        .stdin(Stdio::piped());
+
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let mut child = command
         .spawn()
         .map_err(|error| format!("failed to run Piper: {error}"))?;
 

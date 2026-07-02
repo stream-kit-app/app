@@ -10,6 +10,7 @@
     "sync:plugin-host": "node scripts/sync-plugin-host-modules.mjs",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test": "node --experimental-strip-types --test src/lib/core/filesystem/base-directory.test.ts",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
     "lint": "eslint .",

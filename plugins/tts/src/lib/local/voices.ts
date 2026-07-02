@@ -70,6 +70,7 @@ function localVoiceSelectSettingsItems(): (context: SettingsContext) => Promise<
 
 export function localVoiceSelectSettingsField(
 	options: {
+		key?: string;
 		name?: string;
 		emptyLabel?: string;
 		required?: boolean;
@@ -77,6 +78,7 @@ export function localVoiceSelectSettingsField(
 	} = {}
 ): PluginSettingsFieldDefinition {
 	return {
+		...(options.key ? { key: options.key } : {}),
 		type: 'combobox',
 		name: options.name ?? 'Local TTS default voice',
 		placeholder: options.emptyLabel ?? 'Select a default voice',

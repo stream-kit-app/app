@@ -1,15 +1,26 @@
+/** Result of matching a chat command pattern against a message. */
 export type CommandMatch = {
+	/** Matched command name (lowercase). */
 	command: string;
+	/** Named arguments extracted from `<placeholder>` tokens in the pattern. */
 	args: Record<string, string>;
 };
 
+/** Parsed chat message command metadata. */
 export type ParsedCommandMessage = {
+	/** Whether the message starts with the command prefix. */
 	isCommand: boolean;
+	/** First token after the prefix, lowercased, or null when not a command. */
 	command: string | null;
+	/** All tokens after the prefix. */
 	tokens: string[];
+	/** Full message body after the prefix (unmodified casing). */
 	remainder: string;
 };
 
+/**
+ * Argument names reserved by the platform. Avoid using these as custom `<placeholder>` names.
+ */
 export const RESERVED_COMMAND_ARG_NAMES = new Set([
 	'user',
 	'username',
@@ -66,22 +77,50 @@ function getMessageBody(message: string, prefix: string): string | null {
 	return message.slice(normalizedPrefix.length).trim();
 }
 
+/**
+ * Returns whether a command pattern contains `<arg>` placeholders.
+ */
 export function hasCommandArgPlaceholders(pattern: string): boolean {
 	return /<[a-zA-Z_][a-zA-Z0-9_]*>/.test(pattern);
 }
 
+/**
+ * Extract placeholder argument names from a command pattern.
+ *
+ * @example
+ * ```ts
+ * extractCommandArgNames('hello <name> <reason>'); // ['name', 'reason']
+ * ```
+ */
 export function extractCommandArgNames(pattern: string): string[] {
 	return tokenizePattern(pattern)
 		.filter((token): token is { type: 'arg'; name: string } => token.type === 'arg')
 		.map((token) => token.name);
 }
 
+/**
+ * Parse the command name from a chat message, or return null when not a command.
+ *
+ * @example
+ * ```ts
+ * parseCommand('!hello world'); // 'hello'
+ * ```
+ */
 export function parseCommand(message: string, prefix = '!'): string | null {
 	const parsed = parseCommandMessage(message, prefix);
 
 	return parsed.command;
 }
 
+/**
+ * Parse command metadata from a chat message.
+ *
+ * @example
+ * ```ts
+ * parseCommandMessage('!hello Alice');
+ * // { isCommand: true, command: 'hello', tokens: ['hello', 'Alice'], remainder: 'hello Alice' }
+ * ```
+ */
 export function parseCommandMessage(message: string, prefix = '!'): ParsedCommandMessage {
 	const body = getMessageBody(message, prefix);
 
@@ -113,6 +152,16 @@ export function parseCommandMessage(message: string, prefix = '!'): ParsedComman
 	};
 }
 
+/**
+ * Match a command pattern against a chat message and extract named arguments.
+ *
+ * Patterns use literal tokens and `<argName>` placeholders. The last placeholder captures the remainder.
+ *
+ * @example
+ * ```ts
+ * matchCommandPattern('hello <name>', '!hello Alice'); // { command: 'hello', args: { name: 'Alice' } }
+ * ```
+ */
 export function matchCommandPattern(
 	pattern: string,
 	message: string,

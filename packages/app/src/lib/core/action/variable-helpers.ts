@@ -56,8 +56,18 @@ function formatVariableLabel(key: string): string {
 		.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+/** Runtime aliases hidden from variable pickers when the canonical key is present. */
+const VARIABLE_UI_ALIASES: Record<string, string> = {
+	user: 'username'
+};
+
 function toVariableList(variables: Record<string, string>): HandlerFieldVariable[] {
 	return Object.keys(variables)
+		.filter((key) => {
+			const canonical = VARIABLE_UI_ALIASES[key];
+
+			return !canonical || !(canonical in variables);
+		})
 		.sort((left, right) => left.localeCompare(right))
 		.map((key) => ({
 			key,
@@ -72,12 +82,7 @@ export function getTriggerVariables(action: Action, trigger: ActionTrigger): Han
 
 	const data = trigger.definition.onTest(action, trigger);
 	const core = getApp().plugins.tryGet<CorePluginApi>('core');
-	const variables =
-		core?.variables.resolve({
-			trigger: trigger.definition.name,
-			data,
-			actionVariables: {}
-		}) ?? contextToVariables(data);
+	const variables = core?.variables.resolveTriggerContext(data) ?? contextToVariables(data);
 
 	return toVariableList(variables);
 }

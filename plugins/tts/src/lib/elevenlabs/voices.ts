@@ -5,9 +5,30 @@ import type {
 } from '@stream-kit/plugin';
 import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
+import type { ElevenLabsVoice } from './types';
+
 import { fetchElevenLabsVoices } from './api';
 import { elevenlabs } from './service';
 import { createVoiceOneOfField } from '../voice-one-of-field';
+
+export function formatElevenLabsVoiceLabel(voice: ElevenLabsVoice): string {
+	const languagePart = voice.language ? ` (${voice.language})` : '';
+
+	return `${voice.name}${languagePart} · ${voice.id}`;
+}
+
+export function formatElevenLabsVoiceName(voice: ElevenLabsVoice): string {
+	const languagePart = voice.language ? ` (${voice.language})` : '';
+
+	return `${voice.name}${languagePart}`;
+}
+
+function toElevenLabsSelectItem(voice: ElevenLabsVoice): SelectItem {
+	return {
+		value: voice.id,
+		label: formatElevenLabsVoiceLabel(voice)
+	};
+}
 
 export async function loadElevenLabsVoiceItems(): Promise<SelectItem[]> {
 	if (!elevenlabs.isConfigured) {
@@ -17,10 +38,7 @@ export async function loadElevenLabsVoiceItems(): Promise<SelectItem[]> {
 	try {
 		const voices = await elevenlabs.fetchVoices();
 
-		return voices.map((voice) => ({
-			value: voice.id,
-			label: voice.language ? `${voice.name} (${voice.language})` : voice.name
-		}));
+		return voices.map(toElevenLabsSelectItem);
 	} catch {
 		return [];
 	}
@@ -60,10 +78,7 @@ function elevenlabsVoiceSelectSettingsItems(): (context: SettingsContext) => Pro
 		try {
 			const voices = await fetchElevenLabsVoices(apiKey);
 
-			return voices.map((voice) => ({
-				value: voice.id,
-				label: voice.language ? `${voice.name} (${voice.language})` : voice.name
-			}));
+			return voices.map(toElevenLabsSelectItem);
 		} catch {
 			return [];
 		}
@@ -80,6 +95,7 @@ export function elevenlabsVoiceSelectSettingsField(
 	} = {}
 ): SettingsFieldDefinition {
 	return {
+		...(options.key ? { key: options.key } : {}),
 		type: 'combobox',
 		name: options.name ?? 'Default voice',
 		placeholder: options.emptyLabel ?? 'Select a default voice',

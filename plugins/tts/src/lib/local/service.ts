@@ -11,28 +11,8 @@ const STORE_KEY_SUFFIXES = {
 export const LOCAL_DEFAULT_VOICE_SETTING_KEY = STORE_KEY_SUFFIXES.defaultVoice;
 export const LOCAL_VOLUME_SETTING_KEY = STORE_KEY_SUFFIXES.volume;
 
-function normalizeStoreKey(value: string): string {
-	return value
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-}
-
 function voicesFingerprint(voices: LocalTtsVoiceInfo[]): string {
 	return voices.map((voice) => `${voice.id}:${voice.installed}`).join('|');
-}
-
-function findStoreEntryValue(entries: Record<string, unknown>, suffix: string): unknown {
-	const needle = normalizeStoreKey(suffix);
-
-	for (const [key, value] of Object.entries(entries)) {
-		if (normalizeStoreKey(key).endsWith(needle)) {
-			return value;
-		}
-	}
-
-	return undefined;
 }
 
 export class LocalTtsService {
@@ -87,9 +67,8 @@ export class LocalTtsService {
 			return;
 		}
 
-		const entries = await this.store.entries();
-		const defaultVoice = findStoreEntryValue(entries, STORE_KEY_SUFFIXES.defaultVoice);
-		const volume = findStoreEntryValue(entries, STORE_KEY_SUFFIXES.volume);
+		const defaultVoice = await this.store.get<string>(STORE_KEY_SUFFIXES.defaultVoice);
+		const volume = await this.store.get<number>(STORE_KEY_SUFFIXES.volume);
 
 		this.defaultVoice =
 			typeof defaultVoice === 'string' && defaultVoice.trim()

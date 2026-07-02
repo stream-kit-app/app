@@ -12,7 +12,7 @@ mkdirSync(outDir, { recursive: true });
 await esbuild.build({
 	entryPoints: [path.resolve(root, 'src/runtime.ts')],
 	outfile: path.resolve(outDir, 'index.js'),
-	bundle: false,
+	bundle: true,
 	format: 'esm',
 	platform: 'neutral',
 	logLevel: 'silent'
