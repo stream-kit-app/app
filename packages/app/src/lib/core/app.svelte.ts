@@ -44,7 +44,7 @@ export class App extends Bootable {
 	public process = new ProcessWatcher();
 	public hotkeys = new HotkeyManager();
 	public localTts = new LocalTts();
-	public overlay = new OverlayService(() => this);
+	public overlay = new OverlayService();
 
 	public modals = new SvelteMap<string, Modal>();
 	public confirm = new Confirm();

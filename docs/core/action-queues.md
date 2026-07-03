@@ -49,4 +49,4 @@ Plugins can control queues through `app.actionQueues` (see [Plugin API](../plugi
 - `on(event, handler)` — subscribe to queue status events (`paused`, `resumed`, `idle`, `job_enqueued`, `job_started`, `job_completed`)
 - `definitions` — list of configured queues
 
-The core plugin exposes **Pause Queue** and **Resume Queue** handlers, plus triggers for each queue status event.
+The core plugin exposes **Pause Queue**, **Resume Queue**, and **Toggle Queue** handlers, plus triggers for each queue status event.

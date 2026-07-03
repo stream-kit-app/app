@@ -10,4 +10,4 @@ export type {
 	OverlayProjectFile,
 	OverlayServerStatus
 } from './types';
-export { DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';
+export { createOverlayId, DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';

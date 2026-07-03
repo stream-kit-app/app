@@ -13,7 +13,7 @@
 	import { app } from '$lib/core';
 	import { getOverlayFrameworkIcon, OVERLAY_FRAMEWORKS } from '$lib/core/overlay';
 	import { useI18n } from '$lib/i18n';
-	import { cn, slugify } from '$lib/utils';
+	import { cn } from '$lib/utils';
 
 	const { t } = useI18n();
 
@@ -31,8 +31,7 @@
 		isCreating = true;
 
 		try {
-			const id = slugify(trimmed);
-			await app.overlay.create({ id, name: trimmed, framework });
+			await app.overlay.create({ name: trimmed, framework });
 			app.toast.create({
 				title: t('Overlay created'),
 				description: t('Open the project in your editor and follow the README to install, build, and connect to Stream Kit.'),

@@ -3492,9 +3492,111 @@ function Ti(e, t) {
 	}), v(d), v(l), M(e, l), x();
 }
 //#endregion
+//#region ../ui/src/lib/components/input/input-hotkey.svelte
+var Ei = Y("<p class=\"text-sm text-red-400\"> </p>"), Di = Y("<div class=\"grid w-full min-w-0 gap-2\"><!> <button type=\"button\"><!> <span><!></span></button> <!></div>");
+function Oi(e, t) {
+	u(t, !0);
+	let n = k(t, "placeholder", 3, "Click and press keys…");
+	k(t, "required", 3, !1);
+	let a = k(t, "value", 15, ""), o = k(t, "captureLabel", 3, "Press shortcut…"), s = k(t, "emptyLabel", 3, "Not set"), c = Fe(), l = N(!1);
+	function d(e) {
+		if (e.startsWith("Key")) return e.slice(3);
+		if (e.startsWith("Digit")) return e.slice(5);
+		let t = {
+			Space: "Space",
+			Enter: "Enter",
+			Escape: "Escape",
+			Tab: "Tab",
+			Backspace: "Backspace",
+			Delete: "Delete",
+			ArrowUp: "ArrowUp",
+			ArrowDown: "ArrowDown",
+			ArrowLeft: "ArrowLeft",
+			ArrowRight: "ArrowRight",
+			Home: "Home",
+			End: "End",
+			PageUp: "PageUp",
+			PageDown: "PageDown"
+		};
+		return t[e] ? t[e] : /^F\d{1,2}$/.test(e) ? e : null;
+	}
+	function f(e) {
+		if (e.key === "Control" || e.key === "Shift" || e.key === "Alt" || e.key === "Meta") return null;
+		let t = [];
+		(e.ctrlKey || e.metaKey) && t.push("CommandOrControl"), e.altKey && t.push("Alt"), e.shiftKey && t.push("Shift");
+		let n = d(e.code);
+		return n ? [...t, n].join("+") : null;
+	}
+	function p(e) {
+		return e.trim() ? e.split("+").map((e) => e === "CommandOrControl" ? "Ctrl" : e).join(" + ") : "";
+	}
+	let m = K(() => a().trim() ? p(a()) : "");
+	function g() {
+		G(l, !0);
+	}
+	function _() {
+		G(l, !1);
+	}
+	let y = (e) => {
+		if (!h(l)) return;
+		if (e.preventDefault(), e.stopPropagation(), e.key === "Escape") {
+			_();
+			return;
+		}
+		let t = f(e);
+		t && (a(t), _());
+	}, b = () => {
+		_();
+	};
+	var C = Di(), w = E(C), T = (e) => {
+		dr(e, {
+			get for() {
+				return c;
+			},
+			children: (e, n) => {
+				D();
+				var r = F();
+				S(() => W(r, t.label)), M(e, r);
+			},
+			$$slots: { default: !0 }
+		});
+	};
+	I(w, (e) => {
+		t.label && e(T);
+	});
+	var O = i(w, 2), A = E(O);
+	Z(A, {
+		icon: "ri:keyboard-line",
+		class: "size-4 shrink-0 text-dark-200"
+	});
+	var L = i(A, 2), R = E(L), z = (e) => {
+		var t = F();
+		S(() => W(t, o())), M(e, t);
+	}, B = (e) => {
+		var t = F();
+		S(() => W(t, h(m))), M(e, t);
+	}, V = (e) => {
+		var t = F();
+		S(() => W(t, n() || s())), M(e, t);
+	};
+	I(R, (e) => {
+		h(l) ? e(z) : h(m) ? e(B, 1) : e(V, -1);
+	}), v(L), v(O);
+	var H = i(O, 2), U = (e) => {
+		var n = Ei(), r = E(n, !0);
+		v(n), S(() => W(r, t.error)), M(e, n);
+	};
+	I(H, (e) => {
+		t.error && e(U);
+	}), v(C), S((e, t) => {
+		r(O, "id", c), P(O, 1, e), P(L, 1, t);
+	}, [() => q(Q("flex h-10 w-full items-center gap-2 rounded-xl border bg-dark-800 px-4 text-left text-sm", "focus:ring-2 focus:ring-primary focus:outline-none", h(l) && "ring-2 ring-primary", t.error ? "border-red-500" : "border-dark-500")), () => q(Q("truncate font-mono", !h(m) && "text-dark-300"))]), ne("click", O, g), ne("keydown", O, y), j("blur", O, b), M(e, C), x();
+}
+X(["click", "keydown"]);
+//#endregion
 //#region ../ui/src/lib/components/input/input-key-value-list.svelte
-var Ei = Y("<div class=\"grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-2\"><!> <!> <!></div>"), Di = Y("<p class=\"text-sm text-destructive-50\"> </p>"), Oi = Y("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
-function ki(e, t) {
+var ki = Y("<div class=\"grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-2\"><!> <!> <!></div>"), Ai = Y("<p class=\"text-sm text-destructive-50\"> </p>"), ji = Y("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
+function Mi(e, t) {
 	u(t, !0);
 	let n = k(t, "entries", 31, () => H([])), a = k(t, "keyPlaceholder", 3, "KEY"), s = k(t, "valuePlaceholder", 3, "value"), c = k(t, "id", 19, Fe), l = k(t, "addLabel", 3, "Add"), d = k(t, "removeLabel", 3, "Remove"), p = N(H([]));
 	function m(e) {
@@ -3533,7 +3635,7 @@ function ki(e, t) {
 		}));
 		e.length === t.length && e.every((e, n) => e.key === t[n]?.key && e.value === t[n]?.value) || G(p, m(e), !0);
 	});
-	var C = Oi(), w = E(C), T = (e) => {
+	var C = ji(), w = E(C), T = (e) => {
 		{
 			let n = K(() => `${c()}-label`);
 			dr(e, {
@@ -3554,7 +3656,7 @@ function ki(e, t) {
 	});
 	var O = i(w, 2), A = E(O);
 	o(A, 17, () => h(p), (e) => e.id, (e, t) => {
-		var n = Ei(), r = E(n);
+		var n = ki(), r = E(n);
 		{
 			let e = K(() => `${c()}-${h(t).id}-key`);
 			Ci(r, {
@@ -3617,7 +3719,7 @@ function ki(e, t) {
 		$$slots: { default: !0 }
 	}), v(O);
 	var j = i(O, 2), L = (e) => {
-		var n = Di(), r = E(n, !0);
+		var n = Ai(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(j, (e) => {
@@ -3628,8 +3730,8 @@ function ki(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-one-of.svelte
-var Ai = Y("<span class=\"text-red-400\" aria-hidden=\"true\">*</span>"), ji = Y(" <!>", 1), Mi = Y("<button type=\"button\" role=\"tab\"> </button>"), Ni = Y("<p class=\"text-sm text-red-400\"> </p>"), Pi = Y("<div><!> <div role=\"tablist\"></div> <div class=\"min-w-0\" role=\"tabpanel\"><!></div> <!></div>");
-function Fi(e, t) {
+var Ni = Y("<span class=\"text-red-400\" aria-hidden=\"true\">*</span>"), Pi = Y(" <!>", 1), Fi = Y("<button type=\"button\" role=\"tab\"> </button>"), Ii = Y("<p class=\"text-sm text-red-400\"> </p>"), Li = Y("<div><!> <div role=\"tablist\"></div> <div class=\"min-w-0\" role=\"tabpanel\"><!></div> <!></div>");
+function Ri(e, t) {
 	u(t, !0);
 	let n = k(t, "value", 31, () => H({
 		variant: "",
@@ -3650,12 +3752,12 @@ function Fi(e, t) {
 			}
 		});
 	}
-	var l = Pi(), d = E(l), f = (e) => {
+	var l = Li(), d = E(l), f = (e) => {
 		dr(e, {
 			children: (e, n) => {
 				D();
-				var r = ji(), a = _(r), o = i(a), s = (e) => {
-					M(e, Ai());
+				var r = Pi(), a = _(r), o = i(a), s = (e) => {
+					M(e, Ni());
 				};
 				I(o, (e) => {
 					t.required && e(s);
@@ -3669,7 +3771,7 @@ function Fi(e, t) {
 	});
 	var p = i(d, 2);
 	o(p, 21, () => t.variants, (e) => e.id, (e, t) => {
-		var n = Mi(), i = E(n, !0);
+		var n = Fi(), i = E(n, !0);
 		v(n), S((e) => {
 			r(n, "id", `tab-${h(t).id}`), r(n, "aria-selected", h(a) === h(t).id), r(n, "aria-controls", `panel-${h(t).id}`), P(n, 1, e), W(i, h(t).label);
 		}, [() => q(Q("rounded-lg px-3 py-1.5 text-sm font-medium transition-colors", h(a) === h(t).id ? "bg-dark-600 text-dark-50" : "text-dark-200 hover:bg-dark-800 hover:text-dark-50"))]), ne("click", n, () => s(h(t).id)), M(e, n);
@@ -3681,7 +3783,7 @@ function Fi(e, t) {
 		setValue: (e) => c(h(a), e)
 	})), v(m);
 	var g = i(m, 2), b = (e) => {
-		var n = Ni(), r = E(n, !0);
+		var n = Ii(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(g, (e) => {
@@ -3693,7 +3795,7 @@ function Fi(e, t) {
 X(["click"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-select-text.svelte
-var Ii = new Set([
+var zi = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -3709,13 +3811,13 @@ var Ii = new Set([
 	"contentProps",
 	"error",
 	"value"
-]), Li = Y("<!> <!>", 1), Ri = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), zi = Y(" <!>", 1), Bi = Y("<!> <!> <!>", 1), Vi = Y("<div class=\"flex flex-wrap gap-1.5\"></div>"), Hi = Y("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Ui = Y("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Wi = Y("<p class=\"text-sm text-red-400\"> </p>"), Gi = Y("<div><!> <div><!> <div class=\"min-w-0 flex-1\"><input/></div></div> <!> <!> <!></div>");
-function Ki(e, t) {
+]), Bi = Y("<!> <!>", 1), Vi = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Hi = Y(" <!>", 1), Ui = Y("<!> <!> <!>", 1), Wi = Y("<div class=\"flex flex-wrap gap-1.5\"></div>"), Gi = Y("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Ki = Y("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), qi = Y("<p class=\"text-sm text-red-400\"> </p>"), Ji = Y("<div><!> <div><!> <div class=\"min-w-0 flex-1\"><input/></div></div> <!> <!> <!></div>");
+function Yi(e, t) {
 	u(t, !0);
 	let n = k(t, "variables", 19, () => []), l = k(t, "id", 19, Fe), d = k(t, "value", 31, () => H({
 		type: "",
 		value: ""
-	})), f = U(t, Ii), p = K(() => t.selectPlaceholder ?? "Select"), m = K(() => t.loadingPlaceholder ?? "Loading..."), g = Jr(() => t.items), y = N(null), b = N(!1), C = N(""), w = N(0), O = K(() => {
+	})), f = U(t, zi), p = K(() => t.selectPlaceholder ?? "Select"), m = K(() => t.loadingPlaceholder ?? "Loading..."), g = Jr(() => t.items), y = N(null), b = N(!1), C = N(""), w = N(0), O = K(() => {
 		if (!h(C)) return n();
 		let e = h(C).toLowerCase();
 		return n().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -3793,7 +3895,7 @@ function Ki(e, t) {
 			G(b, !1);
 		}, 120);
 	};
-	var ee = Gi(), X = E(ee), te = (e) => {
+	var ee = Ji(), X = E(ee), te = (e) => {
 		dr(e, {
 			get for() {
 				return l();
@@ -3823,7 +3925,7 @@ function Ki(e, t) {
 				d(d().type = e, !0);
 			},
 			children: (e, n) => {
-				var r = Li(), s = _(r);
+				var r = Bi(), s = _(r);
 				{
 					let e = K(() => Q("flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-xl border border-r-0 bg-dark-700 text-dark-50 outline-none", We.md, t.error ? "border-red-500" : "border-dark-500", t.selectClass));
 					a(s, () => Xn, (t, n) => {
@@ -3832,7 +3934,7 @@ function Ki(e, t) {
 								return h(e);
 							},
 							children: (e, t) => {
-								var n = Li(), r = _(n);
+								var n = Bi(), r = _(n);
 								{
 									let e = K(() => g.loading ? h(m) : h(p));
 									a(r, () => qn, (t, n) => {
@@ -3868,7 +3970,7 @@ function Ki(e, t) {
 											return h(n);
 										},
 										children: (e, t) => {
-											var n = Bi(), r = _(n);
+											var n = Ui(), r = _(n);
 											a(r, () => Ln, (e, t) => {
 												t(e, {
 													class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -3883,7 +3985,7 @@ function Ki(e, t) {
 												t(e, {
 													children: (e, t) => {
 														var n = L(), r = _(n), s = (e) => {
-															var t = Ri(), n = E(t, !0);
+															var t = Vi(), n = E(t, !0);
 															v(t), S(() => W(n, h(m))), M(e, t);
 														}, c = (e) => {
 															var t = L();
@@ -3894,7 +3996,7 @@ function Ki(e, t) {
 																	let e = (e, t) => {
 																		let n = () => t?.().selected;
 																		D();
-																		var a = zi(), o = _(a), s = i(o), c = (e) => {
+																		var a = Hi(), o = _(a), s = i(o), c = (e) => {
 																			Z(e, {
 																				icon: "ri:check-line",
 																				class: "size-5 text-primary"
@@ -3969,7 +4071,7 @@ function Ki(e, t) {
 		...f
 	}), [() => Q("min-w-0 w-full truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none", We.md, t.error ? "border-red-500" : "border-dark-500")], void 0, void 0, void 0, !0), s(oe, (e) => G(y, e), () => h(y)), v(ae), v(re);
 	var se = i(re, 2), ce = (e) => {
-		var t = Vi();
+		var t = Wi();
 		o(t, 21, n, (e) => e.key, (e, t) => {
 			Ot(e, {
 				variant: "outline",
@@ -3992,9 +4094,9 @@ function Ki(e, t) {
 		n().length > 0 && e(ce);
 	});
 	var le = i(se, 2), ue = (e) => {
-		var t = Ui();
+		var t = Ki();
 		o(t, 23, () => h(O), (e) => e.key, (e, t, n) => {
-			var a = Hi(), o = E(a), s = E(o), c = E(s, !0);
+			var a = Gi(), o = E(a), s = E(o), c = E(s, !0);
 			v(s);
 			var l = i(s, 2), u = E(l, !0);
 			v(l), v(o), v(a), S((e) => {
@@ -4008,7 +4110,7 @@ function Ki(e, t) {
 		h(b) && h(O).length > 0 && e(ue);
 	});
 	var $ = i(le, 2), de = (e) => {
-		var n = Wi(), r = E(n, !0);
+		var n = qi(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I($, (e) => {
@@ -4020,12 +4122,12 @@ function Ki(e, t) {
 X(["mousedown"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-slider.svelte
-var qi = Y("<div class=\"flex items-center justify-between gap-4\"><!> <span class=\"text-sm text-dark-100\"> </span></div>"), Ji = Y("<p class=\"text-sm text-red-500\"> </p>"), Yi = Y("<div><!> <input type=\"range\"/> <!></div>");
-function Xi(e, t) {
+var Xi = Y("<div class=\"flex items-center justify-between gap-4\"><!> <span class=\"text-sm text-dark-100\"> </span></div>"), Zi = Y("<p class=\"text-sm text-red-500\"> </p>"), Qi = Y("<div><!> <input type=\"range\"/> <!></div>");
+function $i(e, t) {
 	u(t, !0);
 	let n = k(t, "id", 19, Fe), a = k(t, "min", 3, 0), o = k(t, "max", 3, 100), s = k(t, "step", 3, 1), l = k(t, "value", 15, 0);
-	var d = Yi(), f = E(d), p = (e) => {
-		var r = qi(), a = E(r);
+	var d = Qi(), f = E(d), p = (e) => {
+		var r = Xi(), a = E(r);
 		dr(a, {
 			get for() {
 				return n();
@@ -4046,7 +4148,7 @@ function Xi(e, t) {
 	var m = i(f, 2);
 	g(m);
 	var h = i(m, 2), _ = (e) => {
-		var n = Ji(), r = E(n, !0);
+		var n = Zi(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(h, (e) => {
@@ -4058,11 +4160,11 @@ function Xi(e, t) {
 X(["input"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-switch.svelte
-var Zi = Y("<p class=\"text-sm text-red-400\"> </p>"), Qi = Y("<div><div class=\"flex items-center gap-3\"><!> <!></div> <!></div>");
-function $i(e, t) {
+var ea = Y("<p class=\"text-sm text-red-400\"> </p>"), ta = Y("<div><div class=\"flex items-center gap-3\"><!> <!></div> <!></div>");
+function na(e, t) {
 	u(t, !0);
 	let n = k(t, "checked", 15, !1), r = k(t, "id", 19, Fe);
-	var o = Qi(), s = E(o), c = E(s);
+	var o = ta(), s = E(o), c = E(s);
 	{
 		let e = K(() => t.label ? `${r()}-label` : void 0), i = K(() => t.error ? !0 : void 0), o = K(() => Q("inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors outline-none", "data-[state=checked]:bg-primary/15", t.error ? "data-[state=unchecked]:bg-red-500/30" : "data-[state=unchecked]:bg-dark-600", "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800", "disabled:cursor-not-allowed disabled:opacity-50"));
 		a(c, () => or, (t, s) => {
@@ -4122,7 +4224,7 @@ function $i(e, t) {
 		t.label && e(d);
 	}), v(s);
 	var f = i(s, 2), p = (e) => {
-		var n = Zi(), r = E(n, !0);
+		var n = ea(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(f, (e) => {
@@ -4131,8 +4233,8 @@ function $i(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-list.svelte
-var ea = Y("<div class=\"flex items-center gap-2\"><!> <!></div>"), ta = Y("<p class=\"text-sm text-destructive-50\"> </p>"), na = Y("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
-function ra(e, t) {
+var ra = Y("<div class=\"flex items-center gap-2\"><!> <!></div>"), ia = Y("<p class=\"text-sm text-destructive-50\"> </p>"), aa = Y("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
+function oa(e, t) {
 	u(t, !0);
 	let n = k(t, "values", 31, () => H([])), a = k(t, "id", 19, Fe), s = k(t, "addLabel", 3, "Add"), c = k(t, "removeLabel", 3, "Remove"), l = N(H([]));
 	function d(e) {
@@ -4163,7 +4265,7 @@ function ra(e, t) {
 		let e = n(), t = h(l).map((e) => e.value);
 		e.length === t.length && e.every((e, n) => e === t[n]) || G(l, d(e), !0);
 	});
-	var y = na(), b = E(y), C = (e) => {
+	var y = aa(), b = E(y), C = (e) => {
 		{
 			let n = K(() => `${a()}-label`);
 			dr(e, {
@@ -4184,7 +4286,7 @@ function ra(e, t) {
 	});
 	var w = i(b, 2), T = E(w);
 	o(T, 17, () => h(l), (e) => e.id, (e, n) => {
-		var r = ea(), o = E(r);
+		var r = ra(), o = E(r);
 		{
 			let e = K(() => `${a()}-${h(n).id}`);
 			Ci(o, {
@@ -4231,7 +4333,7 @@ function ra(e, t) {
 		$$slots: { default: !0 }
 	}), v(w);
 	var O = i(w, 2), A = (e) => {
-		var n = ta(), r = E(n, !0);
+		var n = ia(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(O, (e) => {
@@ -4242,7 +4344,7 @@ function ra(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/use-dropdown-scroll.svelte.ts
-var ia = class {
+var sa = class {
 	#e = N(0);
 	get scrollTop() {
 		return h(this.#e);
@@ -4273,12 +4375,12 @@ var ia = class {
 		let n = e.findIndex((e) => e.value === t);
 		n >= 0 && this.scrollToIndex(n);
 	}
-}, aa = Y("<div class=\"relative w-full\"><div class=\"absolute inset-x-0 top-0\"></div></div>");
-function oa(e, t) {
+}, ca = Y("<div class=\"relative w-full\"><div class=\"absolute inset-x-0 top-0\"></div></div>");
+function la(e, t) {
 	u(t, !0);
 	let n = k(t, "viewportHeight", 3, 200), r = K(() => Zr(t.items.length)), i = K(() => h(r) ? Xr(t.items, t.scrollTop, n()) : null), a = K(() => h(r) && h(i) ? h(i).items : t.items);
 	var s = L(), c = _(s), l = (e) => {
-		var n = aa();
+		var n = ca();
 		let r;
 		var s = E(n);
 		let c;
@@ -4301,14 +4403,14 @@ function oa(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-select.svelte
-var sa = (e, t = V) => {
+var ua = (e, t = V) => {
 	let n = K(() => t().value), r = K(() => t().label), o = K(() => t().disabled);
 	var s = L(), c = _(s);
 	{
 		let e = (e, t) => {
 			let n = () => t?.().selected;
 			D();
-			var a = la(), o = _(a), s = i(o), c = (e) => {
+			var a = fa(), o = _(a), s = i(o), c = (e) => {
 				Z(e, {
 					icon: "ri:check-line",
 					class: "size-5 text-primary"
@@ -4338,7 +4440,7 @@ var sa = (e, t = V) => {
 		});
 	}
 	M(e, s);
-}, ca = new Set([
+}, da = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -4356,10 +4458,10 @@ var sa = (e, t = V) => {
 	"contentProps",
 	"error",
 	"value"
-]), la = Y(" <!>", 1), ua = Y("<span class=\"text-red-400\">*</span>"), da = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), fa = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"></div>"), pa = Y("<!> <!> <!>", 1), ma = Y("<div><div class=\"min-w-0 flex-1\"><!></div> <button type=\"button\" aria-haspopup=\"listbox\"><!></button></div> <!>", 1), ha = Y("<p class=\"text-sm text-red-400\"> </p>"), ga = Y("<div><!> <!> <!></div>");
-function _a(e, t) {
+]), fa = Y(" <!>", 1), pa = Y("<span class=\"text-red-400\">*</span>"), ma = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), ha = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"></div>"), ga = Y("<!> <!> <!>", 1), _a = Y("<div><div class=\"min-w-0 flex-1\"><!></div> <button type=\"button\" aria-haspopup=\"listbox\"><!></button></div> <!>", 1), va = Y("<p class=\"text-sm text-red-400\"> </p>"), ya = Y("<div><!> <!> <!></div>");
+function ba(e, t) {
 	u(t, !0);
-	let n = k(t, "allowCustomValue", 3, !0), o = k(t, "id", 19, Fe), s = k(t, "value", 15, ""), c = U(t, ca), d = K(() => t.placeholder), f = K(() => t.loadingPlaceholder ?? "Loading..."), m = K(() => t.selectAriaLabel ?? "Select value"), g = N(!1), y = N(""), b = N(!1), C = new ia(), w = Jr(() => t.items, () => t.reloadKey?.()), T = new Hr(() => h(y), 100), O = K(() => new Map(w.items.map((e) => [e.value, e]))), A = K(() => h(O).get(s())), j = K(() => h(A)?.value ?? ""), F = K(() => {
+	let n = k(t, "allowCustomValue", 3, !0), o = k(t, "id", 19, Fe), s = k(t, "value", 15, ""), c = U(t, da), d = K(() => t.placeholder), f = K(() => t.loadingPlaceholder ?? "Loading..."), m = K(() => t.selectAriaLabel ?? "Select value"), g = N(!1), y = N(""), b = N(!1), C = new sa(), w = Jr(() => t.items, () => t.reloadKey?.()), T = new Hr(() => h(y), 100), O = K(() => new Map(w.items.map((e) => [e.value, e]))), A = K(() => h(O).get(s())), j = K(() => h(A)?.value ?? ""), F = K(() => {
 		if (w.loading) return [];
 		if (!h(b)) return w.items;
 		let e = T.current.trim();
@@ -4405,15 +4507,15 @@ function _a(e, t) {
 		onfocus: H,
 		onblur: Y
 	}));
-	var re = ga(), ie = E(re), ae = (e) => {
+	var re = ya(), ie = E(re), ae = (e) => {
 		dr(e, {
 			get for() {
 				return o();
 			},
 			children: (e, n) => {
 				D();
-				var r = la(), a = _(r), o = i(a), s = (e) => {
-					M(e, ua());
+				var r = fa(), a = _(r), o = i(a), s = (e) => {
+					M(e, pa());
 				};
 				I(o, (e) => {
 					t.required && e(s);
@@ -4454,7 +4556,7 @@ function _a(e, t) {
 					G(g, e, !0);
 				},
 				children: (e, n) => {
-					var o = ma(), s = _(o), c = E(s);
+					var o = _a(), s = _(o), c = E(s);
 					a(E(c), () => _n, (e, t) => {
 						t(e, J(() => h(te)));
 					}), v(c);
@@ -4477,7 +4579,7 @@ function _a(e, t) {
 												return h(n);
 											},
 											children: (e, t) => {
-												var n = pa(), r = _(n);
+												var n = ga(), r = _(n);
 												a(r, () => Ln, (e, t) => {
 													t(e, {
 														class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -4501,10 +4603,10 @@ function _a(e, t) {
 														},
 														children: (e, t) => {
 															var n = L(), r = _(n), i = (e) => {
-																var t = da(), n = E(t, !0);
+																var t = ma(), n = E(t, !0);
 																v(t), S(() => W(n, h(f))), M(e, t);
 															}, a = (e) => {
-																oa(e, {
+																la(e, {
 																	get items() {
 																		return h(F);
 																	},
@@ -4512,11 +4614,11 @@ function _a(e, t) {
 																		return C.scrollTop;
 																	},
 																	get item() {
-																		return sa;
+																		return ua;
 																	}
 																});
 															}, o = (e) => {
-																var t = fa();
+																var t = ha();
 																t.textContent = "No matches found", M(e, t);
 															};
 															I(r, (e) => {
@@ -4552,7 +4654,7 @@ function _a(e, t) {
 		});
 	}
 	var se = i(oe, 2), ce = (e) => {
-		var n = ha(), r = E(n, !0);
+		var n = va(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(se, (e) => {
@@ -4562,7 +4664,7 @@ function _a(e, t) {
 X(["click"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-select-text.svelte
-var va = new Set([
+var xa = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -4581,14 +4683,14 @@ var va = new Set([
 	"error",
 	"suffix",
 	"value"
-]), ya = Y("<!> <!>", 1), ba = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), xa = Y(" <!>", 1), Sa = Y("<!> <!> <!>", 1), Ca = Y("<div aria-hidden=\"true\">—</div>"), wa = Y("<input/>"), Ta = Y("<div class=\"flex shrink-0 items-center self-center\"><!></div>"), Ea = Y("<div class=\"flex flex-wrap gap-1.5\"></div>"), Da = Y("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Oa = Y("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), ka = Y("<p class=\"text-sm text-red-400\"> </p>"), Aa = Y("<div><!> <div class=\"flex items-center gap-3\"><div><input/> <!> <!></div> <!></div> <!> <!> <!></div>");
-function ja(e, t) {
+]), Sa = Y("<!> <!>", 1), Ca = Y("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), wa = Y(" <!>", 1), Ta = Y("<!> <!> <!>", 1), Ea = Y("<div aria-hidden=\"true\">—</div>"), Da = Y("<input/>"), Oa = Y("<div class=\"flex shrink-0 items-center self-center\"><!></div>"), ka = Y("<div class=\"flex flex-wrap gap-1.5\"></div>"), Aa = Y("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), ja = Y("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Ma = Y("<p class=\"text-sm text-red-400\"> </p>"), Na = Y("<div><!> <div class=\"flex items-center gap-3\"><div><input/> <!> <!></div> <!></div> <!> <!> <!></div>");
+function Pa(e, t) {
 	u(t, !0);
 	let n = k(t, "variables", 19, () => []), l = k(t, "valuelessOperators", 19, () => []), d = k(t, "id", 19, Fe), f = k(t, "value", 31, () => H({
 		path: "",
 		type: "equals",
 		value: ""
-	})), p = U(t, va), m = K(() => t.selectPlaceholder ?? "Select"), b = K(() => t.loadingPlaceholder ?? "Loading..."), C = Jr(() => t.items), O = N(null), A = N(null), R = N("path"), z = N(!1), B = N(""), V = N(0), Y = K(() => {
+	})), p = U(t, xa), m = K(() => t.selectPlaceholder ?? "Select"), b = K(() => t.loadingPlaceholder ?? "Loading..."), C = Jr(() => t.items), O = N(null), A = N(null), R = N("path"), z = N(!1), B = N(""), V = N(0), Y = K(() => {
 		if (!h(B)) return n();
 		let e = h(B).toLowerCase();
 		return n().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -4686,7 +4788,7 @@ function ja(e, t) {
 		ce && clearTimeout(ce);
 	});
 	let le = se("path"), ue = se("value"), $ = K(() => t.error ? "border-red-500" : "border-dark-500"), de = K(() => l().includes(f().type));
-	var fe = Aa(), pe = E(fe), me = (e) => {
+	var fe = Na(), pe = E(fe), me = (e) => {
 		dr(e, {
 			get for() {
 				return d();
@@ -4734,7 +4836,7 @@ function ja(e, t) {
 				f(f().type = e, !0);
 			},
 			children: (e, n) => {
-				var r = ya(), s = _(r);
+				var r = Sa(), s = _(r);
 				{
 					let e = K(() => Q("flex shrink-0 cursor-pointer items-center justify-between gap-2 border border-x-0 bg-dark-700 text-dark-50 outline-none", We.md, h($), t.selectClass ?? "w-32"));
 					a(s, () => Xn, (t, n) => {
@@ -4743,7 +4845,7 @@ function ja(e, t) {
 								return h(e);
 							},
 							children: (e, t) => {
-								var n = ya(), r = _(n);
+								var n = Sa(), r = _(n);
 								{
 									let e = K(() => C.loading ? h(b) : h(m));
 									a(r, () => qn, (t, n) => {
@@ -4779,7 +4881,7 @@ function ja(e, t) {
 											return h(n);
 										},
 										children: (e, t) => {
-											var n = Sa(), r = _(n);
+											var n = Ta(), r = _(n);
 											a(r, () => Ln, (e, t) => {
 												t(e, {
 													class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -4794,7 +4896,7 @@ function ja(e, t) {
 												t(e, {
 													children: (e, t) => {
 														var n = L(), r = _(n), s = (e) => {
-															var t = ba(), n = E(t, !0);
+															var t = Ca(), n = E(t, !0);
 															v(t), S(() => W(n, h(b))), M(e, t);
 														}, c = (e) => {
 															var t = L();
@@ -4805,7 +4907,7 @@ function ja(e, t) {
 																	let e = (e, t) => {
 																		let n = () => t?.().selected;
 																		D();
-																		var a = xa(), o = _(a), s = i(o), c = (e) => {
+																		var a = wa(), o = _(a), s = i(o), c = (e) => {
 																			Z(e, {
 																				icon: "ri:check-line",
 																				class: "size-5 text-primary"
@@ -4867,10 +4969,10 @@ function ja(e, t) {
 		});
 	});
 	var ye = i(ve, 2), be = (e) => {
-		var t = Ca();
+		var t = Ea();
 		S((e) => P(t, 1, e), [() => q(Q("flex min-w-0 items-center rounded-r-xl border border-l-0 bg-dark-700 px-3 text-dark-500 select-none", We.md, h($)))]), M(e, t);
 	}, xe = (e) => {
-		var i = wa();
+		var i = Da();
 		g(i), s(i, (e) => G(A, e), () => h(A)), S((e) => {
 			r(i, "placeholder", t.valuePlaceholder), P(i, 1, e), r(i, "aria-invalid", t.error ? !0 : void 0), r(i, "role", n().length > 0 ? "combobox" : void 0), r(i, "aria-autocomplete", n().length > 0 ? "list" : void 0), r(i, "aria-expanded", n().length > 0 ? h(z) && h(R) === "value" && h(Y).length > 0 : void 0), r(i, "aria-controls", n().length > 0 ? `${d()}-listbox` : void 0), r(i, "aria-activedescendant", h(z) && h(R) === "value" && h(Y).length > 0 ? `${d()}-option-${h(V)}` : void 0);
 		}, [() => q(Q("min-w-0 flex-1 truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none", We.md, h($)))]), ne("input", i, function(...e) {
@@ -4889,14 +4991,14 @@ function ja(e, t) {
 		h(de) ? e(be) : e(xe, -1);
 	}), v(ge);
 	var Se = i(ge, 2), Ce = (e) => {
-		var n = Ta();
+		var n = Oa();
 		y(E(n), () => t.suffix), v(n), M(e, n);
 	};
 	I(Se, (e) => {
 		t.suffix && e(Ce);
 	}), v(he);
 	var we = i(he, 2), Te = (e) => {
-		var t = Ea();
+		var t = ka();
 		o(t, 21, n, (e) => e.key, (e, t) => {
 			Ot(e, {
 				variant: "outline",
@@ -4919,9 +5021,9 @@ function ja(e, t) {
 		n().length > 0 && e(Te);
 	});
 	var Ee = i(we, 2), De = (e) => {
-		var t = Oa();
+		var t = ja();
 		o(t, 23, () => h(Y), (e) => e.key, (e, t, n) => {
-			var a = Da(), o = E(a), s = E(o), c = E(s, !0);
+			var a = Aa(), o = E(a), s = E(o), c = E(s, !0);
 			v(s);
 			var l = i(s, 2), u = E(l, !0);
 			v(l), v(o), v(a), S((e) => {
@@ -4935,7 +5037,7 @@ function ja(e, t) {
 		h(z) && h(Y).length > 0 && e(De);
 	});
 	var Oe = i(Ee, 2), ke = (e) => {
-		var n = ka(), r = E(n, !0);
+		var n = Ma(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(Oe, (e) => {
@@ -4952,7 +5054,7 @@ X([
 ]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-variables.svelte
-var Ma = new Set([
+var Fa = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -4964,10 +5066,10 @@ var Ma = new Set([
 	"id",
 	"placeholder",
 	"class"
-]), Na = Y("<div class=\"flex flex-wrap gap-1.5\"></div>"), Pa = Y("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Fa = Y("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Ia = Y("<p class=\"text-sm text-red-400\"> </p>"), La = Y("<div class=\"relative grid w-full min-w-0 gap-2\"><!> <div><input/></div> <!> <!> <!></div>");
-function Ra(e, t) {
+]), Ia = Y("<div class=\"flex flex-wrap gap-1.5\"></div>"), La = Y("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Ra = Y("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), za = Y("<p class=\"text-sm text-red-400\"> </p>"), Ba = Y("<div class=\"relative grid w-full min-w-0 gap-2\"><!> <div><input/></div> <!> <!> <!></div>");
+function Va(e, t) {
 	u(t, !0);
-	let n = k(t, "variables", 19, () => []), a = k(t, "value", 15, ""), l = k(t, "id", 19, Fe), d = U(t, Ma), f = N(null), p = N(!1), m = N(""), g = N(0), _ = K(() => {
+	let n = k(t, "variables", 19, () => []), a = k(t, "value", 15, ""), l = k(t, "id", 19, Fe), d = U(t, Fa), f = N(null), p = N(!1), m = N(""), g = N(0), _ = K(() => {
 		if (!h(m)) return n();
 		let e = h(m).toLowerCase();
 		return n().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -5038,7 +5140,7 @@ function Ra(e, t) {
 	w(() => {
 		L && clearTimeout(L);
 	});
-	var z = La(), B = E(z), V = (e) => {
+	var z = Ba(), B = E(z), V = (e) => {
 		dr(e, {
 			get for() {
 				return l();
@@ -5073,7 +5175,7 @@ function Ra(e, t) {
 		...d
 	}), [() => Q("min-w-0 w-full truncate rounded-xl border bg-dark-700 text-dark-50 outline-none", We.md, t.error ? "border-red-500" : "border-dark-500")], void 0, void 0, void 0, !0), s(J, (e) => G(f, e), () => h(f)), v(H);
 	var Y = i(H, 2), ee = (e) => {
-		var t = Na();
+		var t = Ia();
 		o(t, 21, n, (e) => e.key, (e, t) => {
 			Ot(e, {
 				variant: "outline",
@@ -5096,9 +5198,9 @@ function Ra(e, t) {
 		n().length > 0 && e(ee);
 	});
 	var X = i(Y, 2), te = (e) => {
-		var t = Fa();
+		var t = Ra();
 		o(t, 23, () => h(_), (e) => e.key, (e, t, n) => {
-			var a = Pa(), o = E(a), s = E(o), c = E(s, !0);
+			var a = La(), o = E(a), s = E(o), c = E(s, !0);
 			v(s);
 			var u = i(s, 2), d = E(u, !0);
 			v(u), v(o), v(a), S((e) => {
@@ -5112,7 +5214,7 @@ function Ra(e, t) {
 		h(p) && h(_).length > 0 && e(te);
 	});
 	var re = i(X, 2), ie = (e) => {
-		var n = Ia(), r = E(n, !0);
+		var n = za(), r = E(n, !0);
 		v(n), S(() => W(r, t.error)), M(e, n);
 	};
 	I(re, (e) => {
@@ -5121,4 +5223,4 @@ function Ra(e, t) {
 }
 X(["mousedown"]);
 //#endregion
-export { hr as _, $i as a, Fi as c, Ci as d, _i as f, Sr as g, Or as h, ra as i, ki as l, Jr as m, ja as n, Xi as o, oi as p, _a as r, Ki as s, Ra as t, Ti as u, dr as v };
+export { Sr as _, na as a, Ri as c, Ti as d, Ci as f, Or as g, Jr as h, oa as i, Mi as l, oi as m, Pa as n, $i as o, _i as p, ba as r, Yi as s, Va as t, Oi as u, hr as v, dr as y };

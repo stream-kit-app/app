@@ -13,29 +13,58 @@
 	} from './input-size-classes';
 	import Label from './label.svelte';
 
+	const COPY_FEEDBACK_MS = 2000;
+
 	type Props = {
 		label?: string;
 		prependIcon?: string;
 		appendIcon?: string;
+		copyable?: boolean;
+		copyLabel?: string;
+		copiedLabel?: string;
 		error?: string;
 		size?: InputSize;
 	} & Omit<HTMLInputAttributes, 'size'>;
 
-	const {
+	let {
 		label,
 		id = useId(),
 		prependIcon,
 		appendIcon,
+		copyable = false,
+		copyLabel = 'Copy',
+		copiedLabel = 'Copied',
 		error,
 		size = 'md',
+		readonly,
+		value,
+		tabindex,
 		...props
 	}: Props = $props();
+
 	let showPassword = $state(false);
+	let copied = $state(false);
+	let copyFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
 
 	const isPasswordField = $derived(props.type === 'password');
-	const hasRightAdornment = $derived(Boolean(appendIcon) || isPasswordField);
+	const hasRightAdornment = $derived(Boolean(appendIcon) || isPasswordField || copyable);
+	const inputReadonly = $derived(copyable ? (readonly ?? true) : readonly);
+	const isCopyableReadonly = $derived(copyable && inputReadonly);
 
 	const sizeClasses = inputSizeClasses;
+
+	async function copyValue(): Promise<void> {
+		await navigator.clipboard.writeText(String(value ?? ''));
+
+		if (copyFeedbackTimer) {
+			clearTimeout(copyFeedbackTimer);
+		}
+
+		copied = true;
+		copyFeedbackTimer = setTimeout(() => {
+			copied = false;
+		}, COPY_FEEDBACK_MS);
+	}
 </script>
 
 <div class={cn('relative grid w-full min-w-0 gap-2')}>
@@ -45,8 +74,8 @@
 	<div
 		class={cn(
 			'relative flex w-full min-w-0 items-center rounded-xl',
-			'has-focus:ring-2 has-focus:ring-primary',
-			error && 'has-focus:ring-red-500',
+			!isCopyableReadonly && 'has-focus:ring-2 has-focus:ring-primary',
+			error && !isCopyableReadonly && 'has-focus:ring-red-500',
 			props.class
 		)}
 	>
@@ -67,12 +96,16 @@
 				sizeClasses[size],
 				error ? 'border-red-500' : 'border-dark-500',
 				{
-					'rounded-l-none rounded-r-xl border-l-0': prependIcon,
-					'rounded-l-xl rounded-r-none border-r-0': hasRightAdornment,
+					'rounded-l-none rounded-r-xl border-l-0': prependIcon && !hasRightAdornment,
+					'rounded-l-none border-l-0': prependIcon && hasRightAdornment,
+					'rounded-l-xl rounded-r-none border-r-0': !prependIcon && hasRightAdornment,
 					'rounded-xl': !prependIcon && !hasRightAdornment
 				}
 			)}
 			aria-invalid={error ? true : undefined}
+			{value}
+			readonly={inputReadonly}
+			tabindex={isCopyableReadonly ? -1 : tabindex}
 			{...props}
 			type={isPasswordField ? (showPassword ? 'text' : 'password') : props.type}
 		/>
@@ -81,13 +114,30 @@
 				class={cn(
 					'grid h-full place-items-center text-dark-50',
 					inputAdornmentSizeClasses[size],
-					isPasswordField
+					isPasswordField || copyable
 						? 'border-y border-r-0 border-l border-dark-500'
 						: 'rounded-r-xl border border-l-0 border-dark-500'
 				)}
 			>
 				<Icon icon={appendIcon} class={inputIconSizeClasses[size]} />
 			</span>
+		{/if}
+		{#if copyable}
+			<button
+				type="button"
+				class={cn(
+					'grid h-full place-items-center rounded-r-xl border border-dark-500 border-l-dark-600 bg-dark-700 transition-colors',
+					copied ? 'text-success' : 'text-dark-50',
+					inputAdornmentSizeClasses[size]
+				)}
+				aria-label={copied ? copiedLabel : copyLabel}
+				onclick={() => void copyValue()}
+			>
+				<Icon
+					icon={copied ? 'ri:checkbox-circle-fill' : 'ri:file-copy-line'}
+					class={inputIconSizeClasses[size]}
+				/>
+			</button>
 		{/if}
 		{#if isPasswordField}
 			<button

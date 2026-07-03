@@ -1,6 +1,6 @@
 # Overlays
 
-Stream Kit includes a local overlay server for OBS browser sources. Overlays are projects stored in app data, edited in your own code editor, and served at `http://127.0.0.1:<port>/o/<overlay-id>/`.
+Stream Kit includes a local overlay server for OBS browser sources. Overlays are projects stored in app data, edited in your own code editor, and served at `http://127.0.0.1:<port>/o/<overlay-uuid>/`. Each overlay gets a stable UUID when created; the browser source URL and action handlers keep working when you rename the display name.
 
 ## OBS browser source setup
 
@@ -11,7 +11,11 @@ Stream Kit includes a local overlay server for OBS browser sources. Overlays are
 3. Copy the browser source URL from the overlays list.
 4. In OBS, add a **Browser** source and paste the URL.
 
-The overlay server starts automatically when the app boots (default port `7891`). You can stop or restart it from the Overlays page.
+The overlay server starts automatically when the app boots (default port `7891`) and keeps running while the app is open.
+
+## Managing overlays
+
+Rename an overlay from the edit button next to its name on the card. The overlay UUID, browser source URL, and **Send to Overlay** action references stay the same — only the display name and project README metadata are updated.
 
 ## Editing overlays
 

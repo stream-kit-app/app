@@ -27,6 +27,10 @@ export type OverlayProjectFile = {
 
 export const DEFAULT_OVERLAY_PORT = 7891;
 
+export function createOverlayId(): string {
+	return crypto.randomUUID();
+}
+
 export function overlayBrowserSourceUrl(baseUrl: string, overlayId: string): string {
 	const normalized = baseUrl.replace(/\/$/, '');
 

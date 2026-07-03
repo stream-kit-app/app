@@ -1,13 +1,15 @@
-import type { App } from '../app.svelte';
+import type { OpenProjectInEditorResult } from '../opener/open-in-editor';
 import type { OverlayFrameworkId, OverlayServerStatus } from './types';
+import type { SaveOverlayInput } from '$db/repositories/overlays';
 
 import { invoke } from '@tauri-apps/api/core';
 import { join } from '@tauri-apps/api/path';
 import { save } from '@tauri-apps/plugin-dialog';
 
-import type { SaveOverlayInput } from '$db/repositories/overlays';
+import { translate } from '$lib/i18n';
 
-import { openProjectInEditor, type OpenProjectInEditorResult } from '../opener/open-in-editor';
+import { openProjectInEditor } from '../opener/open-in-editor';
+import { getApp } from '../registry';
 import { buildOverlayProject } from './overlay-build';
 import { buildOverlayProjectZip } from './overlay-export';
 import {
@@ -17,29 +19,32 @@ import {
 	removeOverlayProject,
 	updateOverlayMetadata
 } from './overlay-project';
-import { DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';
+import { getOverlayFramework } from './templates';
+import { createOverlayId, DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';
 
 export class OverlayService {
 	items: SaveOverlayInput[] = $state.raw([]);
+
 	status: OverlayServerStatus = $state({
 		running: false,
 		port: 0,
 		baseUrl: ''
 	});
+
 	builtStatus: Record<string, boolean> = $state({});
 	buildingId: string | null = $state(null);
 	port = DEFAULT_OVERLAY_PORT;
 
-	constructor(private readonly getApp: () => App) {}
-
 	async init(): Promise<void> {
 		await this.refresh();
+
 		await this.startServer();
 	}
 
 	async refresh(): Promise<void> {
 		this.items = await listOverlayProjects();
 		this.status = await invoke<OverlayServerStatus>('overlay_server_status');
+
 		await this.refreshBuiltStatus();
 	}
 
@@ -68,19 +73,22 @@ export class OverlayService {
 	}
 
 	getUrl(overlayId: string): string {
-		if (!this.status.baseUrl) {
-			return overlayBrowserSourceUrl(`http://127.0.0.1:${this.port}`, overlayId);
-		}
+		const baseUrl = this.status.baseUrl || `http://127.0.0.1:${this.status.port || this.port}`;
 
-		return overlayBrowserSourceUrl(this.status.baseUrl, overlayId);
+		return overlayBrowserSourceUrl(baseUrl, overlayId);
 	}
 
 	async create(input: {
-		id: string;
 		name: string;
+
 		framework: OverlayFrameworkId;
 	}): Promise<SaveOverlayInput> {
-		const record = await createOverlayProject(this.getApp().fs, input);
+		const record = await createOverlayProject(getApp().fs, {
+			id: createOverlayId(),
+			name: input.name,
+			framework: input.framework
+		});
+
 		await this.refresh();
 
 		return record;
@@ -91,8 +99,20 @@ export class OverlayService {
 		await this.refresh();
 	}
 
+	async rename(id: string, name: string): Promise<void> {
+		const overlay = this.requireOverlay(id);
+		const trimmed = name.trim();
+
+		if (!trimmed) {
+			throw new Error(translate('Name is required'));
+		}
+
+		await this.saveMetadata({ ...overlay, name: trimmed });
+	}
+
 	async remove(id: string): Promise<void> {
-		await removeOverlayProject(this.getApp().fs, id);
+		await removeOverlayProject(getApp().fs, id);
+
 		await this.refresh();
 	}
 
@@ -111,28 +131,27 @@ export class OverlayService {
 	}
 
 	async openInExternalEditor(id: string): Promise<OpenProjectInEditorResult> {
-		const overlay = this.items.find((item) => item.id === id);
-
-		if (!overlay) {
-			throw new Error('Overlay not found');
-		}
+		this.requireOverlay(id);
 
 		const projectPath = await this.getProjectPath(id);
+		const app = getApp();
 
 		return openProjectInEditor(projectPath, {
-			onOpenFolder: (path) => this.getApp().opener.openPath(path),
+			onOpenFolder: (path) => app.opener.openPath(path),
 			onCopyPath: (path) => navigator.clipboard.writeText(path),
-			onOpenUrl: (url) => this.getApp().opener.openUrl(url)
+			onOpenUrl: (url) => app.opener.openUrl(url)
 		});
 	}
 
 	async openProjectFolder(id: string): Promise<void> {
 		const projectPath = await this.getProjectPath(id);
-		await this.getApp().opener.openPath(projectPath);
+
+		await getApp().opener.openPath(projectPath);
 	}
 
 	async exportZip(id: string, name: string): Promise<void> {
 		const zip = await buildOverlayProjectZip(id);
+
 		const path = await save({
 			defaultPath: `${name}.zip`,
 			filters: [{ name: 'ZIP archive', extensions: ['zip'] }]
@@ -142,25 +161,25 @@ export class OverlayService {
 			return;
 		}
 
-		const { writeFile } = await import('@tauri-apps/plugin-fs');
-		await writeFile(path, zip);
+		await getApp().fs.writeFile(path, zip);
 	}
 
 	async build(id: string): Promise<{ success: boolean; error?: string }> {
-		const overlay = this.items.find((item) => item.id === id);
-
-		if (!overlay) {
-			throw new Error('Overlay not found');
-		}
+		const overlay = this.requireOverlay(id);
+		const framework = getOverlayFramework(overlay.template as OverlayFrameworkId).id;
 
 		this.buildingId = id;
 
 		try {
 			const projectPath = await this.getProjectPath(id);
+
 			const result = await buildOverlayProject({
 				overlayId: id,
+
 				projectPath,
-				framework: overlay.template as OverlayFrameworkId,
+
+				framework,
+
 				overlayName: overlay.name
 			});
 
@@ -172,5 +191,15 @@ export class OverlayService {
 		} finally {
 			this.buildingId = null;
 		}
+	}
+
+	private requireOverlay(id: string): SaveOverlayInput {
+		const overlay = this.items.find((item) => item.id === id);
+
+		if (!overlay) {
+			throw new Error(translate('Overlay not found.'));
+		}
+
+		return overlay;
 	}
 }

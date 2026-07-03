@@ -40,6 +40,8 @@ import { createPauseQueueHandler } from './handler/queue/pause';
 
 import { createResumeQueueHandler } from './handler/queue/resume';
 
+import { createToggleQueueHandler } from './handler/queue/toggle';
+
 import { createRunProgramHandler } from './handler/program/run';
 
 import { createRunScriptHandler } from './handler/script/run';
@@ -472,7 +474,9 @@ const plugin = (app: PluginAppApi) => {
 
 							createPauseQueueHandler(app),
 
-							createResumeQueueHandler(app)
+							createResumeQueueHandler(app),
+
+							createToggleQueueHandler(app)
 
 						]
 

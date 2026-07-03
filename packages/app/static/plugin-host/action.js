@@ -442,7 +442,7 @@ function G(e, t) {
 //#region src/lib/core/action/validate-form.ts
 function K(e, t) {
 	if (e.type === "checkbox") return !1;
-	if (e.type === "text" || e.type === "select" || e.type === "cron-expression") return !String(t ?? "").trim();
+	if (e.type === "text" || e.type === "select" || e.type === "cron-expression" || e.type === "hotkey") return !String(t ?? "").trim();
 	if (e.type === "text-select-text") {
 		let e = t;
 		return !e.path.trim() || !e.type.trim() || !e.value.trim();
@@ -488,7 +488,7 @@ function Z(e) {
 	} : e.type === "select-text" ? {
 		type: "",
 		value: ""
-	} : e.type === "checkbox" ? !0 : (e.type, "") : X(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
+	} : e.type === "checkbox" ? !0 : (e.type === "cron-expression" || e.type, "") : X(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
 }
 function Q(e, t) {
 	return e?.find((e) => e.key === t);
