@@ -1,5 +1,11 @@
 # @stream-kit/core
 
+## 0.2.0-alpha.3
+
+### Minor Changes
+
+- [`980b053`](https://github.com/stream-kit-app/app/commit/980b053831a05d1c118671bd47e3bd6e5a19931d) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Extended OBS functionality with more triggers and handlers
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes
