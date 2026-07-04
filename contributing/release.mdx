@@ -65,7 +65,7 @@ Publish the draft release on GitHub when you are ready to ship.
 
 ### Build did not start?
 
-**Build Release** runs when a `v*` tag is pushed or when `Release` dispatches it manually. GitHub does not reliably start a second workflow from a tag pushed with the default `GITHUB_TOKEN`, so `Release` also calls `gh workflow run build-release.yml`.
+**Build Release**, **Publish npm**, and **Publish Plugins** listen for `v*` tag pushes, but GitHub does not start workflows from tags pushed with the default `GITHUB_TOKEN`. The **Release** workflow therefore dispatches all three explicitly after pushing the release tag.
 
 The release workflow requires `actions: write`, `contents: write`, and `pull-requests: write` permissions. If GitHub blocks PR creation, configure `CHANGESET_GITHUB_TOKEN` as described below.
 

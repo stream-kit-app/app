@@ -65,3 +65,5 @@ jobs:
                   RELEASE_TAG="v$(node -p "require('./packages/app/package.json').version")"
                   git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}"
                   gh workflow run build-release.yml --ref main -f tag="${RELEASE_TAG}"
+                  gh workflow run publish-npm.yml --ref "${RELEASE_TAG}"
+                  gh workflow run publish-plugins.yml --ref "${RELEASE_TAG}"
