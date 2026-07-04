@@ -170,7 +170,16 @@ Then enable **Template repository** in the GitHub repo settings for the **Use th
 
 The **Publish Plugins** workflow pushes `manifest.json` updates and release zips to `stream-kit-app/plugin-{bot,core,obs,...}`. Configure **`PLUGIN_PUBLISH_TOKEN`** as a fine-grained or classic PAT that can write to those repositories in the `stream-kit-app` org.
 
-Without this secret, CI falls back to `GITHUB_TOKEN`, which only has access to the `app` repository and git push / `gh release` steps will fail on the distribution repos.
+Without this secret, CI cannot publish plugin distribution artifacts. The default `GITHUB_TOKEN` only has access to the `app` repository.
+
+**Setup checklist:**
+
+1. Create a classic PAT with `repo` scope, or a fine-grained PAT with **Contents: Read and write** on every `stream-kit-app/plugin-*` repository.
+2. Ensure the PAT owner account is a collaborator with **Write** or **Maintain** on each distribution repo (or is an org owner with base permissions that include repository write access).
+3. Add the PAT as repository secret **`PLUGIN_PUBLISH_TOKEN`** on `stream-kit-app/app`.
+4. Re-run **Publish Plugins**. The workflow verifies push access to `stream-kit-app/plugin-bot` before publishing.
+
+If CI reports `Permission denied to <account>`, the token is valid but that GitHub account lacks `contents:write` on the target distribution repository.
 
 Configure these in **Settings → Secrets and variables → Actions**:
 

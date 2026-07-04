@@ -12,7 +12,7 @@ on:
                 type: string
 
 permissions:
-    contents: write
+    contents: read
 
 concurrency:
     group: publish-plugins-${{ github.event.inputs.plugin || github.ref_name }}
@@ -41,10 +41,32 @@ jobs:
             - name: Build packages
               run: pnpm build:packages
 
+            - name: Verify plugin publish token
+              env:
+                  GH_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN }}
+              run: |
+                  if [ -z "$GH_TOKEN" ]; then
+                    echo "::error::PLUGIN_PUBLISH_TOKEN is required. Create a PAT with contents:write on all stream-kit-app/plugin-* repositories and add it as a repository secret."
+                    exit 1
+                  fi
+
+                  gh auth setup-git
+                  gh auth status
+                  LOGIN="$(gh api user --jq .login)"
+                  CAN_PUSH="$(gh api repos/stream-kit-app/plugin-bot --jq .permissions.push)"
+
+                  if [ "$CAN_PUSH" != "true" ]; then
+                    echo "::error::GitHub account ${LOGIN} cannot push to stream-kit-app/plugin-bot. Grant contents:write on every stream-kit-app/plugin-* repository to this account."
+                    exit 1
+                  fi
+
+                  echo "Verified publish access for ${LOGIN}"
+
             - name: Publish plugin distributions
               env:
-                  GH_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
-                  GITHUB_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
+                  PLUGIN_PUBLISH_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN }}
+                  GH_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.PLUGIN_PUBLISH_TOKEN }}
               run: |
                   if [ -n "${{ github.event.inputs.plugin }}" ]; then
                     node scripts/publish-plugin-distribution.mjs --plugin "${{ github.event.inputs.plugin }}"

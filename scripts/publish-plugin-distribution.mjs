@@ -84,6 +84,62 @@ function configureGitIdentity(workDir) {
 	runCapture(`git config user.email "${email}"`, workDir);
 }
 
+function gitPush(workDir, slug) {
+	const token = getGithubToken();
+
+	if (!token) {
+		throw new Error(
+			'GH_TOKEN or GITHUB_TOKEN is required to push plugin distribution manifests.'
+		);
+	}
+
+	const remote = gitRemoteUrl(slug, token);
+	run(`git -c credential.helper= push "${remote}" HEAD:main`, workDir);
+}
+
+function verifyPublishAccess() {
+	const token = getGithubToken();
+
+	if (!token) {
+		throw new Error(
+			'PLUGIN_PUBLISH_TOKEN is required. The default GITHUB_TOKEN cannot write to stream-kit-app/plugin-* distribution repositories.'
+		);
+	}
+
+	if (process.env.GITHUB_ACTIONS === 'true' && !process.env.PLUGIN_PUBLISH_TOKEN) {
+		throw new Error(
+			'Set the PLUGIN_PUBLISH_TOKEN repository secret to a PAT with contents:write on all stream-kit-app/plugin-* distribution repositories.'
+		);
+	}
+
+	let login = 'unknown';
+
+	try {
+		login = runCapture('gh api user --jq .login');
+	} catch (error) {
+		throw new Error(`Failed to authenticate with GitHub: ${error.message}`);
+	}
+
+	const sampleSlug = getRepoSlug(PLUGIN_KEYS[0]);
+	let canPush = false;
+
+	try {
+		canPush = runCapture(`gh api repos/${sampleSlug} --jq .permissions.push`) === 'true';
+	} catch (error) {
+		throw new Error(
+			`Failed to read permissions for ${sampleSlug}. Ensure the token can access stream-kit-app distribution repositories: ${error.message}`
+		);
+	}
+
+	if (!canPush) {
+		throw new Error(
+			`GitHub account "${login}" cannot push to ${sampleSlug}. Grant this account contents:write on every stream-kit-app/plugin-* repository, or create PLUGIN_PUBLISH_TOKEN from an account that already has org access.`
+		);
+	}
+
+	console.log(`Verified publish access for ${login} on ${sampleSlug}`);
+}
+
 function hasStagedChanges(workDir) {
 	try {
 		execSync('git diff --cached --quiet', { cwd: workDir, stdio: 'ignore' });
@@ -210,7 +266,7 @@ function publishPlugin(key, options) {
 
 		if (hasStagedChanges(workDir)) {
 			run('git commit -m "chore: publish plugin distribution manifest"', workDir);
-			run('git push origin main', workDir);
+			gitPush(workDir, slug);
 		} else {
 			console.log(`No manifest changes to commit for ${slug}`);
 		}
@@ -246,6 +302,10 @@ function publishPlugin(key, options) {
 
 const options = parseArgs(process.argv.slice(2));
 const plugins = options.plugins.length > 0 ? options.plugins : PLUGIN_KEYS;
+
+if (!options.dryRun) {
+	verifyPublishAccess();
+}
 
 for (const key of plugins) {
 	if (!PLUGIN_KEYS.includes(key)) {
