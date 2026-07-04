@@ -1,5 +1,16 @@
 # @stream-kit/plugin-bot
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- [`0e99d9c`](https://github.com/stream-kit-app/app/commit/0e99d9c8a1afbeb18240644625b10b05d06f6a9d) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - add cooldown to commands
+
+### Patch Changes
+
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.4
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes
