@@ -1,0 +1,330 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://stream-kit.app/schemas/overlay-manifest.schema.json",
+	"title": "Stream Kit overlay manifest",
+	"description": "Metadata for a Stream Kit overlay project. User settings values are stored in the Stream Kit app database; this file defines the schema and test handlers.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["id", "name", "framework", "expectedEvents"],
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "JSON Schema reference for editor autocomplete. Keep as ./overlay-manifest.schema.json"
+		},
+		"id": {
+			"type": "string",
+			"format": "uuid",
+			"description": "Stable overlay UUID assigned by Stream Kit when the overlay is created."
+		},
+		"name": {
+			"type": "string",
+			"minLength": 1,
+			"description": "Display name shown in Stream Kit. Renaming in the app updates this field."
+		},
+		"framework": {
+			"type": "string",
+			"description": "Overlay starter framework.",
+			"enum": ["svelte", "react", "vue", "vanilla", "preact", "solid", "lit"]
+		},
+		"expectedEvents": {
+			"type": "array",
+			"description": "Event names this overlay handles over WebSocket (excluding reserved overlay:settings).",
+			"items": {
+				"type": "string",
+				"minLength": 1,
+				"not": {
+					"const": "overlay:settings"
+				}
+			},
+			"default": ["event"]
+		},
+		"version": {
+			"type": "integer",
+			"minimum": 0,
+			"description": "Increment when adding or changing settings fields. Stream Kit merges new defaults into saved user config."
+		},
+		"settings": {
+			"type": "array",
+			"description": "Declarative settings schema rendered on the overlay configure page.",
+			"items": {
+				"$ref": "#/$defs/settingsItem"
+			}
+		},
+		"testHandlers": {
+			"type": "array",
+			"description": "Test buttons on the configure page. Each entry broadcasts an event to the overlay preview.",
+			"items": {
+				"$ref": "#/$defs/testHandler"
+			}
+		},
+		"requiredPlugins": {
+			"type": "array",
+			"description": "Plugin keys that must be installed and enabled before this overlay can be used.",
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"actions": {
+			"type": "array",
+			"description": "Recommended action presets the user can install from the configure page.",
+			"items": {
+				"$ref": "#/$defs/actionPreset"
+			}
+		}
+	},
+	"$defs": {
+		"settingsFieldBase": {
+			"type": "object",
+			"required": ["type", "key", "name"],
+			"properties": {
+				"key": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Stable settings key stored in the app database."
+				},
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Label shown in the configure page."
+				},
+				"defaultValue": {
+					"description": "Default value for new overlay instances or after schema version bumps.",
+					"oneOf": [
+						{ "type": "string" },
+						{ "type": "number" },
+						{ "type": "boolean" }
+					]
+				},
+				"required": {
+					"type": "boolean",
+					"default": false
+				}
+			}
+		},
+		"textField": {
+			"allOf": [
+				{ "$ref": "#/$defs/settingsFieldBase" },
+				{
+					"type": "object",
+					"properties": {
+						"type": { "const": "text" },
+						"placeholder": { "type": "string" },
+						"inputType": {
+							"type": "string",
+							"enum": ["text", "password"],
+							"default": "text"
+						}
+					},
+					"required": ["type"]
+				}
+			]
+		},
+		"switchField": {
+			"allOf": [
+				{ "$ref": "#/$defs/settingsFieldBase" },
+				{
+					"type": "object",
+					"properties": {
+						"type": { "const": "switch" }
+					},
+					"required": ["type"]
+				}
+			]
+		},
+		"checkboxField": {
+			"allOf": [
+				{ "$ref": "#/$defs/settingsFieldBase" },
+				{
+					"type": "object",
+					"properties": {
+						"type": { "const": "checkbox" }
+					},
+					"required": ["type"]
+				}
+			]
+		},
+		"selectField": {
+			"allOf": [
+				{ "$ref": "#/$defs/settingsFieldBase" },
+				{
+					"type": "object",
+					"properties": {
+						"type": { "const": "select" },
+						"placeholder": { "type": "string" },
+						"loadingPlaceholder": { "type": "string" },
+						"items": {
+							"type": "array",
+							"minItems": 1,
+							"items": {
+								"type": "object",
+								"required": ["value", "label"],
+								"properties": {
+									"value": { "type": "string" },
+									"label": { "type": "string" }
+								},
+								"additionalProperties": false
+							}
+						}
+					},
+					"required": ["type", "items"]
+				}
+			]
+		},
+		"sliderField": {
+			"allOf": [
+				{ "$ref": "#/$defs/settingsFieldBase" },
+				{
+					"type": "object",
+					"properties": {
+						"type": { "const": "slider" },
+						"min": { "type": "number" },
+						"max": { "type": "number" },
+						"step": { "type": "number" }
+					},
+					"required": ["type", "min", "max"]
+				}
+			]
+		},
+		"settingsField": {
+			"oneOf": [
+				{ "$ref": "#/$defs/textField" },
+				{ "$ref": "#/$defs/switchField" },
+				{ "$ref": "#/$defs/checkboxField" },
+				{ "$ref": "#/$defs/selectField" },
+				{ "$ref": "#/$defs/sliderField" }
+			]
+		},
+		"settingsSection": {
+			"type": "object",
+			"required": ["type", "fields"],
+			"additionalProperties": false,
+			"properties": {
+				"type": { "const": "section" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"fields": {
+					"type": "array",
+					"minItems": 1,
+					"items": { "$ref": "#/$defs/settingsField" }
+				}
+			}
+		},
+		"settingsItem": {
+			"oneOf": [{ "$ref": "#/$defs/settingsField" }, { "$ref": "#/$defs/settingsSection" }]
+		},
+		"testHandler": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["label", "event"],
+			"properties": {
+				"label": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Button label on the configure page."
+				},
+				"event": {
+					"type": "string",
+					"minLength": 1,
+					"description": "WebSocket event name sent when the test button is clicked."
+				},
+				"payload": {
+					"description": "Optional JSON payload. The overlay can also generate fake data in its handler."
+				}
+			}
+		},
+		"actionPresetField": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["key", "value"],
+			"properties": {
+				"key": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Handler field key. Use overlay with value __overlay__ for the current overlay UUID."
+				},
+				"value": {
+					"description": "Field value. Strings support trigger variable placeholders such as {username}.",
+					"oneOf": [
+						{ "type": "string" },
+						{ "type": "number" },
+						{ "type": "boolean" }
+					]
+				}
+			}
+		},
+		"actionPresetHandler": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["handlerTypeId", "fields"],
+			"properties": {
+				"handlerTypeId": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Registered handler definition id, for example overlay:overlay:send-to-overlay."
+				},
+				"fields": {
+					"type": "array",
+					"minItems": 1,
+					"items": { "$ref": "#/$defs/actionPresetField" }
+				}
+			}
+		},
+		"actionPresetTrigger": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["triggerTypeId"],
+			"properties": {
+				"triggerTypeId": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Registered trigger definition id from an installed plugin."
+				},
+				"conditions": {
+					"type": "object",
+					"description": "Optional root condition group. Defaults to an empty group when omitted.",
+					"required": ["kind", "id", "children"],
+					"properties": {
+						"kind": { "const": "group" },
+						"id": { "type": "string" },
+						"operator": { "enum": ["and", "or"] },
+						"children": { "type": "array" }
+					},
+					"additionalProperties": true
+				}
+			}
+		},
+		"actionPreset": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["key", "name", "triggers", "handlers"],
+			"properties": {
+				"key": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Stable preset key used to track whether this action was installed."
+				},
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Action name shown in the Actions list after installation."
+				},
+				"enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether the created action should start enabled."
+				},
+				"triggers": {
+					"type": "array",
+					"minItems": 1,
+					"items": { "$ref": "#/$defs/actionPresetTrigger" }
+				},
+				"handlers": {
+					"type": "array",
+					"minItems": 1,
+					"items": { "$ref": "#/$defs/actionPresetHandler" }
+				}
+			}
+		}
+	}
+}

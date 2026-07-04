@@ -6,7 +6,7 @@
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
 
-	import { OverlayCard } from '$lib/components/core/overlay';
+	import { OverlayCard, OverlayInstallButton } from '$lib/components/core/overlay';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
@@ -14,13 +14,16 @@
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<header class="flex flex-wrap items-start justify-between gap-4">
+	<header class="flex flex-wrap items-center justify-between gap-4">
 		<Heading level="1" subTitle={t('Build browser source overlays for OBS')}>
 			{t('Overlays')}
 		</Heading>
-		<Button icon="ri:add-line" size="lg" onclick={() => goto('/overlays/new')}>
-			{t('New overlay')}
-		</Button>
+		<div class="flex flex-wrap items-center gap-2">
+			<OverlayInstallButton size="lg" />
+			<Button icon="ri:add-line" size="lg" onclick={() => goto('/overlays/new')}>
+				{t('New overlay')}
+			</Button>
+		</div>
 	</header>
 
 	{#if app.overlay.items.length === 0}
@@ -38,9 +41,12 @@
 					{t('Create one to get a browser source URL for OBS.')}
 				</p>
 			</div>
-			<Button class="relative" icon="ri:add-line" onclick={() => goto('/overlays/new')}>
-				{t('New overlay')}
-			</Button>
+			<div class="relative flex flex-wrap items-center justify-center gap-2">
+				<OverlayInstallButton />
+				<Button class="relative" icon="ri:add-line" onclick={() => goto('/overlays/new')}>
+					{t('New overlay')}
+				</Button>
+			</div>
 		</div>
 	{:else}
 		<div class="mt-8 grid gap-5 md:grid-cols-2">

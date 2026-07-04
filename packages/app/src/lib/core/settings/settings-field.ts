@@ -151,11 +151,18 @@ export function getSettingsFieldDefinition(
 	return flattenSettingsFieldItems(items).find((field) => fieldKeyMatches(field.key, key));
 }
 
+export function getSettingsFieldInstance(
+	fields: SettingsFieldInstance[],
+	key: string
+): SettingsFieldInstance | undefined {
+	return fields.find((field) => fieldKeyMatches(field.key, key));
+}
+
 export function getSettingsFieldValue(
 	fields: SettingsFieldInstance[],
 	key: string
 ): SettingsFieldValue | undefined {
-	return fields.find((field) => fieldKeyMatches(field.key, key))?.value;
+	return getSettingsFieldInstance(fields, key)?.value;
 }
 
 export function isSettingsFieldValueEmpty(

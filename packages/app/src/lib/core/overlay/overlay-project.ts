@@ -1,9 +1,18 @@
 import type { Filesystem } from '../filesystem';
-import type { OverlayFrameworkId, OverlayManifest } from './types';
+import type { OverlayFrameworkId } from './types';
+import type { OverlayManifest } from './overlay-manifest';
 
 import { BaseDirectory } from '@tauri-apps/plugin-fs';
 
 import { deleteOverlay, getOverlays, saveOverlay, type SaveOverlayInput } from '$db/repositories/overlays';
+
+import { createOverlayManifest } from './overlay-manifest-defaults';
+import {
+	getOverlayManifestSchemaContent,
+	OVERLAY_MANIFEST_SCHEMA_FILE,
+	serializeOverlayManifest
+} from './overlay-manifest-schema';
+import { collectOverlayDefaultConfig, parseOverlayManifest } from './overlay-manifest';
 
 import {
 	getOverlayScaffoldFile,
@@ -29,7 +38,10 @@ export async function listOverlayProjects(): Promise<SaveOverlayInput[]> {
 		name: row.name,
 		template: row.template,
 		config: row.config ?? {},
-		expectedEvents: row.expectedEvents ?? []
+		version: row.version ?? 0,
+		expectedEvents: row.expectedEvents ?? [],
+		requiredPlugins: row.requiredPlugins ?? [],
+		installedActionKeys: row.installedActionKeys ?? []
 	}));
 }
 
@@ -55,21 +67,26 @@ export async function createOverlayProject(
 		await writeOverlayFileRaw(`${dir}/${file.path}`, file.content);
 	}
 
-	const manifest: OverlayManifest = {
+	const manifest = createOverlayManifest({
 		id: input.id,
 		name: input.name,
 		framework: input.framework,
 		expectedEvents: framework.expectedEvents
-	};
+	});
 
-	await writeOverlayFile(input.id, 'manifest.json', JSON.stringify(manifest, null, 2));
+	await writeOverlayFile(input.id, 'manifest.json', serializeOverlayManifest(manifest));
+
+	const defaultConfig = collectOverlayDefaultConfig(manifest.settings);
 
 	const record: SaveOverlayInput = {
 		id: input.id,
 		name: input.name,
 		template: input.framework,
-		config: {},
-		expectedEvents: framework.expectedEvents
+		config: defaultConfig,
+		version: manifest.version ?? 0,
+		expectedEvents: manifest.expectedEvents,
+		requiredPlugins: manifest.requiredPlugins ?? [],
+		installedActionKeys: []
 	};
 
 	await saveOverlay(record);
@@ -80,15 +97,95 @@ export async function createOverlayProject(
 export async function updateOverlayMetadata(record: SaveOverlayInput): Promise<void> {
 	await saveOverlay(record);
 
-	const manifest: OverlayManifest = {
-		id: record.id,
-		name: record.name,
-		framework: record.template as OverlayFrameworkId,
-		expectedEvents: record.expectedEvents
-	};
+	const existingManifest = await readOverlayManifestIfExists(record.id);
+	let manifest: OverlayManifest;
 
-	await writeOverlayFile(record.id, 'manifest.json', JSON.stringify(manifest, null, 2));
+	if (existingManifest) {
+		manifest = {
+			...existingManifest,
+			id: record.id,
+			name: record.name
+		};
+	} else if (await overlayManifestExists(record.id)) {
+		throw new Error('Could not parse manifest.json. Fix the file before updating this overlay.');
+	} else {
+		manifest = createOverlayManifest({
+			id: record.id,
+			name: record.name,
+			framework: record.template as OverlayFrameworkId,
+			expectedEvents: record.expectedEvents
+		});
+	}
+
+	await writeOverlayFile(record.id, 'manifest.json', serializeOverlayManifest(manifest));
 	await syncOverlayScaffoldMetadata(record.id, record.name, record.template as OverlayFrameworkId);
+	await ensureOverlayManifestEditorSupport(record.id);
+}
+
+export async function ensureOverlayManifestEditorSupport(id: string): Promise<void> {
+	const schemaPath = `${overlayDir(id)}/${OVERLAY_MANIFEST_SCHEMA_FILE}`;
+	const { exists, readTextFile } = await import('@tauri-apps/plugin-fs');
+
+	if (!(await exists(schemaPath, { baseDir: BaseDirectory.AppData }))) {
+		await writeOverlayFileRaw(schemaPath, getOverlayManifestSchemaContent());
+	}
+
+	const manifestPath = `${overlayDir(id)}/manifest.json`;
+
+	if (!(await exists(manifestPath, { baseDir: BaseDirectory.AppData }))) {
+		return;
+	}
+
+	const raw = await readTextFile(manifestPath, { baseDir: BaseDirectory.AppData });
+
+	let rawParsed: Record<string, unknown>;
+
+	try {
+		rawParsed = JSON.parse(raw) as Record<string, unknown>;
+	} catch {
+		throw new Error('manifest.json contains invalid JSON');
+	}
+
+	let parsed: OverlayManifest;
+
+	try {
+		parsed = parseOverlayManifest(rawParsed);
+	} catch (error) {
+		throw new Error(
+			error instanceof Error ? error.message : 'Could not parse manifest.json'
+		);
+	}
+
+	const hadSchema = typeof rawParsed.$schema === 'string';
+
+	if (!hadSchema) {
+		await writeOverlayFile(id, 'manifest.json', serializeOverlayManifest(parsed));
+	}
+}
+
+async function overlayManifestExists(id: string): Promise<boolean> {
+	const { exists } = await import('@tauri-apps/plugin-fs');
+
+	return exists(`${overlayDir(id)}/manifest.json`, { baseDir: BaseDirectory.AppData });
+}
+
+async function readOverlayManifestIfExists(id: string): Promise<OverlayManifest | null> {
+	const { exists, readTextFile } = await import('@tauri-apps/plugin-fs');
+	const path = `${overlayDir(id)}/manifest.json`;
+
+	if (!(await exists(path, { baseDir: BaseDirectory.AppData }))) {
+		return null;
+	}
+
+	const raw = await readTextFile(path, { baseDir: BaseDirectory.AppData });
+
+	try {
+		return parseOverlayManifest(JSON.parse(raw));
+	} catch (error) {
+		throw new Error(
+			error instanceof Error ? error.message : 'Could not parse manifest.json'
+		);
+	}
 }
 
 export async function removeOverlayProject(fs: Filesystem, id: string): Promise<void> {
@@ -125,7 +222,7 @@ export async function ensureOverlayScaffold(
 	}
 }
 
-async function syncOverlayScaffoldMetadata(
+export async function syncOverlayScaffoldMetadata(
 	id: string,
 	name: string,
 	framework: OverlayFrameworkId
@@ -145,7 +242,7 @@ async function writeOverlayFile(id: string, relativePath: string, content: strin
 	await writeOverlayFileRaw(`${overlayDir(id)}/${relativePath}`, content);
 }
 
-async function writeOverlayFileRaw(path: string, content: string): Promise<void> {
+export async function writeOverlayFileRaw(path: string, content: string): Promise<void> {
 	const { writeTextFile, mkdir } = await import('@tauri-apps/plugin-fs');
 	const parts = path.split('/');
 

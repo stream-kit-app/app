@@ -80,6 +80,9 @@ pub fn run() {
             overlay_server::commands::overlay_server_stop,
             overlay_server::commands::overlay_server_status,
             overlay_server::commands::overlay_broadcast,
+            overlay_server::commands::overlay_sync_config,
+            overlay_server::commands::overlay_sync_all_configs,
+            overlay_server::commands::overlay_broadcast_settings,
             overlay_server::commands::overlay_get_overlays_dir
         ])
         .setup(|app| {

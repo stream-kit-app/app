@@ -31,5 +31,8 @@ commands.allow = [
 	"overlay_server_stop",
 	"overlay_server_status",
 	"overlay_broadcast",
+	"overlay_sync_config",
+	"overlay_sync_all_configs",
+	"overlay_broadcast_settings",
 	"overlay_get_overlays_dir"
 ]

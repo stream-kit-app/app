@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
+use serde_json::Value;
 use tauri::{AppHandle, State};
 
 use super::server::{find_available_port, resolve_overlays_dir, run_server};
-use super::state::{OverlayServerState, OverlayServerStatus};
+use super::state::{OverlayServerState, OverlayServerStatus, OVERLAY_SETTINGS_EVENT};
 
 #[tauri::command]
 pub async fn overlay_server_start(
@@ -47,9 +50,42 @@ pub async fn overlay_broadcast(
     state: State<'_, OverlayServerState>,
     overlay_id: String,
     event: String,
-    payload: serde_json::Value,
+    payload: Value,
 ) -> Result<(), String> {
     state.broadcast(overlay_id, event, payload).await
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub async fn overlay_sync_config(
+    state: State<'_, OverlayServerState>,
+    overlay_id: String,
+    config: Value,
+) -> Result<(), String> {
+    state.sync_config(overlay_id, config).await
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub async fn overlay_sync_all_configs(
+    state: State<'_, OverlayServerState>,
+    configs: HashMap<String, Value>,
+) -> Result<(), String> {
+    state.sync_all_configs(configs).await
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub async fn overlay_broadcast_settings(
+    state: State<'_, OverlayServerState>,
+    overlay_id: String,
+    config: Value,
+) -> Result<(), String> {
+    state.sync_config(overlay_id.clone(), config.clone()).await?;
+    state
+        .broadcast(
+            overlay_id,
+            OVERLAY_SETTINGS_EVENT.to_string(),
+            config,
+        )
+        .await
 }
 
 #[tauri::command]

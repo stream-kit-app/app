@@ -5,7 +5,6 @@ import type { OverlayManifest, OverlayProjectFile } from './types';
 
 import { ensureOverlayScaffold, overlayDir } from './overlay-project';
 
-const EXPORT_SKIP_FILES = new Set(['manifest.json']);
 const EXPORT_SKIP_DIRS = new Set(['dist', 'node_modules']);
 
 export async function readOverlayExportFiles(id: string): Promise<OverlayProjectFile[]> {
@@ -30,10 +29,6 @@ export async function readOverlayExportFiles(id: string): Promise<OverlayProject
 
 			if (entry.isDirectory) {
 				await walk(fullPath, projectPath);
-				continue;
-			}
-
-			if (EXPORT_SKIP_FILES.has(entry.name) && !projectPrefix) {
 				continue;
 			}
 

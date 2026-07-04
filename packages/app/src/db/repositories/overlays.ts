@@ -8,7 +8,10 @@ export type SaveOverlayInput = {
 	name: string;
 	template: string;
 	config: Record<string, unknown>;
+	version: number;
 	expectedEvents: string[];
+	requiredPlugins?: string[];
+	installedActionKeys?: string[];
 };
 
 export async function getOverlays(): Promise<OverlayRecord[]> {
@@ -32,7 +35,10 @@ export async function saveOverlay(input: SaveOverlayInput): Promise<OverlayRecor
 				name: input.name,
 				template: input.template,
 				config: input.config,
+				version: input.version,
 				expectedEvents: input.expectedEvents,
+				requiredPlugins: input.requiredPlugins ?? existing.requiredPlugins ?? [],
+				installedActionKeys: input.installedActionKeys ?? existing.installedActionKeys ?? [],
 				updatedAt: now
 			})
 			.where(eq(overlays.id, input.id));
@@ -45,7 +51,10 @@ export async function saveOverlay(input: SaveOverlayInput): Promise<OverlayRecor
 		name: input.name,
 		template: input.template,
 		config: input.config,
+		version: input.version,
 		expectedEvents: input.expectedEvents,
+		requiredPlugins: input.requiredPlugins ?? [],
+		installedActionKeys: input.installedActionKeys ?? [],
 		createdAt: now,
 		updatedAt: now
 	};
@@ -55,6 +64,78 @@ export async function saveOverlay(input: SaveOverlayInput): Promise<OverlayRecor
 	return (await getOverlay(input.id))!;
 }
 
+export async function saveOverlayConfig(
+	id: string,
+	config: Record<string, unknown>,
+	version: number
+): Promise<OverlayRecord> {
+	const existing = await getOverlay(id);
+
+	if (!existing) {
+		throw new Error(`Overlay not found: ${id}`);
+	}
+
+	const now = new Date();
+
+	await db
+		.update(overlays)
+		.set({
+			config,
+			version,
+			updatedAt: now
+		})
+		.where(eq(overlays.id, id));
+
+	return (await getOverlay(id))!;
+}
+
 export async function deleteOverlay(id: string): Promise<void> {
 	await db.delete(overlays).where(eq(overlays.id, id));
+}
+
+export async function saveOverlayInstalledActionKeys(
+	id: string,
+	installedActionKeys: string[]
+): Promise<OverlayRecord> {
+	const existing = await getOverlay(id);
+
+	if (!existing) {
+		throw new Error(`Overlay not found: ${id}`);
+	}
+
+	const now = new Date();
+
+	await db
+		.update(overlays)
+		.set({
+			installedActionKeys,
+			updatedAt: now
+		})
+		.where(eq(overlays.id, id));
+
+	return (await getOverlay(id))!;
+}
+
+export async function saveOverlayManifestMetadata(
+	id: string,
+	metadata: Pick<SaveOverlayInput, 'expectedEvents' | 'requiredPlugins'>
+): Promise<OverlayRecord> {
+	const existing = await getOverlay(id);
+
+	if (!existing) {
+		throw new Error(`Overlay not found: ${id}`);
+	}
+
+	const now = new Date();
+
+	await db
+		.update(overlays)
+		.set({
+			expectedEvents: metadata.expectedEvents,
+			requiredPlugins: metadata.requiredPlugins ?? [],
+			updatedAt: now
+		})
+		.where(eq(overlays.id, id));
+
+	return (await getOverlay(id))!;
 }

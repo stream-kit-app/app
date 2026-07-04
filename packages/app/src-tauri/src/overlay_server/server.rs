@@ -9,17 +9,22 @@ use axum::routing::get;
 use axum::Router;
 use futures_util::{SinkExt, StreamExt};
 use serde::Deserialize;
+use serde_json::Value;
 use tauri::Manager;
 use tokio::net::TcpListener;
 use tokio::sync::{broadcast, oneshot};
 use tower_http::cors::CorsLayer;
 
-use super::state::{OverlayBroadcastMessage, OverlayServerInner};
+use super::state::{
+    create_overlay_config_cache, overlay_settings_message, OverlayBroadcastMessage,
+    OverlayConfigCache, OverlayServerInner,
+};
 
 #[derive(Clone)]
 pub struct AppState {
     pub overlays_dir: PathBuf,
     pub broadcast_tx: broadcast::Sender<OverlayBroadcastMessage>,
+    pub config_cache: OverlayConfigCache,
 }
 
 #[derive(Debug, Deserialize)]
@@ -34,10 +39,12 @@ pub async fn run_server(
     shutdown_rx: oneshot::Receiver<()>,
 ) -> Result<OverlayServerInner, String> {
     let (broadcast_tx, _) = broadcast::channel::<OverlayBroadcastMessage>(256);
+    let config_cache = create_overlay_config_cache();
 
     let app_state = AppState {
         overlays_dir: overlays_dir.clone(),
         broadcast_tx: broadcast_tx.clone(),
+        config_cache: config_cache.clone(),
     };
 
     let router = Router::new()
@@ -70,6 +77,7 @@ pub async fn run_server(
         port,
         overlays_dir,
         broadcast_tx,
+        config_cache,
         shutdown_tx: Some(shutdown_tx),
     })
 }
@@ -81,18 +89,41 @@ async fn ws_handler(
 ) -> impl IntoResponse {
     let overlay_id = query.overlay_id;
     let broadcast_tx = state.broadcast_tx.clone();
+    let config_cache = state.config_cache.clone();
 
-    ws.on_upgrade(move |socket| handle_socket(socket, overlay_id, broadcast_tx))
+    ws.on_upgrade(move |socket| handle_socket(socket, overlay_id, broadcast_tx, config_cache))
 }
 
 async fn handle_socket(
     socket: WebSocket,
     overlay_id: String,
     broadcast_tx: broadcast::Sender<OverlayBroadcastMessage>,
+    config_cache: OverlayConfigCache,
 ) {
-    let mut rx = broadcast_tx.subscribe();
+    let config = config_cache
+        .read()
+        .await
+        .get(&overlay_id)
+        .cloned()
+        .unwrap_or(Value::Object(Default::default()));
+
+    let settings_message = overlay_settings_message(overlay_id.clone(), config);
+    let settings_json = match serde_json::to_string(&settings_message) {
+        Ok(value) => value,
+        Err(_) => return,
+    };
+
     let (mut sender, mut receiver) = socket.split();
 
+    if sender
+        .send(Message::Text(settings_json.into()))
+        .await
+        .is_err()
+    {
+        return;
+    }
+
+    let mut rx = broadcast_tx.subscribe();
     let overlay_id_filter = overlay_id.clone();
 
     let mut send_task = tokio::spawn(async move {

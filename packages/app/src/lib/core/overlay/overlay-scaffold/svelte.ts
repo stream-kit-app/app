@@ -1,4 +1,4 @@
-import { viteBuildConfig, viteWsProxyConfig } from './shared';
+import { overlayTsContent, viteBuildConfig, viteWsProxyConfig } from './shared';
 
 export function svelteScaffold(slug: string, overlayId: string) {
 	const packageJson = JSON.stringify(
@@ -100,60 +100,41 @@ mount(App, { target: document.body });
 		},
 		{
 			path: 'src/overlay.ts',
-			content: `const overlayId = import.meta.env.VITE_OVERLAY_ID ?? '${overlayId}';
-
-type OverlayHandler = (payload: unknown) => void;
-
-export function connectOverlay(handlers: Record<string, OverlayHandler> = {}): void {
-	const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-	let reconnectAttempt = 0;
-
-	const connect = () => {
-		const ws = new WebSocket(\`\${protocol}//\${location.host}/ws?overlayId=\${overlayId}\`);
-
-		ws.onmessage = (event) => {
-			try {
-				const message = JSON.parse(String(event.data)) as {
-					event: string;
-					payload: unknown;
-				};
-				handlers[message.event]?.(message.payload);
-			} catch {
-				// Ignore malformed messages.
-			}
-		};
-
-		ws.onclose = () => {
-			const delay = Math.min(1000 * 2 ** reconnectAttempt, 30_000);
-			reconnectAttempt += 1;
-			setTimeout(connect, delay);
-		};
-
-		ws.onopen = () => {
-			reconnectAttempt = 0;
-		};
-	};
-
-	connect();
-}
-`
+			content: overlayTsContent(overlayId)
 		},
 		{
 			path: 'src/App.svelte',
 			content: `<script lang="ts">
 	import { connectOverlay } from './overlay';
 
-	let lastEvent = $state<string>('Waiting for events…');
+	let title = $state('Stream Kit Overlay');
+	let fontSize = $state(16);
+	let lastEvent = $state('Waiting for events…');
 
 	connectOverlay({
+		'overlay:settings': (payload) => {
+			const config = payload as Record<string, unknown>;
+
+			if (typeof config.title === 'string') {
+				title = config.title;
+			}
+
+			if (typeof config.fontSize === 'number') {
+				fontSize = config.fontSize;
+			}
+		},
 		event: (payload) => {
+			lastEvent = JSON.stringify(payload);
+		},
+		'test:sample': (payload) => {
 			lastEvent = JSON.stringify(payload);
 		}
 	});
 </script>
 
-<main>
-	<p>Overlay ready. Edit <code>src/App.svelte</code> to customize.</p>
+<main style:font-size="{fontSize}px">
+	<h1>{title}</h1>
+	<p>Overlay ready. Edit <code>src/App.svelte</code> and <code>manifest.json</code> to customize.</p>
 	<p>Overlay ID: ${overlayId}</p>
 	<p>{lastEvent}</p>
 </main>
@@ -162,12 +143,15 @@ export function connectOverlay(handlers: Record<string, OverlayHandler> = {}): v
 	:global(body) {
 		margin: 0;
 		font-family: system-ui, sans-serif;
-		color: #fff;
 		background: transparent;
 	}
 
 	main {
 		padding: 1rem;
+	}
+
+	h1 {
+		margin: 0 0 0.5rem;
 	}
 
 	code {

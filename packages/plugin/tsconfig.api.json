@@ -4,6 +4,7 @@
 		"noEmit": true,
 		"skipLibCheck": true,
 		"strict": true,
+		"resolveJsonModule": true,
 		"paths": {
 			"@stream-kit/core": ["../core/src/index.ts"],
 			"@stream-kit/plugin": ["./src/index.ts"],

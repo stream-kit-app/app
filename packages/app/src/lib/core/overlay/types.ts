@@ -7,12 +7,14 @@ export type OverlayFrameworkId =
 	| 'solid'
 	| 'lit';
 
-export type OverlayManifest = {
-	id: string;
-	name: string;
-	framework: OverlayFrameworkId;
-	expectedEvents: string[];
-};
+export type {
+	OverlayManifest,
+	OverlaySettingsFieldJson,
+	OverlaySettingsItemJson,
+	OverlaySettingsSectionJson,
+	OverlayTestHandlerDefinition
+} from './overlay-manifest';
+export { OVERLAY_SETTINGS_EVENT } from './overlay-manifest';
 
 export type OverlayServerStatus = {
 	running: boolean;

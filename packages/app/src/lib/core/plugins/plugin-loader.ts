@@ -154,6 +154,7 @@ export async function reloadInstalledPlugin(
 		}
 
 		await app.actions.load();
+		app.overlay.notifyDependenciesChanged();
 	} catch (error) {
 		app.plugins.remove(manifest.key);
 		await invoke('uninstall_plugin', { key: manifest.key }).catch(() => undefined);

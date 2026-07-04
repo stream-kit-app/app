@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { RegisteredPlugin } from '$lib/core/plugins';
 
-	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
-	import { Button } from '@stream-kit/ui/button';
+	import SettingsForm from '$lib/components/core/settings/settings-form.svelte';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
@@ -53,15 +52,12 @@
 	}
 </script>
 
-<div class="flex w-full flex-col gap-6">
-	<SettingsFieldGroup
-		{context}
-		items={plugin.fieldItems}
-		getField={(key) => plugin.getField(key)}
-		getFieldError={(fieldId) => plugin.getFieldError(fieldId, plugin.formErrors)}
-	/>
-
-	<div>
-		<Button onclick={savePluginSettings} isLoading={isSaving}>{t('Save')}</Button>
-	</div>
-</div>
+<SettingsForm
+	{context}
+	fieldItems={plugin.fieldItems}
+	getField={(key) => plugin.getField(key)}
+	getFieldError={(fieldId) => plugin.getFieldError(fieldId, plugin.formErrors)}
+	onSave={savePluginSettings}
+	{isSaving}
+	saveLabel={t('Save')}
+/>

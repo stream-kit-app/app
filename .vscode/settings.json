@@ -28,6 +28,12 @@
 	"[jsonc]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
+	"json.schemas": [
+		{
+			"fileMatch": ["**/overlays/**/manifest.json"],
+			"url": "./packages/app/src/lib/core/overlay/overlay-manifest.schema.json"
+		}
+	],
 	"[css]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},

@@ -39,7 +39,7 @@ async function runBoot(): Promise<void> {
 	await app.plugins.load(app);
 	await app.dashboard.load();
 	await app.boot();
-	await app.overlay.init();
+	await app.overlay.init(app);
 	registerOverlayHandlers(app);
 	await app.actionQueues.load();
 	await app.actions.load();

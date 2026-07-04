@@ -17,7 +17,6 @@ export function vanillaScaffold(_slug: string, overlayId: string) {
 				background: transparent;
 				overflow: hidden;
 				font-family: system-ui, sans-serif;
-				color: #fff;
 			}
 
 			main {
@@ -50,15 +49,25 @@ const lastEvent = document.getElementById('last-event');
 const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
 let reconnectAttempt = 0;
 
+const handlers = {
+	'overlay:settings': (payload) => {
+		// Apply user settings from Stream Kit. See docs/core/overlays.md
+		console.log('overlay:settings', payload);
+	},
+	event: (payload) => {
+		if (lastEvent) {
+			lastEvent.textContent = JSON.stringify(payload);
+		}
+	}
+};
+
 function connect() {
 	const ws = new WebSocket(\`\${protocol}//\${location.host}/ws?overlayId=\${OVERLAY_ID}\`);
 
 	ws.onmessage = (event) => {
 		try {
 			const message = JSON.parse(event.data);
-			if (message.event === 'event' && lastEvent) {
-				lastEvent.textContent = JSON.stringify(message.payload);
-			}
+			handlers[message.event]?.(message.payload);
 		} catch {
 			// Ignore malformed messages.
 		}

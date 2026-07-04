@@ -1,4 +1,4 @@
-import { viteBuildConfig, viteWsProxyConfig } from './shared';
+import { overlayTsContent, viteBuildConfig, viteWsProxyConfig } from './shared';
 
 export function litScaffold(slug: string, overlayId: string) {
 	const packageJson = JSON.stringify(
@@ -78,43 +78,7 @@ ${viteWsProxyConfig()}
 		},
 		{
 			path: 'src/overlay.ts',
-			content: `const overlayId = import.meta.env.VITE_OVERLAY_ID ?? '${overlayId}';
-
-type OverlayHandler = (payload: unknown) => void;
-
-export function connectOverlay(handlers: Record<string, OverlayHandler> = {}): void {
-	const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-	let reconnectAttempt = 0;
-
-	const connect = () => {
-		const ws = new WebSocket(\`\${protocol}//\${location.host}/ws?overlayId=\${overlayId}\`);
-
-		ws.onmessage = (event) => {
-			try {
-				const message = JSON.parse(String(event.data)) as {
-					event: string;
-					payload: unknown;
-				};
-				handlers[message.event]?.(message.payload);
-			} catch {
-				// Ignore malformed messages.
-			}
-		};
-
-		ws.onclose = () => {
-			const delay = Math.min(1000 * 2 ** reconnectAttempt, 30_000);
-			reconnectAttempt += 1;
-			setTimeout(connect, delay);
-		};
-
-		ws.onopen = () => {
-			reconnectAttempt = 0;
-		};
-	};
-
-	connect();
-}
-`
+			content: overlayTsContent(overlayId)
 		},
 		{
 			path: 'src/main.ts',
@@ -156,7 +120,6 @@ export class StreamKitOverlay extends LitElement {
 	static styles = css\`
 		:host {
 			display: block;
-			color: #fff;
 			font-family: system-ui, sans-serif;
 		}
 

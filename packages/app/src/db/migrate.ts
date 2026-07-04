@@ -229,11 +229,29 @@ async function createOverlaysTable(sqlite: Database): Promise<void> {
 			name TEXT NOT NULL,
 			template TEXT NOT NULL DEFAULT 'blank',
 			config TEXT NOT NULL DEFAULT '{}',
+			version INTEGER NOT NULL DEFAULT 0,
 			expected_events TEXT NOT NULL DEFAULT '[]',
+			required_plugins TEXT NOT NULL DEFAULT '[]',
+			installed_action_keys TEXT NOT NULL DEFAULT '[]',
 			created_at INTEGER NOT NULL,
 			updated_at INTEGER NOT NULL
 		)
 	`);
+}
+
+async function migrateOverlaysVersionColumn(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(overlays)');
+
+	if (columns.some((column) => column.name === 'version')) {
+		return;
+	}
+
+	if (columns.some((column) => column.name === 'settings_schema_version')) {
+		await sqlite.execute('ALTER TABLE overlays RENAME COLUMN settings_schema_version TO version');
+		return;
+	}
+
+	await sqlite.execute('ALTER TABLE overlays ADD COLUMN version INTEGER NOT NULL DEFAULT 0');
 }
 
 async function migrateOverlaysRemoveDimensions(sqlite: Database): Promise<void> {
@@ -286,6 +304,25 @@ async function migrateOverlaysTable(sqlite: Database): Promise<void> {
 
 	if (columns.some((column) => column.name === 'width')) {
 		await migrateOverlaysRemoveDimensions(sqlite);
+	}
+
+	await migrateOverlaysVersionColumn(sqlite);
+	await migrateOverlaysPresetColumns(sqlite);
+}
+
+async function migrateOverlaysPresetColumns(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(overlays)');
+
+	if (!columns.some((column) => column.name === 'required_plugins')) {
+		await sqlite.execute(
+			"ALTER TABLE overlays ADD COLUMN required_plugins TEXT NOT NULL DEFAULT '[]'"
+		);
+	}
+
+	if (!columns.some((column) => column.name === 'installed_action_keys')) {
+		await sqlite.execute(
+			"ALTER TABLE overlays ADD COLUMN installed_action_keys TEXT NOT NULL DEFAULT '[]'"
+		);
 	}
 }
 

@@ -3,6 +3,7 @@
 	import type { OverlayFrameworkId } from '$lib/core/overlay';
 
 	import Icon from '@iconify/svelte';
+	import { goto } from '$app/navigation';
 	import { useId } from 'bits-ui';
 	import { tick } from 'svelte';
 
@@ -13,7 +14,14 @@
 
 	import { app } from '$lib/core';
 	import { getOverlayFrameworkIcon } from '$lib/core/overlay';
+	import type { OverlayManifest } from '$lib/core/overlay/overlay-manifest';
+	import {
+		disabledRequiredPlugins,
+		formatRequiredPluginLabels,
+		missingRequiredPlugins
+	} from '$lib/core/overlay/overlay-dependencies';
 	import { useI18n } from '$lib/i18n';
+	import { cn } from '$lib/utils';
 
 	type Props = {
 		overlay: SaveOverlayInput;
@@ -36,6 +44,28 @@
 	const browserSourceUrl = $derived(app.overlay.getUrl(overlay.id));
 	const isBuilt = $derived(app.overlay.isBuilt(overlay.id));
 	const isBuilding = $derived(app.overlay.buildingId === overlay.id);
+	const dependencyManifest = $derived({
+		requiredPlugins: overlay.requiredPlugins ?? []
+	} as OverlayManifest);
+	const overlayUnavailableReason = $derived.by(() => {
+		void app.overlay.dependenciesRevision;
+
+		return app.overlay.getOverlayUnavailableReason(overlay.requiredPlugins ?? []);
+	});
+	const hasDependencyIssues = $derived(overlayUnavailableReason !== null);
+	const missingPlugins = $derived.by(() => {
+		void app.overlay.dependenciesRevision;
+
+		return missingRequiredPlugins(dependencyManifest, app);
+	});
+	const disabledPlugins = $derived.by(() => {
+		void app.overlay.dependenciesRevision;
+
+		return disabledRequiredPlugins(dependencyManifest, app);
+	});
+	const requiredPluginLabels = $derived(
+		formatRequiredPluginLabels(app, overlay.requiredPlugins ?? [])
+	);
 
 	$effect(() => {
 		overlay.id;
@@ -223,7 +253,12 @@
 </script>
 
 <article
-	class="group/card flex flex-col overflow-hidden rounded-xl border border-dark-600 bg-dark-800 transition-colors hover:border-dark-500"
+	class={cn(
+		'group/card flex flex-col overflow-hidden rounded-xl border transition-colors',
+		hasDependencyIssues
+			? 'border-dark-700 bg-dark-900/70 opacity-80 hover:border-dark-600'
+			: 'border-dark-600 bg-dark-800 hover:border-dark-500'
+	)}
 >
 	<div class="flex items-start gap-3 p-4 pb-3">
 		<div
@@ -276,7 +311,28 @@
 						{t('{count} events', { count: overlay.expectedEvents.length })}
 					</Badge>
 				{/if}
+				{#if hasDependencyIssues}
+					<Badge variant="destructive" size="sm">
+						<Icon icon="ri:error-warning-line" />
+						{t('Unavailable')}
+					</Badge>
+				{/if}
 			</div>
+			{#if hasDependencyIssues && requiredPluginLabels}
+				<p class="text-xs text-dark-400">
+					{t('Requires')}: {requiredPluginLabels}
+				</p>
+				{#if missingPlugins.length > 0}
+					<p class="text-xs text-red-400">
+						{t('Missing plugins')}: {formatRequiredPluginLabels(app, missingPlugins)}
+					</p>
+				{/if}
+				{#if disabledPlugins.length > 0}
+					<p class="text-xs text-amber-400">
+						{t('Disabled plugins')}: {formatRequiredPluginLabels(app, disabledPlugins)}
+					</p>
+				{/if}
+			{/if}
 		</div>
 	</div>
 
@@ -301,6 +357,16 @@
 		<Button
 			size="sm"
 			variant="default"
+			class="min-w-0 flex-1"
+			icon="ri:settings-3-line"
+			onclick={() => goto(`/overlays/${overlay.id}`)}
+		>
+			<span class="truncate">{t('Configure')}</span>
+		</Button>
+
+		<Button
+			size="sm"
+			variant="outline"
 			class="min-w-0 flex-1"
 			icon="ri:code-box-line"
 			disabled={openingEditor}

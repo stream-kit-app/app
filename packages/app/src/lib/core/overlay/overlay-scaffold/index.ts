@@ -9,6 +9,7 @@ import { solidScaffold } from './solid';
 import { svelteScaffold } from './svelte';
 import { vanillaScaffold } from './vanilla';
 import { vueScaffold } from './vue';
+import { getOverlayManifestSchemaContent, OVERLAY_MANIFEST_SCHEMA_FILE } from '../overlay-manifest-schema';
 
 export function escapeHtml(value: string): string {
 	return value
@@ -100,6 +101,18 @@ Message shape:
 Each starter uses Vite with \`base: './'\` so built assets load correctly from Stream Kit's \`/o/<overlay-id>/\` URL.
 
 Use the **Overlay → Send to Overlay** action handler in Stream Kit to push events from triggers.
+
+## manifest.json autocomplete
+
+Edit \`manifest.json\` with VS Code or Cursor for JSON Schema autocomplete (settings fields, test handlers, framework values).
+
+The project includes \`overlay-manifest.schema.json\` next to \`manifest.json\`. Keep the \`$schema\` property pointing at that file:
+
+\`\`\`json
+{
+	"$schema": "./overlay-manifest.schema.json"
+}
+\`\`\`
 `;
 }
 
@@ -133,7 +146,8 @@ export function getOverlayScaffoldFiles(
 	const slug = overlayProjectSlug(name);
 	const shared: OverlayProjectFile[] = [
 		{ path: '.gitignore', content: GITIGNORE },
-		{ path: 'README.md', content: overlayReadme(name, overlayId, framework) }
+		{ path: 'README.md', content: overlayReadme(name, overlayId, framework) },
+		{ path: OVERLAY_MANIFEST_SCHEMA_FILE, content: getOverlayManifestSchemaContent() }
 	];
 
 	if (framework !== 'vanilla') {

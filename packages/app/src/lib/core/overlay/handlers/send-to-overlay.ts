@@ -51,10 +51,26 @@ export const createSendToOverlayHandler = (app: App) =>
 					}))
 			},
 			{
-				type: 'text',
+				type: 'combobox',
 				name: 'Event',
 				required: true,
-				placeholder: 'message'
+				placeholder: 'message',
+				allowCustomValue: true,
+				itemsReloadFromField: 'overlay',
+				items: ({ getFieldValue }) => {
+					const overlayId = getFieldValue('overlay');
+
+					if (typeof overlayId !== 'string' || !overlayId.trim()) {
+						return [];
+					}
+
+					const overlay = app.overlay.items.find((item) => item.id === overlayId.trim());
+
+					return (overlay?.expectedEvents ?? []).map((event) => ({
+						value: event,
+						label: event
+					}));
+				}
 			},
 			{
 				type: 'text',
