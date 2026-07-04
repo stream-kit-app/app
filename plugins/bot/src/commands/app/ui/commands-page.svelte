@@ -1,113 +1,126 @@
 <script lang="ts">
-	import { SvelteSet } from 'svelte/reactivity';
+	import type { DndCommandLayout } from '../lib/command-layout';
+	import type { PluginCustomViewProps } from '@stream-kit/plugin';
+	import type { DndDragEvent } from '$lib/components/core/action/dnd-events';
 
+	import {
+		DragDropProvider,
+		DragOverlay,
+		KeyboardSensor,
+		PointerSensor
+	} from '@dnd-kit-svelte/svelte';
+	import Icon from '@iconify/svelte';
+	import { watch } from 'runed';
+
+	import ActionGroupSection from '@stream-kit/plugin/action-ui/action-group-section.svelte';
+	import { applyDndMove } from '@stream-kit/plugin/action-ui/dnd-events';
+	import { cn } from '@stream-kit/plugin/utils';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import type { PluginCustomViewProps } from '@stream-kit/plugin';
+	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
 
+	import { buildDndLayout, dndLayoutToUpdates, getGroupOrder } from '../lib/command-layout';
 	import { Command } from '../lib/command.svelte';
 	import { tryGetCommandsService } from '../lib/get-commands';
-	import CommandCard from './command-card.svelte';
+	import CommandBulkEditForm from './command-bulk-edit-form.svelte';
+	import { collapsedGroups, setCommandGroupCollapsed } from './command-group-collapse.svelte';
+	import CommandSortableItem from './command-sortable-item.svelte';
 
-	let { app, title, description }: PluginCustomViewProps = $props();
-	const t = $derived(app.i18n.t);
+	let { title, description }: PluginCustomViewProps = $props();
 
 	const commands = $derived(tryGetCommandsService());
+	const t = $derived(commands?.requireApp().i18n.t ?? ((key: string) => key));
 
-	const selectedIds = new SvelteSet<string>();
-	let anchorId: string | null = null;
+	const sensors = [KeyboardSensor, PointerSensor];
+	type DragEvent = DndDragEvent;
+
+	let layout = $state<DndCommandLayout>({});
+	let groupOrder = $state<string[]>([]);
+	let isDragging = $state(false);
+
+	watch(
+		() =>
+			(commands?.items ?? [])
+				.filter((command) => command.id != null)
+				.map(
+					(command) =>
+						`${command.id}:${command.group}:${command.groupSortOrder}:${command.sortOrder}`
+				)
+				.join('|'),
+		() => {
+			if (isDragging || !commands) {
+				return;
+			}
+
+			layout = buildDndLayout(commands.items);
+			groupOrder = getGroupOrder(layout);
+		}
+	);
+
+	const orderedSelectableIds = $derived(
+		groupOrder.flatMap((groupId) => layout[groupId]?.map((item) => item.id) ?? [])
+	);
+
+	const selection = createSelectableList<string>(() => orderedSelectableIds);
 
 	const selectableCommands = $derived(
 		(commands?.items ?? []).filter((command) => command.id != null)
 	);
-	const orderedSelectableIds = $derived(selectableCommands.map((command) => command.id!));
-	const allSelected = $derived(
-		selectableCommands.length > 0 &&
-			selectableCommands.every((command) => selectedIds.has(command.id!))
-	);
-	const hasSelection = $derived(selectedIds.size > 0);
+	const totalCount = $derived(selectableCommands.length);
+	const groupCount = $derived(groupOrder.length);
 
-	function setSelected(id: string, selected: boolean): void {
-		if (selected) {
-			selectedIds.add(id);
-		} else {
-			selectedIds.delete(id);
-		}
+	function handleDragStart(): void {
+		isDragging = true;
 	}
 
-	function selectRange(id: string, selected: boolean): void {
-		if (anchorId == null) {
-			setSelected(id, selected);
-			anchorId = id;
+	function handleDragOver(event: DragEvent): void {
+		if (event.operation.source?.type === 'group') {
+			groupOrder = applyDndMove(groupOrder, event);
 			return;
 		}
 
-		const anchorIndex = orderedSelectableIds.indexOf(anchorId);
-		const currentIndex = orderedSelectableIds.indexOf(id);
+		layout = applyDndMove(layout, event);
+	}
 
-		if (anchorIndex === -1 || currentIndex === -1) {
-			setSelected(id, selected);
-			anchorId = id;
+	async function handleDragEnd(): Promise<void> {
+		isDragging = false;
+
+		if (!commands) {
 			return;
 		}
 
-		const start = Math.min(anchorIndex, currentIndex);
-		const end = Math.max(anchorIndex, currentIndex);
+		const updates = dndLayoutToUpdates(layout, groupOrder);
+		const current = dndLayoutToUpdates(buildDndLayout(commands.items));
 
-		for (let index = start; index <= end; index++) {
-			if (selected) {
-				selectedIds.add(orderedSelectableIds[index]);
-			} else {
-				selectedIds.delete(orderedSelectableIds[index]);
-			}
-		}
-
-		anchorId = id;
-	}
-
-	function handleSelectedChange(id: string, selected: boolean, shiftKey: boolean): void {
-		if (shiftKey) {
-			selectRange(id, selected);
+		if (JSON.stringify(updates) === JSON.stringify(current)) {
 			return;
 		}
 
-		setSelected(id, selected);
-		anchorId = id;
-	}
-
-	function selectAll(selected: boolean): void {
-		selectedIds.clear();
-		anchorId = null;
-
-		if (selected) {
-			for (const command of selectableCommands) {
-				selectedIds.add(command.id!);
-			}
-		}
-	}
-
-	function clearSelection(): void {
-		selectedIds.clear();
-		anchorId = null;
+		await commands.applyLayout(updates);
+		layout = buildDndLayout(commands.items);
+		groupOrder = getGroupOrder(layout);
 	}
 
 	async function enableSelected(): Promise<void> {
 		if (!commands) return;
-		await commands.setEnabledBulk([...selectedIds], true);
-		clearSelection();
+		await commands.setEnabledBulk([...selection.selectedIds], true);
+		selection.clearSelection();
 	}
 
 	async function disableSelected(): Promise<void> {
 		if (!commands) return;
-		await commands.setEnabledBulk([...selectedIds], false);
-		clearSelection();
+		await commands.setEnabledBulk([...selection.selectedIds], false);
+		selection.clearSelection();
 	}
 
 	async function deleteSelected(): Promise<void> {
-		const count = selectedIds.size;
+		if (!commands) return;
+
+		const count = selection.selectedIds.size;
+		const app = commands.requireApp();
 
 		const confirmed = await app.confirm.ask({
 			title: t('Delete selected commands?'),
@@ -118,20 +131,87 @@
 			confirmLabel: t('Delete')
 		});
 
-		if (!confirmed || !commands) {
+		if (!confirmed) {
 			return;
 		}
 
-		await commands.deleteBulk([...selectedIds]);
-		clearSelection();
+		await commands.deleteBulk([...selection.selectedIds]);
+		selection.clearSelection();
+	}
+
+	function openBulkEdit(ids: string[]): void {
+		if (ids.length === 0 || !commands) {
+			return;
+		}
+
+		const app = commands.requireApp();
+		const modalId = 'command-bulk-edit';
+		const modalProps = {
+			selectedIds: ids,
+			groupOrder,
+			onClose: () => app.modal.get(modalId)?.close(),
+			onApplied: () => {
+				selection.clearSelection();
+				if (!commands) return;
+				layout = buildDndLayout(commands.items);
+				groupOrder = getGroupOrder(layout);
+			}
+		};
+
+		const existing = app.modal.get(modalId);
+
+		if (existing) {
+			existing.props = modalProps;
+			existing.open();
+			return;
+		}
+
+		app.modal
+			.create({
+				id: modalId,
+				title: app.i18n.translate('Edit selected commands'),
+				content: CommandBulkEditForm,
+				props: modalProps
+			})
+			.open();
+	}
+
+	function openGlobalBulkEdit(): void {
+		openBulkEdit([...selection.selectedIds]);
 	}
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<header class="flex justify-between gap-4">
-		<Heading level="1" subTitle={description ?? t('Manage your chat commands')}>
-			{title ?? t('Commands')}
-		</Heading>
+	<header class="flex flex-wrap items-start justify-between gap-4">
+		<div class="flex flex-col gap-3">
+			<Heading level="1" subTitle={description ?? t('Manage your chat commands')}>
+				{title ?? t('Commands')}
+			</Heading>
+			{#if totalCount > 0}
+				<div class="flex flex-wrap items-center gap-2 text-xs font-medium text-dark-200">
+					<span
+						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
+					>
+						<Icon
+							icon="ri:terminal-box-line"
+							class="size-3.5 text-primary"
+							aria-hidden="true"
+						/>
+						{t('{count} commands', { count: totalCount })}
+					</span>
+					<span
+						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
+					>
+						<Icon
+							icon="ri:folder-3-line"
+							class="size-3.5 text-dark-400"
+							aria-hidden="true"
+						/>
+						{t('{count} groups', { count: groupCount })}
+					</span>
+				</div>
+			{/if}
+		</div>
 		<Button
 			variant="outline"
 			icon="ri:add-fill"
@@ -143,51 +223,167 @@
 	</header>
 
 	{#if selectableCommands.length > 0}
-		<div class="mt-6 flex flex-wrap items-center gap-4">
+		<div
+			class="sticky top-4 z-10 mt-6 flex h-12 items-center justify-between gap-3 rounded-xl border border-dark-700 bg-dark-800 px-3 shadow-lg shadow-dark-950/40"
+		>
 			<InputCheckbox
 				inline
 				label={t('Select all')}
-				bind:checked={() => allSelected, selectAll}
+				bind:checked={() => selection.allSelected, selection.selectAll}
 			/>
-			{#if hasSelection}
-				<span class="text-sm text-dark-300">
-					{t('{count} selected', { count: selectedIds.size })}
+			<div
+				class={cn(
+					'flex items-center gap-2 transition-opacity',
+					!selection.hasSelection && 'pointer-events-none invisible'
+				)}
+				aria-hidden={!selection.hasSelection}
+			>
+				<span class="mr-1 text-sm text-dark-300">
+					{t('{count} selected', { count: selection.selectedIds.size })}
 				</span>
-				<Button size="sm" variant="outline" onclick={() => void enableSelected()}>
+				<Button
+					size="sm"
+					variant="outline"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={openGlobalBulkEdit}
+				>
+					{t('Edit selected')}
+				</Button>
+				<Button
+					size="sm"
+					variant="outline"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={() => void enableSelected()}
+				>
 					{t('Enable selected')}
 				</Button>
-				<Button size="sm" variant="outline" onclick={() => void disableSelected()}>
+				<Button
+					size="sm"
+					variant="outline"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={() => void disableSelected()}
+				>
 					{t('Disable selected')}
 				</Button>
 				<Button
 					size="sm"
 					variant="destructive"
 					icon="ri:delete-bin-line"
+					tabindex={selection.hasSelection ? undefined : -1}
 					onclick={() => void deleteSelected()}
 				>
 					{t('Delete selected')}
 				</Button>
-				<Button size="sm" variant="ghost" onclick={clearSelection}>
+				<Button
+					size="sm"
+					variant="ghost"
+					tabindex={selection.hasSelection ? undefined : -1}
+					onclick={selection.clearSelection}
+				>
 					{t('Clear selection')}
 				</Button>
-			{/if}
+			</div>
 		</div>
 	{/if}
 
-	<div class="mt-8 flex flex-col gap-2">
-		{#if !commands || commands.items.length === 0}
-			<p class="text-sm text-dark-300">{t('No commands added yet.')}</p>
-		{:else}
-			{#each commands?.items ?? [] as command (command.id)}
-				{#if command.id != null}
-					<CommandCard
-						{command}
-						selected={selectedIds.has(command.id)}
-						onSelectedChange={(value, shiftKey) =>
-							handleSelectedChange(command.id!, value, shiftKey)}
-					/>
-				{/if}
-			{/each}
+	<DragDropProvider
+		{sensors}
+		onDragStart={handleDragStart}
+		onDragOver={handleDragOver}
+		onDragEnd={handleDragEnd}
+	>
+		{#if selectableCommands.length === 0}
+			<div
+				class="relative mt-8 flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
+			>
+				<div class="boot-ambient pointer-events-none opacity-30"></div>
+				<div
+					class="relative flex size-16 items-center justify-center rounded-2xl bg-dark-800 text-primary"
+				>
+					<Icon icon="ri:terminal-box-line" class="size-7" aria-hidden="true" />
+				</div>
+				<div class="relative flex flex-col gap-1.5">
+					<p class="text-lg font-semibold text-dark-50">{t('No commands yet')}</p>
+					<p class="text-sm text-dark-300">
+						{t('Create your first command to respond in chat.')}
+					</p>
+				</div>
+				<Button
+					class="relative"
+					icon="ri:add-fill"
+					onclick={() => Command.createDraft().open()}
+				>
+					{t('Add Command')}
+				</Button>
+			</div>
 		{/if}
-	</div>
+
+		<div class="mt-8 grid gap-4">
+			{#each groupOrder as groupId, groupIndex (groupId)}
+				{@const groupCommands = layout[groupId] ?? []}
+				{@const groupCommandIds = groupCommands.map((item) => item.id)}
+				<ActionGroupSection
+					{t}
+					{groupId}
+					index={groupIndex}
+					count={groupCommands.length}
+					groupActionIds={groupCommandIds}
+					{selection}
+					collapsed={collapsedGroups.current[groupId] ?? false}
+					onCollapsedChange={(value) => setCommandGroupCollapsed(groupId, value)}
+				>
+					{#snippet children()}
+						<div class="flex flex-col gap-2">
+							{#each groupCommands as item, commandIndex (item.id)}
+								<CommandSortableItem
+									command={item.command}
+									{groupId}
+									index={commandIndex}
+									selected={selection.selectedIds.has(item.id)}
+									onSelectedChange={(value, shiftKey) =>
+										selection.handleSelectedChange(item.id, value, shiftKey)}
+								/>
+							{/each}
+						</div>
+					{/snippet}
+				</ActionGroupSection>
+			{/each}
+		</div>
+
+		<DragOverlay>
+			{#snippet children(source)}
+				{#if source.data.group}
+					{@const item = layout[source.data.group as string]?.find(
+						(entry) => entry.id === source.id
+					)}
+					{#if item}
+						<CommandSortableItem
+							command={item.command}
+							groupId={source.data.group as string}
+							index={0}
+							isOverlay
+						/>
+					{/if}
+				{:else}
+					{@const groupItems = layout[source.id as string]}
+					{#if groupItems}
+						<ActionGroupSection {t} groupId={source.id as string} index={0} isOverlay>
+							{#snippet children()}
+								<div class="flex flex-col gap-2">
+									{#each groupItems as item, commandIndex (item.id)}
+										<CommandSortableItem
+											command={item.command}
+											groupId={source.id as string}
+											index={commandIndex}
+											isOverlay
+										/>
+									{/each}
+								</div>
+							{/snippet}
+						</ActionGroupSection>
+					{/if}
+				{/if}
+			{/snippet}
+		</DragOverlay>
+	</DragDropProvider>
 </Container>

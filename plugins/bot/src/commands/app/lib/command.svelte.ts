@@ -16,6 +16,7 @@ import {
 } from '@stream-kit/plugin/action';
 import type { CommandPermissions, CommandRecord, CommandSource } from './stored-command';
 import {
+	DEFAULT_COMMAND_GROUP,
 	DEFAULT_COMMAND_PERMISSIONS,
 	DEFAULT_COMMAND_SOURCES
 } from './stored-command';
@@ -24,6 +25,7 @@ import { normalizeCommandNames } from '../../../lib/commands-store';
 
 import CommandForm from '../ui/command-form.svelte';
 
+import { normalizeCommandGroup } from './command-layout';
 import { getCommandsService } from './get-commands';
 import type { CommandFormErrors } from './validate-form';
 import { validateCommandForm } from './validate-form';
@@ -31,6 +33,9 @@ import { validateCommandForm } from './validate-form';
 export type CommandProps = {
 	id?: string;
 	name?: string;
+	group?: string;
+	groupSortOrder?: number;
+	sortOrder?: number;
 	commandNames?: string[];
 	handlers?: ActionHandler[];
 	sources?: CommandSource[];
@@ -46,6 +51,9 @@ export class Command {
 	id?: string;
 	modalId?: string;
 	name: string = $state('');
+	group: string = $state(DEFAULT_COMMAND_GROUP);
+	groupSortOrder: number = $state(0);
+	sortOrder: number = $state(0);
 	commandNames: string[] = $state(['']);
 	handlers: ActionHandler[] = $state([]);
 	sources: CommandSource[] = $state([...DEFAULT_COMMAND_SOURCES]);
@@ -61,6 +69,9 @@ export class Command {
 	constructor(props: CommandProps = {}) {
 		this.id = props.id;
 		this.name = props.name ?? '';
+		this.group = normalizeCommandGroup(props.group);
+		this.groupSortOrder = props.groupSortOrder ?? 0;
+		this.sortOrder = props.sortOrder ?? 0;
 		this.commandNames = props.commandNames?.length ? [...props.commandNames] : [''];
 		this.handlers = props.handlers ?? [];
 		this.sources = props.sources?.length ? [...props.sources] : [...DEFAULT_COMMAND_SOURCES];
@@ -84,6 +95,23 @@ export class Command {
 		return new Command();
 	}
 
+	static createFrom(source: Command): Command {
+		const app = getCommandsService().requireApp();
+		const sourceName = source.name.trim() || app.i18n.translate('Untitled command');
+
+		return new Command({
+			name: app.i18n.translate('Copy of {name}', { name: sourceName }),
+			group: source.group,
+			enabled: source.enabled,
+			commandNames: [...source.commandNames],
+			handlers: source.handlers.map((handler) => ActionHandler.clone(handler)),
+			sources: [...source.sources],
+			permissions: { roles: [...source.permissions.roles] },
+			cooldownGlobalMs: source.cooldownGlobalMs,
+			cooldownUserMs: source.cooldownUserMs
+		});
+	}
+
 	static fromRecord(record: CommandRecord, app: PluginAppApi): Command {
 		const resolveDefinition = (handlerTypeId: string) =>
 			app.actions.findHandler(handlerTypeId);
@@ -99,6 +127,9 @@ export class Command {
 		return new Command({
 			id: record.id,
 			name: record.name,
+			group: record.group,
+			groupSortOrder: record.groupSortOrder,
+			sortOrder: record.sortOrder,
 			commandNames: record.commandNames.length > 0 ? [...record.commandNames] : [''],
 			handlers,
 			sources: record.sources,
@@ -131,6 +162,9 @@ export class Command {
 		return {
 			id: this.id,
 			name: this.name.trim(),
+			group: normalizeCommandGroup(this.group),
+			groupSortOrder: this.groupSortOrder,
+			sortOrder: this.sortOrder,
 			commandNames: normalizeCommandNames(this.commandNames),
 			handlers: this.handlers.map((handler) => handler.toStored()),
 			sources: this.sources,

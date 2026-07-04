@@ -1,7 +1,16 @@
 import type { PluginStore } from '@stream-kit/plugin';
 import type { CommandRecord } from '../commands/app/lib/stored-command';
+import { DEFAULT_COMMAND_GROUP } from '../commands/app/lib/stored-command';
 
 export const COMMANDS_STORE_KEY = 'commands';
+
+type LegacyStoredCommandRecord = Omit<CommandRecord, 'createdAt' | 'updatedAt' | 'group' | 'groupSortOrder' | 'sortOrder'> & {
+	createdAt: string;
+	updatedAt: string;
+	group?: string;
+	groupSortOrder?: number;
+	sortOrder?: number;
+};
 
 type StoredCommandRecord = Omit<CommandRecord, 'createdAt' | 'updatedAt'> & {
 	createdAt: string;
@@ -16,16 +25,19 @@ function serialize(record: CommandRecord): StoredCommandRecord {
 	};
 }
 
-function deserialize(raw: StoredCommandRecord): CommandRecord {
+function deserialize(raw: LegacyStoredCommandRecord, index: number): CommandRecord {
 	return {
 		...raw,
+		group: raw.group?.trim() || DEFAULT_COMMAND_GROUP,
+		groupSortOrder: raw.groupSortOrder ?? 0,
+		sortOrder: raw.sortOrder ?? index,
 		createdAt: new Date(raw.createdAt),
 		updatedAt: new Date(raw.updatedAt)
 	};
 }
 
 export async function loadCommands(store: PluginStore): Promise<CommandRecord[]> {
-	const stored = await store.get<StoredCommandRecord[]>(COMMANDS_STORE_KEY);
+	const stored = await store.get<LegacyStoredCommandRecord[]>(COMMANDS_STORE_KEY);
 
 	if (!Array.isArray(stored)) {
 		return [];

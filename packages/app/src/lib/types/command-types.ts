@@ -6,9 +6,14 @@ export type CommandPermissions = {
 	roles: string[];
 };
 
+export const DEFAULT_COMMAND_GROUP = 'default';
+
 export type CommandRecord = {
 	id: string;
 	name: string;
+	group: string;
+	groupSortOrder: number;
+	sortOrder: number;
 	commandNames: string[];
 	handlers: StoredActionHandler[];
 	sources: CommandSource[];
@@ -23,6 +28,9 @@ export type CommandRecord = {
 export type NewCommandRecord = {
 	id?: string;
 	name: string;
+	group?: string;
+	groupSortOrder?: number;
+	sortOrder?: number;
 	commandNames: string[];
 	handlers: StoredActionHandler[];
 	sources?: CommandSource[];
@@ -32,6 +40,13 @@ export type NewCommandRecord = {
 	enabled?: boolean;
 	createdAt: Date;
 	updatedAt: Date;
+};
+
+export type CommandLayoutUpdate = {
+	id: string;
+	group: string;
+	groupSortOrder: number;
+	sortOrder: number;
 };
 
 export const DEFAULT_COMMAND_PERMISSIONS: CommandPermissions = {

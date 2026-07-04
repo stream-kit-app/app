@@ -9,19 +9,13 @@
 	import { Button } from '@stream-kit/ui/button';
 
 	import {
-
 		InputCheckbox,
-
 		InputSelect,
-
 		InputSwitch,
-
 		InputText,
-
 		InputTextList,
-
+		InputTextSelect,
 		Label
-
 	} from '@stream-kit/ui/input';
 
 
@@ -155,6 +149,20 @@
 		error={command.formErrors?.name}
 
 		oninput={onNameInput}
+
+	/>
+
+
+
+	<InputTextSelect
+
+		label={t('Group')}
+
+		placeholder={t('Select or enter a group')}
+
+		items={() => getCommandsService().getGroups()}
+
+		bind:value={command.group}
 
 	/>
 

@@ -17,11 +17,13 @@ export type {
 	VariableScope
 } from '../../app/src/lib/types/core-plugin-api';
 export type {
+	CommandLayoutUpdate,
 	CommandPermissions,
 	CommandRecord,
 	CommandSource,
 	NewCommandRecord
 } from '../../app/src/lib/types/command-types';
+export { DEFAULT_COMMAND_GROUP } from '../../app/src/lib/types/command-types';
 export type { Action } from '../../app/src/lib/core/action/action.svelte';
 export type { ActionTrigger } from '../../app/src/lib/core/action/action-trigger.svelte';
 export type { ActionHandler } from '../../app/src/lib/core/action/action-handler.svelte';

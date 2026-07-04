@@ -9,22 +9,25 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
+	import { resolveTranslate, type TranslateFn } from './resolve-translate';
+
 	type Props = {
+		t?: TranslateFn;
 		groupId: string;
 		index: number;
 		children: Snippet;
 		count?: number;
-		groupActionIds?: number[];
-		selection?: SelectableListController;
+		groupActionIds?: (string | number)[];
+		selection?: SelectableListController<string | number>;
 		isOverlay?: boolean;
 		collapsed?: boolean;
 		onCollapsedChange?: (collapsed: boolean) => void;
 	};
 
 	let {
+		t: tProp,
 		groupId,
 		index,
 		children,
@@ -37,7 +40,7 @@
 	}: Props = $props();
 
 	const collapsible = $derived(!isOverlay && onCollapsedChange != null);
-	const { t } = useI18n();
+	const t = $derived(resolveTranslate(tProp));
 
 	const displayName = $derived(capitalize(groupId));
 	const showGroupSelect = $derived(

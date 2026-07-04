@@ -1,8 +1,16 @@
 import type { HandlerTriggerContext, PluginAppApi, PluginStore } from '@stream-kit/plugin';
-import type { CommandRecord } from './stored-command';
+import type { CommandLayoutUpdate, CommandRecord } from './stored-command';
 
 import { loadCommands, saveCommands } from '../../../lib/commands-store';
 
+import {
+	applyLayoutUpdates,
+	buildDndLayout,
+	compareCommandsByLayout,
+	dndLayoutToUpdates,
+	getGroupOrder,
+	normalizeCommandGroup
+} from './command-layout';
 import { Command } from './command.svelte';
 
 export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
@@ -40,7 +48,70 @@ export class Commands {
 			return;
 		}
 
-		this.items = [...this.items, command];
+		this.items = [...this.items, command].sort(compareCommandsByLayout);
+	}
+
+	async applyLayout(updates: CommandLayoutUpdate[]): Promise<void> {
+		if (updates.length === 0) {
+			return;
+		}
+
+		this.items = applyLayoutUpdates(this.items, updates);
+		await this.persist();
+	}
+
+	getGroups(): string[] {
+		return [...new Set(this.items.map((command) => command.group))].sort((left, right) =>
+			left.localeCompare(right)
+		);
+	}
+
+	async moveToGroup(
+		ids: string[],
+		changes: { group?: string; groupOrder?: string[] }
+	): Promise<void> {
+		if (ids.length === 0 || changes.group === undefined) {
+			return;
+		}
+
+		const { app } = this.requireContext();
+		const targetGroup = normalizeCommandGroup(changes.group);
+		const idSet = new Set(ids);
+		const layout = buildDndLayout(this.items);
+
+		for (const group of Object.keys(layout)) {
+			layout[group] = (layout[group] ?? []).filter((item) => !idSet.has(item.id));
+		}
+
+		if (!layout[targetGroup]) {
+			layout[targetGroup] = [];
+		}
+
+		for (const id of ids) {
+			const command = this.items.find((item) => item.id === id);
+
+			if (command?.id != null) {
+				layout[targetGroup].push({ id: command.id, command });
+			}
+		}
+
+		let nextGroupOrder = changes.groupOrder ?? getGroupOrder(layout);
+
+		if (!nextGroupOrder.includes(targetGroup)) {
+			nextGroupOrder = [...nextGroupOrder, targetGroup];
+		}
+
+		nextGroupOrder = nextGroupOrder.filter((group) => (layout[group]?.length ?? 0) > 0);
+
+		await this.applyLayout(dndLayoutToUpdates(layout, nextGroupOrder));
+
+		app.toast.create({
+			title: app.i18n.translate('Selected commands updated'),
+			description: app.i18n.translate('Moved {count} commands to group.', {
+				count: ids.length
+			}),
+			variant: 'success'
+		});
 	}
 
 	async delete(id: string): Promise<void> {

@@ -1,4 +1,5 @@
 export type {
+	CommandLayoutUpdate,
 	CommandPermissions,
 	CommandRecord,
 	CommandSource,
@@ -6,6 +7,8 @@ export type {
 } from '@stream-kit/plugin';
 
 import type { CommandPermissions, CommandSource } from '@stream-kit/plugin';
+
+export const DEFAULT_COMMAND_GROUP = 'default';
 
 export const DEFAULT_COMMAND_PERMISSIONS: CommandPermissions = {
 	roles: ['everyone']

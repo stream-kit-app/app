@@ -1,22 +1,24 @@
 import { SvelteSet } from 'svelte/reactivity';
 
-export type SelectableListController = {
-	selectedIds: SvelteSet<number>;
+export type SelectableListController<TId extends string | number = number> = {
+	selectedIds: SvelteSet<TId>;
 	allSelected: boolean;
 	hasSelection: boolean;
-	setSelected: (id: number, selected: boolean) => void;
-	handleSelectedChange: (id: number, selected: boolean, shiftKey: boolean) => void;
+	setSelected: (id: TId, selected: boolean) => void;
+	handleSelectedChange: (id: TId, selected: boolean, shiftKey: boolean) => void;
 	selectAll: (selected: boolean) => void;
-	subsetAllSelected: (ids: number[]) => boolean;
-	subsetSelectedCount: (ids: number[]) => number;
-	subsetSelectedIds: (ids: number[]) => number[];
-	selectSubset: (ids: number[], selected: boolean) => void;
+	subsetAllSelected: (ids: TId[]) => boolean;
+	subsetSelectedCount: (ids: TId[]) => number;
+	subsetSelectedIds: (ids: TId[]) => TId[];
+	selectSubset: (ids: TId[], selected: boolean) => void;
 	clearSelection: () => void;
 };
 
-export function createSelectableList(orderedIds: () => number[]): SelectableListController {
-	const selectedIds = new SvelteSet<number>();
-	let anchorId: number | null = null;
+export function createSelectableList<TId extends string | number>(
+	orderedIds: () => TId[]
+): SelectableListController<TId> {
+	const selectedIds = new SvelteSet<TId>();
+	let anchorId: TId | null = null;
 
 	const allSelected = $derived.by(() => {
 		const ids = orderedIds();
@@ -26,7 +28,7 @@ export function createSelectableList(orderedIds: () => number[]): SelectableList
 
 	const hasSelection = $derived(selectedIds.size > 0);
 
-	function setSelected(id: number, selected: boolean): void {
+	function setSelected(id: TId, selected: boolean): void {
 		if (selected) {
 			selectedIds.add(id);
 		} else {
@@ -34,7 +36,7 @@ export function createSelectableList(orderedIds: () => number[]): SelectableList
 		}
 	}
 
-	function selectRange(id: number, selected: boolean): void {
+	function selectRange(id: TId, selected: boolean): void {
 		const ids = orderedIds();
 
 		if (anchorId == null) {
