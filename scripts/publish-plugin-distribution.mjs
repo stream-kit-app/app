@@ -79,6 +79,25 @@ function buildDistributionManifest(manifest, key, sha256) {
 	};
 }
 
+function parsePackageOutput(output) {
+	const trimmed = output.trim();
+
+	try {
+		return JSON.parse(trimmed);
+	} catch {
+		const start = trimmed.indexOf('[');
+		const end = trimmed.lastIndexOf(']');
+
+		if (start === -1 || end === -1 || end < start) {
+			throw new Error(
+				`package-plugin did not return JSON. Output:\n${trimmed.slice(0, 500)}`
+			);
+		}
+
+		return JSON.parse(trimmed.slice(start, end + 1));
+	}
+}
+
 function packagePlugin(key, skipBuild) {
 	const args = ['scripts/package-plugin.mjs', '--plugin', key];
 
@@ -93,8 +112,7 @@ function packagePlugin(key, skipBuild) {
 	});
 	delete process.env.JSON_OUTPUT;
 
-	const results = JSON.parse(output.trim());
-	return results;
+	return parsePackageOutput(output);
 }
 
 function releaseExists(slug, tag) {

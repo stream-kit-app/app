@@ -98,9 +98,11 @@ function ensureBuilt(key, skipBuild) {
 		throw new Error(`Unknown plugin key "${key}"`);
 	}
 
+	const quiet = process.env.JSON_OUTPUT === '1';
+
 	execSync(`pnpm --filter ${filter} build`, {
 		cwd: root,
-		stdio: 'inherit'
+		stdio: quiet ? 'ignore' : 'inherit'
 	});
 
 	if (!existsSync(entryPath)) {
@@ -127,6 +129,9 @@ function createZip(pluginDir, key) {
 
 	rmSync(zipPath, { force: true });
 
+	const quiet = process.env.JSON_OUTPUT === '1';
+	const zipStdio = quiet ? 'ignore' : 'inherit';
+
 	if (process.platform === 'win32') {
 		execFileSync(
 			'powershell',
@@ -135,10 +140,10 @@ function createZip(pluginDir, key) {
 				'-Command',
 				`Compress-Archive -Path "${packageDir}\\*" -DestinationPath "${zipPath}" -Force`
 			],
-			{ stdio: 'inherit' }
+			{ stdio: zipStdio }
 		);
 	} else {
-		execFileSync('zip', ['-r', zipPath, '.'], { cwd: packageDir, stdio: 'inherit' });
+		execFileSync('zip', ['-qr', zipPath, '.'], { cwd: packageDir, stdio: zipStdio });
 	}
 
 	rmSync(packageDir, { force: true, recursive: true });
