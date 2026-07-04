@@ -4,7 +4,8 @@ Boilerplate for building installable Stream Kit plugins.
 
 ## Quick start
 
-1. Copy this folder to a new plugin project (or use it in-place inside the monorepo).
+1. Copy this folder to a new plugin project (or use it in-place inside the monorepo for Stream Kit development).
+2. **External authors:** use the public [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate) GitHub template instead.
 2. Start from [`src/minimal.ts`](src/minimal.ts) for a short reference plugin, or keep [`src/index.ts`](src/index.ts) as a full UI block showcase.
 3. Update `manifest.json` and your plugin entry file.
 4. Install dependencies from the monorepo root with `pnpm install`.
@@ -22,7 +23,9 @@ pnpm --filter @stream-kit/plugin-template package
 
 The zip is written to `packages/plugin-template/dist/plugin.zip`.
 
-See [Plugin getting started](../../docs/plugins/getting-started.md) for the full author guide.
+**New to plugin development?** Start with [Plugin getting started](../../docs/plugins/getting-started.md) for the full author guide.
+
+**External authors:** use the [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate) GitHub template. This folder is the monorepo source; sync it with `pnpm sync:plugin-starter`.
 
 ## Zip layout
 

@@ -15,5 +15,8 @@ await esbuild.build({
 	bundle: true,
 	format: 'esm',
 	platform: 'neutral',
-	logLevel: 'silent'
+	logLevel: 'silent',
+	alias: {
+		'@stream-kit/core': path.resolve(root, '../core/src/index.ts')
+	}
 });

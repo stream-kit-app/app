@@ -1,8 +1,21 @@
 {
 	"name": "@stream-kit/core",
-	"version": "0.1.1-alpha.2",
+	"version": "0.2.0-alpha.3",
+	"description": "Platform-neutral runtime utilities for Stream Kit plugins",
 	"type": "module",
-	"license": "SEE LICENSE IN LICENSE",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/stream-kit-app/app.git",
+		"directory": "packages/core"
+	},
+	"homepage": "https://docs.stream-kit.app/developers/plugin-api",
+	"bugs": {
+		"url": "https://github.com/stream-kit-app/app/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
@@ -10,12 +23,14 @@
 		}
 	},
 	"files": [
-		"dist"
+		"dist",
+		"LICENSE"
 	],
 	"scripts": {
 		"build": "tsc --project tsconfig.declarations.json && esbuild src/index.ts --bundle --format=esm --platform=neutral --outfile=dist/index.js",
 		"check": "pnpm build && tsc --noEmit -p tsconfig.json",
-		"dev": "chokidar \"src/**/*.ts\" -c \"pnpm build\" --initial"
+		"dev": "chokidar \"src/**/*.ts\" -c \"pnpm build\" --initial",
+		"prepublishOnly": "pnpm build"
 	},
 	"peerDependencies": {
 		"@twurple/api": "^8.1.4",

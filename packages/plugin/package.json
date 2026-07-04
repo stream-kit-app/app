@@ -1,8 +1,21 @@
 {
 	"name": "@stream-kit/plugin",
-	"version": "0.1.0-alpha.0",
+	"version": "0.1.0-alpha.1",
+	"description": "Public TypeScript API for Stream Kit plugin authors",
 	"type": "module",
-	"license": "SEE LICENSE IN LICENSE",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/stream-kit-app/app.git",
+		"directory": "packages/plugin"
+	},
+	"homepage": "https://docs.stream-kit.app/developers/plugin-api",
+	"bugs": {
+		"url": "https://github.com/stream-kit-app/app/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
@@ -16,13 +29,16 @@
 		}
 	},
 	"files": [
-		"dist"
+		"dist",
+		"stubs",
+		"LICENSE"
 	],
 	"scripts": {
 		"prebuild": "pnpm --filter @stream-kit/app exec svelte-kit sync",
 		"build": "dts-bundle-generator --config dts-bundle.json && node scripts/build-runtime.mjs",
 		"check": "pnpm build && tsc --noEmit -p tsconfig.json",
-		"dev": "chokidar \"../app/src/lib/**/*.{ts,svelte.ts}\" \"src/**/*.ts\" -c \"pnpm build\" --initial"
+		"dev": "chokidar \"../app/src/lib/**/*.{ts,svelte.ts}\" \"src/**/*.ts\" -c \"pnpm build\" --initial",
+		"prepublishOnly": "pnpm build"
 	},
 	"dependencies": {
 		"@stream-kit/core": "workspace:*"

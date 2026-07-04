@@ -7,7 +7,7 @@ description: "Stream Kit loads plugins from installed manifests. The app no long
 
 Stream Kit loads plugins from installed manifests. The app no longer registers first-party plugins directly at boot.
 
-**New to plugin authoring?** Start with [Plugin getting started](/docs/plugins/getting-started) for a step-by-step guide.
+**New to plugin authoring?** Start with [Plugin getting started](/docs/plugins/getting-started) and the [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate) GitHub template.
 
 ## Public API
 
@@ -110,10 +110,22 @@ The workspace keeps first-party plugins under `plugins/*`. Each plugin has:
 
 ## Distribution
 
-Package a plugin with the template script:
+External authors package plugins with the [plugin-starter](https://github.com/stream-kit-app/plugin-starter) template:
+
+```bash
+pnpm package
+```
+
+Monorepo contributors can use the internal copy:
 
 ```bash
 pnpm --filter @stream-kit/plugin-template package
+```
+
+After changing the template, sync to GitHub:
+
+```bash
+pnpm sync:plugin-starter
 ```
 
 Users install the resulting zip from the Plugins page.

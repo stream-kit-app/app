@@ -18,7 +18,7 @@ This section documents the six workspace packages in `packages/`.
 | [Plugin](/docs/packages/plugin) | `@stream-kit/plugin` | Public TypeScript API for plugin authors |
 | [UI](/docs/packages/ui) | `@stream-kit/ui` | Shared Svelte 5 UI primitives |
 | [App types](/docs/packages/app-types) | `@stream-kit/app-types` | Compatibility re-export of the plugin API |
-| [Plugin template](/docs/packages/plugin-template) | `@stream-kit/plugin-template` | Starter project for external plugins |
+| [Plugin template](/docs/packages/plugin-template) | `@stream-kit/plugin-template` | Internal dev copy; public template at [plugin-starter](https://github.com/stream-kit-app/plugin-starter) |
 
 ## Dependency graph
 
@@ -43,8 +43,8 @@ This section documents the six workspace packages in `packages/`.
 
 The root `build:packages` script builds shared packages before the app plugin host:
 
-1. `@stream-kit/plugin` — bundles public `.d.ts` and runtime re-exports
-2. `@stream-kit/core` — ESM bundle + declarations
+1. `@stream-kit/core` — ESM bundle + declarations
+2. `@stream-kit/plugin` — bundles public `.d.ts` and runtime re-exports (depends on core)
 3. `@stream-kit/ui` — type-check only (source is consumed directly)
 4. First-party plugins under `plugins/*`
 5. `@stream-kit/app build:plugin-host` — import map + host bundles in `static/plugin-host/`

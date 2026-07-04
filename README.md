@@ -62,7 +62,7 @@ Stream Kit is built around plugins. Each plugin can register triggers, handlers,
 You can also install **external plugins** as `.zip` files from the Plugins page.
 
 > [!TIP]
-> Want to build your own plugin? Use the [plugin template](packages/plugin-template/) as a starting point. It includes instructions for development, packaging, and installation.
+> Want to build your own plugin? Use the [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate) GitHub template. Install `@stream-kit/plugin` and `@stream-kit/core` from npm for types and runtime helpers.
 
 ### Bot & commands
 
@@ -110,7 +110,7 @@ stream-kit/
 │   ├── core/             # Shared utilities (e.g. variable interpolation)
 │   ├── ui/               # Shared UI primitives
 │   ├── app-types/        # Type-only exports for plugin authors
-│   └── plugin-template/  # Template for external plugins
+│   └── plugin-template/  # Internal dev copy of plugin-starter template
 ├── plugins/
 │   ├── core/             # Handlers plugin (audio, scripts) — npm: @stream-kit/plugin-handlers
 │   ├── commands/         # Chat commands plugin

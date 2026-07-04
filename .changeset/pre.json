@@ -14,14 +14,20 @@
     "@stream-kit/plugin-twitch": "0.1.0",
     "@stream-kit/plugin-websocket": "0.1.0",
     "@stream-kit/plugin-youtube": "0.1.0",
-    "@stream-kit/site": "0.0.1"
+    "@stream-kit/site": "0.0.1",
+    "@stream-kit/docs": "0.0.0",
+    "@stream-kit/plugin": "0.1.0-alpha.0"
   },
   "changesets": [
     "chatty-jobs-join",
     "chatty-plants-agree",
     "fancy-walls-divide",
+    "fuzzy-books-cheer",
+    "legal-states-fly",
+    "mighty-pianos-hear",
     "plenty-places-turn",
     "sixty-aliens-drop",
+    "slow-bees-laugh",
     "soft-drinks-grab",
     "sweet-donuts-tap"
   ]

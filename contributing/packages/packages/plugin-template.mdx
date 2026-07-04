@@ -1,14 +1,15 @@
 ---
 title: "@stream-kit/plugin-template"
-description: "Starter project for external Stream Kit plugins. Demonstrates handlers, settings, menu pages with every supported block type, and packaging for distribution."
+description: "Internal development copy of the public plugin-starter template. External authors should use the GitHub template repository."
 ---
 
 # @stream-kit/plugin-template
 
-Starter project for external Stream Kit plugins. Demonstrates handlers, settings, menu pages with every supported block type, and packaging for distribution.
+Internal development copy of the public [plugin-starter](https://github.com/stream-kit-app/plugin-starter) template. Demonstrates handlers, settings, menu pages with every supported block type, and packaging for distribution.
 
-**Location:** `packages/plugin-template/`  
-**NPM name:** `@stream-kit/plugin-template` (private workspace package)
+**Location:** `packages/plugin-template/` (monorepo only)  
+**Public template:** [stream-kit-app/plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate)  
+**NPM SDK:** `@stream-kit/plugin`, `@stream-kit/core` (published to npm)
 
 ## What it includes
 
@@ -27,23 +28,24 @@ Plugin key: `hello-world`
 
 **New to plugin development?** Start with [Plugin getting started](/docs/plugins/getting-started).
 
-1. Copy `packages/plugin-template/` to a new repository or folder outside the monorepo (or use it in-place for experimentation).
+1. External authors: create a repo from [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate).
+2. Monorepo contributors: use `packages/plugin-template/` in-place for experimentation.
 
-2. Use [`src/minimal.ts`](../../packages/plugin-template/src/minimal.ts) as your starting point, or keep `src/index.ts` for the full block showcase.
+3. Use [`src/minimal.ts`](../../packages/plugin-template/src/minimal.ts) as your starting point, or keep `src/index.ts` for the full block showcase.
 
-3. Update `manifest.json`:
+4. Update `manifest.json`:
    - `key` — unique lowercase identifier (used for settings paths and definition IDs)
    - `name`, `version`, `description`
    - `updateManifestUrl` and `downloadUrl` when you publish releases
 
-4. Install dependencies and build:
+5. Install dependencies and build:
 
 ```bash
 pnpm install
 pnpm build
 ```
 
-5. Link in Stream Kit:
+6. Link in Stream Kit:
    - Open **Plugins**, enable **Developer mode**
    - Click **Link dev plugin** and select this folder’s `manifest.json`
    - Enable the plugin and turn on **Dev mode** on the plugin card
@@ -87,8 +89,22 @@ External modules (not bundled):
 
 ## Package for distribution
 
+Monorepo copy:
+
 ```bash
 pnpm --filter @stream-kit/plugin-template package
+```
+
+Public template (standalone repo):
+
+```bash
+pnpm package
+```
+
+Sync monorepo changes to the GitHub template:
+
+```bash
+pnpm sync:plugin-starter
 ```
 
 Creates a zip with this layout:

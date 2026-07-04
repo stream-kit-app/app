@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/plugin-twitch",
-	"version": "0.1.1-alpha.2",
+	"version": "0.2.0-alpha.3",
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE",
 	"exports": {

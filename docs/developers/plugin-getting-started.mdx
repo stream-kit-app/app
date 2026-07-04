@@ -29,11 +29,30 @@ flowchart LR
   appApi --> toast[app.toast]
 ```
 
-## Step 1 — Copy the template
+## Step 1 — Use the template
 
-Copy [`packages/plugin-template/`](../../packages/plugin-template/) to your own project, or work inside the monorepo.
+Create a new repository from the [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate) GitHub template, or clone it manually:
 
-Start from [`src/minimal.ts`](../../packages/plugin-template/src/minimal.ts) for a short example, or use [`src/index.ts`](../../packages/plugin-template/src/index.ts) when you need the full declarative page block showcase.
+```bash
+gh repo create my-stream-kit-plugin --template stream-kit-app/plugin-starter --public
+```
+
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+Start from [`src/minimal.ts`](https://github.com/stream-kit-app/plugin-starter/blob/main/src/minimal.ts) for a short example, or use [`src/index.ts`](https://github.com/stream-kit-app/plugin-starter/blob/main/src/index.ts) when you need the full declarative page block showcase.
+
+Add the SDK packages as dev dependencies (included in the template):
+
+```bash
+pnpm add -D @stream-kit/plugin
+pnpm add @stream-kit/core
+```
+
+> **Monorepo contributors:** The same template source lives in [`packages/plugin-template/`](../../packages/plugin-template/) for internal development inside the Stream Kit repository.
 
 Update `manifest.json`:
 
@@ -111,7 +130,7 @@ external: [
 ]
 ```
 
-In the monorepo, use the shared Vite config from [`plugins/create-vite-build-config.js`](../../plugins/create-vite-build-config.js).
+In the monorepo, use the shared Vite config from [`plugins/create-vite-build-config.js`](../../plugins/create-vite-build-config.js). Standalone projects use the bundled `vite.build.config.js` from the plugin-starter template.
 
 Build output:
 
@@ -122,8 +141,8 @@ dist/
 
 ## Step 4 — Run locally in Stream Kit
 
-1. Start the app: `pnpm --filter @stream-kit/app tauri dev`
-2. Build your plugin in watch mode: `pnpm --filter @stream-kit/plugin-template dev`
+1. Start Stream Kit (desktop app)
+2. Build your plugin in watch mode: `pnpm dev`
 3. Link the plugin:
    - Open **Plugins**, enable **Developer mode** in Settings
    - Click **Link dev plugin** and select your `manifest.json`
@@ -139,7 +158,7 @@ First-party plugins listed in [`dev-plugins.json`](../../dev-plugins.json) are l
 Create a zip:
 
 ```bash
-pnpm --filter @stream-kit/plugin-template package
+pnpm package
 ```
 
 Zip layout:
@@ -232,5 +251,5 @@ Zip plugins should use declarative page blocks (`text`, `form`, `button`, `card`
 
 - [Plugin authoring API](/docs/developers/plugin-api) — full contract, lifecycle hooks, widgets, i18n
 - [Installing plugins](/docs/developers/installing-plugins) — zip install from the Plugins page
-- [@stream-kit/plugin package](/docs/packages/plugin) — what the npm package exports
-- [Plugin template](/docs/packages/plugin-template) — template files and scripts
+- [@stream-kit/plugin on npm](https://www.npmjs.com/package/@stream-kit/plugin) — types and API contract
+- [Plugin starter template](https://github.com/stream-kit-app/plugin-starter) — GitHub template repository

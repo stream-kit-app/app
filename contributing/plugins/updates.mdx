@@ -68,7 +68,7 @@ For local testing against the site dev server, point `updateManifestUrl` at `htt
 ### Third-party (self-hosted)
 
 1. Bump `version` in `manifest.json`.
-2. Build the plugin zip (`pnpm --filter @stream-kit/plugin-template package` or your plugin's package script).
+2. Build the plugin zip (`pnpm package` in a [plugin-starter](https://github.com/stream-kit-app/plugin-starter) project, or your plugin's package script).
 3. Upload the zip to a release (GitHub Releases, GitLab Releases, etc.).
 4. Set `downloadUrl` to the release asset URL in the hosted manifest.
 5. Optionally compute and set `sha256` for the zip.

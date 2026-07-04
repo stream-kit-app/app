@@ -13,25 +13,45 @@ Stream Kit uses [Changesets](https://github.com/changesets/changesets) for versi
 PR with changeset → merge to main → Version Packages PR → merge → git tag (v*) → CI build → GitHub Release
                                                                                               ↓
                                                                                     Microsoft Store (optional)
+                                                                                              ↓
+                                                                              npm (@stream-kit/plugin, @stream-kit/core)
+                                                                                              ↓
+                                                                              plugin distribution zips (Publish Plugins)
 ```
 
 | Workflow                                                                        | Trigger                          | Purpose                                                                                               |
 | ------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | [`.github/workflows/release.yml`](../.github/workflows/release.yml)             | Push to `main`                   | Opens or updates a **Version Packages** PR; on merge, creates a `v*` git tag and dispatches the build |
 | [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` or manual dispatch | Builds Windows installers and optionally publishes an MSIX bundle to the Microsoft Store              |
+| [`.github/workflows/publish-npm.yml`](../.github/workflows/publish-npm.yml)       | Push tag `v*`                    | Publishes `@stream-kit/plugin` and `@stream-kit/core` to the public npm registry                      |
+| [`.github/workflows/publish-plugins.yml`](../.github/workflows/publish-plugins.yml) | Push tag `v*` or manual dispatch | Publishes first-party plugin distribution zips to GitHub distribution repos                           |
 
 ## Adding a changeset
 
-When your PR includes a user-facing change to the desktop app, add a changeset:
+When your PR includes a user-facing change, add a changeset:
 
 ```bash
 pnpm changeset
 ```
 
-1. Select **@stream-kit/app** only (packages like `@stream-kit/site` are ignored; workspace deps are not versioned unless you add a changeset for them).
+### Desktop app (`@stream-kit/app`)
+
+1. Select **@stream-kit/app** only.
 2. Choose the bump type: `patch`, `minor`, or `major`.
 3. Write a short summary for the changelog.
 4. Commit the generated `.changeset/*.md` file with your PR.
+
+Packages like `@stream-kit/site` are ignored. Workspace deps are not versioned unless you add a changeset for them.
+
+### Plugin SDK (`@stream-kit/plugin` + `@stream-kit/core`)
+
+When you change the public plugin API or shared runtime helpers in [`packages/plugin/`](../packages/plugin/) or [`packages/core/`](../packages/core/):
+
+1. Run `pnpm changeset` and select **both** `@stream-kit/plugin` and `@stream-kit/core` (they are **linked** in [`.changeset/config.json`](../.changeset/config.json) and always share the same version).
+2. Choose the bump type and write a summary for plugin authors.
+3. Commit the changeset with your PR.
+
+After the Version Packages PR merges, CI publishes both packages to npm when the `v*` tag is pushed.
 
 ## Release flow
 
@@ -75,7 +95,9 @@ Commit the result, then continue with the normal release flow.
 
 ## Version sync
 
-Only [`packages/app/package.json`](../packages/app/package.json) is versioned by Changesets. After each `changeset version`, [`scripts/sync-app-version.mjs`](../scripts/sync-app-version.mjs) copies the version to:
+[`packages/app/package.json`](../packages/app/package.json) is versioned independently by Changesets. [`@stream-kit/plugin`](../packages/plugin/package.json) and [`@stream-kit/core`](../packages/core/package.json) share a linked version.
+
+After each `changeset version`, [`scripts/sync-app-version.mjs`](../scripts/sync-app-version.mjs) copies the app version to:
 
 - [`packages/app/src-tauri/tauri.conf.json`](../packages/app/src-tauri/tauri.conf.json)
 - [`packages/app/src-tauri/Cargo.toml`](../packages/app/src-tauri/Cargo.toml)
@@ -102,6 +124,37 @@ Output:
 - Tauri installers: `packages/app/src-tauri/target/release/bundle/`
 - MSIX bundle: `packages/app/src-tauri/target/msix/*.msixbundle` (only when Store publishing is enabled)
 
+## npm publish (plugin SDK)
+
+`@stream-kit/plugin` and `@stream-kit/core` are published to the **public** npm registry under the `@stream-kit` scope. They ship with an MIT license (see `packages/plugin/LICENSE` and `packages/core/LICENSE`), separate from the source-available license on the main app repository.
+
+### Manual publish
+
+```bash
+pnpm build:packages
+pnpm publish:npm
+```
+
+Requires `NPM_TOKEN` in the environment and publish access to the `@stream-kit` scope.
+
+### Plugin starter template
+
+The public GitHub template for external plugin authors lives at [stream-kit-app/plugin-starter](https://github.com/stream-kit-app/plugin-starter). The monorepo keeps [`packages/plugin-template/`](../packages/plugin-template/) for internal development.
+
+After changing the template, sync to GitHub:
+
+```bash
+pnpm sync:plugin-starter
+```
+
+Create the repository once (if it does not exist yet):
+
+```bash
+pnpm create:plugin-starter-repo
+```
+
+Then enable **Template repository** in the GitHub repo settings for the **Use this template** button.
+
 ## GitHub secrets
 
 ### Automatic
@@ -110,6 +163,7 @@ Output:
 | ------------------------ | ------------------------------------------------------------------------------------------------ |
 | `GITHUB_TOKEN`           | Provided by GitHub Actions for releases and changesets                                           |
 | `CHANGESET_GITHUB_TOKEN` | Optional PAT for creating Changesets PRs and pushing tags when org settings block `GITHUB_TOKEN` |
+| `NPM_TOKEN`              | npm automation token with publish access to `@stream-kit/plugin` and `@stream-kit/core`          |
 
 ### Microsoft Store (required for Store publish job)
 
