@@ -57,13 +57,24 @@ jobs:
               if: steps.changesets.outputs.hasChangesets == 'false'
               run: pnpm release
 
-            - name: Trigger release build
+            - name: Trigger release workflows
               if: steps.changesets.outputs.hasChangesets == 'false'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   RELEASE_TAG="v$(node -p "require('./packages/app/package.json').version")"
                   git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}"
+                  echo "RELEASE_TAG=${RELEASE_TAG}" >> "$GITHUB_ENV"
                   gh workflow run build-release.yml --ref main -f tag="${RELEASE_TAG}"
-                  gh workflow run publish-npm.yml --ref "${RELEASE_TAG}"
-                  gh workflow run publish-plugins.yml --ref "${RELEASE_TAG}"
+
+            - name: Trigger Publish npm
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: gh workflow run publish-npm.yml --ref main -f tag="${{ env.RELEASE_TAG }}"
+
+            - name: Trigger Publish Plugins
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: gh workflow run publish-plugins.yml --ref main -f tag="${{ env.RELEASE_TAG }}"
