@@ -12,8 +12,12 @@ export type CommandFormErrors = {
 	commandNames?: string;
 	handlers?: string;
 	sources?: string;
+	cooldownGlobal?: string;
+	cooldownUser?: string;
 	handlerErrors: Record<string, HandlerFieldFormErrors>;
 };
+
+const MAX_COOLDOWN_MS = 86_400_000;
 
 const COMMAND_PATTERN = /^[a-z0-9_-]+(\s+<[a-zA-Z_][a-zA-Z0-9_]*>)*$/i;
 
@@ -23,12 +27,33 @@ function getReservedArgName(name: string): string | undefined {
 	return RESERVED_COMMAND_ARG_NAMES.has(normalized) ? name : undefined;
 }
 
+function validateCooldownMs(
+	value: number | null,
+	translate: (key: string, params?: Record<string, string | number | null | undefined>) => string
+): string | undefined {
+	if (value == null) {
+		return undefined;
+	}
+
+	if (value < 0) {
+		return translate('Cooldown cannot be negative');
+	}
+
+	if (value > MAX_COOLDOWN_MS) {
+		return translate('Cooldown cannot exceed 24 hours');
+	}
+
+	return undefined;
+}
+
 export function validateCommandForm(
 	input: {
 		name: string;
 		commandNames: string[];
 		handlersCount: number;
 		sources: CommandSource[];
+		cooldownGlobalMs?: number | null;
+		cooldownUserMs?: number | null;
 	},
 	translate: (key: string, params?: Record<string, string | number | null | undefined>) => string
 ): CommandFormErrors | null {
@@ -87,11 +112,16 @@ export function validateCommandForm(
 		errors.sources = translate('Select at least one platform');
 	}
 
+	errors.cooldownGlobal = validateCooldownMs(input.cooldownGlobalMs ?? null, translate);
+	errors.cooldownUser = validateCooldownMs(input.cooldownUserMs ?? null, translate);
+
 	const hasErrors =
 		!!errors.name ||
 		!!errors.commandNames ||
 		!!errors.handlers ||
 		!!errors.sources ||
+		!!errors.cooldownGlobal ||
+		!!errors.cooldownUser ||
 		Object.keys(errors.handlerErrors).length > 0;
 
 	return hasErrors ? errors : null;

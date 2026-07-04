@@ -53,6 +53,17 @@ Use `<arg>` placeholders in the command pattern:
 
 The **last** `<arg>` captures the rest of the message. Earlier arguments match one word each.
 
+### Cooldowns
+
+Each command can have optional cooldowns:
+
+| Field | Description |
+| --- | --- |
+| Global cooldown | Minimum time between any use of the command (all viewers) |
+| User cooldown | Minimum time before the same viewer can use it again |
+
+Leave a field empty for no cooldown on that scope. Cooldown state is kept in memory and resets when the app restarts. Commands blocked by cooldown are ignored silently (no chat message).
+
 ### Built-in commands
 
 | Command | Description |

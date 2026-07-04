@@ -47,6 +47,49 @@
 		}))
 	);
 
+	const cooldownLabel = $derived(formatCooldownLabel(command.cooldownGlobalMs, command.cooldownUserMs));
+	const cooldownTooltip = $derived(formatCooldownTooltip(command.cooldownGlobalMs, command.cooldownUserMs));
+
+	function formatCooldownSeconds(ms: number): string {
+		return `${ms / 1000}s`;
+	}
+
+	function formatCooldownLabel(globalMs: number | null, userMs: number | null): string | null {
+		const parts: string[] = [];
+
+		if (globalMs != null && globalMs > 0) {
+			parts.push(`${formatCooldownSeconds(globalMs)} ${t('global')}`);
+		}
+
+		if (userMs != null && userMs > 0) {
+			parts.push(`${formatCooldownSeconds(userMs)} ${t('user')}`);
+		}
+
+		return parts.length > 0 ? parts.join(' / ') : null;
+	}
+
+	function formatCooldownTooltip(globalMs: number | null, userMs: number | null): string | null {
+		const parts: string[] = [];
+
+		if (globalMs != null && globalMs > 0) {
+			parts.push(
+				t('Global cooldown: {seconds}s between any use', {
+					seconds: globalMs / 1000
+				})
+			);
+		}
+
+		if (userMs != null && userMs > 0) {
+			parts.push(
+				t('User cooldown: {seconds}s per viewer', {
+					seconds: userMs / 1000
+				})
+			);
+		}
+
+		return parts.length > 0 ? parts.join(' · ') : null;
+	}
+
 	function roleLabel(role: string): string {
 		switch (role) {
 			case 'everyone':
@@ -184,6 +227,16 @@
 						{role.label}
 					</Badge>
 				{/each}
+				{#if cooldownLabel}
+					<Badge
+						size="sm"
+						variant="secondary"
+						{@attach tooltip(() => cooldownTooltip ?? cooldownLabel)}
+					>
+						<Icon icon="ri:timer-line" />
+						{cooldownLabel}
+					</Badge>
+				{/if}
 				{#each command.sources as source (source)}
 					<Badge size="sm" variant="secondary">{source}</Badge>
 				{/each}

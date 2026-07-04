@@ -132,6 +132,30 @@
 
 	};
 
+	function cooldownMsToSeconds(ms: number | null): string {
+		if (ms == null || ms <= 0) {
+			return '';
+		}
+
+		return String(ms / 1000);
+	}
+
+	function parseCooldownSeconds(value: string): number | null {
+		const trimmed = value.trim();
+
+		if (!trimmed) {
+			return null;
+		}
+
+		const seconds = Number(trimmed);
+
+		if (!Number.isFinite(seconds) || seconds <= 0) {
+			return null;
+		}
+
+		return Math.round(seconds * 1000);
+	}
+
 </script>
 
 
@@ -318,7 +342,40 @@
 
 	/>
 
-
+	<section class="grid gap-3">
+		<Label>{t('Cooldown')}</Label>
+		<div class="grid gap-4 sm:grid-cols-2">
+			<InputText
+				label={t('Global cooldown (seconds)')}
+				type="number"
+				min="0"
+				value={cooldownMsToSeconds(command.cooldownGlobalMs)}
+				error={command.formErrors?.cooldownGlobal}
+				oninput={(event) => {
+					command.cooldownGlobalMs = parseCooldownSeconds(
+						(event.currentTarget as HTMLInputElement).value
+					);
+				}}
+			/>
+			<InputText
+				label={t('User cooldown (seconds)')}
+				type="number"
+				min="0"
+				value={cooldownMsToSeconds(command.cooldownUserMs)}
+				error={command.formErrors?.cooldownUser}
+				oninput={(event) => {
+					command.cooldownUserMs = parseCooldownSeconds(
+						(event.currentTarget as HTMLInputElement).value
+					);
+				}}
+			/>
+		</div>
+		<p class="text-sm text-dark-300">
+			{t(
+				'Global cooldown applies between any use of this command. User cooldown applies per viewer. Leave empty for no cooldown.'
+			)}
+		</p>
+	</section>
 
 	<InputSwitch label={t('Enabled')} bind:checked={command.enabled} />
 

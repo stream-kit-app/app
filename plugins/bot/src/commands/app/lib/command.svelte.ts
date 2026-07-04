@@ -271,7 +271,9 @@ export class Command {
 				name: this.name,
 				commandNames: this.commandNames,
 				handlersCount: this.handlers.length,
-				sources: this.sources
+				sources: this.sources,
+				cooldownGlobalMs: this.cooldownGlobalMs,
+				cooldownUserMs: this.cooldownUserMs
 			},
 			app.i18n.translate
 		);
