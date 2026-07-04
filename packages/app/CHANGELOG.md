@@ -1,5 +1,18 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.9
+
+### Minor Changes
+
+- [`3092a9b`](https://github.com/stream-kit-app/app/commit/3092a9bc2a3243d1220c971f38389ce80935624c) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - fix build errors
+
+### Patch Changes
+
+- Updated dependencies [[`3092a9b`](https://github.com/stream-kit-app/app/commit/3092a9bc2a3243d1220c971f38389ce80935624c)]:
+    - @stream-kit/plugin@0.2.0-alpha.4
+    - @stream-kit/core@0.2.0-alpha.4
+    - @stream-kit/ui@0.2.0-alpha.4
+
 ## 0.1.0-alpha.8
 
 ### Minor Changes
