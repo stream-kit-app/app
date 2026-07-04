@@ -1,0 +1,40 @@
+---
+title: "User Banned"
+description: "YouTube trigger: youtube:youtube:moderation:user-banned"
+---
+
+# User Banned
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:moderation:user-banned` |
+| **Plugin** | YouTube |
+| **Category** | Moderation |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "test-author-id" },
+  { name: "banType", type: "'permanent' | 'temporary'", description: "Ban type (`permanent` or `temporary`).", example: "temporary" },
+  { name: "duration", type: "number", description: "Timeout or ban duration in seconds, when applicable.", example: "600" },
+  { name: "moderator", type: "string", description: "Moderator who performed the action.", example: "Moderator" },
+  { name: "raw", type: "object", description: "Raw platform chat message object (JSON)." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

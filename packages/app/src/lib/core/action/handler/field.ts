@@ -101,6 +101,7 @@ export type HandlerOneOfInnerFieldDefinition =
 			useContextVariables?: boolean;
 	  })
 	| (HandlerFieldBase & { type: 'switch' })
+	| (HandlerFieldBase & { type: 'hotkey' })
 	| (HandlerFieldBase & { type: 'checkbox' })
 	| (HandlerFieldBase & {
 			type: 'select';

@@ -78,7 +78,8 @@ function initInnerHandlerFieldValue(
 		definition.type === 'select' ||
 		definition.type === 'combobox' ||
 		definition.type === 'select-file-or-folder' ||
-		definition.type === 'code'
+		definition.type === 'code' ||
+		definition.type === 'hotkey'
 	) {
 		return '';
 	}
@@ -260,7 +261,8 @@ export function isHandlerFieldValueEmpty(
 		definition.type === 'select' ||
 		definition.type === 'combobox' ||
 		definition.type === 'select-file-or-folder' ||
-		definition.type === 'code'
+		definition.type === 'code' ||
+		definition.type === 'hotkey'
 	) {
 		return !String(value ?? '').trim();
 	}

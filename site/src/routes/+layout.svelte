@@ -29,7 +29,7 @@
 			<Logo />
 			<nav class="hidden gap-2 sm:flex">
 				<a href="/" class="rounded-lg px-5 py-4 hover:bg-dark-700">Home</a>
-				<a href="/docs" class="rounded-lg px-5 py-4 hover:bg-dark-700">Docs</a>
+				<a href="https://docs.stream-kit.app" class="rounded-lg px-5 py-4 hover:bg-dark-700">Docs</a>
 				<a href={resolve('/plugins')} class="rounded-lg px-5 py-4 hover:bg-dark-700"
 					>Plugins</a
 				>

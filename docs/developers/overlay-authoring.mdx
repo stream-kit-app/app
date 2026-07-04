@@ -1,0 +1,104 @@
+---
+title: Overlay authoring
+description: Manifest schema, settings, events, and action presets for Stream Kit overlays.
+---
+
+# Overlay authoring
+
+Overlays are local web projects served by Stream Kit. Author overlays by editing the project files and `overlay.manifest.json` in the overlay folder.
+
+## Manifest
+
+Each overlay includes `overlay.manifest.json`:
+
+```json
+{
+  "id": "my-alert-overlay",
+  "name": "My Alerts",
+  "framework": "svelte",
+  "expectedEvents": ["alert", "clear"],
+  "settings": [],
+  "testHandlers": [],
+  "requiredPlugins": ["twitch"],
+  "actions": []
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `id` | Stable overlay id (folder name) |
+| `name` | Display name in the app |
+| `framework` | Starter template id (`vanilla`, `svelte`, `react`, …) |
+| `expectedEvents` | Event names for **Send to Overlay** combobox |
+| `settings` | Configure page fields (text, switch, select, slider, sections) |
+| `testHandlers` | Quick test buttons on overlay detail page |
+| `requiredPlugins` | Plugin keys required for action presets |
+| `actions` | Optional action presets to install |
+
+## Settings
+
+Settings fields render on the overlay **Configure** page. Values are broadcast to the browser source as event `overlay:settings` with a key-value map.
+
+Supported field types: `text`, `switch`, `checkbox`, `select`, `slider`, and grouped `section` blocks.
+
+Use `__overlay__` token in select items when a field should reference the current overlay id.
+
+## Receiving events
+
+The overlay runtime connects to `ws://127.0.0.1:PORT/ws?overlayId={id}`. Listen for messages:
+
+```js
+// Simplified — use the starter's overlay client helper
+socket.addEventListener('message', (event) => {
+  const { type, event: eventName, payload } = JSON.parse(event.data);
+  if (type === 'overlay:event' && eventName === 'alert') {
+    showAlert(payload);
+  }
+});
+```
+
+## Payload from actions
+
+**Send to Overlay** resolves `\{variables\}` in the payload template, then parses JSON when possible. Omit payload to receive trigger context data.
+
+Handler ID: `overlay:overlay:send-to-overlay`.
+
+## Action presets
+
+Presets bundle triggers and handlers users can install from the overlay page:
+
+```json
+{
+  "key": "follow-alert",
+  "name": "Follow alert",
+  "enabled": true,
+  "triggers": [
+    {
+      "triggerTypeId": "twitch:twitch:channel:new-follower",
+      "conditions": {}
+    }
+  ],
+  "handlers": [
+    {
+      "handlerTypeId": "overlay:overlay:send-to-overlay",
+      "fields": [
+        { "key": "overlay", "value": "__overlay__" },
+        { "key": "event", "value": "alert" },
+        { "key": "payload", "value": "{\"username\":\"{username}\"}" }
+      ]
+    }
+  ]
+}
+```
+
+`handlerTypeId` and `triggerTypeId` must match [API Reference](/docs/api) IDs.
+
+## Editing code
+
+From the overlay card, open the project folder in your editor or use the built-in open-folder action. Rebuild if your framework requires a build step (starters include dev scripts).
+
+## Related
+
+- [Overlays guide](/docs/guide/overlays)
+- [Overlay plugin](/docs/plugins/overlay)
+- [Plugin getting started](/docs/developers/plugin-getting-started)

@@ -1,0 +1,56 @@
+---
+title: Installing plugins
+description: Install third-party plugins from ZIP files in the Stream Kit desktop app.
+---
+
+# Installing plugins
+
+Official plugins (Core, Bot, Twitch, YouTube, OBS, TTS, WebSocket) ship with Stream Kit. You can install **additional plugins** from a `.zip` distribution.
+
+## Before you install
+
+- Only install plugins from **sources you trust**. Installed plugins run with full access to Stream Kit and your system.
+- Check the plugin manifest `key` and version.
+- Note any `dependencies` — required plugins must be installed and enabled first.
+
+## Install from ZIP
+
+1. Open **Plugins** in the sidebar.
+2. Click **Install plugin** (or drag a `.zip` onto the Plugins page).
+3. Select the plugin `.zip` file.
+4. If a plugin with the same key exists, choose **Replace** to upgrade or cancel.
+
+Stream Kit extracts the bundle, registers the manifest, and loads the plugin entry (`dist/index.js`).
+
+## Enable and configure
+
+After install:
+
+1. Enable the plugin toggle if it is disabled.
+2. Open **Settings** on the plugin card.
+3. Complete OAuth or connection steps until status shows **Configured**.
+
+Missing dependencies show a warning on the card with the required plugin keys.
+
+## Updates
+
+When update metadata is available, the Plugins page may offer **Update** for installed plugins (requires a configured update source in app settings).
+
+## Developer mode
+
+With **Developer mode** enabled in app settings, installed plugins can enable **Dev mode** to watch a local folder instead of the bundled `dist/` — for plugin authors only.
+
+See [Plugin getting started](/docs/developers/plugin-getting-started).
+
+## Uninstall
+
+Use **Uninstall** on the plugin card. Built-in official plugins cannot be removed.
+
+## Authoring plugins
+
+To build your own plugin, start with [Plugin getting started](/docs/developers/plugin-getting-started) and the [Plugin API](/docs/developers/plugin-api).
+
+## Related
+
+- [Plugins overview](/docs/plugins/core)
+- [Developers](/docs/developers/plugin-getting-started)

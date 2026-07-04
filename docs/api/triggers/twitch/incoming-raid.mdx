@@ -1,0 +1,34 @@
+---
+title: "Incoming Raid"
+description: "Twitch trigger: twitch:twitch:raids:incoming-raid"
+---
+
+# Incoming Raid
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:raids:incoming-raid` |
+| **Plugin** | Twitch |
+| **Category** | Raids |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "RaidLeader" },
+  { name: "viewers", type: "number", description: "Number of viewers in an incoming raid.", example: "25" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Minimum Viewers | Minimum number of raiding viewers. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

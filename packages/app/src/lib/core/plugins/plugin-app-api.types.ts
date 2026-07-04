@@ -63,6 +63,9 @@ export interface PluginAppHotkeysApi {
 
 	/** Whether the shortcut is registered by this application. */
 	isRegistered(shortcut: string): Promise<boolean>;
+
+	/** Invoke listeners registered for this shortcut (same as a physical key press). */
+	trigger(shortcut: string): boolean;
 }
 
 /**

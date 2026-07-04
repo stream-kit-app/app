@@ -1,0 +1,39 @@
+---
+title: "Channel Point Redemption"
+description: "Twitch trigger: twitch:twitch:chat:channel-point-redemption"
+---
+
+# Channel Point Redemption
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:chat:channel-point-redemption` |
+| **Plugin** | Twitch |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "rewardId", type: "string", description: "Channel point reward ID tied to the redemption.", example: "test-reward-id" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event." },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor." },
+  { name: "message", type: "string", description: "Full message text from the event." },
+  { name: "role", type: "string", description: "Role of the user (for example everyone, mod, broadcaster, vip, subscriber)." },
+  { name: "msg", type: "object", description: "Structured chat message object (JSON) with badges, emotes, flags, and metadata." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Reward | Restrict to a specific channel point reward. Leave empty to match any reward. |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

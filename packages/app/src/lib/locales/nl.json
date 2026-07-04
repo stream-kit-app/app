@@ -169,6 +169,8 @@
 	"No folder selected": "Geen map geselecteerd",
 	"No handlers added yet.": "Nog geen handlers toegevoegd.",
 	"No handlers in this branch yet.": "Nog geen handlers in deze tak.",
+	"Drop handler in {branch}": "Sleep handler naar {branch}",
+	"Release to add to {branch}": "Loslaten om toe te voegen aan {branch}",
 	"No matches found": "Geen resultaten gevonden",
 	"No plugins have been registered yet.": "Er zijn nog geen plugins geregistreerd.",
 	"No triggers added yet.": "Nog geen triggers toegevoegd.",

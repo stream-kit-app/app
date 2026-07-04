@@ -2,13 +2,13 @@ import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import { interpolateVariables } from '@stream-kit/core';
 
-import { getFieldValue } from '../../get-field-value';
+import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import type { CorePluginContext } from '../../lib/core-context';
 
 import {
 	collectionMutationErrorMessage,
 	createExistingCollectionNameField,
-	keyField,
+	keyFieldWithContextVariables,
 	requireCollectionName,
 	valueField
 } from './fields';
@@ -20,10 +20,10 @@ export const createUpdateCollectionValueHandler = ({
 }: CorePluginContext) =>
 	({
 		name: 'Update value',
-		fields: [createExistingCollectionNameField(collections), keyField, valueField],
+		fields: [createExistingCollectionNameField(collections), keyFieldWithContextVariables, valueField],
 		execute: async (_action, handler, context, next) => {
 			const collectionName = getFieldValue(handler.fields, 'collection-name');
-			const key = getFieldValue(handler.fields, 'key');
+			const key = resolveFieldText(variables, handler.fields, 'key', context);
 			const valueTemplate = getFieldValue(handler.fields, 'value');
 
 			if (!requireCollectionName(app, collectionName, 'Update collection value failed')) {

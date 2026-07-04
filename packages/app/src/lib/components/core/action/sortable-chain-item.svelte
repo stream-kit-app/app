@@ -7,6 +7,7 @@
 
 	import { cn } from '$lib/utils';
 
+	import { getHandlerChainDndContext } from './handler-chain-dnd-context.svelte';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 
 	type Props = {
@@ -18,6 +19,7 @@
 		isOverlay?: boolean;
 		t?: TranslateFn;
 		children: Snippet;
+		trailingContent?: Snippet;
 	};
 
 	let {
@@ -28,16 +30,21 @@
 		label,
 		isOverlay = false,
 		t: translateProp,
-		children
+		children,
+		trailingContent
 	}: Props = $props();
 
 	const t = $derived(resolveTranslate(translateProp));
+	const handlerChainDnd = getHandlerChainDndContext();
+	const effectiveType = $derived(handlerChainDnd ? 'handler' : sortableType);
+	const effectiveAccept = $derived(handlerChainDnd ? 'handler' : sortableType);
+	const hasTrailing = $derived(trailingContent != null);
 
 	const { ref, handleRef, isDragging } = useSortable({
 		id: () => id,
 		index: () => index,
-		type: () => sortableType,
-		accept: () => sortableType,
+		type: () => effectiveType,
+		accept: () => effectiveAccept,
 		group: () => group,
 		data: () => ({ group }),
 		feedback: 'move'
@@ -58,26 +65,48 @@
 		</div>
 	{/if}
 
-	<div {@attach ref} class="relative min-w-0 flex-1">
-		{#if isOverlay}
-			<div class="rounded-xl shadow-2xl ring-1 ring-white/10">
-				{@render children()}
-			</div>
-		{:else}
-			<div
-				class={cn(isDragging.current && 'pointer-events-none select-none opacity-0')}
-				aria-hidden={isDragging.current}
-			>
-				{@render children()}
-			</div>
-			{#if isDragging.current}
+	{#if hasTrailing && !isOverlay}
+		<div class="min-w-0 flex-1 overflow-hidden rounded-xl border border-dark-600">
+			<div {@attach ref} class="relative min-w-0">
 				<div
-					class="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-dashed border-primary-300/70 bg-primary-950/50 px-4 text-sm font-medium text-primary-200"
-					aria-hidden="true"
+					class={cn(isDragging.current && 'pointer-events-none select-none opacity-0')}
+					aria-hidden={isDragging.current}
 				>
-					{t('Moving: {name}', { name: label })}
+					{@render children()}
 				</div>
+				{#if isDragging.current}
+					<div
+						class="absolute inset-0 flex items-center justify-center rounded-t-xl border-2 border-dashed border-primary-300/70 bg-primary-950/50 px-4 text-sm font-medium text-primary-200"
+						aria-hidden="true"
+					>
+						{t('Moving: {name}', { name: label })}
+					</div>
+				{/if}
+			</div>
+			{@render trailingContent!()}
+		</div>
+	{:else}
+		<div {@attach ref} class="relative min-w-0 flex-1">
+			{#if isOverlay}
+				<div class="rounded-xl shadow-2xl ring-1 ring-white/10">
+					{@render children()}
+				</div>
+			{:else}
+				<div
+					class={cn(isDragging.current && 'pointer-events-none select-none opacity-0')}
+					aria-hidden={isDragging.current}
+				>
+					{@render children()}
+				</div>
+				{#if isDragging.current}
+					<div
+						class="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-dashed border-primary-300/70 bg-primary-950/50 px-4 text-sm font-medium text-primary-200"
+						aria-hidden="true"
+					>
+						{t('Moving: {name}', { name: label })}
+					</div>
+				{/if}
 			{/if}
-		{/if}
-	</div>
+		</div>
+	{/if}
 </div>

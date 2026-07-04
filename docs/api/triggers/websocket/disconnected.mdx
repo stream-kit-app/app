@@ -1,0 +1,34 @@
+---
+title: "Disconnected"
+description: "WebSocket trigger: websocket:websocket:disconnected"
+---
+
+# Disconnected
+
+| | |
+| --- | --- |
+| **Trigger ID** | `websocket:websocket:disconnected` |
+| **Plugin** | WebSocket |
+| **Category** | WebSocket |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "connectionId", type: "string", description: "Configured WebSocket connection ID.", example: "test-connection" },
+  { name: "connectionName", type: "string", description: "Display name of the WebSocket connection.", example: "Test Connection" },
+  { name: "url", type: "string", description: "WebSocket server URL.", example: "ws://localhost:8080" },
+  { name: "affectedConnectionIds", type: "string", description: "Connection IDs affected by a broadcast event." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Connection | Restrict to one configured WebSocket connection. Leave empty to match any connection. |
+
+## Related
+
+- [WebSocket plugin](/docs/plugins/websocket)
+- [Triggers guide](/docs/guide/triggers)

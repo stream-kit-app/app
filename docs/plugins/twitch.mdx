@@ -1,0 +1,57 @@
+---
+title: Twitch
+description: Connect Twitch chat and EventSub — triggers and channel actions.
+---
+
+# Twitch
+
+The Twitch plugin connects your **Twitch account** for chat, whispers, channel point redemptions, EventSub events, and moderation actions.
+
+## Setup
+
+1. Open **Plugins → Twitch**.
+2. Click **Connect your Twitch account** to start OAuth.
+3. Authorize Stream Kit in the browser window.
+4. Confirm status shows **Connected**.
+
+EventSub subscriptions are created automatically for supported events (follows, subs, raids, polls, predictions, etc.).
+
+## Requirements
+
+- Twitch account with appropriate channel permissions
+- Internet access for OAuth and EventSub
+
+The plugin reports **configured** when OAuth completes and the connection is healthy.
+
+## Features
+
+| Area | Capabilities |
+| --- | --- |
+| **Chat** | Messages, cheers, whispers, hype chat, redemptions |
+| **Engagement** | Follows, subs, gifts, raids, joins/parts |
+| **Channel** | Stream online/offline, channel update |
+| **Moderation** | Ban, timeout, shield mode, warn, delete message |
+| **Interactive** | Polls, predictions, hype train |
+| **Actions** | Send message, announcement, shoutout, clips, commercials, raids, VIP/mod |
+
+## Triggers and handlers
+
+- [Twitch triggers](/docs/api/triggers/twitch) — chat, EventSub, engagement
+- [Twitch handlers](/docs/api/handlers/twitch) — chat, moderation, polls, predictions
+
+### Example trigger IDs
+
+| Trigger | ID |
+| --- | --- |
+| Chat message | `twitch:twitch:chat:chat-message` |
+| New follower | `twitch:twitch:channel:new-follower` |
+| Channel point redemption | `twitch:twitch:channel:channel-point-redemption` |
+
+## Bot integration
+
+Enable the [Bot plugin](/docs/plugins/bot) for commands, timers, and moderation on Twitch chat.
+
+## Related
+
+- [Setup guide](/docs/get-started/setup)
+- [Triggers guide](/docs/guide/triggers)

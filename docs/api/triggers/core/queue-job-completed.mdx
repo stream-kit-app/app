@@ -1,0 +1,38 @@
+---
+title: "Queue Job Completed"
+description: "Core Handlers trigger: core:core:queue:queue-job-completed"
+---
+
+# Queue Job Completed
+
+| | |
+| --- | --- |
+| **Trigger ID** | `core:core:queue:queue-job-completed` |
+| **Plugin** | Core Handlers |
+| **Category** | Queue |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "queueId", description: "Internal ID of the action queue.", example: "1" },
+  { name: "queueName", description: "Display name of the action queue.", example: "default" },
+  { name: "pending", description: "Number of jobs waiting in the queue." },
+  { name: "active", description: "Number of jobs currently running in the queue." },
+  { name: "paused", description: "Whether the queue is paused (`true` or `false`)." },
+  { name: "jobId", description: "jobId", example: "test-job" },
+  { name: "actionId", description: "actionId", example: "1" },
+  { name: "actionName", description: "actionName", example: "Test action" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Queue | Restrict to a specific action queue. Leave empty to match any queue. |
+
+## Related
+
+- [Core Handlers plugin](/docs/plugins/core)
+- [Triggers guide](/docs/guide/triggers)

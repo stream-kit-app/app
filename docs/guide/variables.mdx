@@ -1,0 +1,59 @@
+---
+title: Variables
+description: Global, user, and action-scoped variables and interpolation syntax.
+---
+
+# Variables
+
+Variables let handler chains use data from triggers and earlier steps.
+
+## Interpolation syntax
+
+In handler text fields, wrap names in braces:
+
+```
+Hello \{username\}! You said \{message\}
+```
+
+Resolution order (highest wins for duplicates):
+
+1. Action-scoped variables (set earlier in the same run)
+2. User variables (per chatter)
+3. Global variables
+4. Trigger context variables
+
+## Scopes
+
+| Scope | Set by | Used for |
+| --- | --- | --- |
+| **Action** | **Set variable** handler in same run | Temporary values in one execution |
+| **User** | **Set variable** with User scope | Per-viewer state (needs `username` in trigger context) |
+| **Global** | **Set variable** with Global scope | App-wide counters, flags, config |
+
+Use **Get variable** to read a scope and write into an action variable.
+
+## Trigger variables
+
+Triggers expose event fields as variables. Examples:
+
+- Twitch chat: `username`, `message`, `role`, …
+- Hotkey: `shortcut`, `key`, `modifiers`
+- Queue status: `queueName`, `pending`, `job`
+
+See each trigger in the [API Reference](/docs/api/triggers/core).
+
+## Editor helpers
+
+- Hover trigger titles for a **variable picker** (copies `\{key\}`).
+- Handler fields with variable support show a picker for trigger + action variables.
+
+## Collections vs variables
+
+**Collections** are named key-value stores (session or persistent). **Variables** are string values in scopes. Use collections for structured data shared across actions; use variables for interpolation in text fields.
+
+See [Collections](/docs/guide/collections).
+
+## Related
+
+- [Core handlers: Set variable](/docs/api/handlers/core/set-variable)
+- [Core handlers: Get variable](/docs/api/handlers/core/get-variable)

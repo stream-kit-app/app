@@ -1,0 +1,36 @@
+---
+title: "Gift Subscription"
+description: "Twitch trigger: twitch:twitch:subscriptions:gift-subscription"
+---
+
+# Gift Subscription
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:subscriptions:gift-subscription` |
+| **Plugin** | Twitch |
+| **Category** | Subscriptions |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "tier", type: "string", description: "Subscription or Super Chat tier level.", example: "1000" },
+  { name: "giftCount", type: "number", description: "Number of gifted subscriptions in the event.", example: "5" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Sub tier | Restrict to a subscription tier (Tier 1, Tier 2, Tier 3, or Prime). |
+| Minimum Gift Count | Minimum number of gifted subscriptions. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

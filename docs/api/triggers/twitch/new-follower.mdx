@@ -1,0 +1,28 @@
+---
+title: "New Follower"
+description: "Twitch trigger: twitch:twitch:channel:new-follower"
+---
+
+# New Follower
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:channel:new-follower` |
+| **Plugin** | Twitch |
+| **Category** | Channel |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "999001" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

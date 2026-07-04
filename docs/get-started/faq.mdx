@@ -1,0 +1,45 @@
+---
+title: FAQ
+description: Frequently asked questions about Stream Kit.
+---
+
+# FAQ
+
+## How is this different from Streamer.bot?
+
+Stream Kit uses the same mental model: **actions**, **triggers**, **variables**, and **queues**. Plugin and handler IDs are stable strings (for example `core:core:input:hotkey`) so you can reference them in overlays and external tools.
+
+## Why is my action not running?
+
+Check:
+
+1. The action is **enabled**.
+2. At least one trigger is **enabled** and conditions match.
+3. Required plugins are **configured** (Twitch connected, OBS WebSocket reachable).
+4. The action is not stuck in a **paused** queue with a full **max length**.
+5. Review **Logs** for errors from a handler in the chain.
+
+## What is a trigger ID vs handler ID?
+
+**Definition IDs** identify the *type* of trigger or handler in the picker and in stored actions:
+
+- Trigger example: `twitch:twitch:chat:chat-message`
+- Handler example: `overlay:overlay:send-to-overlay`
+
+Each placed trigger/handler block in an action also has its own instance UUID internally.
+
+## Can I run multiple actions on one event?
+
+Yes. Add the same trigger type to multiple actions, or add multiple triggers to one action.
+
+## Do queues slow down triggers?
+
+Conditions are evaluated immediately. Only the **handler chain execution** is queued. Use **No queue** when parallel runs are safe.
+
+## Where is the full list of triggers and handlers?
+
+[API Reference](/docs/api) — grouped by plugin with IDs, fields, and variables.
+
+## How do I build a custom plugin?
+
+See [Plugin getting started](/docs/developers/plugin-getting-started).

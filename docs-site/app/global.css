@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --fd-layout-width: 1400px;
+}
+
+.dark {
+  --color-fd-background: oklch(0.11 0.005 264);
+  --color-fd-foreground: oklch(0.78 0.012 264);
+  --color-fd-muted: oklch(0.17 0.006 264);
+  --color-fd-muted-foreground: oklch(0.54 0.009 264);
+  --color-fd-popover: oklch(0.17 0.006 264);
+  --color-fd-popover-foreground: oklch(0.78 0.012 264);
+  --color-fd-card: oklch(0.14 0.006 264);
+  --color-fd-card-foreground: oklch(0.78 0.012 264);
+  --color-fd-border: oklch(0.3 0.007 264 / 55%);
+  --color-fd-primary: oklch(0.54 0.17 255);
+  --color-fd-primary-foreground: oklch(0.98 0.01 264);
+  --color-fd-secondary: oklch(0.23 0.006 264);
+  --color-fd-secondary-foreground: oklch(0.78 0.012 264);
+  --color-fd-accent: oklch(0.3 0.007 264 / 70%);
+  --color-fd-accent-foreground: oklch(0.9 0.01 264);
+  --color-fd-ring: oklch(0.46 0.18 255);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0 !important;
+  --removed-body-scroll-bar-size: 0 !important;
+}
+
+.prose {
+  --tw-prose-body: var(--color-fd-foreground);
+  --tw-prose-headings: var(--color-fd-foreground);
+  --tw-prose-links: var(--color-fd-primary);
+  --tw-prose-bold: var(--color-fd-foreground);
+  --tw-prose-code: var(--color-fd-foreground);
+}

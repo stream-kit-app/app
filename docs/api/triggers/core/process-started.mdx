@@ -1,0 +1,36 @@
+---
+title: "Process Started"
+description: "Core Handlers trigger: core:processes:process-started"
+---
+
+# Process Started
+
+| | |
+| --- | --- |
+| **Trigger ID** | `core:processes:process-started` |
+| **Plugin** | Core Handlers |
+| **Category** | Processes |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "executable", description: "Process executable file name.", example: "notepad" },
+  { name: "fullPath", description: "Full filesystem path to the process executable.", example: "C:\\\\Windows\\\\System32\\\\notepad.exe" },
+  { name: "name", description: "Process or collection name from the event.", example: "notepad" },
+  { name: "parentProcessId", description: "Parent process ID, when available.", example: "1234" },
+  { name: "path", description: "Directory path of the process executable.", example: "C:\\\\Windows\\\\System32" },
+  { name: "processId", description: "Operating-system process ID.", example: "5678" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| process Name | Filter on **process Name**. Configure in the trigger condition editor. |
+
+## Related
+
+- [Core Handlers plugin](/docs/plugins/core)
+- [Triggers guide](/docs/guide/triggers)

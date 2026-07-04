@@ -1,0 +1,12 @@
+{
+  "title": "Packages",
+  "pages": [
+    "index",
+    "app",
+    "core",
+    "plugin",
+    "ui",
+    "app-types",
+    "plugin-template"
+  ]
+}

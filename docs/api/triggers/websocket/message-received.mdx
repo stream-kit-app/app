@@ -1,0 +1,40 @@
+---
+title: "Message Received"
+description: "WebSocket trigger: websocket:websocket:message-received"
+---
+
+# Message Received
+
+| | |
+| --- | --- |
+| **Trigger ID** | `websocket:websocket:message-received` |
+| **Plugin** | WebSocket |
+| **Category** | WebSocket |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "connectionId", type: "string", description: "Configured WebSocket connection ID.", example: "test-connection" },
+  { name: "connectionName", type: "string", description: "Display name of the WebSocket connection.", example: "Test Connection" },
+  { name: "url", type: "string", description: "WebSocket server URL.", example: "ws://localhost:8080" },
+  { name: "message", type: "string", description: "Full message text from the event." },
+  { name: "event", description: "Lifecycle or queue event name.", example: "alert" },
+  { name: "data", type: "unknown", description: "Parsed JSON payload from the WebSocket message." },
+  { name: "isJson", type: "boolean", description: "Whether the received payload parsed as JSON.", example: "true" },
+  { name: "affectedConnectionIds", type: "string", description: "Connection IDs affected by a broadcast event." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Connection | Restrict to one configured WebSocket connection. Leave empty to match any connection. |
+| Message | Match message text (starts with, ends with, contains, equals). Leave empty to always match. |
+| JSON field | Match a field inside JSON using a dot-path and text operator. |
+
+## Related
+
+- [WebSocket plugin](/docs/plugins/websocket)
+- [Triggers guide](/docs/guide/triggers)

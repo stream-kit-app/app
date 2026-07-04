@@ -2,6 +2,7 @@ packages:
     - 'packages/*'
     - 'plugins/*'
     - 'site'
+    - 'docs-site'
 
 onlyBuiltDependencies:
     - '@tailwindcss/oxide'

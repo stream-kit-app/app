@@ -14,6 +14,7 @@ import { createTriggerHotkeyHandler } from './handler/hotkey/trigger';
 import {
 	createGetMediaStatusHandler,
 	createOffsetMediaCursorHandler,
+	createRestartInstantReplayHandler,
 	createSetMediaCursorHandler,
 	createSetMediaInputFileHandler,
 	createTriggerMediaActionHandler
@@ -463,6 +464,7 @@ const plugin: Plugin = (app) => {
 						name: 'Media',
 						children: [
 							createSetMediaInputFileHandler(app),
+							createRestartInstantReplayHandler(app),
 							createTriggerMediaActionHandler(app),
 							createSetMediaCursorHandler(app),
 							createOffsetMediaCursorHandler(app),

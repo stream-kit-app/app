@@ -1,0 +1,21 @@
+{
+  "title": "Core",
+  "pages": [
+    "index",
+    "cron",
+    "scheduled",
+    "collection-created",
+    "collection-value-changed",
+    "hotkey",
+    "queue-paused",
+    "queue-resumed",
+    "queue-became-idle",
+    "queue-job-enqueued",
+    "queue-job-started",
+    "queue-job-completed",
+    "process-started",
+    "process-stopped",
+    "app-started",
+    "app-exit"
+  ]
+}

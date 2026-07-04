@@ -4,6 +4,7 @@
 
 	import Icon from '@iconify/svelte';
 	import { Command as CommandPrimitive, Dialog as DialogPrimitive, useId } from 'bits-ui';
+	import { tick } from 'svelte';
 
 	import { cn } from '../../utils';
 	import * as Command from '../command';
@@ -81,6 +82,7 @@
 	let open = $state(false);
 	let commandSearch = $state('');
 	const commandListId = useId();
+	const commandInputId = useId();
 
 	const resolvedItems = resolveSelectItems(
 		() => itemsSource,
@@ -186,11 +188,37 @@
 
 		open = true;
 	}
+
+	async function handleOpenAutoFocus(event: Event): Promise<void> {
+		dialogProps?.onOpenAutoFocus?.(event);
+		if (event.defaultPrevented || !showSearch) {
+			return;
+		}
+
+		event.preventDefault();
+		await tick();
+		document.getElementById(commandInputId)?.focus();
+	}
+
+	function handleCloseAutoFocus(event: Event): void {
+		dialogProps?.onCloseAutoFocus?.(event);
+		if (event.defaultPrevented) {
+			return;
+		}
+
+		// Avoid focus ping-pong when this dialog closes inside another dialog.
+		event.preventDefault();
+	}
 </script>
 
-<div class={cn('relative grid w-full min-w-0 gap-2')}>
+<div class={cn('relative grid w-full min-w-0 gap-2', className)}>
 	{#if label}
-		<Label for={id}>{label}</Label>
+		<Label for={id}>
+			{label}
+			{#if required}
+				<span class="text-red-400">*</span>
+			{/if}
+		</Label>
 	{/if}
 
 	<Dialog.Root bind:open onOpenChange={handleOpenChange}>
@@ -198,8 +226,7 @@
 			class={cn(
 				'relative flex w-full min-w-0 items-center rounded-xl',
 				'has-focus:ring-2 has-focus:ring-primary',
-				error && 'has-focus:ring-red-500',
-				className
+				error && 'has-focus:ring-red-500'
 			)}
 		>
 			<button
@@ -209,7 +236,6 @@
 				aria-haspopup="dialog"
 				aria-expanded={open}
 				aria-controls={open ? commandListId : undefined}
-				aria-required={required || undefined}
 				{disabled}
 				class="flex w-full min-w-0 cursor-pointer items-center outline-none disabled:cursor-not-allowed disabled:opacity-50"
 				onclick={openDialog}
@@ -241,8 +267,15 @@
 		</div>
 
 		<Dialog.Portal>
-			<Dialog.Overlay />
-			<Dialog.Content {...dialogProps}>
+			<Dialog.Overlay class="data-nested:hidden z-60 bg-black/60" />
+			<Dialog.Content
+				{...dialogProps}
+				trapFocus={dialogProps?.trapFocus ?? false}
+				preventScroll={dialogProps?.preventScroll ?? false}
+				onOpenAutoFocus={handleOpenAutoFocus}
+				onCloseAutoFocus={handleCloseAutoFocus}
+				class={cn('z-60', dialogProps?.class)}
+			>
 				<Dialog.Title class="sr-only">{dialogTitle}</Dialog.Title>
 				<Dialog.Description class="sr-only">{dialogDescription}</Dialog.Description>
 
@@ -253,6 +286,7 @@
 				>
 					{#if showSearch}
 						<Command.Input
+							id={commandInputId}
 							bind:value={commandSearch}
 							placeholder={resolvedSearchPlaceholder}
 							aria-label={resolvedSearchPlaceholder}

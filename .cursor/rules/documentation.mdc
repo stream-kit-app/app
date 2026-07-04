@@ -4,4 +4,6 @@ alwaysApply: true
 
 # Documentation
 
-Whenever you add a new feature or plugin, make sure to create a corresponding documentation file or update the relevant entry in the `/docs` folder. This helps ensure that all features and changes are properly documented, making it easier for the team to track updates and keep user-facing documentation current. Documentation should always be in English.
+Whenever you add a new feature or plugin, update **user-facing** documentation in `/docs` (English). Monorepo-internal notes (packages, release, site build) belong in `/contributing`, which is not published on docs.stream-kit.app. Regenerate API reference pages with `pnpm generate:docs-reference` when adding or changing triggers/handlers.
+
+For plugin, overlay, and app-core code changes, also follow `.cursor/rules/docs-site-sync.mdc`.

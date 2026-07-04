@@ -1,0 +1,13 @@
+{
+  "title": "Guide",
+  "pages": [
+    "actions",
+    "triggers",
+    "variables",
+    "action-queues",
+    "collections",
+    "overlays",
+    "dashboard",
+    "logs"
+  ]
+}

@@ -1,0 +1,58 @@
+---
+title: YouTube
+description: Connect YouTube live chat and channel events — triggers and chat actions.
+---
+
+# YouTube
+
+The YouTube plugin connects your **Google account** for live chat, super chats, memberships, and stream status events.
+
+## Setup
+
+1. Open **Plugins → YouTube**.
+2. Click **Connect your YouTube account** to start Google OAuth.
+3. Sign in and grant the requested scopes.
+4. Confirm status shows **Connected**.
+
+Live chat polling starts when you go live on the connected channel.
+
+## Requirements
+
+- YouTube channel with live streaming enabled
+- Google account OAuth authorization
+
+The plugin reports **configured** when OAuth completes successfully.
+
+## Features
+
+| Area | Capabilities |
+| --- | --- |
+| **Chat** | Live chat messages, super chats, super stickers |
+| **Members** | New members, gifts, milestones, members-only mode |
+| **Stream** | Stream online / offline |
+| **Moderation** | Delete message, ban user (live chat APIs) |
+| **Actions** | Send message, delete message |
+
+## Triggers and handlers
+
+- [YouTube triggers](/docs/api/triggers/youtube)
+- [YouTube handlers](/docs/api/handlers/youtube)
+
+### Example trigger IDs
+
+| Trigger | ID |
+| --- | --- |
+| Chat message | `youtube:youtube:chat:chat-message` |
+| Super chat | `youtube:youtube:chat:super-chat` |
+| Stream online | `youtube:youtube:stream:stream-online` |
+
+## Bot integration
+
+Enable the [Bot plugin](/docs/plugins/bot) for commands, timers, and moderation on YouTube live chat.
+
+**Note:** YouTube does not expose a warn API — moderation warn actions are Twitch-only.
+
+## Related
+
+- [Setup guide](/docs/get-started/setup)
+- [Triggers guide](/docs/guide/triggers)

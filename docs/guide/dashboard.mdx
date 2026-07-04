@@ -1,0 +1,41 @@
+---
+title: Dashboard
+description: Home screen with configurable widgets from Core and plugins.
+---
+
+# Dashboard
+
+The **Dashboard** is the home screen when you open Stream Kit. It shows **widgets** — small panels from Core and installed plugins.
+
+## Adding widgets
+
+1. Open the **Dashboard**.
+2. Click **Add widget** (or the layout edit control).
+3. Pick a widget from Core or a plugin.
+4. Drag to reorder; resize using column width where supported.
+
+Layout (order and column span) is saved automatically.
+
+## Core widgets
+
+| Widget | Description |
+| --- | --- |
+| **Collections** | Browse and edit collection key-value data |
+| **Log entries** | Recent lines from the Core **Log** handler |
+
+## Plugin widgets
+
+Plugins register widgets in their manifest (`widgets` + `customViews`). Examples depend on installed plugins — check **Add widget** for the current list.
+
+## Widget vs plugin page
+
+- **Menu items** — full pages under the sidebar (Bot → Commands, OBS → Settings).
+- **Widgets** — compact dashboard panels for at-a-glance data or quick edits.
+
+Plugin authors can ship both. See [Plugin API — widgets](/docs/developers/plugin-api).
+
+## Related
+
+- [Collections](/docs/guide/collections)
+- [Logs](/docs/guide/logs)
+- [Core plugin](/docs/plugins/core)

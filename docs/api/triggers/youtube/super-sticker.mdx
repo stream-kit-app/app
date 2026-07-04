@@ -1,0 +1,45 @@
+---
+title: "Super Sticker"
+description: "YouTube trigger: youtube:youtube:chat:super-sticker"
+---
+
+# Super Sticker
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:chat:super-sticker` |
+| **Plugin** | YouTube |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "stickerId", type: "string", description: "Super Sticker ID from YouTube.", example: "test-sticker-id" },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event." },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor." },
+  { name: "message", type: "string", description: "Full message text from the event." },
+  { name: "role", type: "string", description: "Role of the user (for example everyone, mod, broadcaster, vip, subscriber)." },
+  { name: "amount", type: "string", description: "Monetary or hype amount associated with the event." },
+  { name: "amountMicros", type: "number", description: "Super Chat amount in micro-units of the currency." },
+  { name: "currency", type: "string", description: "ISO currency code for a Super Chat (for example USD, EUR)." },
+  { name: "tier", type: "number", description: "Subscription or Super Chat tier level." },
+  { name: "raw", type: "object", description: "Raw platform chat message object (JSON)." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+| Minimum Tier | Minimum Super Sticker tier. |
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

@@ -1,0 +1,39 @@
+---
+title: "New Member"
+description: "YouTube trigger: youtube:youtube:membership:new-member"
+---
+
+# New Member
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:membership:new-member` |
+| **Plugin** | YouTube |
+| **Category** | Membership |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "test-author-id" },
+  { name: "memberLevelName", type: "string", description: "YouTube membership level name.", example: "Member" },
+  { name: "isUpgrade", type: "boolean", description: "Whether the membership event is an upgrade.", example: "false" },
+  { name: "raw", type: "object", description: "Raw platform chat message object (JSON)." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

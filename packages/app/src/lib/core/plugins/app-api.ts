@@ -125,7 +125,8 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		},
 		hotkeys: {
 			register: app.hotkeys.register.bind(app.hotkeys),
-			isRegistered: app.hotkeys.isRegistered.bind(app.hotkeys)
+			isRegistered: app.hotkeys.isRegistered.bind(app.hotkeys),
+			trigger: app.hotkeys.trigger.bind(app.hotkeys)
 		},
 		actionQueues: {
 			get definitions() {

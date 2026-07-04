@@ -1,0 +1,34 @@
+---
+title: "Community Subscription"
+description: "Twitch trigger: twitch:twitch:subscriptions:community-subscription"
+---
+
+# Community Subscription
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:subscriptions:community-subscription` |
+| **Plugin** | Twitch |
+| **Category** | Subscriptions |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "giftCount", type: "number", description: "Number of gifted subscriptions in the event.", example: "10" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Minimum Gift Count | Minimum number of gifted subscriptions. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

@@ -1,0 +1,40 @@
+---
+title: "Gift (Jewels)"
+description: "YouTube trigger: youtube:youtube:chat:gift-jewels"
+---
+
+# Gift (Jewels)
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:chat:gift-jewels` |
+| **Plugin** | YouTube |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "test-author-id" },
+  { name: "giftName", type: "string", description: "Name of the gifted item (for example jewel type).", example: "Test Gift" },
+  { name: "jewelsAmount", type: "number", description: "Number of YouTube jewels gifted.", example: "100" },
+  { name: "raw", type: "object", description: "Raw platform chat message object (JSON)." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+| Minimum Jewels | Minimum number of YouTube jewels in the gift event. |
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

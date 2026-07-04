@@ -1,0 +1,72 @@
+---
+title: Introduction
+description: Core building blocks of Stream Kit — actions, triggers, variables, and plugins.
+---
+
+# Introduction
+
+Stream Kit automates your stream the same way tools like Streamer.bot do: you wire **events** to **logic** without writing a full app.
+
+## Actions and handlers
+
+An **action** is a named automation. Inside it you build a **handler chain** (also called sub-actions): steps that run top to bottom.
+
+Examples:
+
+- Play a sound file
+- Send a Twitch chat message
+- Set a variable
+- Run a short script
+- Send an event to an overlay
+
+See [Actions](/docs/guide/actions) for the editor workflow.
+
+## Triggers
+
+A **trigger** connects an action to an event. When the event happens and conditions pass, the action runs.
+
+Examples:
+
+- Twitch chat message (`twitch:twitch:chat:chat-message`)
+- Hotkey pressed (`core:core:input:hotkey`)
+- OBS scene changed
+- Cron schedule
+- Bot command executed
+
+One action can have multiple triggers. One trigger can run multiple actions.
+
+See [Triggers](/docs/guide/triggers).
+
+## Variables
+
+**Variables** carry data from triggers and handlers into later steps. Reference them in text fields with `\{variableName\}` syntax.
+
+Scopes:
+
+| Scope | Lifetime |
+| --- | --- |
+| Global | Entire app |
+| User | Per chatter (needs username in trigger context) |
+| Action | Current action run only |
+
+See [Variables](/docs/guide/variables).
+
+## Plugins
+
+**Plugins** add triggers, handlers, settings pages, and integrations. Core, Bot, Twitch, YouTube, OBS, TTS, WebSocket, and Overlay ship with Stream Kit.
+
+Each plugin has a **settings** page when configuration is required (for example Twitch OAuth or OBS WebSocket URL).
+
+Browse [Plugins](/docs/plugins/core) and the [API Reference](/docs/api).
+
+## Action queues
+
+By default, matching actions run **immediately and in parallel**. Assign an action to a **queue** when runs must not overlap (TTS, media playback, shared resources).
+
+See [Action queues](/docs/guide/action-queues).
+
+## Next steps
+
+1. [Install Stream Kit](/docs/get-started/installation)
+2. [Set up platforms](/docs/get-started/setup)
+3. [Create your first action](/docs/guide/actions)

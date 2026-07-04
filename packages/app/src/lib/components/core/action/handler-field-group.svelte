@@ -22,6 +22,7 @@
 		InputCheckbox,
 		InputCode,
 		InputFilePath,
+		InputHotkey,
 		InputKeyValueList,
 		InputSelect,
 		InputSwitch,
@@ -199,6 +200,16 @@
 		<InputSwitch
 			label={config.name}
 			bind:checked={() => Boolean(field.value), (value) => (field.value = value)}
+			{error}
+		/>
+	{:else if config.type === 'hotkey'}
+		<InputHotkey
+			label={config.name}
+			placeholder={config.placeholder ?? t('Click and press keys…')}
+			required={config.required}
+			captureLabel={t('Press shortcut…')}
+			emptyLabel={t('Not set')}
+			bind:value={() => String(field.value ?? ''), (value) => (field.value = value)}
 			{error}
 		/>
 	{:else if config.type === 'select'}

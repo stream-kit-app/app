@@ -1,0 +1,36 @@
+---
+title: "New Subscription"
+description: "Twitch trigger: twitch:twitch:subscriptions:new-subscription"
+---
+
+# New Subscription
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:subscriptions:new-subscription` |
+| **Plugin** | Twitch |
+| **Category** | Subscriptions |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "tier", type: "string", description: "Subscription or Super Chat tier level.", example: "1000" },
+  { name: "months", type: "number", description: "Cumulative subscription month count for resubs.", example: "1" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Sub tier | Restrict to a subscription tier (Tier 1, Tier 2, Tier 3, or Prime). |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

@@ -28,6 +28,12 @@ After completing the code, ask the user if they want a playground link. Only cal
 - If components, features, or plugins break due to a refactor, it is expected that they be updated or rewritten to match the new architecture or patterns.
 - Prioritize modern best practices and project improvements over maintaining legacy code compatibility. Use this freedom to iterate quickly and keep the codebase clean and current.
 
-### 6. Important: Separation of Tauri Logic
+### 6. Documentation locations
+
+- **User-facing docs** (published at [docs.stream-kit.app](https://docs.stream-kit.app)): `/docs` — Get Started, Guide, Plugins, API Reference, Developers.
+- **Internal / monorepo docs**: `/contributing` — packages, release, site deployment, plugin dev workflow (not on the public docs site).
+- Run `pnpm generate:docs-reference` before building docs to regenerate trigger/handler API pages from plugin definitions.
+
+### 7. Important: Separation of Tauri Logic
 
 Do **not** include any Tauri-specific logic directly inside plugin packages. All Tauri API usage and logic should be handled exclusively within the main app layer (e.g., in `@stream-kit/app`). Plugins should only interact with Tauri or platform-specific features by calling app-provided APIs or interfaces. For example, if a plugin needs filesystem access, it should use an abstraction like `app.fs` rather than importing or using Tauri APIs directly. This ensures plugins remain portable, testable, and decoupled from Tauri, while keeping all platform logic centralized in the app itself.

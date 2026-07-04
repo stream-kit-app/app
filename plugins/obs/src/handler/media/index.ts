@@ -370,3 +370,36 @@ export const createGetMediaStatusHandler = (app: PluginAppApi) =>
 			next();
 		}
 	}) satisfies HandlerDefinitionProps;
+
+export const createRestartInstantReplayHandler = (app: PluginAppApi) =>
+	({
+		name: 'Restart Instant Replay',
+		fields: [mediaInputSelectField(app, { name: 'Replay source' })],
+		execute: async (_action, handler, context, next) => {
+			const inputName = resolveFieldText(handler.fields, 'media-input', context);
+
+			if (typeof inputName !== 'string' || !inputName.trim()) {
+				return;
+			}
+
+			const trimmed = inputName.trim();
+			let completed = false;
+
+			await withMediaInputLock(app, trimmed, async () => {
+				const restarted = await restartMediaInput(app, trimmed, 'Restart Instant Replay');
+
+				if (!restarted) {
+					return;
+				}
+
+				await waitForMediaPlayback(app, trimmed);
+				completed = true;
+			});
+
+			if (!completed) {
+				return;
+			}
+
+			next();
+		}
+	}) satisfies HandlerDefinitionProps;

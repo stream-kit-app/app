@@ -1,0 +1,27 @@
+---
+title: "Recording Stopped"
+description: "OBS trigger: obs:obs:recording:recording-stopped"
+---
+
+# Recording Stopped
+
+| | |
+| --- | --- |
+| **Trigger ID** | `obs:obs:recording:recording-stopped` |
+| **Plugin** | OBS |
+| **Category** | Recording |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "outputActive", type: "boolean", description: "Whether the OBS output is active.", example: "false" },
+  { name: "outputState", type: "string", description: "OBS output state string (stream/recording)." },
+  { name: "outputPath", type: "string", description: "File path for recording or replay output.", example: "C:/Videos/recording.mp4" }
+]} />
+
+## Related
+
+- [OBS plugin](/docs/plugins/obs)
+- [Triggers guide](/docs/guide/triggers)

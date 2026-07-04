@@ -24,10 +24,21 @@
 		fieldErrors?: HandlerFieldFormErrors;
 		app?: PluginAppApi;
 		t?: TranslateFn;
+		includeBranches?: boolean;
+		variant?: 'standalone' | 'embedded';
 	};
 
-	let { host, handler, definitions, contextVariables, fieldErrors, app, t: translateProp }: Props =
-		$props();
+	let {
+		host,
+		handler,
+		definitions,
+		contextVariables,
+		fieldErrors,
+		app,
+		t: translateProp,
+		includeBranches = true,
+		variant = 'standalone'
+	}: Props = $props();
 
 	const t = $derived(resolveTranslate(translateProp));
 
@@ -35,19 +46,24 @@
 </script>
 
 <div
-	class={cn('grid min-w-0 gap-2 rounded-xl border px-4 py-4 transition-colors duration-200', {
-		'border-green-500 ring-1 ring-green-500/50':
-			handler.definition.isAvailable && executionState?.activeHandlerId === handler.id,
-		'border-green-600/70':
-			handler.definition.isAvailable &&
-			executionState?.activeHandlerId !== handler.id &&
-			executionState?.completedHandlerIds.includes(handler.id),
-		'border-dark-600':
-			handler.definition.isAvailable &&
-			executionState?.activeHandlerId !== handler.id &&
-			!executionState?.completedHandlerIds.includes(handler.id),
-		'border-destructive-500 bg-destructive-800': !handler.definition.isAvailable
-	})}
+	class={cn(
+		'grid min-w-0 gap-2 transition-colors duration-200',
+		variant === 'standalone' && 'rounded-xl border px-4 py-4',
+		variant === 'embedded' && 'px-4 py-4',
+		variant === 'standalone' && {
+			'border-green-500 ring-1 ring-green-500/50':
+				handler.definition.isAvailable && executionState?.activeHandlerId === handler.id,
+			'border-green-600/70':
+				handler.definition.isAvailable &&
+				executionState?.activeHandlerId !== handler.id &&
+				executionState?.completedHandlerIds.includes(handler.id),
+			'border-dark-600':
+				handler.definition.isAvailable &&
+				executionState?.activeHandlerId !== handler.id &&
+				!executionState?.completedHandlerIds.includes(handler.id),
+			'border-destructive-500 bg-destructive-800': !handler.definition.isAvailable
+		}
+	)}
 >
 	<div class="flex items-center justify-between gap-2">
 		{#if isIfHandler(handler)}
@@ -107,7 +123,7 @@
 		<HandlerFieldGroup {handler} {contextVariables} {fieldErrors} {app} {t} />
 	{/if}
 
-	{#if isIfHandler(handler)}
+	{#if includeBranches && isIfHandler(handler)}
 		<IfHandlerBranches {host} {definitions} parentHandler={handler} {contextVariables} {app} {t} />
 	{/if}
 </div>

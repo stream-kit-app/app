@@ -1,2 +1,2 @@
-import { t as e } from "../../chunks/scroll-area-DfN4AV73.js";
+import { t as e } from "../../chunks/scroll-area-7qg9ezvn.js";
 export { e as ScrollArea };

@@ -1,0 +1,70 @@
+---
+title: WebSocket
+description: Connect to WebSocket servers and trigger actions on messages and connection events.
+---
+
+# WebSocket
+
+The WebSocket plugin maintains **outbound connections** to WebSocket servers and fires actions when messages arrive or connection state changes.
+
+## Connections
+
+Configure connections under **Plugins → WebSocket**. Each connection has a name, URL, and optional headers. Enable connections you want active; the plugin reconnects as needed.
+
+## Triggers
+
+| Trigger | Event |
+| --- | --- |
+| Message Received | A message arrived on a connection |
+| Connected | Connection established |
+| Disconnected | Connection closed |
+
+Browse IDs: [WebSocket triggers](/docs/api/triggers/websocket).
+
+## Message Received conditions
+
+### Connection
+
+Optional — restrict to one configured connection, or leave empty for any connection.
+
+### Message text
+
+Match the raw payload string:
+
+| Operator | Description |
+| --- | --- |
+| Starts with / Ends with / Contains / Equals | Text match |
+| **Not** | Invert the condition |
+
+Empty match value = always matches.
+
+### JSON field
+
+Match a nested field with dot paths (`data.topic`, `items.0.name`):
+
+```
+[data.topic] [Equals] [game.lobby.joined]
+```
+
+| Situation | Result |
+| --- | --- |
+| Invalid JSON when path is set | Condition fails |
+| Path missing | Condition fails |
+| Empty path or empty value | Always matches |
+
+## Handlers
+
+**WebSocket → Connection** can send a message on a configured connection.
+
+See [WebSocket handlers](/docs/api/handlers/websocket).
+
+## Trigger variables
+
+Message events expose `connectionId`, `connectionName`, `url`, `message`, `isJson`, and parsed `data` when JSON.
+
+Use **Test trigger** on Message Received with sample JSON to debug conditions.
+
+## Related
+
+- [Triggers guide](/docs/guide/triggers)
+- [Actions](/docs/guide/actions)

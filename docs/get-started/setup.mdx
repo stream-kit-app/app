@@ -1,0 +1,52 @@
+---
+title: Setup
+description: Connect Twitch, YouTube, OBS, and configure the chat bot.
+---
+
+# Setup
+
+Complete these steps so triggers and handlers have working connections.
+
+## Twitch
+
+1. Open **Plugins → Twitch** in the sidebar.
+2. Click **Connect** and complete OAuth in the browser.
+3. Grant the scopes requested by the app (chat, moderation, channel events as needed).
+4. Confirm the plugin shows **Connected**.
+
+Without Twitch connected, Twitch triggers and handlers will not fire. The [Bot](/docs/plugins/bot) plugin also requires Twitch or YouTube.
+
+## YouTube
+
+1. Open **Plugins → YouTube**.
+2. Connect your Google account and select the live channel.
+3. Confirm live chat access for triggers.
+
+## OBS Studio
+
+1. Open **Plugins → OBS**.
+2. Enable the OBS WebSocket server in OBS (**Tools → WebSocket Server Settings**).
+3. Enter the WebSocket URL and password in Stream Kit OBS settings.
+4. Test connection from the plugin page.
+
+See [OBS plugin](/docs/plugins/obs) for triggers and handlers.
+
+## Bot (chat commands)
+
+1. Open **Plugins → Bot**.
+2. Set the **command prefix** (default `!`).
+3. Ensure Twitch and/or YouTube is connected.
+4. Create commands under **Bot → Commands** — each command runs its own action chain.
+
+## Overlays (optional)
+
+1. Open **Overlays** and create an overlay project.
+2. Build the overlay (`pnpm install` / `pnpm run build` for framework starters).
+3. Add the browser source URL in OBS.
+
+See [Overlays guide](/docs/guide/overlays).
+
+## Next steps
+
+- [Create an action](/docs/guide/actions)
+- [Browse triggers](/docs/api/triggers/core)

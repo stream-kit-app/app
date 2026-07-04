@@ -1,0 +1,593 @@
+import { Ct as e, Hr as t, On as n, Qn as r, Qr as i, Qt as a, Vr as o, Z as s, Zn as c, a as l, cn as u, cr as d, jt as f, ln as p, mn as m, ni as h, o as g, or as _, pr as v, s as y, un as b } from "./client-xxWnFgeR.js";
+import "./disclose-version-YhYaTdgb.js";
+import { t as x } from "./utils-DJt177zd.js";
+import { C as S, D as C, d as w, l as T, o as E, r as D, u as O, x as k } from "./animations-complete-BfqHI4B-.js";
+import { x as A } from "./scroll-lock-BZF1_Y9Y.js";
+import { i as j, n as M, r as N } from "./use-id-C9llEPxa.js";
+import { r as P } from "./dom-B4Rzp8oi.js";
+import { l as F, r as I, t as L } from "./presence-manager.svelte-BOTfPcjg.js";
+import { a as R, n as z, r as B, t as V } from "./popper-layer-force-mount-BxV85AhM.js";
+import { t as H } from "./floating-layer-anchor-B_R8arju.js";
+import { t as U } from "./safe-polygon.svelte-cGHVX_jg.js";
+import { t as W } from "./scroll-area-7qg9ezvn.js";
+//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/popover/popover.svelte.js
+var G = E({
+	component: "popover",
+	parts: [
+		"root",
+		"trigger",
+		"content",
+		"close",
+		"overlay"
+	]
+}), K = new S("Popover.Root"), q = class e {
+	static create(t) {
+		return K.set(new e(t));
+	}
+	opts;
+	#e = d(null);
+	get contentNode() {
+		return n(this.#e);
+	}
+	set contentNode(e) {
+		_(this.#e, e, !0);
+	}
+	contentPresence;
+	#t = d(null);
+	get triggerNode() {
+		return n(this.#t);
+	}
+	set triggerNode(e) {
+		_(this.#t, e, !0);
+	}
+	#n = d(null);
+	get overlayNode() {
+		return n(this.#n);
+	}
+	set overlayNode(e) {
+		_(this.#n, e, !0);
+	}
+	overlayPresence;
+	#r = d(!1);
+	get openedViaHover() {
+		return n(this.#r);
+	}
+	set openedViaHover(e) {
+		_(this.#r, e, !0);
+	}
+	#i = d(!1);
+	get hasInteractedWithContent() {
+		return n(this.#i);
+	}
+	set hasInteractedWithContent(e) {
+		_(this.#i, e, !0);
+	}
+	#a = d(!1);
+	get hoverCooldown() {
+		return n(this.#a);
+	}
+	set hoverCooldown(e) {
+		_(this.#a, e, !0);
+	}
+	#o = d(0);
+	get closeDelay() {
+		return n(this.#o);
+	}
+	set closeDelay(e) {
+		_(this.#o, e, !0);
+	}
+	#s = null;
+	#c = null;
+	constructor(e) {
+		this.opts = e, this.contentPresence = new L({
+			ref: C(() => this.contentNode),
+			open: this.opts.open,
+			onComplete: () => {
+				this.opts.onOpenChangeComplete.current(this.opts.open.current);
+			}
+		}), this.overlayPresence = new L({
+			ref: C(() => this.overlayNode),
+			open: this.opts.open
+		}), k(() => this.opts.open.current, (e) => {
+			e || (this.openedViaHover = !1, this.hasInteractedWithContent = !1, this.#l());
+		});
+	}
+	setDomContext(e) {
+		this.#c = e;
+	}
+	#l() {
+		this.#s !== null && this.#c && (this.#c.clearTimeout(this.#s), this.#s = null);
+	}
+	toggleOpen() {
+		this.#l(), this.opts.open.current = !this.opts.open.current;
+	}
+	handleClose() {
+		this.#l(), this.opts.open.current && (this.opts.open.current = !1);
+	}
+	handleHoverOpen() {
+		this.#l(), !this.opts.open.current && (this.openedViaHover = !0, this.opts.open.current = !0);
+	}
+	handleHoverClose() {
+		this.opts.open.current && this.openedViaHover && !this.hasInteractedWithContent && (this.opts.open.current = !1);
+	}
+	handleDelayedHoverClose() {
+		this.opts.open.current && (!this.openedViaHover || this.hasInteractedWithContent || (this.#l(), this.closeDelay <= 0 ? this.opts.open.current = !1 : this.#c && (this.#s = this.#c.setTimeout(() => {
+			this.openedViaHover && !this.hasInteractedWithContent && (this.opts.open.current = !1), this.#s = null;
+		}, this.closeDelay))));
+	}
+	cancelDelayedClose() {
+		this.#l();
+	}
+	markInteraction() {
+		this.hasInteractedWithContent = !0, this.#l();
+	}
+}, J = class e {
+	static create(t) {
+		return new e(t, K.get());
+	}
+	opts;
+	root;
+	attachment;
+	domContext;
+	#e = null;
+	#t = null;
+	#n = d(!1);
+	constructor(e, t) {
+		this.opts = e, this.root = t, this.attachment = w(this.opts.ref, (e) => this.root.triggerNode = e), this.domContext = new N(e.ref), this.root.setDomContext(this.domContext), this.onclick = this.onclick.bind(this), this.onkeydown = this.onkeydown.bind(this), this.onpointerenter = this.onpointerenter.bind(this), this.onpointerleave = this.onpointerleave.bind(this), k(() => this.opts.closeDelay.current, (e) => {
+			this.root.closeDelay = e;
+		});
+	}
+	#r() {
+		this.#e !== null && (this.domContext.clearTimeout(this.#e), this.#e = null);
+	}
+	#i() {
+		this.#t !== null && (this.domContext.clearTimeout(this.#t), this.#t = null);
+	}
+	#a() {
+		this.#r(), this.#i();
+	}
+	onpointerenter(e) {
+		if (this.opts.disabled.current || !this.opts.openOnHover.current || F(e) || (_(this.#n, !0), this.#i(), this.root.cancelDelayedClose(), this.root.opts.open.current || this.root.hoverCooldown)) return;
+		let t = this.opts.openDelay.current;
+		t <= 0 ? this.root.handleHoverOpen() : this.#e = this.domContext.setTimeout(() => {
+			this.root.handleHoverOpen(), this.#e = null;
+		}, t);
+	}
+	onpointerleave(e) {
+		this.opts.disabled.current || this.opts.openOnHover.current && (F(e) || (_(this.#n, !1), this.#r(), this.root.hoverCooldown = !1));
+	}
+	onclick(e) {
+		if (!this.opts.disabled.current && e.button === 0) {
+			if (this.#a(), n(this.#n) && this.root.opts.open.current && this.root.openedViaHover) {
+				this.root.openedViaHover = !1, this.root.hasInteractedWithContent = !0;
+				return;
+			}
+			n(this.#n) && this.opts.openOnHover.current && this.root.opts.open.current && (this.root.hoverCooldown = !0), this.root.hoverCooldown && !this.root.opts.open.current && (this.root.hoverCooldown = !1), this.root.toggleOpen();
+		}
+	}
+	onkeydown(e) {
+		this.opts.disabled.current || (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.#a(), this.root.toggleOpen());
+	}
+	#o() {
+		if (this.root.opts.open.current && this.root.contentNode?.id) return this.root.contentNode?.id;
+	}
+	#s = v(() => ({
+		id: this.opts.id.current,
+		"aria-haspopup": "dialog",
+		"aria-expanded": D(this.root.opts.open.current),
+		"data-state": T(this.root.opts.open.current),
+		"aria-controls": this.#o(),
+		[G.trigger]: "",
+		disabled: this.opts.disabled.current,
+		onkeydown: this.onkeydown,
+		onclick: this.onclick,
+		onpointerenter: this.onpointerenter,
+		onpointerleave: this.onpointerleave,
+		...this.attachment
+	}));
+	get props() {
+		return n(this.#s);
+	}
+	set props(e) {
+		_(this.#s, e);
+	}
+}, Y = class e {
+	static create(t) {
+		return new e(t, K.get());
+	}
+	opts;
+	root;
+	attachment;
+	constructor(e, t) {
+		this.opts = e, this.root = t, this.attachment = w(this.opts.ref, (e) => this.root.contentNode = e), this.onpointerdown = this.onpointerdown.bind(this), this.onfocusin = this.onfocusin.bind(this), this.onpointerenter = this.onpointerenter.bind(this), this.onpointerleave = this.onpointerleave.bind(this), new U({
+			triggerNode: () => this.root.triggerNode,
+			contentNode: () => this.root.contentNode,
+			enabled: () => this.root.opts.open.current && this.root.openedViaHover && !this.root.hasInteractedWithContent,
+			onPointerExit: () => {
+				this.root.handleDelayedHoverClose();
+			}
+		});
+	}
+	onpointerdown(e) {
+		this.root.markInteraction();
+	}
+	onfocusin(e) {
+		let t = e.target;
+		I(t) && A(t) && this.root.markInteraction();
+	}
+	onpointerenter(e) {
+		F(e) || this.root.cancelDelayedClose();
+	}
+	onpointerleave(e) {
+		F(e);
+	}
+	onInteractOutside = (e) => {
+		if (this.opts.onInteractOutside.current(e), e.defaultPrevented || !I(e.target)) return;
+		let t = e.target.closest(G.selector("trigger"));
+		if (!(t && t === this.root.triggerNode)) {
+			if (this.opts.customAnchor.current) {
+				if (I(this.opts.customAnchor.current)) {
+					if (this.opts.customAnchor.current.contains(e.target)) return;
+				} else if (typeof this.opts.customAnchor.current == "string") {
+					let t = document.querySelector(this.opts.customAnchor.current);
+					if (t && t.contains(e.target)) return;
+				}
+			}
+			this.root.handleClose();
+		}
+	};
+	onEscapeKeydown = (e) => {
+		this.opts.onEscapeKeydown.current(e), !e.defaultPrevented && this.root.handleClose();
+	};
+	get shouldRender() {
+		return this.root.contentPresence.shouldRender;
+	}
+	get shouldTrapFocus() {
+		return !(this.root.openedViaHover && !this.root.hasInteractedWithContent);
+	}
+	#e = v(() => ({ open: this.root.opts.open.current }));
+	get snippetProps() {
+		return n(this.#e);
+	}
+	set snippetProps(e) {
+		_(this.#e, e);
+	}
+	#t = v(() => ({
+		id: this.opts.id.current,
+		tabindex: -1,
+		"data-state": T(this.root.opts.open.current),
+		...O(this.root.contentPresence.transitionStatus),
+		[G.content]: "",
+		style: {
+			pointerEvents: "auto",
+			contain: "layout style"
+		},
+		onpointerdown: this.onpointerdown,
+		onfocusin: this.onfocusin,
+		onpointerenter: this.onpointerenter,
+		onpointerleave: this.onpointerleave,
+		...this.attachment
+	}));
+	get props() {
+		return n(this.#t);
+	}
+	set props(e) {
+		_(this.#t, e);
+	}
+	popperProps = {
+		onInteractOutside: this.onInteractOutside,
+		onEscapeKeydown: this.onEscapeKeydown
+	};
+}, X = class e {
+	static create(t) {
+		return new e(t, K.get());
+	}
+	opts;
+	root;
+	attachment;
+	constructor(e, t) {
+		this.opts = e, this.root = t, this.attachment = w(this.opts.ref), this.onclick = this.onclick.bind(this), this.onkeydown = this.onkeydown.bind(this);
+	}
+	onclick(e) {
+		this.root.handleClose();
+	}
+	onkeydown(e) {
+		(e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.root.handleClose());
+	}
+	#e = v(() => ({
+		id: this.opts.id.current,
+		onclick: this.onclick,
+		onkeydown: this.onkeydown,
+		type: "button",
+		[G.close]: "",
+		...this.attachment
+	}));
+	get props() {
+		return n(this.#e);
+	}
+	set props(e) {
+		_(this.#e, e);
+	}
+}, Z = new Set([
+	"$$slots",
+	"$$events",
+	"$$legacy",
+	"child",
+	"children",
+	"ref",
+	"id",
+	"forceMount",
+	"onOpenAutoFocus",
+	"onCloseAutoFocus",
+	"onEscapeKeydown",
+	"onInteractOutside",
+	"trapFocus",
+	"preventScroll",
+	"customAnchor",
+	"style"
+]), Q = b("<div><div><!></div></div>");
+function $(e, d) {
+	let _ = m();
+	t(d, !0);
+	let b = l(d, "ref", 15, null), x = l(d, "id", 19, () => M(_)), S = l(d, "forceMount", 3, !1), w = l(d, "onOpenAutoFocus", 3, P), T = l(d, "onCloseAutoFocus", 3, P), E = l(d, "onEscapeKeydown", 3, P), D = l(d, "onInteractOutside", 3, P), O = l(d, "trapFocus", 3, !0), k = l(d, "preventScroll", 3, !1), A = l(d, "customAnchor", 3, null), N = g(d, Z), F = Y.create({
+		id: C(() => x()),
+		ref: C(() => b(), (e) => b(e)),
+		onInteractOutside: C(() => D()),
+		onEscapeKeydown: C(() => E()),
+		customAnchor: C(() => A())
+	}), I = v(() => j(N, F.props)), L = v(() => O() && F.shouldTrapFocus);
+	function B(e) {
+		F.shouldTrapFocus || e.preventDefault(), w()(e);
+	}
+	var H = p(), U = r(H), W = (e) => {
+		V(e, y(() => n(I), () => F.popperProps, {
+			get ref() {
+				return F.opts.ref;
+			},
+			get enabled() {
+				return F.root.opts.open.current;
+			},
+			get id() {
+				return x();
+			},
+			get trapFocus() {
+				return n(L);
+			},
+			get preventScroll() {
+				return k();
+			},
+			loop: !0,
+			forceMount: !0,
+			get customAnchor() {
+				return A();
+			},
+			onOpenAutoFocus: B,
+			get onCloseAutoFocus() {
+				return T();
+			},
+			get shouldRender() {
+				return F.shouldRender;
+			},
+			popper: (e, t) => {
+				let o = () => t?.().props, l = () => t?.().wrapperProps, m = v(() => j(o(), { style: R("popover") }, { style: d.style }));
+				var g = p(), _ = r(g), y = (e) => {
+					var t = p(), i = r(t);
+					{
+						let e = v(() => ({
+							props: n(m),
+							wrapperProps: l(),
+							...F.snippetProps
+						}));
+						a(i, () => d.child, () => n(e));
+					}
+					u(e, t);
+				}, b = (e) => {
+					var t = Q();
+					s(t, () => ({ ...l() }));
+					var r = c(t);
+					s(r, () => ({ ...n(m) })), a(c(r), () => d.children ?? h), i(r), i(t), u(e, t);
+				};
+				f(_, (e) => {
+					d.child ? e(y) : e(b, -1);
+				}), u(e, g);
+			},
+			$$slots: { popper: !0 }
+		}));
+	}, G = (e) => {
+		z(e, y(() => n(I), () => F.popperProps, {
+			get ref() {
+				return F.opts.ref;
+			},
+			get open() {
+				return F.root.opts.open.current;
+			},
+			get id() {
+				return x();
+			},
+			get trapFocus() {
+				return n(L);
+			},
+			get preventScroll() {
+				return k();
+			},
+			loop: !0,
+			forceMount: !1,
+			get customAnchor() {
+				return A();
+			},
+			onOpenAutoFocus: B,
+			get onCloseAutoFocus() {
+				return T();
+			},
+			get shouldRender() {
+				return F.shouldRender;
+			},
+			popper: (e, t) => {
+				let o = () => t?.().props, l = () => t?.().wrapperProps, m = v(() => j(o(), { style: R("popover") }, { style: d.style }));
+				var g = p(), _ = r(g), y = (e) => {
+					var t = p(), i = r(t);
+					{
+						let e = v(() => ({
+							props: n(m),
+							wrapperProps: l(),
+							...F.snippetProps
+						}));
+						a(i, () => d.child, () => n(e));
+					}
+					u(e, t);
+				}, b = (e) => {
+					var t = Q();
+					s(t, () => ({ ...l() }));
+					var r = c(t);
+					s(r, () => ({ ...n(m) })), a(c(r), () => d.children ?? h), i(r), i(t), u(e, t);
+				};
+				f(_, (e) => {
+					d.child ? e(y) : e(b, -1);
+				}), u(e, g);
+			},
+			$$slots: { popper: !0 }
+		}));
+	};
+	f(U, (e) => {
+		S() ? e(W) : S() || e(G, 1);
+	}), u(e, H), o();
+}
+//#endregion
+//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/popover/components/popover-trigger.svelte
+var ee = new Set([
+	"$$slots",
+	"$$events",
+	"$$legacy",
+	"children",
+	"child",
+	"id",
+	"ref",
+	"type",
+	"disabled",
+	"openOnHover",
+	"openDelay",
+	"closeDelay"
+]), te = b("<button><!></button>");
+function ne(e, d) {
+	let _ = m();
+	t(d, !0);
+	let y = l(d, "id", 19, () => M(_)), b = l(d, "ref", 15, null), x = l(d, "type", 3, "button"), S = l(d, "disabled", 3, !1), w = l(d, "openOnHover", 3, !1), T = l(d, "openDelay", 3, 700), E = l(d, "closeDelay", 3, 300), D = g(d, ee), O = J.create({
+		id: C(() => y()),
+		ref: C(() => b(), (e) => b(e)),
+		disabled: C(() => !!S()),
+		openOnHover: C(() => w()),
+		openDelay: C(() => T()),
+		closeDelay: C(() => E())
+	}), k = v(() => j(D, O.props, { type: x() }));
+	H(e, {
+		get id() {
+			return y();
+		},
+		get ref() {
+			return O.opts.ref;
+		},
+		children: (e, t) => {
+			var o = p(), l = r(o), m = (e) => {
+				var t = p();
+				a(r(t), () => d.child, () => ({ props: n(k) })), u(e, t);
+			}, g = (e) => {
+				var t = te();
+				s(t, () => ({ ...n(k) })), a(c(t), () => d.children ?? h), i(t), u(e, t);
+			};
+			f(l, (e) => {
+				d.child ? e(m) : e(g, -1);
+			}), u(e, o);
+		},
+		$$slots: { default: !0 }
+	}), o();
+}
+//#endregion
+//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/popover/components/popover-close.svelte
+var re = new Set([
+	"$$slots",
+	"$$events",
+	"$$legacy",
+	"child",
+	"children",
+	"id",
+	"ref"
+]), ie = b("<button><!></button>");
+function ae(e, d) {
+	let _ = m();
+	t(d, !0);
+	let y = l(d, "id", 19, () => M(_)), b = l(d, "ref", 15, null), x = g(d, re), S = X.create({
+		id: C(() => y()),
+		ref: C(() => b(), (e) => b(e))
+	}), w = v(() => j(x, S.props));
+	var T = p(), E = r(T), D = (e) => {
+		var t = p();
+		a(r(t), () => d.child, () => ({ props: n(w) })), u(e, t);
+	}, O = (e) => {
+		var t = ie();
+		s(t, () => ({ ...n(w) })), a(c(t), () => d.children ?? h), i(t), u(e, t);
+	};
+	f(E, (e) => {
+		d.child ? e(D) : e(O, -1);
+	}), u(e, T), o();
+}
+//#endregion
+//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/popover/components/popover.svelte
+function oe(e, n) {
+	t(n, !0);
+	let i = l(n, "open", 15, !1), s = l(n, "onOpenChange", 3, P), c = l(n, "onOpenChangeComplete", 3, P);
+	q.create({
+		open: C(() => i(), (e) => {
+			i(e), s()(e);
+		}),
+		onOpenChangeComplete: C(() => c())
+	}), B(e, {
+		children: (e, t) => {
+			var i = p();
+			a(r(i), () => n.children ?? h), u(e, i);
+		},
+		$$slots: { default: !0 }
+	}), o();
+}
+//#endregion
+//#region ../ui/src/lib/components/popover/popover-content.svelte
+var se = new Set([
+	"$$slots",
+	"$$events",
+	"$$legacy",
+	"children",
+	"class"
+]);
+function ce(i, s) {
+	t(s, !0);
+	let c = g(s, se);
+	var l = p(), d = r(l);
+	{
+		let t = v(() => x("z-50 w-72 rounded-xl border border-dark-600 bg-dark-800 p-3 shadow-md outline-none", s.class));
+		e(d, () => $, (e, i) => {
+			i(e, y(() => c, {
+				get class() {
+					return n(t);
+				},
+				sideOffset: 4,
+				children: (e, t) => {
+					W(e, {
+						orientation: "vertical",
+						viewportClasses: "max-h-64 overflow-hidden",
+						children: (e, t) => {
+							var n = p();
+							a(r(n), () => s.children ?? h), u(e, n);
+						},
+						$$slots: { default: !0 }
+					});
+				},
+				$$slots: { default: !0 }
+			}));
+		});
+	}
+	u(i, l), o();
+}
+//#endregion
+//#region ../ui/src/lib/components/popover/index.ts
+var le = oe, ue = ne, de = ae;
+//#endregion
+export { ce as i, le as n, ue as r, de as t };

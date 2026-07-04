@@ -34,6 +34,8 @@ import { createUpdateCollectionValueHandler } from './handler/collection/update'
 
 import { createDelayHandler } from './handler/delay';
 
+import { createFireHotkeyHandler } from './handler/input/fire-hotkey';
+
 import { createLogHandler } from './handler/log';
 
 import { createPauseQueueHandler } from './handler/queue/pause';
@@ -463,6 +465,14 @@ const plugin = (app: PluginAppApi) => {
 							createDeleteCollectionHandler(ctx)
 
 						]
+
+					},
+
+					{
+
+						name: 'Input',
+
+						children: [createFireHotkeyHandler(app)]
 
 					},
 

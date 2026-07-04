@@ -1,0 +1,65 @@
+---
+title: Triggers
+description: Add triggers to actions, configure conditions, and test with sample data.
+---
+
+# Triggers
+
+Triggers connect **events** to **actions**. When an event occurs and all conditions pass, Stream Kit runs the action's handler chain (subject to queue settings).
+
+## Adding a trigger
+
+1. Open an action in the editor.
+2. Open the **Triggers** panel.
+3. Click **+** or right-click → browse by plugin (Core, Twitch, OBS, …).
+4. Configure **conditions** (message match, user role, queue filter, etc.).
+5. Enable the trigger.
+
+## Conditions
+
+Most triggers support filters:
+
+- Text match (equals, contains, starts with, is empty)
+- User match
+- Role / flags
+- Plugin-specific fields (reward ID, scene name, JSON path for WebSocket)
+
+Conditions are evaluated when the event fires. Failed conditions skip that action run.
+
+## Test trigger
+
+Right-click a trigger → **Test trigger** (or use the test control in the panel).
+
+Stream Kit fires the action with **sample context** from the plugin so you can verify handler chains without a live event.
+
+## Multiple triggers per action
+
+Add as many triggers as needed. Any enabled trigger can start the action.
+
+## Multiple actions per trigger type
+
+Different actions can use the same trigger type (for example **Chat Message**) with different conditions.
+
+## Trigger IDs
+
+Each trigger type has a stable **definition ID** used in storage and integrations:
+
+| Example | ID |
+| --- | --- |
+| Hotkey | `core:core:input:hotkey` |
+| Chat message | `twitch:twitch:chat:chat-message` |
+| OBS scene changed | See [OBS triggers](/docs/api/triggers/obs) |
+
+Full list: [API Reference → Triggers](/docs/api).
+
+## Variables from triggers
+
+Most triggers attach **variables** from event data (`username`, `message`, `sceneName`, …). Use them in handlers with `\{variableName\}`.
+
+Each trigger's variables are listed on its API page.
+
+## Related
+
+- [Actions](/docs/guide/actions)
+- [Variables](/docs/guide/variables)
+- [Triggers API](/docs/api/triggers/core)

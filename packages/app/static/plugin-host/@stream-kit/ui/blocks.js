@@ -1,11 +1,11 @@
 import { $n as e, Dt as t, Hr as n, On as r, Qn as i, Qr as a, Qt as o, Vr as s, Wn as c, Zn as l, Zr as u, cn as d, dt as f, hn as p, jt as m, ln as h, ni as g, on as _, pr as v, pt as y, un as b } from "../../chunks/client-xxWnFgeR.js";
 import "../../chunks/disclose-version-YhYaTdgb.js";
 import { t as x } from "../../chunks/utils-DJt177zd.js";
-import { t as S } from "../../chunks/alert-DaAyF_GE.js";
-import { t as C } from "../../chunks/badge-CgynBC85.js";
+import { t as S } from "../../chunks/alert-Xl0et5iT.js";
+import { t as C } from "../../chunks/badge-DWgt6sX1.js";
 import { t as w } from "../../chunks/container-CXvttRa1.js";
 import { t as T } from "../../chunks/heading-DkoXAyj9.js";
-import { t as E } from "../../chunks/button-BmdXJB1F.js";
+import { t as E } from "../../chunks/button-CgKHPPIe.js";
 //#region ../ui/src/lib/blocks/alert/alert-block.svelte
 function D(e, t) {
 	n(t, !0);

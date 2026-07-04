@@ -168,6 +168,8 @@
 	"No folder selected": "No folder selected",
 	"No handlers added yet.": "No handlers added yet.",
 	"No handlers in this branch yet.": "No handlers in this branch yet.",
+	"Drop handler in {branch}": "Drop handler in {branch}",
+	"Release to add to {branch}": "Release to add to {branch}",
 	"No matches found": "No matches found",
 	"No plugins have been registered yet.": "No plugins have been registered yet.",
 	"No triggers added yet.": "No triggers added yet.",

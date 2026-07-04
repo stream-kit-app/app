@@ -1,0 +1,34 @@
+---
+title: "Whisper"
+description: "Twitch trigger: twitch:twitch:chat:whisper"
+---
+
+# Whisper
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:chat:whisper` |
+| **Plugin** | Twitch |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "message", type: "string", description: "Full message text from the event.", example: "Test whisper message" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Message | Match message text (starts with, ends with, contains, equals). Leave empty to always match. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

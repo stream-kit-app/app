@@ -1,0 +1,60 @@
+---
+title: Actions
+description: Create actions, build handler chains, and test automations in Stream Kit.
+---
+
+# Actions
+
+Actions are the main unit of automation in Stream Kit. Each action has a **handler chain** (sub-actions) and one or more **triggers**.
+
+## Actions page
+
+Open **Actions** in the sidebar.
+
+- **Groups** organize actions (drag to reorder).
+- **Enable/disable** toggles whether triggers can run the action.
+- **Clone** duplicates an action including handlers and triggers.
+- **Bulk edit** assigns queue, group, or enabled state to multiple actions.
+
+## Action editor
+
+Click an action to open the editor.
+
+| Area | Purpose |
+| --- | --- |
+| Handler chain | Sub-actions run top to bottom |
+| Triggers panel | Events that start this action |
+| Queue | Optional queue assignment |
+| Test | Run the handler chain immediately (bypasses queue) |
+
+### Handler chain rules
+
+- Handlers call `next()` to continue; omitting `next()` stops the chain (used by **Delay** on invalid input).
+- Thrown errors are logged; the chain continues unless the handler stops explicitly.
+- Async handlers are awaited in order.
+
+Browse handlers in the [API Reference](/docs/api/handlers/core).
+
+### Triggers panel
+
+Add triggers from the **+** menu or right-click. Configure **conditions** per trigger. Use **Test trigger** to fire with sample data.
+
+See [Triggers](/docs/guide/triggers).
+
+## Queues
+
+New actions use the **default** queue. Set **No queue** for parallel execution, or pick a named queue to serialize runs.
+
+See [Action queues](/docs/guide/action-queues).
+
+## Variables in handlers
+
+Use `\{variableName\}` in text fields. The action editor shows available variables from the trigger and earlier handlers.
+
+See [Variables](/docs/guide/variables).
+
+## Related
+
+- [Triggers](/docs/guide/triggers)
+- [Action queues](/docs/guide/action-queues)
+- [Handlers reference](/docs/api/handlers/core)

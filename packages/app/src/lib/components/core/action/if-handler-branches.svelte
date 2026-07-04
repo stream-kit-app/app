@@ -6,14 +6,19 @@
 
 	import { Label } from '@stream-kit/ui/input';
 
+	import { branchContainerKey } from '$lib/core/action/handler-chain-dnd';
+	import { isIfHandler } from '$lib/core/action/if-condition';
 	import { findHandlerDefinition } from '$lib/core/action/handler-tree';
 	import {
 		getPrecedingActionVariablesForHandler,
 		mergeContextVariables
 	} from '$lib/core/action/variable-helpers';
+	import { cn } from '$lib/utils';
 
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
+	import HandlerBranchContainer from './handler-branch-container.svelte';
 	import HandlerChainCard from './handler-chain-card.svelte';
+	import IfHandlerBranches from './if-handler-branches.svelte';
 	import SortableChainList from './sortable-chain-list.svelte';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 	import type { HandlerChainEditorHost } from './handler-chain-editor.types';
@@ -24,11 +29,19 @@
 		parentHandler: ActionHandler;
 		contextVariables: HandlerFieldVariable[];
 		app?: PluginAppApi;
+		embedded?: boolean;
 		t?: TranslateFn;
 	};
 
-	let { host, definitions, parentHandler, contextVariables, app, t: translateProp }: Props =
-		$props();
+	let {
+		host,
+		definitions,
+		parentHandler,
+		contextVariables,
+		app,
+		embedded = false,
+		t: translateProp
+	}: Props = $props();
 
 	const t = $derived(resolveTranslate(translateProp));
 
@@ -37,7 +50,7 @@
 		{ key: 'else', label: t('Else') }
 	]);
 
-	function addBranchHandler(branch: HandlerBranch, definition: HandlerDefinition): void {
+	function addBranchHandler(branch: HandlerBranch, definition: { id: string }): void {
 		const found = findHandlerDefinition(definitions, definition.id);
 
 		if (!found || found.isGroup || !found.isAvailable) {
@@ -45,10 +58,6 @@
 		}
 
 		host.addHandler(found, { parentId: parentHandler.id, branch });
-	}
-
-	function reorderBranchHandlers(branch: HandlerBranch, handlers: ActionHandler[]): void {
-		host.reorderBranchHandlers(parentHandler.id, branch, handlers);
 	}
 
 	function handlerLabel(handler: ActionHandler): string {
@@ -63,9 +72,12 @@
 	}
 </script>
 
-<div class="grid gap-4 border-t border-dark-700 pt-4">
+<div
+	class={cn('grid gap-4', embedded ? 'border-t border-dark-700 bg-dark-900/30 px-4 py-4' : 'border-t border-dark-700 pt-4')}
+>
 	{#each branches as branch (branch.key)}
 		{@const branchHandlers = parentHandler.getBranchHandlers(branch.key)}
+		{@const containerKey = branchContainerKey(parentHandler.id, branch.key)}
 		<section class="grid min-w-0 gap-2 rounded-lg border border-dark-700 bg-dark-900/40 p-3">
 			<div class="flex flex-wrap items-center justify-between gap-2">
 				<Label class="font-mono text-sm font-bold text-green-500 uppercase">
@@ -78,30 +90,50 @@
 				/>
 			</div>
 
-			{#if branchHandlers.length === 0}
-				<p class="text-sm text-dark-400">{t('No handlers in this branch yet.')}</p>
-			{:else}
-				<SortableChainList
-					items={branchHandlers}
-					getId={(handler: ActionHandler) => handler.id}
-					getLabel={handlerLabel}
-					sortableType="handler-{branch.key}-{parentHandler.id}"
-					onReorder={(handlers) => reorderBranchHandlers(branch.key, handlers)}
-					{t}
-				>
-					{#snippet itemContent(handler: ActionHandler)}
-						<HandlerChainCard
-							{host}
-							{definitions}
-							{handler}
-							contextVariables={contextVariablesForBranchHandler(handler)}
-							fieldErrors={host.formErrors?.handlerErrors[handler.id]}
-							{app}
-							{t}
-						/>
-					{/snippet}
-				</SortableChainList>
-			{/if}
+			<HandlerBranchContainer
+				{containerKey}
+				branchLabel={branch.label}
+				isEmpty={branchHandlers.length === 0}
+				{t}
+			>
+				{#if branchHandlers.length > 0}
+					<SortableChainList
+						items={branchHandlers}
+						getId={(handler: ActionHandler) => handler.id}
+						getLabel={handlerLabel}
+						sortableType="handler"
+						{containerKey}
+						{t}
+					>
+						{#snippet itemContent(handler: ActionHandler)}
+							<HandlerChainCard
+								{host}
+								{definitions}
+								{handler}
+								variant={isIfHandler(handler) ? 'embedded' : 'standalone'}
+								includeBranches={!isIfHandler(handler)}
+								contextVariables={contextVariablesForBranchHandler(handler)}
+								fieldErrors={host.formErrors?.handlerErrors[handler.id]}
+								{app}
+								{t}
+							/>
+						{/snippet}
+						{#snippet itemTrailingContent(handler: ActionHandler)}
+							{#if isIfHandler(handler)}
+								<IfHandlerBranches
+									{host}
+									{definitions}
+									parentHandler={handler}
+									{contextVariables}
+									{app}
+									embedded
+									{t}
+								/>
+							{/if}
+						{/snippet}
+					</SortableChainList>
+				{/if}
+			</HandlerBranchContainer>
 		</section>
 	{/each}
 </div>

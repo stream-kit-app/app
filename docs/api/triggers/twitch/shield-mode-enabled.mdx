@@ -1,0 +1,29 @@
+---
+title: "Shield Mode Enabled"
+description: "Twitch trigger: twitch:twitch:moderation:shield-mode-enabled"
+---
+
+# Shield Mode Enabled
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:moderation:shield-mode-enabled` |
+| **Plugin** | Twitch |
+| **Category** | Moderation |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "999001" },
+  { name: "reason", type: "string", description: "reason", example: "Test moderation reason" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

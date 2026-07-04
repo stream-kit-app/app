@@ -1,0 +1,27 @@
+---
+title: "User Join"
+description: "Twitch trigger: twitch:twitch:engagement:user-join"
+---
+
+# User Join
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:engagement:user-join` |
+| **Plugin** | Twitch |
+| **Category** | Engagement |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

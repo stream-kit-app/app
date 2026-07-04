@@ -1,6 +1,7 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
 import type { SelectItem } from '@stream-kit/plugin';
 
+import { formatObsHotkeyLabel } from './hotkey-labels';
 import { getObsClient } from './obs-call';
 
 const CACHE_TTL_MS = 30_000;
@@ -164,11 +165,24 @@ async function fetchHotkeyItems(app: PluginAppApi): Promise<SelectItem[]> {
 
 	const response = await client.call('GetHotkeyList');
 	const hotkeys = (response.hotkeys ?? []) as string[];
+	const seen = new Set<string>();
+	const items: SelectItem[] = [];
 
-	return hotkeys.map((hotkeyName) => ({
-		value: hotkeyName,
-		label: hotkeyName
-	}));
+	for (const hotkeyName of hotkeys) {
+		const trimmed = hotkeyName.trim();
+
+		if (!trimmed || seen.has(trimmed)) {
+			continue;
+		}
+
+		seen.add(trimmed);
+		items.push({
+			value: trimmed,
+			label: formatObsHotkeyLabel(trimmed)
+		});
+	}
+
+	return items.sort((left, right) => left.label.localeCompare(right.label));
 }
 
 export async function loadSceneItems(app: PluginAppApi): Promise<SelectItem[]> {

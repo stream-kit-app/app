@@ -1,0 +1,33 @@
+---
+title: "Live Poll"
+description: "YouTube trigger: youtube:youtube:chat:live-poll"
+---
+
+# Live Poll
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:chat:live-poll` |
+| **Plugin** | YouTube |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "test-author-id" },
+  { name: "question", type: "string", description: "Poll question text.", example: "Test poll question?" },
+  { name: "status", type: "'unknown' | 'active' | 'clos…", description: "Poll status (`unknown`, `active`, `closed`).", example: "active" },
+  { name: "raw", type: "object", description: "Raw platform chat message object (JSON)." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." }
+]} />
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

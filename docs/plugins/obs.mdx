@@ -1,0 +1,73 @@
+---
+title: OBS
+description: Connect OBS Studio via WebSocket — scene, stream, recording, media, and filter triggers and handlers.
+---
+
+# OBS
+
+The OBS plugin connects to **OBS Studio** via WebSocket for scene changes, stream/recording control, media sources, filters, and more.
+
+## Settings
+
+Open **Plugins → OBS**:
+
+| Setting | Description |
+| --- | --- |
+| Host | WebSocket host (`127.0.0.1` default). Supports full `ws://` or `wss://` URLs. |
+| Port | WebSocket port (`4455` default). Ignored when host is a full URL. |
+| Password | OBS WebSocket server password |
+
+Use **Test connection**, **Connect**, or **Disconnect**. The plugin auto-connects on enable when host, port, and password are set.
+
+Enable the WebSocket server in OBS: **Tools → WebSocket Server Settings**.
+
+## Triggers
+
+Triggers are grouped under **OBS** in the action editor. Highlights:
+
+| Group | Examples |
+| --- | --- |
+| Scene & transition | Scene changed, preview scene, transition started/ended |
+| Stream | Starting, started, stopping, stopped, reconnecting |
+| Recording | Started, paused, resumed, stopped, file changed |
+| Source | Input muted/unmuted, shown/hidden |
+| Media | Media started/ended, media action triggered |
+| Filter | Filter enabled/disabled |
+
+Scene, transition, and input triggers support name matching (equals, contains, starts/ends with).
+
+Full list with IDs: [OBS triggers](/docs/api/triggers/obs).
+
+## Handlers
+
+| Group | Examples |
+| --- | --- |
+| Stream | Start / stop / toggle stream, send caption, get stream status |
+| Recording | Start / stop / pause / resume / split, get record status, chapters |
+| Media | Set file, trigger action, seek, get media status |
+| Filter | Enable/disable/toggle, set settings, create/remove |
+| Scene | Set program/preview scene, transitions, studio mode, virtual cam |
+
+**Set Media Input File** updates `ffmpeg_source`, `vlc_source`, or `media_source` and can wait for playback duration before continuing the chain.
+
+**Get Stream/Record/Media Status** writes action-scoped variables for later handlers (`streamActive`, `recordDuration`, `mediaState`, …).
+
+Full list: [OBS handlers](/docs/api/handlers/obs).
+
+## Trigger variables
+
+Common fields for `\{interpolation\}`:
+
+| Variables | Source |
+| --- | --- |
+| `sceneName`, `sceneUuid` | Scene triggers |
+| `inputName`, `inputUuid` | Source / media |
+| `outputState`, `outputPath` | Stream / recording |
+| `filterName`, `filterEnabled` | Filter triggers |
+
+Each trigger page lists its variables in the API Reference.
+
+## Related
+
+- [Setup guide](/docs/get-started/setup)
+- [Actions](/docs/guide/actions)

@@ -1,0 +1,32 @@
+---
+title: "Message Deleted"
+description: "YouTube trigger: youtube:youtube:moderation:message-deleted"
+---
+
+# Message Deleted
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:moderation:message-deleted` |
+| **Plugin** | YouTube |
+| **Category** | Moderation |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "test-author-id" },
+  { name: "deletedMessageId", type: "string", description: "ID of the deleted chat message.", example: "deleted-message-id" },
+  { name: "raw", type: "object", description: "Raw platform chat message object (JSON)." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." }
+]} />
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

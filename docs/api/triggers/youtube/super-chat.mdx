@@ -1,0 +1,46 @@
+---
+title: "Super Chat"
+description: "YouTube trigger: youtube:youtube:chat:super-chat"
+---
+
+# Super Chat
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:chat:super-chat` |
+| **Plugin** | YouTube |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "test-author-id" },
+  { name: "message", type: "string", description: "Full message text from the event.", example: "Test super chat" },
+  { name: "role", type: "string", description: "Role of the user (for example everyone, mod, broadcaster, vip, subscriber).", example: "everyone" },
+  { name: "amount", type: "string", description: "Monetary or hype amount associated with the event.", example: "$5.00" },
+  { name: "amountMicros", type: "number", description: "Super Chat amount in micro-units of the currency." },
+  { name: "currency", type: "string", description: "ISO currency code for a Super Chat (for example USD, EUR).", example: "USD" },
+  { name: "tier", type: "number", description: "Subscription or Super Chat tier level.", example: "1" },
+  { name: "raw", type: "object", description: "Raw platform chat message object (JSON)." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Message | Match message text (starts with, ends with, contains, equals). Leave empty to always match. |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+| Minimum Tier | Minimum Super Sticker tier. |
+| Minimum Amount (micros) | Minimum numeric value for **Minimum Amount (micros)**. Leave empty to disable. |
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

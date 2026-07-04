@@ -1,0 +1,9 @@
+{
+  "title": "Websocket",
+  "pages": [
+    "index",
+    "message-received",
+    "connected",
+    "disconnected"
+  ]
+}

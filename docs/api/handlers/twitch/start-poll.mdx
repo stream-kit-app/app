@@ -1,0 +1,26 @@
+---
+title: "Start Poll"
+description: "Twitch handler: twitch:twitch:polls:start-poll"
+---
+
+# Start Poll
+
+| | |
+| --- | --- |
+| **Handler ID** | `twitch:twitch:polls:start-poll` |
+| **Plugin** | Twitch |
+| **Category** | Polls |
+
+## Configuration
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| Title | text | Yes | `Will {username} win?` |
+| Choices | text | Yes | Yes, No, Maybe (comma or newline separated, 2–5 choices) |
+| Duration (seconds) | text | Yes | 60 |
+| Channel points per vote | text | No | Leave empty to disable point voting |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Actions guide](/docs/guide/actions)

@@ -1,0 +1,46 @@
+---
+title: Overlay
+description: Send events from actions to browser source overlays in OBS.
+---
+
+# Overlay
+
+The Overlay integration is built into Stream Kit (not a separate installable plugin). It serves overlay projects locally and exposes the **Send to Overlay** handler for actions.
+
+## User workflow
+
+1. [Create an overlay](/docs/guide/overlays) from a framework starter.
+2. Add the **browser source URL** to OBS.
+3. Configure overlay settings on the overlay **Configure** page.
+4. In an action, add **Overlay → Send to Overlay**.
+
+## Send to Overlay handler
+
+| | |
+| --- | --- |
+| **Handler ID** | `overlay:overlay:send-to-overlay` |
+
+| Field | Description |
+| --- | --- |
+| Overlay | Select target overlay |
+| Event | Event name from the overlay manifest |
+| Payload | Optional JSON; supports `\{variables\}` |
+
+Full reference: [Send to Overlay](/docs/api/handlers/overlay/send-to-overlay).
+
+## Events and payloads
+
+Overlays declare `expectedEvents` in their manifest. Your overlay JavaScript listens on WebSocket and handles each event type. Payload can be omitted to forward the full trigger context, or set explicit JSON for structured data.
+
+## Action presets
+
+Overlays can bundle **action presets** (triggers + handlers) installable from the overlay detail page. Required plugins must be enabled first.
+
+## Developers
+
+To author overlay projects and manifests, see [Overlay authoring](/docs/developers/overlay-authoring).
+
+## Related
+
+- [Overlays guide](/docs/guide/overlays)
+- [OBS setup](/docs/get-started/setup)

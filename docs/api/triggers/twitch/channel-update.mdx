@@ -1,0 +1,35 @@
+---
+title: "Channel Update"
+description: "Twitch trigger: twitch:twitch:channel:channel-update"
+---
+
+# Channel Update
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:channel:channel-update` |
+| **Plugin** | Twitch |
+| **Category** | Channel |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "title", type: "string", description: "Current stream title after a channel update.", example: "Test Stream Title" },
+  { name: "game", type: "string", description: "Current game or category name after a channel update.", example: "Just Chatting" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Title | Match **Title** text. Leave empty to always match. |
+| Game | Match **Game** text. Leave empty to always match. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

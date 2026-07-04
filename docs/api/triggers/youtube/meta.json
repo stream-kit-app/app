@@ -1,0 +1,22 @@
+{
+  "title": "Youtube",
+  "pages": [
+    "index",
+    "chat-message",
+    "super-chat",
+    "super-sticker",
+    "gift-jewels",
+    "live-poll",
+    "members-only-mode-started",
+    "members-only-mode-started",
+    "members-only-mode-started",
+    "new-member",
+    "member-milestone",
+    "membership-gift",
+    "gift-membership-received",
+    "user-banned",
+    "message-deleted",
+    "stream-online",
+    "stream-offline"
+  ]
+}

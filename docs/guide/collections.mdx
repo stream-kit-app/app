@@ -1,0 +1,60 @@
+---
+title: Collections
+description: Session and persistent key-value stores for action handlers and dashboard widgets.
+---
+
+# Collections
+
+Collections are named **key-value stores** you can read and write from action handlers. Use them for leaderboards, counters, state shared across actions, or any structured data that does not fit a single variable string.
+
+## Lifetimes
+
+| Lifetime | Persists |
+| --- | --- |
+| **Session** | Until the app restarts |
+| **Persistent** | Across restarts (stored in the database) |
+
+Collection names are **globally unique** across both lifetimes.
+
+## Handlers
+
+Core provides collection handlers under **Core → Collection**:
+
+| Handler | Purpose |
+| --- | --- |
+| Create collection | Create a new collection with a lifetime |
+| Set value | Add or replace a key |
+| Update value | Change an existing key |
+| Delete key | Remove one key |
+| Clear collection | Remove all keys |
+| Delete collection | Remove the entire collection |
+| Get value | Read a key into an action variable |
+
+Browse IDs and fields in the [API Reference](/docs/api/handlers/core).
+
+## Triggers
+
+React to collection changes:
+
+| Trigger | When |
+| --- | --- |
+| Collection created | A new collection is created |
+| Collection value changed | A key is set, updated, or deleted |
+
+See [Core triggers](/docs/api/triggers/core).
+
+## Dashboard widget
+
+Add the **Collections** widget on the **Dashboard** to view and edit entries without opening the action editor. Plugins can register their own widgets; Core ships Collections and Log entries.
+
+## Collections vs variables
+
+- **Variables** — string values for `\{interpolation\}` in handler text fields (action, user, global scopes).
+- **Collections** — named stores with multiple keys, lifetimes, and dedicated handlers.
+
+See [Variables](/docs/guide/variables).
+
+## Related
+
+- [Core plugin](/docs/plugins/core)
+- [Collection handlers](/docs/api/handlers/core)

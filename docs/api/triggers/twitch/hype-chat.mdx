@@ -1,0 +1,38 @@
+---
+title: "Hype Chat"
+description: "Twitch trigger: twitch:twitch:chat:hype-chat"
+---
+
+# Hype Chat
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:chat:hype-chat` |
+| **Plugin** | Twitch |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "amount", type: "number", description: "Monetary or hype amount associated with the event.", example: "500" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event." },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor." },
+  { name: "message", type: "string", description: "Full message text from the event." },
+  { name: "role", type: "string", description: "Role of the user (for example everyone, mod, broadcaster, vip, subscriber)." },
+  { name: "msg", type: "object", description: "Structured chat message object (JSON) with badges, emotes, flags, and metadata." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Minimum Amount | Minimum hype chat amount (localized currency). |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

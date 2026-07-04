@@ -1,0 +1,107 @@
+---
+title: "@stream-kit/app"
+description: "The main Stream Kit desktop application. It combines a SvelteKit frontend with a Tauri 2 backend and acts as the **plugin host** for all installed plugins."
+---
+
+# @stream-kit/app
+
+The main Stream Kit desktop application. It combines a SvelteKit frontend with a Tauri 2 backend and acts as the **plugin host** for all installed plugins.
+
+**Location:** `packages/app/`  
+**NPM name:** `@stream-kit/app`
+
+## Responsibilities
+
+- User interface for actions, triggers, plugins, settings, overlays, queues, and logs
+- Plugin lifecycle: install, enable, dev-link, update, and unload
+- Plugin host runtime with a shared import map for `@stream-kit/plugin`, `@stream-kit/core`, `svelte`, and `@stream-kit/ui`
+- Platform APIs exposed to plugins through `PluginAppApi` (filesystem, audio, processes, OAuth, database, toast, etc.)
+- Tauri commands for OS-level features (audio playback, process watching, local TTS, overlay HTTP server)
+
+Plugins must **not** import Tauri APIs directly. All platform access goes through the app-provided `PluginAppApi`.
+
+## Tech stack
+
+| Layer | Stack |
+|-------|-------|
+| Frontend | Svelte 5, SvelteKit, Tailwind CSS 4, bits-ui |
+| Desktop | Tauri 2 |
+| Database | SQLite via `@tauri-apps/plugin-sql` and Drizzle ORM |
+| i18n | `@svelte-i18n/core` (`en`, `nl`) |
+
+## Project layout
+
+```text
+packages/app/
+├── src/
+│   ├── api.ts                 # Re-exports @stream-kit/plugin (legacy alias)
+│   ├── routes/                # SvelteKit pages (actions, plugins, settings, overlays, …)
+│   ├── lib/
+│   │   ├── core/              # App kernel: plugins, actions, settings, filesystem, …
+│   │   ├── components/        # App-specific UI (not in @stream-kit/ui)
+│   │   └── locales/           # Translation files
+│   └── db/                    # Drizzle schemas and repositories
+├── src-tauri/                 # Rust backend (commands, overlay server, local TTS)
+├── static/plugin-host/        # Built plugin host bundles (generated)
+└── scripts/                   # Plugin host build and dev sync
+```
+
+### Core modules (`src/lib/core/`)
+
+| Module | Purpose |
+|--------|---------|
+| `plugins/` | Plugin registry, host loader, install/update, dev linking |
+| `action/` | Action definitions, handler/trigger execution, conditions |
+| `settings/` | Settings field types and validation |
+| `filesystem/` | Tauri-backed file API for plugins |
+| `audio/`, `process/`, `lifecycle/` | Platform services |
+| `overlay/` | Local overlay scaffold and export |
+| `oauth/` | OAuth flow helpers |
+
+## Plugin host
+
+Plugins run in an isolated ESM context. The host provides:
+
+- **`static/plugin-host/core.js`** — `@stream-kit/core` runtime
+- **`static/plugin-host/plugin.js`** — `@stream-kit/plugin` types and re-exports
+- **Import map** — resolves `svelte`, `@stream-kit/ui/*`, and other shared modules so plugins do not bundle them
+
+Build the host assets:
+
+```bash
+pnpm --filter @stream-kit/app build:plugin-host
+```
+
+This also syncs `dev-plugins.json` from `plugins/*/manifest.json` for monorepo development.
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `dev` | Sync plugin host modules, then start Vite dev server |
+| `tauri dev` | Run the desktop app in development (use via root `pnpm dev`) |
+| `build` | Build plugin host + production frontend |
+| `build:plugin-host` | Generate import map and host bundles only |
+| `check` | `svelte-check` type validation |
+| `tauri:windows:build` | Windows installer via `tauri-windows-bundle` |
+
+## Public export
+
+The package exposes a single compatibility entry for in-app imports:
+
+```ts
+import type { Plugin } from '@stream-kit/app/api';
+```
+
+New plugin code should prefer `@stream-kit/plugin` instead. See [Plugin authoring API](/docs/plugins/api).
+
+## Development
+
+From the repository root:
+
+```bash
+pnpm dev          # Build packages, watch plugins, start Tauri
+pnpm dev:app      # App only (assumes packages are already built)
+```
+
+First-party plugins listed in `dev-plugins.json` are linked automatically on boot. External plugins can be linked via **Plugins → Link dev plugin** when developer mode is enabled.

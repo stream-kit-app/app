@@ -1,0 +1,33 @@
+{
+  "title": "Twitch",
+  "pages": [
+    "index",
+    "send-message",
+    "send-announcement",
+    "clear-chat",
+    "delete-message",
+    "send-whisper",
+    "shoutout-user",
+    "update-chat-settings",
+    "ban-timeout-user",
+    "unban-user",
+    "warn-user",
+    "toggle-shield-mode",
+    "start-raid",
+    "cancel-raid",
+    "run-commercial",
+    "add-vip",
+    "add-vip",
+    "add-moderator",
+    "add-moderator",
+    "fulfill-redemption",
+    "fulfill-redemption",
+    "start-poll",
+    "end-poll",
+    "start-prediction",
+    "lock-prediction",
+    "end-prediction",
+    "cancel-prediction",
+    "create-clip"
+  ]
+}

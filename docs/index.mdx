@@ -1,0 +1,59 @@
+---
+title: Stream Kit Documentation
+description: Learn how to automate your stream with actions, triggers, variables, and plugins.
+---
+
+# Stream Kit Documentation
+
+Stream Kit is a desktop automation app for streamers. Build **actions** (handler chains), fire them from **triggers** (chat, OBS, hotkeys, schedules), and use **variables** to pass data between steps.
+
+## Get Started
+
+| Page | Description |
+| --- | --- |
+| [Introduction](./get-started/introduction) | Core concepts: actions, triggers, variables, plugins |
+| [Installation](./get-started/installation) | Download and first launch |
+| [Setup](./get-started/setup) | Connect Twitch, YouTube, OBS, and the bot |
+| [FAQ](./get-started/faq) | Common questions |
+
+## Guide
+
+| Page | Description |
+| --- | --- |
+| [Actions](./guide/actions) | Create and edit actions, handler chains, testing |
+| [Triggers](./guide/triggers) | Add triggers, conditions, test triggers |
+| [Variables](./guide/variables) | Global, user, and action-scoped variables |
+| [Action queues](./guide/action-queues) | Serialize overlapping runs |
+| [Collections](./guide/collections) | Session and persistent key-value stores |
+| [Overlays](./guide/overlays) | OBS browser sources and configure page |
+| [Dashboard](./guide/dashboard) | Home screen widgets |
+| [Logs](./guide/logs) | Action history and log levels |
+
+## Plugins
+
+| Plugin | Description |
+| --- | --- |
+| [Core](./plugins/core) | Audio, scripts, variables, collections, schedules, hotkeys |
+| [Bot](./plugins/bot) | Chat commands, timers, moderation |
+| [Twitch](./plugins/twitch) | Twitch chat, subs, raids, channel points |
+| [YouTube](./plugins/youtube) | YouTube live chat and events |
+| [OBS](./plugins/obs) | Scene and source control |
+| [TTS](./plugins/tts) | Text-to-speech handlers |
+| [WebSocket](./plugins/websocket) | External integrations via WebSocket |
+| [Overlay](./plugins/overlay) | Send events to browser overlays |
+
+## API Reference
+
+Browse every trigger and handler with stable **definition IDs** and variables:
+
+- [Triggers](/docs/api/triggers/core) — e.g. `core:core:input:hotkey`
+- [Handlers](/docs/api/handlers/core) — e.g. `overlay:overlay:send-to-overlay`
+
+## Developers
+
+| Page | Description |
+| --- | --- |
+| [Plugin getting started](./developers/plugin-getting-started) | Build your first plugin |
+| [Plugin API](./developers/plugin-api) | `@stream-kit/plugin` reference |
+| [Overlay authoring](./developers/overlay-authoring) | Custom overlay projects |
+| [Installing plugins](./developers/installing-plugins) | Official and third-party plugins |

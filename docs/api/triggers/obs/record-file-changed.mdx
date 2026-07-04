@@ -1,0 +1,25 @@
+---
+title: "Record File Changed"
+description: "OBS trigger: obs:obs:recording:record-file-changed"
+---
+
+# Record File Changed
+
+| | |
+| --- | --- |
+| **Trigger ID** | `obs:obs:recording:record-file-changed` |
+| **Plugin** | OBS |
+| **Category** | Recording |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "newOutputPath", type: "string", description: "New recording file path after a file change.", example: "C:/Videos/recording-001.mp4" }
+]} />
+
+## Related
+
+- [OBS plugin](/docs/plugins/obs)
+- [Triggers guide](/docs/guide/triggers)

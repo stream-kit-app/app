@@ -1,0 +1,40 @@
+---
+title: Logs
+description: Action log entries from the Core Log handler and the Logs page.
+---
+
+# Logs
+
+Stream Kit records **action log entries** when handlers use the Core **Log** sub-action. View them on the **Logs** page or the **Log entries** dashboard widget.
+
+## Logs page
+
+Open **Logs** in the sidebar.
+
+| Feature | Description |
+| --- | --- |
+| Level filter | All, Info, Warning, Error, Debug |
+| Search | Filter message text |
+| Auto-scroll | Follow new entries |
+| Clear | Remove all entries |
+
+Entries are **in memory** for the current session — they are not a long-term audit trail unless you export or forward them with custom handlers.
+
+## Log handler
+
+Add **Core → Log** to a handler chain to write a line:
+
+- **Level** — info, warn, error, debug
+- **Message** — supports `\{variable\}` interpolation
+
+Handler ID and fields: [Log handler](/docs/api/handlers/core/log).
+
+## Dashboard widget
+
+The **Log entries** widget shows the same feed on the Dashboard for quick monitoring while streaming.
+
+## Related
+
+- [Actions](/docs/guide/actions)
+- [Dashboard](/docs/guide/dashboard)
+- [Core plugin](/docs/plugins/core)

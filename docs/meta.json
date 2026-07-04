@@ -1,0 +1,16 @@
+{
+  "title": "Stream Kit",
+  "pages": [
+    "index",
+    "---Get Started---",
+    "get-started",
+    "---Guide---",
+    "guide",
+    "---Plugins---",
+    "plugins",
+    "---API Reference---",
+    "api",
+    "---Developers---",
+    "developers"
+  ]
+}

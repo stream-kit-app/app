@@ -1,0 +1,9 @@
+{
+  "title": "Developers",
+  "pages": [
+    "plugin-getting-started",
+    "plugin-api",
+    "overlay-authoring",
+    "installing-plugins"
+  ]
+}

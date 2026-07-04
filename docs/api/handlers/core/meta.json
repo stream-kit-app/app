@@ -1,0 +1,27 @@
+{
+  "title": "Core",
+  "pages": [
+    "index",
+    "audio",
+    "play-all-audio-from-folder",
+    "run-script",
+    "programs",
+    "set-variable",
+    "get-variable",
+    "create-collection",
+    "set-value",
+    "update-value",
+    "get-value",
+    "has-key",
+    "delete-key",
+    "clear-collection",
+    "delete-collection",
+    "fire-hotkey",
+    "pause-queue",
+    "resume-queue",
+    "toggle-queue",
+    "if",
+    "log",
+    "delay"
+  ]
+}

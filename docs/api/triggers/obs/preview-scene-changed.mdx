@@ -1,0 +1,26 @@
+---
+title: "Preview Scene Changed"
+description: "OBS trigger: obs:obs:scene:preview-scene-changed"
+---
+
+# Preview Scene Changed
+
+| | |
+| --- | --- |
+| **Trigger ID** | `obs:obs:scene:preview-scene-changed` |
+| **Plugin** | OBS |
+| **Category** | Scene |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "sceneName", type: "string", description: "OBS program or preview scene name.", example: "Test Scene" },
+  { name: "sceneUuid", type: "string", description: "OBS scene UUID.", example: "test-scene-uuid" }
+]} />
+
+## Related
+
+- [OBS plugin](/docs/plugins/obs)
+- [Triggers guide](/docs/guide/triggers)

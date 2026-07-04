@@ -1,0 +1,36 @@
+---
+title: "Send to Overlay"
+description: "Overlay handler: overlay:overlay:send-to-overlay"
+---
+
+# Send to Overlay
+
+| | |
+| --- | --- |
+| **Handler ID** | `overlay:overlay:send-to-overlay` |
+| **Plugin** | Overlay |
+| **Category** | Overlay |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "overlayId", type: "string", description: "ID of the overlay that received the event." },
+  { name: "event", type: "string", description: "Event name sent to the overlay (for example alert or clear)." },
+  { name: "payload", type: "object", description: "Data object delivered to the overlay. Omit the handler payload to forward trigger context." },
+  { name: "timestamp", type: "string", description: "ISO timestamp when the overlay event was sent." }
+]} />
+
+## Configuration
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| Overlay | select | Yes | Select an overlay |
+| Event | combobox | Yes | message |
+| Payload | text | No | `{"username":"{username}","message":"{message}"}` |
+
+## Related
+
+- [Overlay plugin](/docs/plugins/overlay)
+- [Actions guide](/docs/guide/actions)

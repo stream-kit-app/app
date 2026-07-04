@@ -1,0 +1,53 @@
+---
+title: "Chat Message"
+description: "Twitch trigger: twitch:twitch:chat:chat-message"
+---
+
+# Chat Message
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:chat:chat-message` |
+| **Plugin** | Twitch |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "999001" },
+  { name: "message", type: "string", description: "Full message text from the event.", example: "!test hello from stream kit" },
+  { name: "role", type: "string", description: "Role of the user (for example everyone, mod, broadcaster, vip, subscriber).", example: "everyone" },
+  { name: "msg", type: "object", description: "Structured chat message object (JSON) with badges, emotes, flags, and metadata." },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Message | Match message text (starts with, ends with, contains, equals). Leave empty to always match. |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+| Role | Only fire for users with the selected role (mod, broadcaster, VIP, subscriber, artist, founder). |
+| Command | Match chat commands (supports `<arg>` placeholders). Leave empty to match all messages. |
+| Reward | Restrict to a specific channel point reward. Leave empty to match any reward. |
+| Minimum Bits | Minimum bit cheer amount required on the message. |
+| Minimum Hype Amount | Minimum hype chat amount (localized currency). |
+| Minimum Hype Level | Minimum hype chat level (1–4). |
+| Cheer | Only fire when **Cheer** is enabled on the message (checkbox). |
+| Redemption | Only fire when **Redemption** is enabled on the message (checkbox). |
+| Hype Chat | Only fire when **Hype Chat** is enabled on the message (checkbox). |
+| First Message | Only fire when **First Message** is enabled on the message (checkbox). |
+| Returning Chatter | Only fire when **Returning Chatter** is enabled on the message (checkbox). |
+| Highlight | Only fire when **Highlight** is enabled on the message (checkbox). |
+| Reply | Only fire when **Reply** is enabled on the message (checkbox). |
+| Reply User | Match the username of the parent message in a reply thread. |
+| Reply Message | Match the text of the message being replied to. |
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

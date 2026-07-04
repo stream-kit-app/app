@@ -1,0 +1,61 @@
+---
+title: Overlays
+description: Browser source overlays for OBS — create, configure, and send events from actions.
+---
+
+# Overlays
+
+Overlays are **browser-based scenes** served locally by Stream Kit. Add them to OBS as a **Browser Source** and drive them from actions with the **Send to Overlay** handler.
+
+## Create an overlay
+
+1. Open **Overlays** in the sidebar.
+2. Click **New overlay**.
+3. Pick a framework starter (Vanilla, React, Svelte, etc.).
+4. Name the overlay and create the project.
+
+Stream Kit copies a starter project into your overlays folder and registers the overlay in the app.
+
+## OBS browser source
+
+Each overlay has a **browser source URL** on its card (copy from the Overlays list or overlay detail page).
+
+Typical setup in OBS:
+
+1. Add **Browser Source**.
+2. Paste the URL (for example `http://127.0.0.1:PORT/o/{overlayId}`).
+3. Set width and height to match your canvas.
+4. Enable **Shutdown source when not visible** if you want to save resources.
+
+The overlay server runs inside the desktop app on `127.0.0.1`. The port is shown in overlay status in the app.
+
+## Configure page
+
+Open an overlay → **Configure** to edit settings defined by the overlay manifest (colors, limits, feature toggles). Changes are pushed to the live browser source over WebSocket (`overlay:settings` event).
+
+## Send events from actions
+
+Add handler **Overlay → Send to Overlay** (`overlay:overlay:send-to-overlay`):
+
+| Field | Description |
+| --- | --- |
+| Overlay | Target overlay |
+| Event | Event name the overlay listens for (from manifest `expectedEvents`) |
+| Payload | Optional JSON with `\{variables\}` from the trigger |
+
+The overlay JavaScript receives events on its WebSocket connection and updates the UI.
+
+See [Send to Overlay handler](/docs/api/handlers/overlay/send-to-overlay) and [Overlay plugin](/docs/plugins/overlay).
+
+## Action presets
+
+Some overlays ship **action presets** — pre-built triggers and handler chains you can install from the overlay detail page. Required plugins must be installed and enabled first.
+
+## Required plugins
+
+Overlays can declare `requiredPlugins` in their manifest. The app warns if dependencies are missing before installing presets.
+
+## Related
+
+- [Overlay plugin](/docs/plugins/overlay)
+- [Overlay authoring](/docs/developers/overlay-authoring) (for developers)

@@ -3,8 +3,7 @@ import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import { callObs } from '../../lib/obs-call';
 
-export const createStartReplayBufferHandler = (app: PluginAppApi) =>
-	({
+export const createStartReplayBufferHandler = (app: PluginAppApi) =>	({
 		name: 'Start Replay Buffer',
 		execute: (_action, _handler, _context, next) => {
 			void callObs(app, 'StartReplayBuffer', undefined, { label: 'Start Replay Buffer' });

@@ -1,0 +1,91 @@
+---
+title: Bot
+description: Chat commands, timers, auto-moderation, and built-in system commands for Twitch and YouTube.
+---
+
+# Bot
+
+The Bot plugin adds **chat commands**, **timers**, and **auto-moderation** for Twitch and/or YouTube.
+
+## Requirements
+
+Connect at least one platform:
+
+- [Twitch](/docs/plugins/twitch) — OAuth + EventSub
+- [YouTube](/docs/plugins/youtube) — Google OAuth + live chat
+
+The Bot plugin is **configured** when either platform is connected. You can use both together.
+
+## Pages
+
+Open **Bot** in the sidebar:
+
+| Page | Description |
+| --- | --- |
+| **Overview** | Connection status, bot settings, summary counts |
+| **Commands** | Custom chat commands with handler chains |
+| **Timers** | Scheduled actions on an interval |
+| **Moderation** | Custom auto-mod rules |
+
+## Bot settings
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| Bot enabled | on | Master toggle for commands and timers |
+| Command prefix | `!` | Prefix that triggers commands |
+| Auto-moderation | on | Run moderation rules on chat messages |
+| Twitch / YouTube chat | on | Per-platform toggles |
+
+## Commands
+
+Custom commands work like **Actions** handler chains: aliases, permissions, cooldowns, platform sources, and a top-to-bottom handler chain.
+
+Chat messages matching `{prefix}{command}` are processed after moderation and before built-in commands.
+
+### Command arguments
+
+Use `<arg>` placeholders in the command pattern:
+
+| Pattern | Example chat | Variables |
+| --- | --- | --- |
+| `setalias <target>` | `!setalias CoolUser` | `{target}` = `CoolUser` |
+| `say <message>` | `!say hello world` | `{message}` = `hello world` |
+
+The **last** `<arg>` captures the rest of the message. Earlier arguments match one word each.
+
+### Built-in commands
+
+| Command | Description |
+| --- | --- |
+| `!commands` | Lists enabled custom commands |
+| `!uptime` | Stream uptime |
+| `!bot` | Bot status and prefix |
+
+Custom commands with the same name override built-ins.
+
+## Timers
+
+Timers run handler chains on a **random interval** between min and max seconds (minimum 30s). Optional minimum chat activity and online-only mode.
+
+Handlers receive `timerId`, `name`, `platforms`, and `firedAt`. Twitch and YouTube **Send Message** handlers work without live chat context.
+
+## Moderation
+
+Rules use a condition tree (AND/OR/negate). Actions: delete message, timeout (10 min), warn (Twitch only).
+
+Moderators, broadcasters, and owners are exempt by default.
+
+### Using moderation in Actions
+
+| Trigger | Description |
+| --- | --- |
+| **Moderation rule** | Fires when a saved rule matches (exempt roles from the rule are **not** applied) |
+| **Chat message** | Fires when a custom condition tree matches |
+
+Browse IDs: [Bot triggers](/docs/api/triggers/bot).
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [YouTube plugin](/docs/plugins/youtube)
+- [Actions guide](/docs/guide/actions)

@@ -85,6 +85,32 @@ export class HotkeyManager {
 		}
 	}
 
+	/** Invoke registered hotkey listeners as if the shortcut was pressed. */
+	trigger(shortcut: string): boolean {
+		const normalized = normalizeShortcut(shortcut);
+
+		if (!normalized) {
+			return false;
+		}
+
+		const entry = this.registry.get(normalized);
+
+		if (!entry || entry.handlers.size === 0) {
+			return false;
+		}
+
+		this.emitHandlers(normalized, entry);
+		return true;
+	}
+
+	private emitHandlers(shortcut: string, entry: ShortcutEntry): void {
+		const context = buildContext(shortcut);
+
+		for (const handler of entry.handlers) {
+			handler(context);
+		}
+	}
+
 	private async registerWithTauri(shortcut: string, entry: ShortcutEntry): Promise<void> {
 		try {
 			await registerGlobalShortcut(shortcut, (event) => {
@@ -92,11 +118,7 @@ export class HotkeyManager {
 					return;
 				}
 
-				const context = buildContext(shortcut);
-
-				for (const handler of entry.handlers) {
-					handler(context);
-				}
+				this.emitHandlers(shortcut, entry);
 			});
 
 			entry.registered = true;

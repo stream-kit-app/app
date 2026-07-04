@@ -1,0 +1,27 @@
+---
+title: "Stream Offline"
+description: "Twitch trigger: twitch:twitch:stream:stream-offline"
+---
+
+# Stream Offline
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:stream:stream-offline` |
+| **Plugin** | Twitch |
+| **Category** | Stream |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "streamId", type: "string", description: "Unique stream session ID when the event fired.", example: "test-stream-id" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

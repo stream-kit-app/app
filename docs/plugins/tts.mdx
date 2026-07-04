@@ -1,0 +1,47 @@
+---
+title: TTS
+description: Text-to-speech with local Piper voices, StreamElements, and ElevenLabs.
+---
+
+# TTS
+
+The TTS plugin speaks text through **local Piper voices**, **StreamElements**, or **ElevenLabs**.
+
+## Setup
+
+Open **Plugins → TTS → Configure** and set up one or more providers:
+
+| Provider | Requirements |
+| --- | --- |
+| **Local TTS** | Download Piper voices in the app |
+| **StreamElements** | StreamElements overlay token |
+| **ElevenLabs** | ElevenLabs API key |
+
+## ElevenLabs voices
+
+After a valid API key:
+
+1. Open **Voices** on the configure page.
+2. Search and copy a voice ID from the table.
+3. In **TTS → ElevenLabs → Speak Text**, choose **Variable** for voice and use `{voiceId}` from context.
+
+Choose a default **model** on the configure page; override per handler or use **Use default model**.
+
+## Handlers
+
+| Handler | Description |
+| --- | --- |
+| **TTS → Local → Speak Text** | Offline Piper voice |
+| **TTS → StreamElements → Speak Text** | Cloud via StreamElements |
+| **TTS → ElevenLabs → Speak Text** | Cloud via ElevenLabs |
+
+Each handler supports a fixed voice or a **Variable** voice ID.
+
+Use an [action queue](/docs/guide/action-queues) with **blocking** enabled if multiple TTS lines must not overlap.
+
+Reference: [TTS handlers](/docs/api/handlers/tts).
+
+## Related
+
+- [Action queues](/docs/guide/action-queues)
+- [Actions](/docs/guide/actions)

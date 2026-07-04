@@ -1,0 +1,28 @@
+---
+title: "Stream Offline"
+description: "YouTube trigger: youtube:youtube:stream:stream-offline"
+---
+
+# Stream Offline
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:stream:stream-offline` |
+| **Plugin** | YouTube |
+| **Category** | Stream |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account.", example: "test-channel-id" },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred.", example: "Test Channel" },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID.", example: "test-broadcast-id" },
+  { name: "title", type: "string", description: "Current stream title after a channel update.", example: "Test Stream" }
+]} />
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

@@ -1,0 +1,52 @@
+---
+description: Keep docs.stream-kit.app in sync when changing plugins, app features, or overlays
+globs:
+  - plugins/**/*
+  - packages/app/src/lib/core/**/*
+  - packages/app/src/lib/components/core/**/*
+  - packages/app/src-tauri/**/*
+  - scripts/generate-docs-reference.mjs
+  - scripts/lib/parse-plugin-definitions.mjs
+  - scripts/lib/docs-reference-metadata.mjs
+alwaysApply: false
+---
+
+# Docs site sync
+
+When you change behavior, APIs, or UX in the monorepo, update the **public documentation** in `/docs` in the same task. Do not leave docs out of date.
+
+Internal monorepo notes (build, packages, release) belong in `/contributing` — not on docs.stream-kit.app.
+
+## What to update
+
+| Change | Update |
+| --- | --- |
+| New or changed trigger/handler | Run `pnpm generate:docs-reference` (regenerates `/docs/api/triggers` and `/docs/api/handlers`) |
+| Plugin settings, pages, or capabilities | `/docs/plugins/<plugin>.mdx` |
+| Actions, triggers, variables, queues, collections | Matching page under `/docs/guide/` |
+| Overlay manifest, events, presets, server flow | `/docs/guide/overlays.mdx`, `/docs/developers/overlay-authoring.mdx`, and overlay plugin docs |
+| New plugin or public developer workflow | `/docs/plugins/`, `/docs/developers/`, and `docs/meta.json` nav if needed |
+| User-facing setup or install steps | `/docs/get-started/` |
+
+## Triggers and handlers
+
+Definition changes in `plugins/*/src/trigger/**` or `plugins/*/src/handler/**` (and app overlay handlers under `packages/app/src/lib/core/overlay/`) are **not** documented until you regenerate:
+
+```bash
+pnpm generate:docs-reference
+```
+
+After generator or metadata script changes, regenerate and spot-check a few generated pages (conditions, variables, configuration placeholders).
+
+## Before finishing
+
+1. Identify whether the change is user-visible — if yes, update `/docs` (English).
+2. Regenerate API reference when triggers/handlers or generator scripts changed.
+3. Fix broken MDX (brace placeholders in tables belong in backticks, not `\{…\}`).
+4. Verify with `pnpm dev:docs` or `pnpm build:docs` when docs content changed.
+
+## Examples
+
+- Add Twitch handler `send-announcement` → regenerate API reference; optionally mention it on `/docs/plugins/twitch.mdx`.
+- Change overlay event payload shape → update overlay guide + developer overlay authoring page.
+- Rename a queue setting in Core → update `/docs/guide/queues.mdx` and Core plugin page if exposed in UI.

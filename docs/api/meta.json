@@ -1,0 +1,21 @@
+{
+  "title": "API Reference",
+  "pages": [
+    "index",
+    "---Triggers---",
+    "triggers/bot",
+    "triggers/core",
+    "triggers/obs",
+    "triggers/twitch",
+    "triggers/websocket",
+    "triggers/youtube",
+    "---Handlers---",
+    "handlers/core",
+    "handlers/obs",
+    "handlers/tts",
+    "handlers/twitch",
+    "handlers/websocket",
+    "handlers/youtube",
+    "handlers/overlay"
+  ]
+}

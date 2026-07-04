@@ -1,0 +1,33 @@
+---
+title: "Hotkey"
+description: "Core Handlers trigger: core:core:input:hotkey"
+---
+
+# Hotkey
+
+| | |
+| --- | --- |
+| **Trigger ID** | `core:core:input:hotkey` |
+| **Plugin** | Core Handlers |
+| **Category** | Input |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "shortcut", description: "Full hotkey shortcut (for example `Shift+P`).", example: "Shift+P" },
+  { name: "modifiers", description: "Modifier keys pressed (array)." },
+  { name: "key", description: "Key pressed without modifiers, or collection entry key on collection triggers.", example: "P" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Hotkey | Keyboard shortcut that fires the trigger (configured in the trigger condition). |
+
+## Related
+
+- [Core Handlers plugin](/docs/plugins/core)
+- [Triggers guide](/docs/guide/triggers)

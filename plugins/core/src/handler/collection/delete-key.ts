@@ -1,22 +1,26 @@
 import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
-import { getFieldValue } from '../../get-field-value';
+import { getFieldValue, resolveFieldText } from '../../get-field-value';
 import type { CorePluginContext } from '../../lib/core-context';
 
 import {
 	collectionMutationErrorMessage,
 	createExistingCollectionNameField,
-	keyField,
+	keyFieldWithContextVariables,
 	requireCollectionName
 } from './fields';
 
-export const createDeleteCollectionKeyHandler = ({ app, collections }: CorePluginContext) =>
+export const createDeleteCollectionKeyHandler = ({
+	app,
+	collections,
+	variables
+}: CorePluginContext) =>
 	({
 		name: 'Delete key',
-		fields: [createExistingCollectionNameField(collections), keyField],
-		execute: async (_action, handler, _context, next) => {
+		fields: [createExistingCollectionNameField(collections), keyFieldWithContextVariables],
+		execute: async (_action, handler, context, next) => {
 			const collectionName = getFieldValue(handler.fields, 'collection-name');
-			const key = getFieldValue(handler.fields, 'key');
+			const key = resolveFieldText(variables, handler.fields, 'key', context);
 
 			if (!requireCollectionName(app, collectionName, 'Delete collection key failed')) {
 				next();

@@ -1,0 +1,59 @@
+---
+title: Core
+description: Built-in handlers and triggers — audio, delays, variables, collections, schedules, hotkeys, queues, and logging.
+---
+
+# Core
+
+Core is always enabled. It provides the **building blocks** every action uses: utility handlers (delay, if, log), variables, collections, schedules, hotkeys, queue control, audio playback, scripts, and process events.
+
+## Settings
+
+Open **Plugins → Core → Settings**:
+
+| Setting | Description |
+| --- | --- |
+| **Process Watcher** | When enabled, keeps background polling for process start/stop triggers. Process triggers also start the watcher automatically when needed. |
+
+## Features
+
+| Area | What you get |
+| --- | --- |
+| **Input** | Global hotkey triggers and Fire Hotkey handler |
+| **Utility** | Delay, If/Else, Run script, Play sound, Log |
+| **Variables** | Set / get global, user, and action variables |
+| **Collections** | Create and mutate key-value stores |
+| **Queues** | Pause, resume, toggle queues from handlers |
+| **Schedule** | Cron and one-shot scheduled triggers |
+| **Process** | Process started / stopped triggers (optional watcher) |
+| **Queue status** | Triggers when jobs enqueue, start, complete, or queue pauses |
+
+## Dashboard widgets
+
+- **Collections** — edit collection data
+- **Log entries** — view Log handler output
+
+See [Dashboard](/docs/guide/dashboard).
+
+## Triggers and handlers
+
+Full lists with stable IDs:
+
+- [Core triggers](/docs/api/triggers/core)
+- [Core handlers](/docs/api/handlers/core)
+
+### Example IDs
+
+| Item | ID |
+| --- | --- |
+| Hotkey | `core:core:input:hotkey` |
+| Set variable | `core:core:variable:set-variable` |
+| Queue paused | `core:core:queue:paused` |
+| If | `core:core:utility:if` |
+
+## Related guides
+
+- [Actions](/docs/guide/actions)
+- [Variables](/docs/guide/variables)
+- [Collections](/docs/guide/collections)
+- [Action queues](/docs/guide/action-queues)
