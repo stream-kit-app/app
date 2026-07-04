@@ -164,8 +164,13 @@ Then enable **Template repository** in the GitHub repo settings for the **Use th
 | `GITHUB_TOKEN`           | Provided by GitHub Actions for releases and changesets                                           |
 | `CHANGESET_GITHUB_TOKEN` | Optional PAT for creating Changesets PRs and pushing tags when org settings block `GITHUB_TOKEN` |
 | `NPM_TOKEN`              | npm automation token with publish access to `@stream-kit/plugin` and `@stream-kit/core`          |
+| `PLUGIN_PUBLISH_TOKEN`   | PAT with `repo` scope to push manifests and releases to `stream-kit-app/plugin-*` distribution repos (required for **Publish Plugins** CI; `GITHUB_TOKEN` cannot write to other repositories) |
 
-### Microsoft Store (required for Store publish job)
+### Plugin distribution repos (required for Publish Plugins CI)
+
+The **Publish Plugins** workflow pushes `manifest.json` updates and release zips to `stream-kit-app/plugin-{bot,core,obs,...}`. Configure **`PLUGIN_PUBLISH_TOKEN`** as a fine-grained or classic PAT that can write to those repositories in the `stream-kit-app` org.
+
+Without this secret, CI falls back to `GITHUB_TOKEN`, which only has access to the `app` repository and git push / `gh release` steps will fail on the distribution repos.
 
 Configure these in **Settings → Secrets and variables → Actions**:
 

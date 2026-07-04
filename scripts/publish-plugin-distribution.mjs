@@ -45,13 +45,52 @@ function parseArgs(argv) {
 	return options;
 }
 
+function getGithubToken() {
+	return process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '';
+}
+
+function gitRemoteUrl(slug, token) {
+	if (token) {
+		return `https://x-access-token:${token}@github.com/${slug}.git`;
+	}
+
+	return `https://github.com/${slug}.git`;
+}
+
+function redactToken(command, token) {
+	if (!token) {
+		return command;
+	}
+
+	return command.replaceAll(token, '***');
+}
+
 function run(command, cwd = root) {
-	console.log(`> ${command}`);
+	const token = getGithubToken();
+	console.log(`> ${redactToken(command, token)}`);
 	return execSync(command, { cwd, stdio: 'inherit', encoding: 'utf8' });
 }
 
 function runCapture(command, cwd = root) {
 	return execSync(command, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+}
+
+function configureGitIdentity(workDir) {
+	const name = process.env.GIT_AUTHOR_NAME || 'github-actions[bot]';
+	const email =
+		process.env.GIT_AUTHOR_EMAIL || '41898282+github-actions[bot]@users.noreply.github.com';
+
+	runCapture(`git config user.name "${name}"`, workDir);
+	runCapture(`git config user.email "${email}"`, workDir);
+}
+
+function hasStagedChanges(workDir) {
+	try {
+		execSync('git diff --cached --quiet', { cwd: workDir, stdio: 'ignore' });
+		return false;
+	} catch {
+		return true;
+	}
 }
 
 function renderReadme(manifest, key) {
@@ -160,20 +199,21 @@ function publishPlugin(key, options) {
 			return;
 		}
 
-		run(`git clone --depth 1 https://github.com/${slug}.git "${workDir}"`);
+		run(`git clone --depth 1 "${gitRemoteUrl(slug, getGithubToken())}" "${workDir}"`);
+
+		configureGitIdentity(workDir);
 
 		writeFileSync(path.join(workDir, 'manifest.json'), `${JSON.stringify(distributionManifest, null, 2)}\n`);
 		writeFileSync(path.join(workDir, 'README.md'), readme);
 
 		run('git add manifest.json README.md', workDir);
 
-		try {
+		if (hasStagedChanges(workDir)) {
 			run('git commit -m "chore: publish plugin distribution manifest"', workDir);
-		} catch {
+			run('git push origin main', workDir);
+		} else {
 			console.log(`No manifest changes to commit for ${slug}`);
 		}
-
-		run('git push origin main', workDir);
 
 		if (!releaseExists(slug, tag)) {
 			run(`gh release create ${tag} --repo ${slug} --title "${sourceManifest.name} ${tag}" --notes "Stream Kit ${sourceManifest.name} plugin release."`, workDir);
