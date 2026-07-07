@@ -16,6 +16,7 @@ External plugins import their public contract from `@stream-kit/plugin`.
 | Types (`Plugin`, `PluginAppApi`, definitions) | `@stream-kit/plugin` | Use `import type` |
 | Runtime helpers (`getFieldValue`, `parseCommand`, cron) | `@stream-kit/core` | Preferred for helpers |
 | `BaseDirectory`, `SeekMode` | `@stream-kit/plugin` | Required for `app.fs` options |
+| Svelte UI (custom views/widgets only) | `@stream-kit/ui` | Dev dependency; externalize at build time |
 | Platform features | `app` (`PluginAppApi`) | Filesystem, toast, process, hotkeys, action queues, audio, store |
 
 Never import `@tauri-apps/*` in plugin code.
@@ -157,6 +158,8 @@ At runtime the app injects an import map:
 - `@iconify/svelte` → `/plugin-host/@iconify/svelte.js`
 
 `@stream-kit/ui` subpaths, vendor stubs, and the runtime import map are generated from `packages/ui/package.json` by `packages/app/plugin-host-config.mjs` when you run `pnpm build:plugin-host` or `pnpm sync:plugin-host`. Add new UI components by exporting them from `@stream-kit/ui`; no manual import-map entries are required.
+
+Install `@stream-kit/ui` from npm as a **dev dependency** when you import Svelte components in custom views or widgets. At runtime the app always loads the host bundles — do not bundle `@stream-kit/ui` into `dist/index.js`. Match the npm version to the Stream Kit app version you target.
 
 To exclude a subpath from the plugin host (for example internal-only exports), add it to `PLUGIN_HOST_UI_EXCLUDED_SUBPATHS` in `plugin-host-config.mjs`.
 

@@ -21,6 +21,8 @@ import {
 } from '$db/repositories/actions';
 
 import ActionForm from '$lib/components/core/action/action-form.svelte';
+import ActionFormFooter from '$lib/components/core/action/action-form-footer.svelte';
+import ActionFormHeader from '$lib/components/core/action/action-form-header.svelte';
 import { translate } from '$lib/i18n';
 
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
@@ -134,6 +136,22 @@ export class Actions {
 		}
 
 		this.items = loaded;
+	}
+
+	refreshDefinitionBindings(): void {
+		for (const action of this.items) {
+			const shouldActivate = action.enabled && action.id != null;
+
+			if (shouldActivate) {
+				this.deactivate(action);
+			}
+
+			action.rebindDefinitions();
+
+			if (shouldActivate) {
+				this.activate(action);
+			}
+		}
 	}
 
 	hasEnabledProcessTrigger(): boolean {
@@ -526,6 +544,15 @@ export class Action {
 		this._formSnapshot = null;
 	}
 
+	rebindDefinitions(): void {
+		this.triggers = this.triggersFromStored(
+			this.triggers.map((trigger) => structuredClone(trigger.toStored()))
+		);
+		this.handlers = this.handlersFromStored(
+			this.handlers.map((handler) => structuredClone(handler.toStored()))
+		);
+	}
+
 	discardFormChanges(): void {
 		const snapshot = this._formSnapshot;
 
@@ -578,6 +605,10 @@ export class Action {
 	}
 
 	open(): Modal {
+		if (this.hasUnavailableDefinitions) {
+			this.rebindDefinitions();
+		}
+
 		this.modalId =
 			this.id != null ? `action-${this.id}` : `action-draft-${crypto.randomUUID()}`;
 		const app = getApp();
@@ -593,6 +624,8 @@ export class Action {
 						? translate('Edit {name}', { name: this.name })
 						: translate('New Action'),
 				content: ActionForm,
+				header: ActionFormHeader,
+				footer: ActionFormFooter,
 				props: { action: this },
 				onClose: () => this.discardFormChanges()
 			});

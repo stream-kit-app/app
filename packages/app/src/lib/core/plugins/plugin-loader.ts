@@ -6,6 +6,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 
 import { translate } from '$lib/i18n';
 
+import { registerOverlayDefinitions } from '../overlay/register-overlay-definitions';
 import { stopPluginDevWatcher } from './plugin-dev-watcher';
 import { getPluginHostUrl } from './plugin-host-url';
 import {
@@ -14,6 +15,28 @@ import {
 } from '../../../../plugin-host-modules.generated.js';
 
 let importMapReady = false;
+let pluginHostStylesReady = false;
+
+/**
+ * The plugin host bundles Monaco's (and other) CSS into a single stylesheet.
+ * Plugin components mount into the main app document, so we load that stylesheet
+ * once. Without it, Monaco renders unstyled (e.g. its internal textarea shows a
+ * visible resize handle inside the editor).
+ */
+function ensurePluginHostStyles(): void {
+	if (pluginHostStylesReady || typeof document === 'undefined') {
+		return;
+	}
+
+	pluginHostStylesReady = true;
+
+	const href = getPluginHostUrl('app.css');
+	const link = document.createElement('link');
+	link.rel = 'stylesheet';
+	link.id = 'stream-kit-plugin-host-styles';
+	link.href = href;
+	document.head.append(link);
+}
 
 function createPluginHostImportMap(): Record<string, string> {
 	const imports: Record<string, string> = {
@@ -40,6 +63,8 @@ async function ensurePluginImportMap(): Promise<void> {
 	if (importMapReady) {
 		return;
 	}
+
+	ensurePluginHostStyles();
 
 	const script = document.createElement('script');
 	script.type = 'importmap';
@@ -153,6 +178,7 @@ export async function reloadInstalledPlugin(
 			await plugin.ready(app);
 		}
 
+		await registerOverlayDefinitions(app);
 		await app.actions.load();
 		app.overlay.notifyDependenciesChanged();
 	} catch (error) {

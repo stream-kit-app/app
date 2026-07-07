@@ -14,6 +14,7 @@ import { createChatSettingsHandler } from './handler/chat/settings';
 import { createShoutoutHandler } from './handler/chat/shoutout';
 import { createWhisperHandler } from './handler/chat/whisper';
 import { createClipHandler } from './handler/clips/create';
+import { createGetUserHandler } from './handler/users/get-user';
 import { createBanHandler } from './handler/moderation/ban';
 import { createShieldModeHandler } from './handler/moderation/shield';
 import { createUnbanHandler } from './handler/moderation/unban';
@@ -60,7 +61,7 @@ import { createResubTrigger } from './trigger/subscriptions/resub';
 import { createSubTrigger } from './trigger/subscriptions/sub';
 
 export type { ChatMessageContext, TwitchContext } from './contexts';
-export type { TwitchPluginApi } from './lib/twitch';
+export type { TwitchBotAccountApi, TwitchPluginApi } from './lib/twitch';
 
 const plugin: Plugin = (app) => {
 	configureFieldValueResolver(app);
@@ -97,6 +98,19 @@ const plugin: Plugin = (app) => {
 		get eventSub() {
 			return twitchApi?.eventSub;
 		},
+		get botAccount() {
+			return twitchApi?.botAccount ?? {
+				isConnected: false,
+				isAuthenticating: false,
+				userId: undefined,
+				userName: undefined,
+				startOAuth: async () => {
+					warnUnavailable();
+				},
+				disconnect: async () => {},
+				subscribe: () => () => {}
+			};
+		},
 		startOAuth: async () => {
 			if (!twitchApi) {
 				warnUnavailable();
@@ -111,6 +125,13 @@ const plugin: Plugin = (app) => {
 			}
 
 			await twitchApi.disconnect();
+		},
+		sendChatMessageAsBot: async (broadcasterId, message) => {
+			if (!twitchApi) {
+				return;
+			}
+
+			await twitchApi.sendChatMessageAsBot(broadcasterId, message);
 		},
 		subscribe: (listener) => twitchApi?.subscribe(listener) ?? (() => {}),
 		subscribeChatMessages: (filter, handler) =>
@@ -284,7 +305,8 @@ const plugin: Plugin = (app) => {
 							createPredictionCancelHandler(app)
 						]
 					},
-					{ name: 'Clips', children: [createClipHandler(app)] }
+					{ name: 'Clips', children: [createClipHandler(app)] },
+					{ name: 'Users', children: [createGetUserHandler(app)] }
 				]
 			}
 		],

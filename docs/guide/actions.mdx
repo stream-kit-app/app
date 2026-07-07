@@ -53,6 +53,17 @@ Use `\{variableName\}` in text fields. The action editor shows available variabl
 
 See [Variables](/docs/guide/variables).
 
+## Run script handler
+
+Add **Run script** from Core handlers to run custom TypeScript in the chain. Scripts receive:
+
+- **`app`** — full Stream Kit API (toast, filesystem, plugins, actions, …)
+- **`context`** — trigger payload(s) for the run, including mutable `actionVariables`
+
+The editor uses Monaco with TypeScript IntelliSense. Trigger `data` is typed based on triggers configured on the action. Use **Open in editor** (after saving the action) to edit in Cursor or VS Code; changes sync back automatically.
+
+See [Run script API](/docs/api/handlers/core/run-script) for examples and limits.
+
 ## Related
 
 - [Triggers](/docs/guide/triggers)

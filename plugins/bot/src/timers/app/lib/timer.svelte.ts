@@ -1,10 +1,12 @@
 import type { HandlerTriggerContext, PluginAppApi } from '@stream-kit/plugin';
 import type { Action, Modal } from '@stream-kit/plugin/action';
+import type { StoredActionHandler } from '@stream-kit/plugin/action';
 import {
 	ActionHandler,
 	HandlerDefinition,
 	addHandlerToChain,
 	cloneHandlerInChain,
+	createHandlerFields,
 	flattenActionHandlers,
 	handlerFromStoredWithResolver,
 	hasHandlerErrors,
@@ -13,10 +15,12 @@ import {
 	runHandlerChain,
 	type HandlerBranch,
 	validateHandlerFields
-} from '@stream-kit/plugin/action';import type { TimerPlatform, TimerRecord } from './stored-timer';
+} from '@stream-kit/plugin/action';
+import type { TimerPlatform, TimerRecord } from './stored-timer';
 import { DEFAULT_TIMER_PLATFORMS } from './stored-timer';
 
 import TimerForm from '../ui/timer-form.svelte';
+import TimerFormFooter from '../ui/timer-form-footer.svelte';
 import { getTimersService } from './get-timers';
 import type { TimerFormErrors } from './validate-form';
 import { validateTimerForm } from './validate-form';
@@ -68,21 +72,31 @@ export class Timer {
 		return this.handlers.some((handler) => !handler.definition.isAvailable);
 	}
 
+	get isFormOpen(): boolean {
+		return this.modalId != null;
+	}
+
 	static createDraft(): Timer {
 		return new Timer();
 	}
 
-	static fromRecord(record: TimerRecord, app: PluginAppApi): Timer {
-		const resolveDefinition = (handlerTypeId: string) =>
-			app.actions.findHandler(handlerTypeId);
+	private static handlersFromStored(
+		stored: StoredActionHandler[],
+		app: PluginAppApi
+	): ActionHandler[] {
+		const resolveDefinition = (handlerTypeId: string) => app.actions.findHandler(handlerTypeId);
 
-		const handlers = record.handlers.map((stored) =>
+		return stored.map((item) =>
 			handlerFromStoredWithResolver(
-				stored,
+				item,
 				resolveDefinition,
 				Timer.createUnavailableHandlerDefinition
 			)
 		);
+	}
+
+	static fromRecord(record: TimerRecord, app: PluginAppApi): Timer {
+		const handlers = Timer.handlersFromStored(record.handlers, app);
 		return new Timer({
 			id: record.id,
 			name: record.name,
@@ -132,8 +146,13 @@ export class Timer {
 
 	open(): Modal {
 		const app = getTimersService().requireApp();
+
 		this.modalId =
 			this.id != null ? `timer-${this.id}` : `timer-draft-${crypto.randomUUID()}`;
+
+		if (this.hasUnavailableDefinitions) {
+			this.rebindDefinitions();
+		}
 
 		const modal =
 			app.modal.get(this.modalId) ??
@@ -144,6 +163,7 @@ export class Timer {
 						? app.i18n.translate('Edit {name}', { name: this.name })
 						: app.i18n.translate('New Timer'),
 				content: TimerForm,
+				footer: TimerFormFooter,
 				props: { timer: this }
 			});
 
@@ -197,6 +217,44 @@ export class Timer {
 		this.handlers = reorderBranchHandlersInChain(this.handlers, parentId, branch, handlers);
 	}
 
+	rebindDefinitions(): void {
+		if (this.isFormOpen) {
+			this.rebindDefinitionsInPlace();
+			return;
+		}
+
+		const app = getTimersService().requireApp();
+
+		this.rebindDefinitionsInPlace();
+
+		if (this.hasUnavailableDefinitions) {
+			this.handlers = Timer.handlersFromStored(
+				this.handlers.map((handler) => structuredClone(handler.toStored())),
+				app
+			);
+		}
+	}
+
+	private rebindDefinitionsInPlace(): void {
+		const app = getTimersService().requireApp();
+
+		for (const handler of flattenActionHandlers(this.handlers)) {
+			const resolved = app.actions.findHandler(handler.definition.id);
+
+			if (!resolved?.isAvailable) {
+				continue;
+			}
+
+			if (handler.definition === resolved) {
+				continue;
+			}
+
+			const storedFields = structuredClone($state.snapshot(handler.fields));
+			handler.definition = resolved;
+			handler.fields = createHandlerFields(resolved.fields, storedFields);
+		}
+	}
+
 	async runHandlerBranch(
 		handlers: ActionHandler[],
 		context: HandlerTriggerContext
@@ -209,9 +267,14 @@ export class Timer {
 			return;
 		}
 
+		if (this.hasUnavailableDefinitions) {
+			this.rebindDefinitions();
+		}
+
 		const context: HandlerTriggerContext = {
 			trigger: triggerLabel,
-			data
+			data,
+			actionVariables: {}
 		};
 
 		void runHandlerChain(this.handlers, this as unknown as Action, context);

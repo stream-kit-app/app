@@ -52,6 +52,14 @@ pnpm add -D @stream-kit/plugin
 pnpm add @stream-kit/core
 ```
 
+For custom Svelte views or dashboard widgets (built-in-style plugins only), also add:
+
+```bash
+pnpm add -D @stream-kit/ui
+```
+
+Zip plugins that use declarative page blocks only do not need `@stream-kit/ui`.
+
 > **Monorepo contributors:** The same template source lives in [`packages/plugin-template/`](../../packages/plugin-template/) for internal development inside the Stream Kit repository.
 
 Update `manifest.json`:
@@ -179,6 +187,7 @@ Users install the zip from the **Plugins** page. See [Installing plugins](/docs/
 | Types (`Plugin`, `PluginAppApi`, handlers, triggers) | `@stream-kit/plugin` | `import type { Plugin } from '@stream-kit/plugin'` |
 | Runtime helpers | `@stream-kit/core` | `import { getFieldValue } from '@stream-kit/core'` |
 | `BaseDirectory`, `SeekMode` | `@stream-kit/plugin` | `import { BaseDirectory } from '@stream-kit/plugin'` |
+| Svelte UI (custom views/widgets only) | `@stream-kit/ui` | `import { Button } from '@stream-kit/ui/button'` |
 | Platform APIs | `app` parameter | `app.fs.readTextFile(...)`, `app.toast.create(...)` |
 
 **Never** import `@tauri-apps/*` in plugin code. The app owns all platform logic.
@@ -252,4 +261,5 @@ Zip plugins should use declarative page blocks (`text`, `form`, `button`, `card`
 - [Plugin authoring API](/docs/developers/plugin-api) — full contract, lifecycle hooks, widgets, i18n
 - [Installing plugins](/docs/developers/installing-plugins) — zip install from the Plugins page
 - [@stream-kit/plugin on npm](https://www.npmjs.com/package/@stream-kit/plugin) — types and API contract
+- [@stream-kit/ui on npm](https://www.npmjs.com/package/@stream-kit/ui) — Svelte UI primitives for custom views (optional)
 - [Plugin starter template](https://github.com/stream-kit-app/plugin-starter) — GitHub template repository

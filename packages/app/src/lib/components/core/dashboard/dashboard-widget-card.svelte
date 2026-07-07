@@ -54,20 +54,19 @@
 
 	const shellClass = $derived(
 		cn(
-			'relative flex min-w-0 flex-col gap-4 @container/widget',
+			'group/card relative flex min-w-0 flex-col overflow-hidden @container/widget',
 			columnSpanClass[instance.columns],
-			'rounded-lg border border-dark-600 bg-dark-800 p-4',
-			editMode && 'hover:border-dark-500',
+			'rounded-xl border border-dark-600 bg-dark-800 transition-colors hover:border-dark-500',
 			isOverlay && 'shadow-lg',
 			className
 		)
 	);
 </script>
 
-<div class={shellClass} {@attach rootRef}>
+<article class={shellClass} {@attach rootRef}>
 	{#if editMode}
 		<div
-			class="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2 gap-y-2 border-b border-dark-600 pb-3 @min-[24rem]/widget:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
+			class="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2 gap-y-2 border-b border-dark-700 p-4 pb-3 @min-[24rem]/widget:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
 		>
 			{#if !isOverlay}
 				<button
@@ -86,12 +85,12 @@
 			<div class="col-start-2 row-start-1 flex min-w-0 items-center gap-2">
 				{#if definition?.icon}
 					<div
-						class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-dark-700"
+						class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
 					>
 						<Icon icon={definition.icon} class="size-4" />
 					</div>
 				{/if}
-				<span class="truncate font-semibold text-dark-50">{displayTitle}</span>
+				<span class="truncate text-base font-semibold text-dark-50">{displayTitle}</span>
 			</div>
 
 			{#if !isOverlay}
@@ -112,14 +111,16 @@
 			{/if}
 		</div>
 	{:else if definition}
-		<div class="flex items-start gap-3">
+		<div class="flex items-start gap-3 p-4 pb-3">
 			{#if definition.icon}
-				<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-dark-700">
-					<Icon icon={definition.icon} class="h-5 w-5" />
+				<div
+					class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+				>
+					<Icon icon={definition.icon} class="size-5" />
 				</div>
 			{/if}
 			<div class="min-w-0 flex-1">
-				<h2 class="font-semibold text-dark-50">{displayTitle}</h2>
+				<h2 class="text-base font-semibold text-dark-50">{displayTitle}</h2>
 				{#if displayDescription}
 					<p class="mt-1 text-sm text-dark-100">{displayDescription}</p>
 				{/if}
@@ -127,7 +128,7 @@
 		</div>
 	{/if}
 
-	<div class="min-w-0 flex-1">
+	<div class="min-w-0 flex-1 border-t border-dark-700/80 bg-dark-900/50 px-4 py-3">
 		{#if definition}
 			<DashboardWidgetHost {definition} {unavailable} />
 		{:else}
@@ -138,4 +139,4 @@
 			/>
 		{/if}
 	</div>
-</div>
+</article>

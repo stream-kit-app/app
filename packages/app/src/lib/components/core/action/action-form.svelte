@@ -12,7 +12,6 @@
 	import { VariablePopover } from '@stream-kit/ui/variable-popover';
 
 	import { tooltip } from '$lib/attachments';
-	import { Action } from '$lib/core/action/action.svelte';
 	import {
 		getGlobalVariables,
 		getPrecedingActionVariablesForHandler,
@@ -26,6 +25,7 @@
 	import ConditionGroup from './condition-group.svelte';
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
 	import HandlerChainEditor from './handler-chain-editor.svelte';
+	import { scrollChainItemIntoView } from './scroll-chain-item';
 	import SortableChainList from './sortable-chain-list.svelte';
 
 	type Props = {
@@ -35,10 +35,6 @@
 	let { action }: Props = $props();
 	const { t } = useI18n();
 
-	async function handleSave() {
-		await action.save();
-	}
-
 	function addTrigger(definition: { id: string }) {
 		const found = getApp().actions.triggers.find(definition.id);
 
@@ -47,6 +43,11 @@
 		}
 
 		action.addTrigger(found);
+
+		const added = action.triggers[action.triggers.length - 1];
+		if (added) {
+			void scrollChainItemIntoView(added.id);
+		}
 	}
 
 	function reorderTriggers(triggers: ActionTrigger[]): void {
@@ -68,40 +69,6 @@
 	const onNameInput: FormEventHandler<HTMLInputElement> = (event) => {
 		action.name = event.currentTarget.value;
 	};
-
-	async function handleDelete() {
-		const confirmed = await getApp().confirm.ask({
-			title: t('Delete action'),
-			description: t('Are you sure you want to delete "{name}"? This cannot be undone.', {
-				name: action.name.trim() || t('this action')
-			}),
-			confirmLabel: t('Delete')
-		});
-
-		if (confirmed) {
-			await action.delete();
-		}
-	}
-
-	function handleCancel() {
-		action.close();
-	}
-
-	async function handleTest() {
-		await action.test();
-	}
-
-	function handleCloneAction(): void {
-		const clone = Action.createFrom(action);
-		action.close();
-		clone.open();
-	}
-
-	const canTest = $derived(
-		action.hasTestableTriggers &&
-			!action.execution.state.isRunning &&
-			action.handlers.length > 0
-	);
 
 	const NO_QUEUE_VALUE = 'none';
 
@@ -163,9 +130,9 @@
 		onValueChange={onQueueChange}
 	/>
 
-	<section class="grid gap-3">
-		<div class="flex flex-wrap items-center justify-between gap-2">
-			<div class="flex items-center gap-1">
+	<section class="grid">
+		<div class="col-start-1 row-start-1 grid gap-3">
+			<div class="-mx-8 flex items-center gap-1 bg-dark-800 px-8 py-2">
 				<Label>{t('Triggers')}</Label>
 				<VariablePopover
 					variables={globalVariables}
@@ -175,29 +142,23 @@
 					copiedLabel={t('Copied')}
 				/>
 			</div>
-			<DefinitionPickerDropdown
-				label={t('Add Trigger')}
-				definitions={getApp().actions.triggers.items}
-				onSelect={addTrigger}
-			/>
-		</div>
 
-		{#if action.formErrors?.triggers}
-			<p class="text-sm text-destructive-50">{action.formErrors.triggers}</p>
-		{/if}
+			{#if action.formErrors?.triggers}
+				<p class="text-sm text-destructive-50">{action.formErrors.triggers}</p>
+			{/if}
 
-		{#if action.triggers.length === 0}
-			<p class="text-sm text-dark-300">{t('No triggers added yet.')}</p>
-		{/if}
+			{#if action.triggers.length === 0}
+				<p class="text-sm text-dark-300">{t('No triggers added yet.')}</p>
+			{/if}
 
-		{#if action.triggers.length > 0}
-			<SortableChainList
-				items={action.triggers}
-				getId={(trigger: ActionTrigger) => trigger.id}
-				getLabel={triggerLabel}
-				sortableType="trigger"
-				onReorder={reorderTriggers}
-			>
+			{#if action.triggers.length > 0}
+				<SortableChainList
+					items={action.triggers}
+					getId={(trigger: ActionTrigger) => trigger.id}
+					getLabel={triggerLabel}
+					sortableType="trigger"
+					onReorder={reorderTriggers}
+				>
 				{#snippet itemContent(trigger: ActionTrigger)}
 					<div
 						class={cn(
@@ -287,54 +248,30 @@
 						{/if}
 					</div>
 				{/snippet}
-			</SortableChainList>
-		{/if}
+				</SortableChainList>
+			{/if}
+		</div>
+
+		<div
+			class="pointer-events-none sticky top-1 z-10 col-start-1 row-start-1 self-start justify-self-end py-2"
+		>
+			<div class="pointer-events-auto">
+				<DefinitionPickerDropdown
+					label={t('Add Trigger')}
+					definitions={getApp().actions.triggers.items}
+					onSelect={addTrigger}
+				/>
+			</div>
+		</div>
 	</section>
 
 	<HandlerChainEditor
 		host={action}
 		definitions={getApp().actions.actions.items}
 		formErrors={action.formErrors}
-		contextVariablesForHandler={contextVariablesForHandler}
-		globalVariables={globalVariables}
+		{contextVariablesForHandler}
+		{globalVariables}
 		showVariablePopover
 		onAddHandler={addHandler}
 	/>
-
-	<div class="flex flex-wrap items-center gap-2">
-		{#if action.id != null}
-			<Button
-				type="button"
-				variant="outline"
-				onclick={handleCloneAction}
-				icon="clarity:clone-line"
-			>
-				{t('Clone')}
-			</Button>
-		{/if}
-		<Button
-			type="button"
-			variant="outline"
-			disabled={!canTest}
-			onclick={() => void handleTest()}
-			icon="ri:play-line"
-		>
-			{t('Test')}
-		</Button>
-		{#if action.id != null}
-			<Button
-				type="button"
-				variant="destructive"
-				onclick={() => void handleDelete()}
-				icon="ri:delete-bin-line"
-				class="ms-auto"
-			>
-				{t('Delete')}
-			</Button>
-		{/if}
-		<Button type="button" variant="ghost" onclick={() => void handleCancel()}>
-			{t('Cancel')}
-		</Button>
-		<Button type="submit" onclick={() => void handleSave()}>{t('Save')}</Button>
-	</div>
 </form>

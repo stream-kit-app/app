@@ -10,14 +10,22 @@ import { ChatClient as TwurpleChatClient } from '@twurple/chat';
 import { EventSubWsListener as TwurpleEventSubWsListener } from '@twurple/eventsub-ws';
 
 import { TWITCH_CLIENT_ID } from '../config';
+import {
+	createTwitchBotAccountApi,
+	type TwitchBotAccountApi,
+	type TwitchBotAccountController
+} from './bot-account';
 import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
 import { clearBadgeCache, refreshBadgeCache } from './badge-cache';
+import { describeOAuthError, parseImplicitOAuthCallback } from './oauth-callback';
 
 export type ValidatedTokenInfo = TokenInfo & { userId: string };
 
 type TwitchStateListener = () => void;
 
 const ACCESS_TOKEN_KEY = 'access_token';
+
+export type { TwitchBotAccountApi } from './bot-account';
 
 export type TwitchPluginApi = {
 	readonly isConnected: boolean;
@@ -28,8 +36,10 @@ export type TwitchPluginApi = {
 	readonly client: ApiClient | undefined;
 	readonly chat: ChatClient | undefined;
 	readonly eventSub: EventSubWsListener | undefined;
+	readonly botAccount: TwitchBotAccountApi;
 	startOAuth(): Promise<void>;
 	disconnect(): Promise<void>;
+	sendChatMessageAsBot(broadcasterId: string, message: string): Promise<void>;
 	subscribe(listener: TwitchStateListener): () => void;
 	subscribeChatMessages: (
 		filter: (context: import('../contexts').ChatMessageContext) => boolean,
@@ -46,6 +56,7 @@ export function createTwitchPluginApi(
 	store: PluginStore
 ): TwitchPluginController {
 	const listeners = new Set<TwitchStateListener>();
+	let botAccountController: TwitchBotAccountController | undefined;
 	let isConnected = false;
 	let isAuthenticating = false;
 	let accessToken: string | undefined;
@@ -168,6 +179,28 @@ export function createTwitchPluginApi(
 		notify();
 	}
 
+	const botAccountApi: TwitchBotAccountApi = {
+		get isConnected() {
+			return botAccountController?.isConnected ?? false;
+		},
+		get isAuthenticating() {
+			return botAccountController?.isAuthenticating ?? false;
+		},
+		get userId() {
+			return botAccountController?.userId;
+		},
+		get userName() {
+			return botAccountController?.userName;
+		},
+		startOAuth: async () => {
+			await botAccountController?.startOAuth();
+		},
+		disconnect: async () => {
+			await botAccountController?.disconnect();
+		},
+		subscribe: (listener) => botAccountController?.subscribe(listener) ?? (() => {})
+	};
+
 	const api: TwitchPluginController = {
 		get isConnected() {
 			return isConnected;
@@ -192,6 +225,21 @@ export function createTwitchPluginApi(
 		},
 		get eventSub() {
 			return eventSub;
+		},
+		get botAccount() {
+			return botAccountApi;
+		},
+		async sendChatMessageAsBot(broadcasterId, message) {
+			if (!botAccountController?.isConnected) {
+				app.toast.create({
+					title: 'Bot account not connected',
+					description: 'Connect a Twitch bot account from Bot → Overview to send as bot.',
+					variant: 'warning'
+				});
+				return;
+			}
+
+			await botAccountController.sendChatMessage(broadcasterId, message);
 		},
 		async startOAuth() {
 			if (!TWITCH_CLIENT_ID) {
@@ -218,18 +266,26 @@ export function createTwitchPluginApi(
 
 			await app.opener.openUrl(url.toString());
 			void app.oauth.onUrl((value: string) => {
-				const callbackUrl = new URL(value);
-				const hash = callbackUrl.hash.substring(1);
-				const params = new URLSearchParams(hash);
-				const { access_token } = Object.fromEntries(params.entries());
+				const callback = parseImplicitOAuthCallback(value);
 
-				if (!access_token) {
+				if (callback.error) {
+					isAuthenticating = false;
+					app.toast.create({
+						title: 'Twitch authorization failed',
+						description: describeOAuthError(callback.error, callback.errorDescription, port),
+						variant: 'error'
+					});
+					notify();
 					return;
 				}
 
-				void store.set(ACCESS_TOKEN_KEY, access_token);
+				if (!callback.accessToken) {
+					return;
+				}
+
+				void store.set(ACCESS_TOKEN_KEY, callback.accessToken);
 				isAuthenticating = false;
-				void connect(access_token);
+				void connect(callback.accessToken);
 				notify();
 			});
 			void app.oauth.onInvalidUrl(() => {
@@ -255,11 +311,15 @@ export function createTwitchPluginApi(
 		},
 		subscribeChatMessages: (filter, handler) => subscribeMessages(app, filter, handler),
 		async boot() {
+			botAccountController = createTwitchBotAccountApi(app, store, () => userId);
+
 			const storedAccessToken = await store.get<string>(ACCESS_TOKEN_KEY);
 
 			if (storedAccessToken) {
 				await connect(storedAccessToken);
 			}
+
+			await botAccountController.boot();
 		}
 	};
 

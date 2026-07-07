@@ -14,7 +14,7 @@ PR with changeset → merge to main → Version Packages PR → merge → git ta
                                                                                               ↓
                                                                                     Microsoft Store (optional)
                                                                                               ↓
-                                                                              npm (@stream-kit/plugin, @stream-kit/core)
+                                                                              npm (@stream-kit/plugin, @stream-kit/core, @stream-kit/ui)
                                                                                               ↓
                                                                               plugin distribution zips (Publish Plugins)
 ```
@@ -23,7 +23,7 @@ PR with changeset → merge to main → Version Packages PR → merge → git ta
 | ------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | [`.github/workflows/release.yml`](../.github/workflows/release.yml)             | Push to `main`                   | Opens or updates a **Version Packages** PR; on merge, creates a `v*` git tag and dispatches the build |
 | [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` or manual dispatch | Builds Windows installers and optionally publishes an MSIX bundle to the Microsoft Store              |
-| [`.github/workflows/publish-npm.yml`](../.github/workflows/publish-npm.yml)       | Push tag `v*`                    | Publishes `@stream-kit/plugin` and `@stream-kit/core` to the public npm registry                      |
+| [`.github/workflows/publish-npm.yml`](../.github/workflows/publish-npm.yml)       | Push tag `v*`                    | Publishes `@stream-kit/plugin`, `@stream-kit/core`, and `@stream-kit/ui` to the public npm registry   |
 | [`.github/workflows/publish-plugins.yml`](../.github/workflows/publish-plugins.yml) | Push tag `v*` or manual dispatch | Publishes first-party plugin distribution zips to GitHub distribution repos                           |
 
 ## Adding a changeset
@@ -43,15 +43,15 @@ pnpm changeset
 
 Packages like `@stream-kit/site` are ignored. Workspace deps are not versioned unless you add a changeset for them.
 
-### Plugin SDK (`@stream-kit/plugin` + `@stream-kit/core`)
+### Plugin SDK (`@stream-kit/plugin`, `@stream-kit/core`, `@stream-kit/ui`)
 
-When you change the public plugin API or shared runtime helpers in [`packages/plugin/`](../packages/plugin/) or [`packages/core/`](../packages/core/):
+When you change the public plugin API, shared runtime helpers, or UI primitives in [`packages/plugin/`](../packages/plugin/), [`packages/core/`](../packages/core/), or [`packages/ui/`](../packages/ui/):
 
-1. Run `pnpm changeset` and select **both** `@stream-kit/plugin` and `@stream-kit/core` (they are **linked** in [`.changeset/config.json`](../.changeset/config.json) and always share the same version).
+1. Run `pnpm changeset` and select the affected SDK packages (they are **linked** in [`.changeset/config.json`](../.changeset/config.json) and always share the same version).
 2. Choose the bump type and write a summary for plugin authors.
 3. Commit the changeset with your PR.
 
-After the Version Packages PR merges, CI publishes both packages to npm when the `v*` tag is pushed.
+After the Version Packages PR merges, CI publishes all three packages to npm when the `v*` tag is pushed.
 
 ## Release flow
 
@@ -95,7 +95,7 @@ Commit the result, then continue with the normal release flow.
 
 ## Version sync
 
-[`packages/app/package.json`](../packages/app/package.json) is versioned independently by Changesets. [`@stream-kit/plugin`](../packages/plugin/package.json) and [`@stream-kit/core`](../packages/core/package.json) share a linked version.
+[`packages/app/package.json`](../packages/app/package.json) is versioned independently by Changesets. [`@stream-kit/plugin`](../packages/plugin/package.json), [`@stream-kit/core`](../packages/core/package.json), and [`@stream-kit/ui`](../packages/ui/package.json) share a linked version.
 
 After each `changeset version`, [`scripts/sync-app-version.mjs`](../scripts/sync-app-version.mjs) copies the app version to:
 
@@ -126,7 +126,7 @@ Output:
 
 ## npm publish (plugin SDK)
 
-`@stream-kit/plugin` and `@stream-kit/core` are published to the **public** npm registry under the `@stream-kit` scope. They ship with an MIT license (see `packages/plugin/LICENSE` and `packages/core/LICENSE`), separate from the source-available license on the main app repository.
+`@stream-kit/plugin`, `@stream-kit/core`, and `@stream-kit/ui` are published to the **public** npm registry under the `@stream-kit` scope. They ship with an MIT license (see `packages/plugin/LICENSE`, `packages/core/LICENSE`, and `packages/ui/LICENSE`), separate from the source-available license on the main app repository.
 
 ### Manual publish
 
@@ -163,7 +163,7 @@ Then enable **Template repository** in the GitHub repo settings for the **Use th
 | ------------------------ | ------------------------------------------------------------------------------------------------ |
 | `GITHUB_TOKEN`           | Provided by GitHub Actions for releases and changesets                                           |
 | `CHANGESET_GITHUB_TOKEN` | Optional PAT for creating Changesets PRs and pushing tags when org settings block `GITHUB_TOKEN` |
-| `NPM_TOKEN`              | npm automation token with publish access to `@stream-kit/plugin` and `@stream-kit/core`          |
+| `NPM_TOKEN`              | npm automation token with publish access to `@stream-kit/plugin`, `@stream-kit/core`, and `@stream-kit/ui` |
 | `PLUGIN_PUBLISH_TOKEN`   | PAT with `repo` scope to push manifests and releases to `stream-kit-app/plugin-*` distribution repos (required for **Publish Plugins** CI; `GITHUB_TOKEN` cannot write to other repositories) |
 
 ### Plugin distribution repos (required for Publish Plugins CI)

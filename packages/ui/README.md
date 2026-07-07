@@ -4,6 +4,18 @@ Shared Svelte 5 UI primitives for Stream Kit.
 
 The app uses this package to render first-party screens and declarative plugin menu pages. Plugin menu page authors should define page schemas from `@stream-kit/plugin`; Stream Kit renders those schemas with these components.
 
+## Installation (plugin authors)
+
+Add as a **dev dependency** when you build custom Svelte views or dashboard widgets. Zip plugins that use declarative page blocks only do not need this package.
+
+```bash
+npm install --save-dev @stream-kit/ui @stream-kit/plugin @stream-kit/core
+```
+
+At runtime Stream Kit resolves `@stream-kit/ui` from the plugin host import map (`/plugin-host/@stream-kit/ui/*`). **Do not bundle** `@stream-kit/ui` into your plugin entry. Externalize it in your Vite or Rollup config alongside `svelte`, `@stream-kit/plugin`, and `@stream-kit/core`.
+
+Match the npm version to the Stream Kit app version you target so types align with the host bundles.
+
 ## App Usage
 
 ```svelte
@@ -44,6 +56,26 @@ const plugin: Plugin = (app) => ({
 
 export default plugin;
 ```
+
+## Plugin custom views
+
+Built-in-style plugins with `customViews` or dashboard widgets can import Svelte components:
+
+```svelte
+<script lang="ts">
+	import { Button } from '@stream-kit/ui/button';
+	import { Container } from '@stream-kit/ui/container';
+	import type { PluginCustomViewProps } from '@stream-kit/plugin';
+
+	let { app }: PluginCustomViewProps = $props();
+</script>
+
+<Container size="md" class="px-6 py-6">
+	<Button onclick={() => app.toast.create({ title: 'Hello' })}>Click me</Button>
+</Container>
+```
+
+External zip plugins cannot register `customViews`; they use declarative page blocks instead.
 
 ## Notes
 

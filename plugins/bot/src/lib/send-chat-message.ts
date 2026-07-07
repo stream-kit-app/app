@@ -1,25 +1,28 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
 
+import type { BotPluginRegistrationApi } from './plugin-api';
+
 type TwitchPluginApi = {
 	readonly userId?: string;
-	readonly client?: {
-		chat: {
-			sendChatMessageAsApp(
-				senderId: string,
-				broadcasterId: string,
-				message: string
-			): Promise<void>;
-		};
+	readonly botAccount: {
+		readonly isConnected: boolean;
 	};
 	readonly chat?: {
 		say(channel: string, message: string): Promise<void>;
 	};
+	sendChatMessageAsBot(broadcasterId: string, message: string): Promise<void>;
 };
 
 type YouTubePluginApi = {
 	readonly liveChatId?: string;
 	sendMessage(text: string): Promise<boolean>;
 };
+
+function shouldSendAsBot(app: PluginAppApi): boolean {
+	const bot = app.plugins.tryGet<BotPluginRegistrationApi>('bot');
+
+	return bot?.settings.sendAsBot ?? true;
+}
 
 export async function sendChatMessage(
 	app: PluginAppApi,
@@ -50,20 +53,16 @@ export async function sendChatMessage(
 
 	const twitch = app.plugins.tryGet<TwitchPluginApi>('twitch');
 
-	if (!twitch?.chat) {
+	if (!twitch) {
 		return;
 	}
 
-	if (twitch.userId && twitch.client && context.broadcasterId) {
-		await twitch.client.chat.sendChatMessageAsApp(
-			twitch.userId,
-			context.broadcasterId,
-			trimmed
-		);
+	if (shouldSendAsBot(app) && context.broadcasterId) {
+		await twitch.sendChatMessageAsBot(context.broadcasterId, trimmed);
 		return;
 	}
 
-	if (context.channel) {
+	if (context.channel && twitch.chat) {
 		await twitch.chat.say(context.channel, trimmed);
 	}
 }

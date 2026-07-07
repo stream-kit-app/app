@@ -10,6 +10,7 @@ type GetValue = (key: string) => string | boolean | number | undefined;
 export type ObsPluginApi = {
 	readonly isConnected: boolean;
 	readonly isConnecting: boolean;
+	readonly isWaitingForConnection: boolean;
 	readonly connectionError: string | undefined;
 	readonly obsVersion: string | undefined;
 	readonly client: OBSWebSocket | undefined;
@@ -19,16 +20,36 @@ export type ObsPluginApi = {
 	subscribe(listener: ObsStateListener): () => void;
 };
 
+const RECONNECT_DELAY_MS = 5_000;
+
 export type ObsPluginController = ObsPluginApi & {
 	boot(): Promise<void>;
 	reconnectFromSettings(): Promise<void>;
 	setGetValue(getValue: GetValue): void;
 };
 
+export function isObsConnectionConfigured(
+	getValue: (key: string) => string | boolean | number | undefined
+): boolean {
+	return hasCompleteConnectionSettings(getValue);
+}
+
+function hasCompleteConnectionSettings(getValue: GetValue): boolean {
+	const host = String(getValue('host') ?? '').trim();
+	const port = String(getValue('port') ?? '').trim();
+	const password = String(getValue('password') ?? '').trim();
+
+	return Boolean(host && port && password);
+}
+
 function readConnectionSettings(getValue: GetValue): { address: string; password: string } | null {
+	if (!hasCompleteConnectionSettings(getValue)) {
+		return null;
+	}
+
 	const host = String(getValue('host') ?? '127.0.0.1').trim() || '127.0.0.1';
 	const port = String(getValue('port') ?? '4455').trim() || '4455';
-	const password = String(getValue('password') ?? '');
+	const password = String(getValue('password') ?? '').trim();
 
 	if (!host) {
 		return null;
@@ -41,6 +62,25 @@ function readConnectionSettings(getValue: GetValue): { address: string; password
 	return { address: `ws://${host}:${port}`, password };
 }
 
+function parseWsAddress(address: string): { host: string; port: number } | null {
+	try {
+		const url = new URL(address);
+		const port = url.port
+			? Number(url.port)
+			: url.protocol === 'wss:'
+				? 443
+				: 80;
+
+		if (!url.hostname || !Number.isFinite(port)) {
+			return null;
+		}
+
+		return { host: url.hostname, port };
+	} catch {
+		return null;
+	}
+}
+
 export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 	const listeners = new Set<ObsStateListener>();
 	let getValue: GetValue = () => undefined;
@@ -51,6 +91,7 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 	let client: OBSWebSocket | undefined;
 	let unbindEvents: (() => void) | undefined;
 	let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+	let autoConnectEnabled = true;
 
 	function notify(): void {
 		for (const listener of listeners) {
@@ -94,15 +135,17 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 		unbindEvents?.();
 		unbindEvents = undefined;
 
-		if (client) {
+		const activeClient = client;
+		client = undefined;
+
+		if (activeClient) {
 			try {
-				await client.disconnect();
+				await activeClient.disconnect();
 			} catch {
 				// Ignore disconnect errors when already disconnected.
 			}
 
-			client.removeAllListeners();
-			client = undefined;
+			activeClient.removeAllListeners();
 		}
 
 		setState({
@@ -113,17 +156,52 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 	}
 
 	function scheduleReconnect(): void {
-		if (reconnectTimer) {
+		if (!autoConnectEnabled || reconnectTimer) {
 			return;
 		}
 
 		reconnectTimer = setTimeout(() => {
 			reconnectTimer = undefined;
-			void connect();
-		}, 5_000);
+			void attemptConnect().catch(() => {
+				// Errors are handled inside attemptConnect().
+			});
+		}, RECONNECT_DELAY_MS);
 	}
 
-	async function connect(): Promise<void> {
+	async function isObsReachable(address: string): Promise<boolean> {
+		const parsed = parseWsAddress(address);
+
+		if (!parsed) {
+			return true;
+		}
+
+		return app.network.isTcpPortReachable(parsed.host, parsed.port, 1_000);
+	}
+
+	async function skipConnectUntilObsIsReachable(
+		settings: { address: string },
+		scheduleRetry: boolean
+	): Promise<boolean> {
+		const reachable = await isObsReachable(settings.address);
+
+		if (reachable) {
+			return false;
+		}
+
+		setState({
+			isConnected: false,
+			isConnecting: false,
+			connectionError: undefined
+		});
+
+		if (scheduleRetry) {
+			scheduleReconnect();
+		}
+
+		return true;
+	}
+
+	async function attemptConnect(options?: { retryOnFailure?: boolean }): Promise<void> {
 		if (isConnecting) {
 			return;
 		}
@@ -132,8 +210,14 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 
 		if (!settings) {
 			setState({
-				connectionError: 'Host is required to connect to OBS.'
+				connectionError: 'Host, port, and password are required to connect to OBS.'
 			});
+			return;
+		}
+
+		const willRetryOnFailure = options?.retryOnFailure ?? autoConnectEnabled;
+
+		if (willRetryOnFailure && (await skipConnectUntilObsIsReachable(settings, true))) {
 			return;
 		}
 
@@ -179,6 +263,10 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 				connectionError: message
 			});
 
+			if (options?.retryOnFailure ?? autoConnectEnabled) {
+				scheduleReconnect();
+			}
+
 			throw error;
 		}
 	}
@@ -189,6 +277,9 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 		},
 		get isConnecting() {
 			return isConnecting;
+		},
+		get isWaitingForConnection() {
+			return autoConnectEnabled && !isConnected && !isConnecting;
 		},
 		get connectionError() {
 			return connectionError;
@@ -203,40 +294,59 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 			getValue = nextGetValue;
 		},
 		async boot() {
+			autoConnectEnabled = true;
+
 			const settings = readConnectionSettings(getValue);
 
 			if (!settings) {
 				return;
 			}
 
-			try {
-				await connect();
-			} catch (error) {
-				console.warn('OBS plugin failed to connect on boot', error);
-			}
+			await attemptConnect();
 		},
 		async reconnectFromSettings() {
-			if (!isConnected) {
+			if (!autoConnectEnabled && !isConnected) {
 				return;
 			}
 
-			try {
-				await connect();
-			} catch (error) {
-				console.warn('OBS plugin failed to reconnect after settings save', error);
-			}
+			await attemptConnect();
 		},
-		connect,
+		async connect() {
+			autoConnectEnabled = true;
+			await attemptConnect();
+		},
 		async disconnect() {
+			autoConnectEnabled = false;
 			await teardown();
 			connectionError = undefined;
 			notify();
 		},
 		async testConnection() {
+			const shouldResumePolling = autoConnectEnabled && !isConnected;
+			const settings = readConnectionSettings(getValue);
+
+			if (!settings) {
+				setState({
+					connectionError: 'Host, port, and password are required to connect to OBS.'
+				});
+				return false;
+			}
+
+			if (await skipConnectUntilObsIsReachable(settings, shouldResumePolling)) {
+				setState({
+					connectionError: 'Could not reach OBS Studio on the configured host and port.'
+				});
+				return false;
+			}
+
 			try {
-				await connect();
+				await attemptConnect({ retryOnFailure: false });
 				return true;
 			} catch {
+				if (shouldResumePolling) {
+					scheduleReconnect();
+				}
+
 				return false;
 			}
 		},

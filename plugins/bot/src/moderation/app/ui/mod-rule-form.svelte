@@ -2,7 +2,6 @@
 	import type { ModRule } from '../lib/mod-rule.svelte';
 	import type { ModRuleAction, ModRulePlatform } from '../lib/stored-mod-rule';
 
-	import { Button } from '@stream-kit/ui/button';
 	import {
 		InputCheckbox,
 		InputSelect,
@@ -144,33 +143,4 @@
 	</section>
 
 	<InputSwitch label={t('Enabled')} bind:checked={rule.enabled} />
-
-	<div class="flex flex-wrap justify-between gap-3">
-		{#if rule.id != null}
-			<Button
-				variant="destructive"
-				type="button"
-				onclick={async () => {
-					const confirmed = await app.confirm.ask({
-						title: t('Delete rule'),
-						description: t('Are you sure you want to delete "{name}"?', {
-							name: rule.name.trim() || t('this rule')
-						}),
-						confirmLabel: t('Delete')
-					});
-					if (confirmed) await rule.delete();
-				}}
-				icon="ri:delete-bin-line"
-			>
-				{t('Delete')}
-			</Button>
-		{:else}
-			<div></div>
-		{/if}
-
-		<div class="flex gap-2">
-			<Button variant="ghost" type="button" onclick={() => rule.close()}>{t('Cancel')}</Button>
-			<Button type="button" onclick={() => void rule.save()}>{t('Save')}</Button>
-		</div>
-	</div>
 </form>

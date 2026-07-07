@@ -68,6 +68,8 @@ export class App extends Bootable {
 			title: props.title,
 			description: props.description,
 			content: props.content,
+			header: props.header,
+			footer: props.footer,
 			props: props.props,
 			size: props.size,
 			contentHost: props.contentHost,

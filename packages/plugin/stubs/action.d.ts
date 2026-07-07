@@ -9,7 +9,11 @@ export type { ConditionFormErrors } from '../../../app/src/lib/core/action/valid
 export { ActionHandler } from '../../../app/src/lib/core/action/action-handler.svelte';
 export { HandlerDefinition } from '../../../app/src/lib/core/action/handler/handler-definition.svelte';
 export { runHandlerChain } from '../../../app/src/lib/core/action/run-handler-chain';
-export { migrateLegacyHandlerFields, getHandlerFieldValue } from '../../../app/src/lib/core/action/handler-field';
+export {
+	createHandlerFields,
+	migrateLegacyHandlerFields,
+	getHandlerFieldValue
+} from '../../../app/src/lib/core/action/handler-field';
 export {
 	findHandler,
 	findHandlerLocation,

@@ -143,11 +143,11 @@
 					class="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 hover:bg-dark-700/50"
 				>
 					<div class="flex min-w-0 items-center gap-3">
-						<div
-							class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-dark-700"
-						>
-							<Icon icon="ri:database-2-line" class="size-4" />
-						</div>
+					<div
+						class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+					>
+						<Icon icon="ri:database-2-line" class="size-4" />
+					</div>
 						<div class="min-w-0">
 							<p class="truncate font-medium text-dark-50">{collection.collectionName}</p>
 							<p class="text-xs text-dark-300">
@@ -156,19 +156,20 @@
 						</div>
 					</div>
 					<div class="flex shrink-0 items-center gap-2">
-						<Badge variant={collection.lifetime === 'session' ? 'secondary' : 'success'}>
+						<Badge variant={collection.lifetime === 'session' ? 'secondary' : 'success'} size="sm">
 							{collection.lifetime === 'session' ? t('Session') : t('Persistent')}
 						</Badge>
 						<Button
-							variant="ghost"
-							size="sm"
+							variant="outline"
+							size="badge"
+							icon="ri:pencil-line"
 							onclick={() => openEditor(collection.collectionName)}
 						>
 							{t('Edit')}
 						</Button>
 						<Button
 							variant="ghost"
-							size="icon-sm"
+							size="icon-badge"
 							icon="ri:delete-bin-line"
 							aria-label={t('Delete')}
 							onclick={() => void handleDeleteCollection(collection.collectionName)}

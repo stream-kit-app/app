@@ -127,18 +127,20 @@
 	}
 </script>
 
-<div class="flex min-h-0 flex-1 flex-col gap-4">
+<div class="flex min-h-0 flex-1 flex-col">
 	{#if collectionsApi == null}
 		<p class="text-sm text-dark-100">{t('Core plugin unavailable')}</p>
 	{:else if collections.length === 0}
-		<p class="text-sm text-dark-100">{t('No collections yet')}</p>
+		<p class="text-sm text-dark-300">{t('No collections yet')}</p>
 	{:else}
-		<div class="flex flex-col gap-2 text-sm">
+		<div class="flex flex-col gap-1 text-sm">
 			{#each collections as collection (collection.collectionName)}
-				<div class="flex items-center justify-between gap-3">
+				<div
+					class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 transition hover:bg-dark-700/50"
+				>
 					<div class="flex min-w-0 items-center gap-3">
 						<div
-							class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-dark-700"
+							class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
 						>
 							<Icon icon="ri:database-2-line" class="size-4" />
 						</div>
@@ -150,19 +152,20 @@
 						</div>
 					</div>
 					<div class="flex shrink-0 items-center gap-2">
-						<Badge variant={collection.lifetime === 'session' ? 'default' : 'success'}>
+						<Badge variant={collection.lifetime === 'session' ? 'default' : 'success'} size="sm">
 							{collection.lifetime === 'session' ? t('Session') : t('Persistent')}
 						</Badge>
 						<Button
 							variant="outline"
-							size="sm"
+							size="badge"
+							icon="ri:pencil-line"
 							onclick={() => openEditor(collection.collectionName)}
 						>
 							{t('Edit')}
 						</Button>
 						<Button
 							variant="ghost"
-							size="icon-sm"
+							size="icon-badge"
 							icon="ri:delete-bin-line"
 							aria-label={t('Delete')}
 							onclick={() => void handleDeleteCollection(collection.collectionName)}
@@ -173,8 +176,13 @@
 		</div>
 	{/if}
 
-	<div class="mt-auto flex flex-wrap gap-2">
-		<Button icon="ri:add-line" disabled={collectionsApi == null} onclick={openCreateCollection}>
+	<div class="mt-3 border-t border-dark-700 pt-3">
+		<Button
+			size="sm"
+			icon="ri:add-line"
+			disabled={collectionsApi == null}
+			onclick={openCreateCollection}
+		>
 			{t('Create collection')}
 		</Button>
 	</div>

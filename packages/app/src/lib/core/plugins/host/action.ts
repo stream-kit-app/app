@@ -1,7 +1,11 @@
 export { ActionHandler, type HandlerFieldFormErrors, type HandlerBranch } from '../../action/action-handler.svelte';
 export { HandlerDefinition } from '../../action/handler/handler-definition.svelte';
 export { runHandlerChain } from '../../action/run-handler-chain';
-export { migrateLegacyHandlerFields, getHandlerFieldValue } from '../../action/handler-field';
+export {
+	createHandlerFields,
+	migrateLegacyHandlerFields,
+	getHandlerFieldValue
+} from '../../action/handler-field';
 export {
 	findHandler,
 	findHandlerDefinition,

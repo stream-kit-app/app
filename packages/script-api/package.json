@@ -1,0 +1,63 @@
+{
+	"name": "@stream-kit/script-api",
+	"version": "0.1.0-alpha.0",
+	"description": "Ambient TypeScript definitions for Stream Kit action scripts",
+	"type": "module",
+	"license": "MIT",
+	"private": true,
+	"exports": {
+		".": {
+			"types": "./src/index.d.ts",
+			"svelte": "./src/index.d.ts",
+			"import": "./src/index.d.ts",
+			"default": "./src/index.d.ts"
+		},
+		"./index.d.ts": {
+			"types": "./src/index.d.ts",
+			"svelte": "./src/index.d.ts",
+			"import": "./src/index.d.ts",
+			"default": "./src/index.d.ts"
+		},
+		"./trigger-map": {
+			"svelte": "./src/trigger-map.json",
+			"import": "./src/trigger-map.json",
+			"default": "./src/trigger-map.json"
+		},
+		"./trigger-data": {
+			"types": "./src/trigger-data.d.ts",
+			"svelte": "./src/trigger-data.d.ts",
+			"import": "./src/trigger-data.d.ts",
+			"default": "./src/trigger-data.d.ts"
+		},
+		"./trigger-data.d.ts": {
+			"types": "./src/trigger-data.d.ts",
+			"svelte": "./src/trigger-data.d.ts",
+			"import": "./src/trigger-data.d.ts",
+			"default": "./src/trigger-data.d.ts"
+		},
+		"./plugin-app-api": {
+			"types": "./src/plugin-app-api.d.ts",
+			"svelte": "./src/plugin-app-api.d.ts",
+			"import": "./src/plugin-app-api.d.ts",
+			"default": "./src/plugin-app-api.d.ts"
+		},
+		"./plugin-app-api.d.ts": {
+			"types": "./src/plugin-app-api.d.ts",
+			"svelte": "./src/plugin-app-api.d.ts",
+			"import": "./src/plugin-app-api.d.ts",
+			"default": "./src/plugin-app-api.d.ts"
+		},
+		"./runtime": {
+			"types": "./src/runtime.ts",
+			"svelte": "./src/runtime.ts",
+			"import": "./src/runtime.ts",
+			"default": "./src/runtime.ts"
+		}
+	},
+	"files": [
+		"src"
+	],
+	"scripts": {
+		"generate": "node ../../scripts/generate-script-api-types.mjs"
+	}
+}

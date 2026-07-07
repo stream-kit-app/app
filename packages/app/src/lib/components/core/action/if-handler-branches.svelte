@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Action } from '$lib/core/action/action.svelte';
 	import type { ActionHandler, HandlerBranch } from '$lib/core/action/action-handler.svelte';
 	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
 	import type { PluginAppApi } from '@stream-kit/plugin';
@@ -21,6 +22,7 @@
 	import IfHandlerBranches from './if-handler-branches.svelte';
 	import SortableChainList from './sortable-chain-list.svelte';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
+	import { scrollChainItemIntoView } from './scroll-chain-item';
 	import type { HandlerChainEditorHost } from './handler-chain-editor.types';
 
 	type Props = {
@@ -44,6 +46,9 @@
 	}: Props = $props();
 
 	const t = $derived(resolveTranslate(translateProp));
+	const action = $derived(
+		'triggers' in host && 'id' in host ? (host as Action) : undefined
+	);
 
 	const branches: Array<{ key: HandlerBranch; label: string }> = $derived([
 		{ key: 'then', label: t('Then') },
@@ -58,6 +63,12 @@
 		}
 
 		host.addHandler(found, { parentId: parentHandler.id, branch });
+
+		const branchHandlers = parentHandler.getBranchHandlers(branch);
+		const added = branchHandlers[branchHandlers.length - 1];
+		if (added) {
+			void scrollChainItemIntoView(added.id);
+		}
 	}
 
 	function handlerLabel(handler: ActionHandler): string {
@@ -107,6 +118,7 @@
 					>
 						{#snippet itemContent(handler: ActionHandler)}
 							<HandlerChainCard
+								{action}
 								{host}
 								{definitions}
 								{handler}

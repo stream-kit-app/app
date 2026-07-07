@@ -2,7 +2,13 @@ import type { CommandMatch } from '@stream-kit/core';
 import type { PluginAppApi } from '@stream-kit/plugin';
 import type { CommandRecord } from '@stream-kit/plugin';
 
-import { isOnCooldown, markCooldown, type CooldownState } from './cooldown';
+import { sendChatMessage } from '../../lib/send-chat-message';
+import {
+	formatCooldownChatMessage,
+	getCooldownBlock,
+	markCooldown,
+	type CooldownState
+} from './cooldown';
 import { hasPermission } from './permissions';
 
 type CommandContext = Record<string, unknown> & {
@@ -12,6 +18,9 @@ type CommandContext = Record<string, unknown> & {
 	userId: string;
 	message: string;
 	role: string;
+	channel?: string;
+	broadcasterId?: string;
+	liveChatId?: string;
 };
 
 function buildCommandContext(
@@ -26,14 +35,15 @@ function buildCommandContext(
 	};
 }
 
-export function executeCommand(
+export async function executeCommand(
 	app: PluginAppApi,
 	command: CommandRecord,
 	context: CommandContext,
 	source: CommandRecord['sources'][number],
 	cooldownState: CooldownState,
-	match: CommandMatch
-): void {
+	match: CommandMatch,
+	prefix: string
+): Promise<void> {
 	if (!command.sources.includes(source)) {
 		return;
 	}
@@ -42,15 +52,26 @@ export function executeCommand(
 		return;
 	}
 
-	if (
-		isOnCooldown(
-			cooldownState,
-			command.id,
-			context.userId,
-			command.cooldownGlobalMs,
-			command.cooldownUserMs
-		)
-	) {
+	const cooldownBlock = getCooldownBlock(
+		cooldownState,
+		command.id,
+		context.userId,
+		command.cooldownGlobalMs,
+		command.cooldownUserMs
+	);
+
+	if (cooldownBlock) {
+		await sendChatMessage(
+			app,
+			source,
+			{
+				channel: context.channel,
+				broadcasterId: context.broadcasterId,
+				liveChatId: context.liveChatId
+			},
+			formatCooldownChatMessage(match.command, prefix, cooldownBlock)
+		);
+
 		return;
 	}
 

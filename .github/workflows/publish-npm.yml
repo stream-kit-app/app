@@ -45,7 +45,7 @@ jobs:
               run: pnpm install --frozen-lockfile
 
             - name: Build SDK packages
-              run: pnpm --filter @stream-kit/core build && pnpm --filter @stream-kit/plugin build
+              run: pnpm --filter @stream-kit/core build && pnpm --filter @stream-kit/plugin build && pnpm --filter @stream-kit/ui build
 
             - name: Publish to npm
               env:

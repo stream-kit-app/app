@@ -13,6 +13,7 @@ export const createRunScriptHandler = (app: PluginAppApi) => {
 				name: 'Script',
 				language: 'typescript',
 				required: true,
+				placeholder: 'export default defineScript(async ({ app, context }) => { … })',
 				defaultValue: SCRIPT_TEMPLATE
 			}
 		],

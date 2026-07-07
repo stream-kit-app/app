@@ -8,7 +8,17 @@ description: "App-agnostic Svelte 5 UI primitives for Stream Kit. Used by the ma
 App-agnostic Svelte 5 UI primitives for Stream Kit. Used by the main app and provided to plugins through the plugin host import map.
 
 **Location:** `packages/ui/`  
-**NPM name:** `@stream-kit/ui`
+**NPM name:** `@stream-kit/ui` (public npm registry)
+
+## Installation (plugin authors)
+
+Zip plugins that use declarative page blocks do not need this package. Add it as a **dev dependency** when you build custom Svelte views or dashboard widgets:
+
+```bash
+npm install --save-dev @stream-kit/ui
+```
+
+At runtime the app resolves `@stream-kit/ui/*` from `static/plugin-host/` via the import map. **Do not bundle** `@stream-kit/ui` into your plugin entry. Match the npm version to the Stream Kit app version you target.
 
 ## Design rules
 

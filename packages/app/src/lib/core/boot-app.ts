@@ -2,7 +2,6 @@ import { initDb, runRegisteredPluginMigrations } from '$db';
 
 import { app } from './app-init';
 import { registerBuiltinDashboardWidgets } from './dashboard/register-builtin-widgets';
-import { registerOverlayHandlers } from './overlay/register-handlers';
 import { linkWorkspaceDevPlugins } from './plugins/plugin-dev-link';
 import { initPluginDevWatcher, syncPluginDevWatchers } from './plugins/plugin-dev-watcher';
 import { discoverAndLoadInstalledPlugins } from './plugins/plugin-loader';
@@ -40,7 +39,6 @@ async function runBoot(): Promise<void> {
 	await app.dashboard.load();
 	await app.boot();
 	await app.overlay.init(app);
-	registerOverlayHandlers(app);
 	await app.actionQueues.load();
 	await app.actions.load();
 	await app.plugins.ready(app);

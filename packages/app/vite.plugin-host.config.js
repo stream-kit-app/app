@@ -15,6 +15,8 @@ const vendorDir = getGeneratedVendorDir(root);
 const outDir = path.resolve(root, 'static/plugin-host');
 
 export default defineConfig({
+	// Workers and chunks must resolve under /plugin-host/ (see plugin-host-url.ts).
+	base: '/plugin-host/',
 	plugins: [
 		svelte({
 			configFile: false,

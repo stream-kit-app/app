@@ -28,6 +28,11 @@ const appOverlayHandler = path.join(
 	root,
 	'packages/app/src/lib/core/overlay/handlers/send-to-overlay.ts'
 );
+const appOverlayTrigger = path.join(
+	root,
+	'packages/app/src/lib/core/overlay/triggers/message-received.ts'
+);
+const appOverlayContexts = path.join(root, 'packages/app/src/lib/core/overlay/contexts.ts');
 
 /** @param {string} text */
 function escapeMdxTableCell(text) {
@@ -250,6 +255,43 @@ function collectOverlayHandlers() {
 	];
 }
 
+function collectOverlayTriggers() {
+	const content = fs.readFileSync(appOverlayTrigger, 'utf8');
+	const props = parseDefinitionProps(content);
+	const id = resolveDefinitionId(props.explicitId, 'Message Received', 'overlay:overlay');
+	const contextTypes = parseContextTypes(appOverlayContexts);
+	const contextFields = contextTypes.get('OverlayMessageContext') ?? new Map();
+
+	const variables = [...contextFields.keys()].map((name) => ({
+		name,
+		type: simplifyVariableType(contextFields.get(name)),
+		description: variableDescription(name, {
+			label: undefined,
+			type: contextFields.get(name),
+			sample: undefined
+		})
+	}));
+
+	return [
+		{
+			id,
+			name: 'Message Received',
+			kind: 'trigger',
+			pluginKey: 'overlay',
+			pluginName: 'Overlay',
+			category: 'Overlay',
+			fields: [],
+			conditions: [
+				{ name: 'Overlay', fnName: 'overlaySelectCondition', key: 'overlay' },
+				{ name: 'Event name', fnName: 'eventNameCondition', key: 'event-name' },
+				{ name: 'Event', fnName: 'eventMatchCondition', key: 'event' },
+				{ name: 'JSON field', fnName: 'jsonFieldCondition', key: 'json-field' }
+			],
+			variables
+		}
+	];
+}
+
 function cleanApiDir() {
 	for (const kind of ['triggers', 'handlers']) {
 		const kindDir = path.join(docsApiDir, kind);
@@ -329,6 +371,9 @@ function main() {
 	const overlayHandlers = collectOverlayHandlers();
 	writePluginSection('handlers', 'overlay', overlayHandlers);
 
+	const overlayTriggers = collectOverlayTriggers();
+	writePluginSection('triggers', 'overlay', overlayTriggers);
+
 	// WebSocket has no handlers in manifest tree sometimes - check
 	const wsHandlers = all.websocket?.handlers ?? [];
 	if (wsHandlers.length === 0) {
@@ -344,7 +389,9 @@ function main() {
 	];
 
 	const uniqueHandlerPlugins = [...new Set(handlerPlugins)];
-	const uniqueTriggerPlugins = [...new Set(triggerPlugins.filter((k) => all[k]?.triggers?.length))];
+	const uniqueTriggerPlugins = [
+		...new Set([...triggerPlugins.filter((k) => all[k]?.triggers?.length), 'overlay'])
+	];
 
 	fs.writeFileSync(
 		path.join(docsApiDir, 'meta.json'),
@@ -390,6 +437,17 @@ ${uniqueHandlerPlugins.map((k) => `- [${k}](/docs/api/handlers/${k}/)`).join('\n
 	console.log(
 		`Generated API reference: ${uniqueTriggerPlugins.length} trigger plugins, ${uniqueHandlerPlugins.length} handler plugins`
 	);
+
+	const manualRunScript = path.join(
+		root,
+		'scripts/templates/docs/api-handlers-core-run-script.mdx'
+	);
+	const runScriptTarget = path.join(docsApiDir, 'handlers/core/run-script.mdx');
+
+	if (fs.existsSync(manualRunScript)) {
+		fs.mkdirSync(path.dirname(runScriptTarget), { recursive: true });
+		fs.copyFileSync(manualRunScript, runScriptTarget);
+	}
 }
 
 main();

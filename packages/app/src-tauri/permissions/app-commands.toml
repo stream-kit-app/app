@@ -6,6 +6,7 @@ commands.allow = [
 	"play_audio",
 	"play_audio_file",
 	"get_media_file_duration_ms",
+	"is_tcp_port_reachable",
 	"list_local_tts_voices",
 	"get_local_tts_runtime_info",
 	"download_local_tts_runtime",
@@ -34,5 +35,7 @@ commands.allow = [
 	"overlay_sync_config",
 	"overlay_sync_all_configs",
 	"overlay_broadcast_settings",
-	"overlay_get_overlays_dir"
+	"overlay_get_overlays_dir",
+	"script_get_project_dir",
+	"script_get_scripts_dir"
 ]

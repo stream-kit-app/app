@@ -10,6 +10,7 @@ export type BotSettingsSnapshot = {
 	prefix: string;
 	platforms: BotPlatformSettings;
 	moderationEnabled: boolean;
+	sendAsBot: boolean;
 };
 
 const SETTINGS_KEY = 'botSettings';
@@ -21,7 +22,8 @@ const DEFAULT_SETTINGS: BotSettingsSnapshot = {
 		twitch: true,
 		youtube: true
 	},
-	moderationEnabled: true
+	moderationEnabled: true,
+	sendAsBot: true
 };
 
 export class BotSettings {
@@ -29,9 +31,10 @@ export class BotSettings {
 	prefix = DEFAULT_SETTINGS.prefix;
 	platforms: BotPlatformSettings = { ...DEFAULT_SETTINGS.platforms };
 	moderationEnabled = DEFAULT_SETTINGS.moderationEnabled;
+	sendAsBot = DEFAULT_SETTINGS.sendAsBot;
 
 	async load(store: PluginStore): Promise<void> {
-		const saved = await store.get<BotSettingsSnapshot & { sendAsBot?: boolean }>(SETTINGS_KEY);
+		const saved = await store.get<BotSettingsSnapshot>(SETTINGS_KEY);
 
 		if (!saved) {
 			return;
@@ -44,6 +47,7 @@ export class BotSettings {
 			youtube: saved.platforms?.youtube ?? DEFAULT_SETTINGS.platforms.youtube
 		};
 		this.moderationEnabled = saved.moderationEnabled ?? DEFAULT_SETTINGS.moderationEnabled;
+		this.sendAsBot = saved.sendAsBot ?? DEFAULT_SETTINGS.sendAsBot;
 	}
 
 	async save(store: PluginStore): Promise<void> {
@@ -55,7 +59,8 @@ export class BotSettings {
 			enabled: this.enabled,
 			prefix: this.prefix.trim() || DEFAULT_SETTINGS.prefix,
 			platforms: { ...this.platforms },
-			moderationEnabled: this.moderationEnabled
+			moderationEnabled: this.moderationEnabled,
+			sendAsBot: this.sendAsBot
 		};
 	}
 }

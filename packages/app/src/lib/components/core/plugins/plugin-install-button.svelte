@@ -8,6 +8,12 @@
 	import { installPluginFromZip } from '$lib/core/plugins/plugin-loader';
 	import { useI18n } from '$lib/i18n';
 
+	type Props = {
+		size?: 'default' | 'sm' | 'lg';
+	};
+
+	let { size = 'default' }: Props = $props();
+
 	const { t } = useI18n();
 	let isInstalling = $state(false);
 	let isLinking = $state(false);
@@ -146,6 +152,7 @@
 	<Button
 		onclick={installPlugin}
 		variant="outline"
+		{size}
 		disabled={isInstalling}
 		icon="ri:upload-line"
 		aria-label={t('Install plugin')}
@@ -158,6 +165,7 @@
 		<Button
 			onclick={linkDevPlugin}
 			variant="outline"
+			{size}
 			disabled={isLinking}
 			icon="ri:link-m"
 			aria-label={t('Link dev plugin')}

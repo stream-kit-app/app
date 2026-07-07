@@ -472,6 +472,14 @@ export interface PluginAppMediaApi {
 }
 
 /**
+ * Lightweight network reachability checks that avoid noisy browser WebSocket errors.
+ */
+export interface PluginAppNetworkApi {
+	/** Returns whether a TCP port accepts connections on the given host. */
+	isTcpPortReachable(host: string, port: number, timeoutMs?: number): Promise<boolean>;
+}
+
+/**
  * Audio playback helpers.
  */
 export interface PluginAppAudioApi {
@@ -712,6 +720,9 @@ export interface PluginAppApi {
 
 	/** Probe local media files (for example video duration). */
 	media: PluginAppMediaApi;
+
+	/** Lightweight network reachability checks. */
+	network: PluginAppNetworkApi;
 
 	/** Bridge to the local (Piper) TTS runtime. */
 	localTts: PluginAppLocalTtsApi;

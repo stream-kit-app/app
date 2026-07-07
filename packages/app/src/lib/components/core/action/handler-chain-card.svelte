@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Action } from '$lib/core/action/action.svelte';
 	import type { ActionHandler, HandlerFieldFormErrors } from '$lib/core/action/action-handler.svelte';
 	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
 	import type { PluginAppApi } from '@stream-kit/plugin';
@@ -17,6 +18,7 @@
 	import type { HandlerChainEditorHost } from './handler-chain-editor.types';
 
 	type Props = {
+		action?: Action;
 		host: HandlerChainEditorHost;
 		handler: ActionHandler;
 		definitions: HandlerDefinition[];
@@ -29,6 +31,7 @@
 	};
 
 	let {
+		action,
 		host,
 		handler,
 		definitions,
@@ -120,7 +123,7 @@
 	{/if}
 
 	{#if handler.fieldDefinitions?.length}
-		<HandlerFieldGroup {handler} {contextVariables} {fieldErrors} {app} {t} />
+		<HandlerFieldGroup {action} {handler} {contextVariables} {fieldErrors} {app} {t} />
 	{/if}
 
 	{#if includeBranches && isIfHandler(handler)}

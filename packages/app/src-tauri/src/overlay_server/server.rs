@@ -10,14 +10,14 @@ use axum::Router;
 use futures_util::{SinkExt, StreamExt};
 use serde::Deserialize;
 use serde_json::Value;
-use tauri::Manager;
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::net::TcpListener;
 use tokio::sync::{broadcast, oneshot};
 use tower_http::cors::CorsLayer;
 
 use super::state::{
-    create_overlay_config_cache, overlay_settings_message, OverlayBroadcastMessage,
-    OverlayConfigCache, OverlayServerInner,
+    create_overlay_config_cache, overlay_settings_message, parse_overlay_incoming,
+    OverlayBroadcastMessage, OverlayConfigCache, OverlayServerInner,
 };
 
 #[derive(Clone)]
@@ -25,6 +25,7 @@ pub struct AppState {
     pub overlays_dir: PathBuf,
     pub broadcast_tx: broadcast::Sender<OverlayBroadcastMessage>,
     pub config_cache: OverlayConfigCache,
+    pub app_handle: AppHandle,
 }
 
 #[derive(Debug, Deserialize)]
@@ -37,6 +38,7 @@ pub async fn run_server(
     port: u16,
     overlays_dir: PathBuf,
     shutdown_rx: oneshot::Receiver<()>,
+    app_handle: AppHandle,
 ) -> Result<OverlayServerInner, String> {
     let (broadcast_tx, _) = broadcast::channel::<OverlayBroadcastMessage>(256);
     let config_cache = create_overlay_config_cache();
@@ -45,6 +47,7 @@ pub async fn run_server(
         overlays_dir: overlays_dir.clone(),
         broadcast_tx: broadcast_tx.clone(),
         config_cache: config_cache.clone(),
+        app_handle: app_handle.clone(),
     };
 
     let router = Router::new()
@@ -90,8 +93,11 @@ async fn ws_handler(
     let overlay_id = query.overlay_id;
     let broadcast_tx = state.broadcast_tx.clone();
     let config_cache = state.config_cache.clone();
+    let app_handle = state.app_handle.clone();
 
-    ws.on_upgrade(move |socket| handle_socket(socket, overlay_id, broadcast_tx, config_cache))
+    ws.on_upgrade(move |socket| {
+        handle_socket(socket, overlay_id, broadcast_tx, config_cache, app_handle)
+    })
 }
 
 async fn handle_socket(
@@ -99,6 +105,7 @@ async fn handle_socket(
     overlay_id: String,
     broadcast_tx: broadcast::Sender<OverlayBroadcastMessage>,
     config_cache: OverlayConfigCache,
+    app_handle: AppHandle,
 ) {
     let config = config_cache
         .read()
@@ -149,10 +156,23 @@ async fn handle_socket(
         }
     });
 
+    let recv_overlay_id = overlay_id.clone();
     let mut recv_task = tokio::spawn(async move {
-        while let Some(Ok(message)) = receiver.next().await {
-            if matches!(message, Message::Close(_)) {
+        while let Some(result) = receiver.next().await {
+            let Ok(message) = result else {
                 break;
+            };
+
+            match message {
+                Message::Text(text) => {
+                    if let Some(incoming) =
+                        parse_overlay_incoming(text.as_ref(), &recv_overlay_id)
+                    {
+                        let _ = app_handle.emit("overlay-message", incoming);
+                    }
+                }
+                Message::Close(_) => break,
+                _ => {}
             }
         }
     });

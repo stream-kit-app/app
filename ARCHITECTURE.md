@@ -97,5 +97,6 @@ Migrations for bot tables live in the plugin (`migrateBotTables`) and are invoke
 - Runtime API: passed as the factory argument (`PluginAppApi`)
 - Types: `@stream-kit/plugin` or `@stream-kit/app-types`
 - Shared utilities: `@stream-kit/core`
+- Svelte UI (custom views/widgets): `@stream-kit/ui` as a dev dependency; runtime from plugin host
 
 Value imports from `@stream-kit/plugin` in external plugin bundles resolve to the empty plugin-host shim — use `import type` only in zip plugins.

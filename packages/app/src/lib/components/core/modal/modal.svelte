@@ -70,10 +70,9 @@
 					<Icon icon="ri:close-fill" class="h-12 w-12" aria-hidden="true" />
 				</Dialog.Close>
 			</div>
-			<ScrollArea
-				orientation="vertical"
+			<div
 				class={cn(
-					'h-full min-h-0 w-full overflow-hidden rounded-2xl border border-dark-600 bg-dark-800',
+					'flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-dark-600 bg-dark-800',
 					'group-data-[state=open]:animate-in group-data-[state=open]:slide-in-from-right-4',
 					'group-data-[state=closed]:animate-out group-data-[state=closed]:slide-out-to-right-4',
 					{
@@ -83,24 +82,45 @@
 						'max-w-full': modal.size === 'full'
 					}
 				)}
-				viewportClasses="h-full w-full"
 			>
-				<div class="p-8">
-					<Dialog.Title class="text-2xl font-bold">{modal.title}</Dialog.Title>
-					{#if modal.description}
-						<Dialog.Description class="mt-1 text-dark-200">
-							{modal.description}
-						</Dialog.Description>
+				<div class="shrink-0 px-8 pt-8 pb-6">
+					{#if modal.header}
+						<Dialog.Title class="sr-only">{modal.title}</Dialog.Title>
+						{#if modal.contentHost === 'plugin'}
+							<PluginComponentHost component={modal.header} props={modal.props} />
+						{:else}
+							<modal.header {...modal.props} />
+						{/if}
+					{:else}
+						<Dialog.Title class="text-2xl font-bold">{modal.title}</Dialog.Title>
+						{#if modal.description}
+							<Dialog.Description class="mt-1 text-dark-200">
+								{modal.description}
+							</Dialog.Description>
+						{/if}
 					{/if}
-					<div class="mt-6">
+				</div>
+
+				<ScrollArea orientation="vertical" class="min-h-0 flex-1" viewportClasses="h-full w-full">
+					<div class="px-8 pb-8">
 						{#if modal.contentHost === 'plugin'}
 							<PluginComponentHost component={modal.content} props={modal.props} />
 						{:else}
 							<modal.content {...modal.props} />
 						{/if}
 					</div>
-				</div>
-			</ScrollArea>
+				</ScrollArea>
+
+				{#if modal.footer}
+					<div class="shrink-0 border-t border-dark-600 bg-dark-800 px-8 py-4">
+						{#if modal.contentHost === 'plugin'}
+							<PluginComponentHost component={modal.footer} props={modal.props} />
+						{:else}
+							<modal.footer {...modal.props} />
+						{/if}
+					</div>
+				{/if}
+			</div>
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>

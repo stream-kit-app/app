@@ -47,10 +47,12 @@ function readPackageVersion(packageName) {
 function renderPackageJson(template) {
 	const pluginVersion = readPackageVersion('plugin');
 	const coreVersion = readPackageVersion('core');
+	const uiVersion = readPackageVersion('ui');
 
 	return template
 		.replaceAll('{{SDK_PLUGIN_VERSION}}', pluginVersion)
-		.replaceAll('{{SDK_CORE_VERSION}}', coreVersion);
+		.replaceAll('{{SDK_CORE_VERSION}}', coreVersion)
+		.replaceAll('{{SDK_UI_VERSION}}', uiVersion);
 }
 
 function copyRecursive(source, destination) {
@@ -81,6 +83,12 @@ function buildStarterTree(targetDir) {
 			continue;
 		}
 
+		if (entry.name === 'README.md') {
+			const template = readFileSync(source, 'utf8');
+			writeFileSync(destination, renderPackageJson(template));
+			continue;
+		}
+
 		copyRecursive(source, destination);
 	}
 }
@@ -103,7 +111,7 @@ buildStarterTree(stagingDir);
 if (options.dryRun) {
 	console.log(`[dry-run] Built starter tree at ${stagingDir}`);
 	console.log(
-		`[dry-run] SDK versions: plugin@${readPackageVersion('plugin')}, core@${readPackageVersion('core')}`
+		`[dry-run] SDK versions: plugin@${readPackageVersion('plugin')}, core@${readPackageVersion('core')}, ui@${readPackageVersion('ui')}`
 	);
 	process.exit(0);
 }

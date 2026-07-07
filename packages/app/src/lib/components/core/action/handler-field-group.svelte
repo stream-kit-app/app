@@ -3,6 +3,7 @@
 		ActionHandler,
 		HandlerFieldFormErrors
 	} from '$lib/core/action/action-handler.svelte';
+	import type { Action } from '$lib/core/action/action.svelte';
 	import type {
 		HandlerFieldDefinition,
 		HandlerFieldInstance,
@@ -20,7 +21,6 @@
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import {
 		InputCheckbox,
-		InputCode,
 		InputFilePath,
 		InputHotkey,
 		InputKeyValueList,
@@ -35,14 +35,15 @@
 	} from '@stream-kit/ui/input';
 
 	import HandlerSubFieldInput from './handler-sub-field-input.svelte';
+	import ScriptCodeField from './script-code-field.svelte';
 
 	import { CollectionContentPopover } from '$lib/components/core/collection';
 	import { resolveApp } from './resolve-app';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
-	import { buildScriptLspWorkspace } from '$lib/codemirror/script-lsp-workspace';
 	import { cn } from '$lib/utils';
 
 	type Props = {
+		action?: Action;
 		handler: ActionHandler;
 		fieldErrors?: HandlerFieldFormErrors;
 		contextVariables?: HandlerFieldVariable[];
@@ -51,6 +52,7 @@
 	};
 
 	let {
+		action,
 		handler,
 		fieldErrors,
 		contextVariables = [],
@@ -288,17 +290,18 @@
 			{error}
 		/>
 	{:else if config.type === 'code'}
-		<InputCode
+		<ScriptCodeField
+			{action}
+			{handler}
+			{field}
+			{contextVariables}
+			{app}
+			{t}
 			label={config.name}
 			placeholder={config.placeholder}
 			required={config.required}
 			language={config.language}
-			value={String(field.value ?? '')}
 			oninput={onCodeInput(field)}
-			languageServer={buildScriptLspWorkspace(String(field.value ?? ''))}
-			variables={contextVariables}
-			variablesTitle={t('Variables')}
-			variablesAriaLabel={t('Insert variable')}
 			{error}
 		/>
 	{:else if config.type === 'text-select-text'}

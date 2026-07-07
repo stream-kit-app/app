@@ -1,19 +1,18 @@
 <script lang="ts">
 	import type { HandlerFieldVariable } from '../../types';
-	import type { LanguageServerConfig, LanguageServerConnection } from '../../codemirror';
-	import type { Extension } from '@codemirror/state';
-	import type { EditorView } from '@codemirror/view';
+	import type { MonacoExtraLib } from '../../monaco';
 	import type { HTMLTextareaAttributes } from 'svelte/elements';
+	import type { Snippet } from 'svelte';
 
 	import Icon from '@iconify/svelte';
 	import { useId } from 'bits-ui';
 	import { onDestroy, onMount } from 'svelte';
 
 	import {
-		createEditorView,
-		createLanguageServerConnection,
-		syncEditorDocument
-	} from '../../codemirror';
+		configureMonacoTypescript,
+		ensureMonacoEnvironment,
+		streamKitMonacoTheme
+	} from '../../monaco';
 	import { VariablePopover } from '../variable-popover';
 	import { cn } from '../../utils';
 	import Label from './label.svelte';
@@ -26,20 +25,17 @@
 		placeholder?: string;
 		value?: string;
 		oninput?: HTMLTextareaAttributes['oninput'];
-		language?: 'typescript' | 'javascript' | 'svelte' | 'json';
+		language?: 'typescript' | 'javascript' | 'json';
 		minHeight?: string;
 		fillHeight?: boolean;
 		class?: string;
-		extensions?: Extension[];
-		languageServer?: LanguageServerConfig | null;
+		extraLibs?: MonacoExtraLib[];
 		loadingLabel?: string;
 		variables?: HandlerFieldVariable[];
 		variablesTitle?: string;
 		variablesAriaLabel?: string;
-		onEditorReady?: (view: EditorView | null) => void;
+		toolbar?: Snippet;
 	};
-
-	const WORKSPACE_SYNC_DELAY_MS = 450;
 
 	let {
 		label,
@@ -52,43 +48,27 @@
 		minHeight = '12rem',
 		fillHeight = false,
 		class: className,
-		extensions = [],
-		languageServer = null,
+		extraLibs = [],
 		loadingLabel = 'Loading...',
 		variables = [],
 		variablesTitle = 'Variables',
 		variablesAriaLabel = 'Insert variable',
-		onEditorReady
+		toolbar
 	}: Props = $props();
 
+	type MonacoEditor = import('monaco-editor').editor.IStandaloneCodeEditor;
+	type MonacoModule = typeof import('monaco-editor');
+
 	let container: HTMLDivElement | undefined = $state();
-	let view: EditorView | undefined = $state();
-	let lspConnection: LanguageServerConnection | undefined = $state();
+	let editor: MonacoEditor | undefined = $state();
+	let monaco: MonacoModule | undefined = $state();
 	let isReady = $state(false);
 	let cancelled = false;
-	let syncedPathSignature = $state('');
-	let syncedSourceSignature = $state('');
-	let workspaceSyncTimer: ReturnType<typeof setTimeout> | undefined;
+	let syncingFromOutside = false;
+	let extraLibsSignature = $state('');
 
-	function workspacePathSignature(workspace: Record<string, string>): string {
-		return Object.keys(workspace).sort().join('\0');
-	}
-
-	function workspaceSourceSignature(workspace: Record<string, string>): string {
-		return Object.entries(workspace)
-			.filter(([path]) => path.includes('/src/'))
-			.sort(([left], [right]) => left.localeCompare(right))
-			.map(([path, content]) => `${path}\0${content}`)
-			.join('\0');
-	}
-
-	function clearWorkspaceSyncTimer(): void {
-		if (!workspaceSyncTimer) {
-			return;
-		}
-
-		clearTimeout(workspaceSyncTimer);
-		workspaceSyncTimer = undefined;
+	function extraLibsKey(libs: MonacoExtraLib[]): string {
+		return libs.map((lib) => `${lib.filePath ?? ''}\0${lib.content}`).join('\0');
 	}
 
 	function emitValueChange(next: string): void {
@@ -104,111 +84,151 @@
 	function insertVariableAtCursor(variableKey: string): void {
 		const token = `{${variableKey}}`;
 
-		if (!view) {
+		if (!editor || !monaco) {
 			emitValueChange(`${value}${token}`);
 			return;
 		}
 
-		const { from, to } = view.state.selection.main;
+		const selection = editor.getSelection();
 
-		view.dispatch({
-			changes: { from, to, insert: token },
-			selection: { anchor: from + token.length }
-		});
-		view.focus();
-	}
-
-	async function buildExtraExtensions(): Promise<Extension[]> {
-		lspConnection?.destroy();
-		lspConnection = undefined;
-		syncedPathSignature = '';
-		syncedSourceSignature = '';
-		clearWorkspaceSyncTimer();
-
-		if (!languageServer) {
-			return [...extensions];
+		if (!selection) {
+			emitValueChange(`${value}${token}`);
+			return;
 		}
 
-		const connection = await createLanguageServerConnection(languageServer);
-		lspConnection = connection;
-		syncedPathSignature = workspacePathSignature(languageServer.workspace);
-		syncedSourceSignature = workspaceSourceSignature(languageServer.workspace);
-
-		return [...extensions, ...connection.extensions];
+		editor.executeEdits('insert-variable', [
+			{
+				range: selection,
+				text: token,
+				forceMoveMarkers: true
+			}
+		]);
+		editor.focus();
 	}
 
-	onMount(async () => {
+	async function initEditor(): Promise<void> {
 		if (!container) {
 			return;
 		}
 
-		const extraExtensions = await buildExtraExtensions();
+		ensureMonacoEnvironment();
+
+		const monacoModule = await import('monaco-editor');
 
 		if (cancelled || !container) {
-			lspConnection?.destroy();
-			lspConnection = undefined;
 			return;
 		}
 
-		view = createEditorView({
-			parent: container,
-			doc: value,
-			language,
-			placeholder,
-			extensions: extraExtensions,
-			onChange: emitValueChange
+		monaco = monacoModule;
+		monaco.editor.defineTheme('stream-kit-dark', streamKitMonacoTheme);
+		await configureMonacoTypescript(extraLibs);
+		extraLibsSignature = extraLibsKey(extraLibs);
+
+		editor = monaco.editor.create(container, {
+			value,
+			language: language === 'json' ? 'json' : 'typescript',
+			theme: 'stream-kit-dark',
+			automaticLayout: true,
+			fixedOverflowWidgets: true,
+			minimap: { enabled: false },
+			fontSize: 13,
+			lineNumbers: 'on',
+			scrollBeyondLastLine: false,
+			tabSize: 2,
+			insertSpaces: true,
+			wordWrap: 'on',
+			padding: { top: 12, bottom: 12 },
+			overviewRulerLanes: 0,
+			suggestOnTriggerCharacters: true,
+			quickSuggestions: {
+				other: true,
+				comments: false,
+				strings: false
+			},
+			quickSuggestionsDelay: 10,
+			suggest: {
+				showWords: language === 'json',
+				preview: true
+			},
+			scrollbar: {
+				verticalScrollbarSize: 8,
+				horizontalScrollbarSize: 8
+			}
+		});
+
+		if (placeholder) {
+			editor.onDidFocusEditorText(() => {
+				if (editor?.getValue() === '' && placeholder) {
+					// Monaco has no built-in placeholder; keep empty state styling via aria.
+				}
+			});
+		}
+
+		editor.onDidChangeModelContent(() => {
+			if (syncingFromOutside || !editor) {
+				return;
+			}
+
+			emitValueChange(editor.getValue());
 		});
 
 		isReady = true;
-		onEditorReady?.(view);
+	}
+
+	onMount(() => {
+		void initEditor();
 	});
 
 	$effect(() => {
-		if (!view || !isReady) {
+		if (!editor || !isReady) {
 			return;
 		}
 
-		syncEditorDocument(view, value);
+		const next = value ?? '';
+
+		if (editor.getValue() === next) {
+			return;
+		}
+
+		syncingFromOutside = true;
+
+		editor.pushUndoStop();
+		editor.executeEdits('external-sync', [
+			{
+				range: editor.getModel()?.getFullModelRange() ?? {
+					startLineNumber: 1,
+					startColumn: 1,
+					endLineNumber: 1,
+					endColumn: 1
+				},
+				text: next,
+				forceMoveMarkers: true
+			}
+		]);
+		editor.pushUndoStop();
+		syncingFromOutside = false;
 	});
 
 	$effect(() => {
-		if (!isReady || !lspConnection || !languageServer) {
+		if (!isReady) {
 			return;
 		}
 
-		const workspace = languageServer.workspace;
-		const pathSignature = workspacePathSignature(workspace);
-		const sourceSignature = workspaceSourceSignature(workspace);
-		const pathsChanged = pathSignature !== syncedPathSignature;
+		const signature = extraLibsKey(extraLibs);
 
-		if (pathsChanged) {
-			clearWorkspaceSyncTimer();
-			syncedPathSignature = pathSignature;
-			syncedSourceSignature = sourceSignature;
-			void lspConnection.updateWorkspace(workspace);
+		if (signature === extraLibsSignature) {
 			return;
 		}
 
-		if (sourceSignature === syncedSourceSignature) {
-			return;
-		}
-
-		clearWorkspaceSyncTimer();
-		workspaceSyncTimer = setTimeout(() => {
-			workspaceSyncTimer = undefined;
-			syncedSourceSignature = sourceSignature;
-			void lspConnection?.updateWorkspace(workspace);
-		}, WORKSPACE_SYNC_DELAY_MS);
+		extraLibsSignature = signature;
+		void configureMonacoTypescript(extraLibs);
 	});
 
 	onDestroy(() => {
 		cancelled = true;
-		clearWorkspaceSyncTimer();
-		lspConnection?.destroy();
-		lspConnection = undefined;
-		onEditorReady?.(null);
-		view?.destroy();
-		view = undefined;
+		editor?.dispose();
+		editor = undefined;
+		monaco = undefined;
 	});
 </script>
 
@@ -230,6 +250,11 @@
 			{/if}
 		</div>
 	{/if}
+	{#if toolbar}
+		<div class="flex justify-end">
+			{@render toolbar()}
+		</div>
+	{/if}
 	<div
 		{id}
 		bind:this={container}
@@ -237,12 +262,10 @@
 		aria-multiline="true"
 		aria-busy={!isReady}
 		aria-invalid={error ? true : undefined}
+		aria-placeholder={placeholder}
 		class={cn(
-			'relative',
-			'overflow-hidden rounded-lg border bg-dark-900 focus-within:ring-2 [&_.cm-editor]:outline-none',
-			fillHeight
-				? 'flex min-h-0 flex-1 flex-col [&_.cm-editor]:!flex [&_.cm-editor]:!h-full [&_.cm-editor]:!max-h-full [&_.cm-editor]:!min-h-0 [&_.cm-editor]:!flex-col [&_.cm-scroller]:!min-h-0 [&_.cm-scroller]:!flex-1'
-				: '[&_.cm-editor]:min-h-[inherit] [&_.cm-scroller]:min-h-[inherit]',
+			'relative overflow-hidden rounded-lg border bg-dark-900 focus-within:ring-2',
+			fillHeight ? 'flex min-h-0 flex-1 flex-col' : '',
 			error
 				? 'border-red-500 focus-within:ring-red-500'
 				: 'border-dark-600 focus-within:ring-primary',

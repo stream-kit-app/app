@@ -51,7 +51,7 @@
 	});
 </script>
 
-<div class="flex min-w-0 items-start gap-2">
+<div class="flex min-w-0 items-start gap-2" data-chain-item-id={id}>
 	{#if !isOverlay}
 		<div class="flex w-8 shrink-0 justify-center pt-2">
 			<button

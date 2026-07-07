@@ -9,10 +9,17 @@ The Twitch plugin connects your **Twitch account** for chat, whispers, channel p
 
 ## Setup
 
-1. Open **Plugins → Twitch**.
-2. Click **Connect your Twitch account** to start OAuth.
-3. Authorize Stream Kit in the browser window.
-4. Confirm status shows **Connected**.
+1. Create a Twitch application at [Twitch Developer Console](https://dev.twitch.tv/console/apps) (or use an existing one).
+2. Add these **OAuth Redirect URLs** on the application (exact match required):
+   - `http://localhost:9001` — main Twitch account
+   - `http://localhost:9003` — bot account (optional, for [Bot plugin](/docs/plugins/bot))
+3. Copy the **Client ID** into `plugins/twitch/src/config.ts` (see `config.example.ts`).
+4. Open **Plugins → Twitch** in Stream Kit.
+5. Click **Connect your Twitch account** to start OAuth.
+6. Authorize Stream Kit in the browser window.
+7. Confirm status shows **Connected**.
+
+OAuth runs in the **desktop app** (Tauri). Stream Kit starts a temporary local server on the redirect port while you authorize. If the browser shows `redirect_mismatch` or `ERR_CONNECTION_REFUSED`, verify the redirect URLs above and connect from the running app — not from a bookmarked OAuth URL.
 
 EventSub subscriptions are created automatically for supported events (follows, subs, raids, polls, predictions, etc.).
 
@@ -32,7 +39,7 @@ The plugin reports **configured** when OAuth completes and the connection is hea
 | **Channel** | Stream online/offline, channel update |
 | **Moderation** | Ban, timeout, shield mode, warn, delete message |
 | **Interactive** | Polls, predictions, hype train |
-| **Actions** | Send message, announcement, shoutout, clips, commercials, raids, VIP/mod |
+| **Actions** | Send message, announcement, shoutout, clips, commercials, raids, VIP/mod, get user info |
 
 ## Triggers and handlers
 
@@ -50,6 +57,8 @@ The plugin reports **configured** when OAuth completes and the connection is hea
 ## Bot integration
 
 Enable the [Bot plugin](/docs/plugins/bot) for commands, timers, and moderation on Twitch chat.
+
+The Bot plugin can connect a **separate Twitch bot account** from **Bot → Overview**. That account sends messages via the Twitch chat API with the bot identity. Your main Twitch connection on **Plugins → Twitch** remains responsible for chat listening, EventSub, and moderation.
 
 ## Related
 

@@ -24,12 +24,16 @@ export function overlayTsContent(overlayId: string): string {
 
 type OverlayHandler = (payload: unknown) => void;
 
-export function connectOverlay(handlers: Record<string, OverlayHandler> = {}): void {
+export function connectOverlay(handlers: Record<string, OverlayHandler> = {}): {
+	send(event: string, payload?: unknown): void;
+} {
 	const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
 	let reconnectAttempt = 0;
+	let socket: WebSocket | null = null;
 
 	const connect = () => {
 		const ws = new WebSocket(\`\${protocol}//\${location.host}/ws?overlayId=\${overlayId}\`);
+		socket = ws;
 
 		ws.onmessage = (event) => {
 			try {
@@ -44,6 +48,7 @@ export function connectOverlay(handlers: Record<string, OverlayHandler> = {}): v
 		};
 
 		ws.onclose = () => {
+			socket = null;
 			const delay = Math.min(1000 * 2 ** reconnectAttempt, 30_000);
 			reconnectAttempt += 1;
 			setTimeout(connect, delay);
@@ -55,6 +60,21 @@ export function connectOverlay(handlers: Record<string, OverlayHandler> = {}): v
 	};
 
 	connect();
+
+	return {
+		send(event: string, payload: unknown = {}) {
+			if (!event.trim()) {
+				return;
+			}
+
+			if (!socket || socket.readyState !== WebSocket.OPEN) {
+				console.warn('[overlay] WebSocket is not connected; message not sent:', event);
+				return;
+			}
+
+			socket.send(JSON.stringify({ event: event.trim(), payload }));
+		}
+	};
 }
 `;
 }

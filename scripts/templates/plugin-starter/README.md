@@ -47,12 +47,23 @@ The zip is written to `dist/plugin.zip`.
 | `@stream-kit/plugin` (type-only) | `Plugin`, `PluginAppApi`, handler/trigger definitions, settings schema |
 | `@stream-kit/plugin` (value) | `BaseDirectory`, `SeekMode` |
 | `@stream-kit/core` | Runtime helpers: `getFieldValue`, `interpolateVariables`, `parseCommand`, cron helpers |
+| `@stream-kit/ui` (optional) | Svelte components for custom views and dashboard widgets (built-in-style plugins only) |
 
 - Never import `@tauri-apps/*` in plugin code. Use `app.fs`, `app.process`, and other `PluginAppApi` surfaces instead.
 - Register plugin menu pages with declarative page definitions from `@stream-kit/plugin`.
 - External zip plugins must use declarative blocks only (no custom Svelte views).
 - Bundle all other runtime dependencies into `dist/index.js`.
 - Externalize host modules (`@stream-kit/plugin`, `@stream-kit/core`, `svelte`, `@stream-kit/ui`, …).
+
+### Custom Svelte views (optional)
+
+Zip plugins use declarative page blocks only. If you build a **built-in-style** plugin with custom Svelte views or dashboard widgets, add the UI package as a dev dependency:
+
+```bash
+pnpm add -D @stream-kit/ui@^{{SDK_UI_VERSION}}
+```
+
+At runtime Stream Kit resolves `@stream-kit/ui` from the plugin host import map. **Do not bundle** it into `dist/index.js`. Match the UI package version to the Stream Kit app version you target.
 
 ## Zip layout
 

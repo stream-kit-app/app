@@ -22,7 +22,7 @@ pub async fn overlay_server_start(
 
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
 
-    let inner = run_server(actual_port, overlays_dir, shutdown_rx).await?;
+    let inner = run_server(actual_port, overlays_dir, shutdown_rx, app.clone()).await?;
 
     let mut inner_with_shutdown = inner;
     inner_with_shutdown.shutdown_tx = Some(shutdown_tx);

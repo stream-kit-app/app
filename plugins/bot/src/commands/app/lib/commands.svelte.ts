@@ -153,6 +153,18 @@ export class Commands {
 		this.items = rows.map((row) => Command.fromRecord(row, app));
 	}
 
+	async refreshDefinitionBindings(): Promise<void> {
+		const { store, app } = this.requireContext();
+		const rows = await loadCommands(store);
+		const openById = new Map(
+			this.items
+				.filter((command): command is Command & { id: string } => command.isFormOpen && command.id != null)
+				.map((command) => [command.id, command])
+		);
+
+		this.items = rows.map((row) => openById.get(row.id) ?? Command.fromRecord(row, app));
+	}
+
 	async persist(): Promise<void> {
 		const { store } = this.requireContext();
 		await saveCommands(store, this.getSnapshot());
@@ -219,6 +231,10 @@ export class Commands {
 
 		if (!command) {
 			return false;
+		}
+
+		if (command.hasUnavailableDefinitions) {
+			command.rebindDefinitions();
 		}
 
 		command.runHandlers(context.data, context.trigger);

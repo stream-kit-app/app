@@ -16,6 +16,7 @@ import {
 } from '../../lib/settings';
 
 import ConnectionForm from '../ui/connection-form.svelte';
+import ConnectionFormFooter from '../ui/connection-form-footer.svelte';
 import ConnectionLogsModal from '../ui/connection-logs-modal.svelte';
 import { getConnectionsService } from './get-connections';
 
@@ -129,6 +130,7 @@ export class Connection {
 							})
 						: app.i18n.translate('New Connection'),
 				content: ConnectionForm,
+				footer: ConnectionFormFooter,
 				props: { connection: this }
 			});
 

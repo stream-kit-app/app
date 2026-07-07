@@ -67,7 +67,7 @@ import {
 	createStopVirtualCamHandler,
 	createToggleVirtualCamHandler
 } from './handler/virtualcam/index';
-import { createObsPluginApi } from './lib/obs';
+import { createObsPluginApi, isObsConnectionConfigured } from './lib/obs';
 import { createFilterDisabledTrigger, createFilterEnabledTrigger } from './trigger/filter/index';
 import { createMediaActionTriggeredTrigger } from './trigger/media/index';
 import { createRecordFileChangedTrigger } from './trigger/recording/file-changed';
@@ -145,6 +145,9 @@ const plugin: Plugin = (app) => {
 		get isConnecting() {
 			return obsApi?.isConnecting ?? false;
 		},
+		get isWaitingForConnection() {
+			return obsApi?.isWaitingForConnection ?? false;
+		},
 		get connectionError() {
 			return obsApi?.connectionError;
 		},
@@ -189,8 +192,7 @@ const plugin: Plugin = (app) => {
 		description: 'Connect and control OBS Studio via WebSocket.',
 		icon: 'ri:live-line',
 		api: publicApi,
-		isConfigured: ({ getValue }) =>
-			Boolean(getValue('host') && getValue('port') && getValue('password')),
+		isConfigured: ({ getValue }) => isObsConnectionConfigured(getValue),
 		settings: [
 			{
 				type: 'alert',
@@ -204,7 +206,18 @@ const plugin: Plugin = (app) => {
 				name: 'Not connected',
 				description: 'Connect to OBS Studio to use OBS triggers and handlers.',
 				variant: 'warning',
-				visible: () => !publicApi.isConnected && !publicApi.isConnecting
+				visible: () =>
+					!publicApi.isConnected &&
+					!publicApi.isConnecting &&
+					!publicApi.isWaitingForConnection
+			},
+			{
+				type: 'alert',
+				name: 'Waiting for OBS',
+				description:
+					'OBS Studio is not available yet. Stream Kit will keep trying to connect every 5 seconds.',
+				variant: 'default',
+				visible: () => publicApi.isWaitingForConnection
 			},
 			{
 				type: 'alert',
@@ -218,25 +231,29 @@ const plugin: Plugin = (app) => {
 				name: 'Connection error',
 				description: 'Failed to connect to OBS Studio. Check host, port, and password.',
 				variant: 'error',
-				visible: () => Boolean(publicApi.connectionError)
+				visible: () =>
+					Boolean(publicApi.connectionError) && !publicApi.isWaitingForConnection
 			},
 			{
 				type: 'text',
 				name: 'Host',
 				placeholder: '127.0.0.1',
-				defaultValue: '127.0.0.1'
+				defaultValue: '127.0.0.1',
+				required: true
 			},
 			{
 				type: 'text',
 				name: 'Port',
 				placeholder: '4455',
-				defaultValue: '4455'
+				defaultValue: '4455',
+				required: true
 			},
 			{
 				type: 'text',
 				inputType: 'password',
 				name: 'Password',
-				placeholder: 'OBS WebSocket password'
+				placeholder: 'OBS WebSocket password',
+				required: true
 			},
 			{
 				type: 'button',

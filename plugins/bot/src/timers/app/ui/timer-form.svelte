@@ -3,7 +3,6 @@
 	import type { TimerPlatform } from '../lib/stored-timer';
 	import type { HandlerDefinition } from '@stream-kit/plugin/action';
 
-	import { Button } from '@stream-kit/ui/button';
 	import {
 		InputCheckbox,
 		InputSwitch,
@@ -130,33 +129,4 @@
 
 	<InputSwitch label={t('Only when live')} bind:checked={timer.onlineOnly} />
 	<InputSwitch label={t('Enabled')} bind:checked={timer.enabled} />
-
-	<div class="flex flex-wrap justify-between gap-3">
-		{#if timer.id != null}
-			<Button
-				variant="destructive"
-				type="button"
-				onclick={async () => {
-					const confirmed = await app.confirm.ask({
-						title: t('Delete timer'),
-						description: t('Are you sure you want to delete "{name}"?', {
-							name: timer.name.trim() || t('this timer')
-						}),
-						confirmLabel: t('Delete')
-					});
-					if (confirmed) await timer.delete();
-				}}
-				icon="ri:delete-bin-line"
-			>
-				{t('Delete')}
-			</Button>
-		{:else}
-			<div></div>
-		{/if}
-
-		<div class="flex gap-2">
-			<Button variant="ghost" type="button" onclick={() => timer.close()}>{t('Cancel')}</Button>
-			<Button type="button" onclick={() => void timer.save()}>{t('Save')}</Button>
-		</div>
-	</div>
 </form>

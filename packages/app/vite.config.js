@@ -36,6 +36,12 @@ export default defineConfig(async () => ({
 	},
 	optimizeDeps: {
 		include: [
+			'monaco-editor',
+			'monaco-editor/esm/vs/editor/editor.worker',
+			'monaco-editor/esm/vs/language/typescript/ts.worker',
+			'monaco-editor/esm/vs/language/json/json.worker',
+			'monaco-editor/esm/vs/language/css/css.worker',
+			'monaco-editor/esm/vs/language/html/html.worker',
 			'@dnd-kit-svelte/svelte',
 			'@dnd-kit-svelte/svelte/sortable',
 			'@dnd-kit/helpers',
@@ -61,6 +67,6 @@ export default defineConfig(async () => ({
 		format: 'es'
 	},
 	ssr: {
-		noExternal: ['@stream-kit/app', '@stream-kit/ui']
+		noExternal: ['@stream-kit/app', '@stream-kit/ui', '@stream-kit/script-api']
 	}
 }));

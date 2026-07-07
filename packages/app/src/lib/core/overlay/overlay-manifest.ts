@@ -93,6 +93,7 @@ export type OverlayManifest = {
 	name: string;
 	framework: OverlayFrameworkId;
 	expectedEvents: string[];
+	outgoingEvents?: string[];
 	version?: number;
 	settings?: OverlaySettingsItemJson[];
 	testHandlers?: OverlayTestHandlerDefinition[];
@@ -489,6 +490,10 @@ export function parseOverlayManifest(value: unknown): OverlayManifest {
 		? value.expectedEvents.filter((event): event is string => typeof event === 'string')
 		: [];
 
+	const outgoingEvents = Array.isArray(value.outgoingEvents)
+		? value.outgoingEvents.filter((event): event is string => typeof event === 'string')
+		: undefined;
+
 	const rawVersion = value.version ?? value.settingsSchemaVersion;
 	let version: number | undefined;
 
@@ -505,6 +510,7 @@ export function parseOverlayManifest(value: unknown): OverlayManifest {
 		name,
 		framework,
 		expectedEvents,
+		outgoingEvents,
 		version,
 		settings: value.settings === undefined ? undefined : parseSettingsItems(value.settings),
 		testHandlers:

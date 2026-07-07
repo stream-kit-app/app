@@ -30,7 +30,20 @@ export type ModalProps = {
 	size?: 'sm' | 'md' | 'lg' | 'full';
 	/** Svelte component rendered as modal body. */
 	content: Component<any>;
-	/** Props forwarded to the `content` component. */
+	/**
+	 * Optional component that renders the full modal header, replacing the default
+	 * title/description. Use it to control the entire header (e.g. title + Clone /
+	 * Test buttons). When omitted, the shell renders `title` and `description`.
+	 * Receives the same `props` as `content`.
+	 */
+	header?: Component<any>;
+	/**
+	 * Optional component rendered in a sticky footer that stays visible while the
+	 * body scrolls (e.g. Delete / Cancel / Save buttons). Receives the same
+	 * `props` as `content`.
+	 */
+	footer?: Component<any>;
+	/** Props forwarded to the `content`, `header`, and `footer` components. */
 	props?: Record<string, unknown>;
 	/**
 	 * Which Svelte runtime renders `content`.
@@ -49,6 +62,8 @@ export class Modal {
 	public size: 'sm' | 'md' | 'lg' | 'full';
 	public description?: string;
 	public content: Component;
+	public header?: Component;
+	public footer?: Component;
 	public props: Record<string, unknown>;
 	public contentHost: 'app' | 'plugin';
 	public onClose?: () => void;
@@ -59,6 +74,8 @@ export class Modal {
 		this.size = props.size ?? 'md';
 		this.description = props.description ?? undefined;
 		this.content = props.content;
+		this.header = props.header;
+		this.footer = props.footer;
 		this.props = props.props ?? {};
 		this.contentHost = props.contentHost ?? 'app';
 		this.onClose = props.onClose;

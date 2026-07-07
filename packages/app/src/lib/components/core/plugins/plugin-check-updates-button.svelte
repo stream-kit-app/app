@@ -5,6 +5,12 @@
 	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
 	import { useI18n } from '$lib/i18n';
 
+	type Props = {
+		size?: 'default' | 'sm' | 'lg';
+	};
+
+	let { size = 'default' }: Props = $props();
+
 	const { t } = useI18n();
 	let isChecking = $state(false);
 
@@ -48,6 +54,7 @@
 <Button
 	onclick={checkForUpdates}
 	variant="outline"
+	{size}
 	disabled={isChecking || pluginUpdates.isChecking}
 	icon="ri:refresh-line"
 	aria-label={t('Check for updates')}

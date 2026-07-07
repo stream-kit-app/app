@@ -130,7 +130,9 @@ var _ = class t {
 		a(this.#n, e, !0);
 	}
 	constructor(e, t) {
-		this.id = t?.id ?? crypto.randomUUID(), this.definition = e, this.fields = s(e.fields, t?.fields), this.thenHandlers = t?.thenHandlers ?? [], this.elseHandlers = t?.elseHandlers ?? [];
+		this.id = t?.id ?? crypto.randomUUID(), this.definition = e;
+		let n = s(e.fields, t?.fields);
+		this.fields = n.length > 0 ? n : t?.fields?.map((e) => ({ ...e })) ?? [], this.thenHandlers = t?.thenHandlers ?? [], this.elseHandlers = t?.elseHandlers ?? [];
 	}
 	get fieldDefinitions() {
 		return this.definition.fields;
@@ -521,4 +523,4 @@ function se(e, t) {
 	e.operator = t;
 }
 //#endregion
-export { _ as ActionHandler, x as HandlerDefinition, ie as addConditionToGroup, ae as addGroupToRoot, N as addHandlerToChain, F as cloneHandlerInChain, Y as emptyConditionGroup, k as findHandler, O as findHandlerDefinition, A as findHandlerLocation, M as flattenActionHandlers, Q as getConditionDefinition, R as getGlobalVariables, p as getHandlerFieldValue, z as getPrecedingActionVariables, B as getPrecedingActionVariablesForHandler, te as handlerFromStored, j as handlerFromStoredWithResolver, J as hasHandlerErrors, Z as initConditionValue, K as isFieldValueEmpty, U as mergeContextVariables, g as migrateLegacyHandlerFields, $ as normalizeConditionGroupOperators, oe as removeConditionChild, P as removeHandlerFromChain, I as reorderBranchHandlersInChain, T as runHandlerChain, se as setConditionOperator, q as validateHandlerFields };
+export { _ as ActionHandler, x as HandlerDefinition, ie as addConditionToGroup, ae as addGroupToRoot, N as addHandlerToChain, F as cloneHandlerInChain, s as createHandlerFields, Y as emptyConditionGroup, k as findHandler, O as findHandlerDefinition, A as findHandlerLocation, M as flattenActionHandlers, Q as getConditionDefinition, R as getGlobalVariables, p as getHandlerFieldValue, z as getPrecedingActionVariables, B as getPrecedingActionVariablesForHandler, te as handlerFromStored, j as handlerFromStoredWithResolver, J as hasHandlerErrors, Z as initConditionValue, K as isFieldValueEmpty, U as mergeContextVariables, g as migrateLegacyHandlerFields, $ as normalizeConditionGroupOperators, oe as removeConditionChild, P as removeHandlerFromChain, I as reorderBranchHandlersInChain, T as runHandlerChain, se as setConditionOperator, q as validateHandlerFields };

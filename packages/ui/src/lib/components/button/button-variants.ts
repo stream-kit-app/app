@@ -25,10 +25,12 @@ export const buttonVariants = tv({
 		size: {
 			xs: 'h-7 rounded-lg px-2 text-xs [&_svg:not([class*="size-"])]:size-3',
 			sm: 'h-8 px-3 text-sm font-normal [&_svg:not([class*="size-"])]:size-3.5',
+			badge: 'rounded-lg px-2.5 py-0.5 text-xs font-semibold [&_svg:not([class*="size-"])]:size-3.5',
 			default: 'h-10 px-4 text-sm [&_svg:not([class*="size-"])]:size-4',
 			lg: 'h-12 px-6 text-base [&_svg:not([class*="size-"])]:size-5',
 			icon: 'size-[37px] [&_svg:not([class*="size-"])]:size-4',
 			'icon-sm': 'size-8 [&_svg:not([class*="size-"])]:size-3.5',
+			'icon-badge': 'size-6 rounded-lg [&_svg:not([class*="size-"])]:size-3.5',
 			'icon-lg': 'size-12 [&_svg:not([class*="size-"])]:size-5'
 		}
 	},

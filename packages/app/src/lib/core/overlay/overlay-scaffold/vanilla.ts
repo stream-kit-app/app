@@ -48,6 +48,7 @@ document.getElementById('overlay-id').textContent = OVERLAY_ID;
 const lastEvent = document.getElementById('last-event');
 const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
 let reconnectAttempt = 0;
+let socket = null;
 
 const handlers = {
 	'overlay:settings': (payload) => {
@@ -61,8 +62,22 @@ const handlers = {
 	}
 };
 
+function send(event, payload = {}) {
+	if (!event?.trim()) {
+		return;
+	}
+
+	if (!socket || socket.readyState !== WebSocket.OPEN) {
+		console.warn('[overlay] WebSocket is not connected; message not sent:', event);
+		return;
+	}
+
+	socket.send(JSON.stringify({ event: event.trim(), payload }));
+}
+
 function connect() {
 	const ws = new WebSocket(\`\${protocol}//\${location.host}/ws?overlayId=\${OVERLAY_ID}\`);
+	socket = ws;
 
 	ws.onmessage = (event) => {
 		try {
@@ -74,6 +89,7 @@ function connect() {
 	};
 
 	ws.onclose = () => {
+		socket = null;
 		const delay = Math.min(1000 * 2 ** reconnectAttempt, 30_000);
 		reconnectAttempt += 1;
 		setTimeout(connect, delay);

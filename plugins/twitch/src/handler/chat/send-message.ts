@@ -34,12 +34,8 @@ export const createSendMessageHandler = (app: PluginAppApi) => {
 				return;
 			}
 
-			if (asBot && broadcasterId && getTwitch(app).userId && getTwitch(app).client) {
-				void getTwitch(app).client.chat.sendChatMessageAsApp(
-					getTwitch(app).userId,
-					broadcasterId,
-					message.trim()
-				);
+			if (asBot && broadcasterId) {
+				void getTwitch(app).sendChatMessageAsBot(broadcasterId, message.trim());
 				next();
 				return;
 			}

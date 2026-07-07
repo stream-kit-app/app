@@ -23,4 +23,10 @@
 	);
 </script>
 
-<StatCard icon="carbon:trigger" {value} href="/actions" embedded />
+<StatCard
+	icon="carbon:trigger"
+	{value}
+	href="/actions"
+	embedded
+	description={t('View all actions')}
+/>

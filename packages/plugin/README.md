@@ -25,6 +25,7 @@ import { BaseDirectory } from '@stream-kit/plugin';
 | Types (`Plugin`, `PluginAppApi`, definitions) | `@stream-kit/plugin` | Use `import type` |
 | Runtime helpers (`getFieldValue`, `parseCommand`, cron) | `@stream-kit/core` | Preferred for helpers |
 | `BaseDirectory`, `SeekMode` | `@stream-kit/plugin` | Required for `app.fs` options |
+| Svelte UI (custom views/widgets only) | `@stream-kit/ui` | Dev dependency; externalize at build time |
 | Platform features | `app` (`PluginAppApi`) | Filesystem, toast, process, hotkeys, audio, store |
 
 Never import `@tauri-apps/*` in plugin code. Use `app.fs`, `app.process`, and other `PluginAppApi` surfaces instead.
@@ -37,7 +38,13 @@ External plugins add this package as a dev dependency and externalize it at buil
 npm install --save-dev @stream-kit/plugin @stream-kit/core
 ```
 
-At runtime the Stream Kit app host resolves `@stream-kit/plugin` from the plugin import map. **Do not bundle** `@stream-kit/plugin` or `@stream-kit/core` into your plugin entry.
+For custom Svelte views or dashboard widgets (built-in-style plugins only), also add:
+
+```bash
+npm install --save-dev @stream-kit/ui
+```
+
+At runtime the Stream Kit app host resolves `@stream-kit/plugin` from the plugin import map. **Do not bundle** `@stream-kit/plugin`, `@stream-kit/core`, or `@stream-kit/ui` into your plugin entry.
 
 The npm package ships `dist/index.js`, but Stream Kit always loads the host bundle at runtime. Keep host modules externalized in your Vite or Rollup config.
 

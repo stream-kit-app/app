@@ -62,7 +62,7 @@ Stream Kit is built around plugins. Each plugin can register triggers, handlers,
 You can also install **external plugins** as `.zip` files from the Plugins page.
 
 > [!TIP]
-> Want to build your own plugin? Use the [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate) GitHub template. Install `@stream-kit/plugin` and `@stream-kit/core` from npm for types and runtime helpers.
+> Want to build your own plugin? Use the [plugin-starter](https://github.com/stream-kit-app/plugin-starter/generate) GitHub template. Install `@stream-kit/plugin` and `@stream-kit/core` from npm for types and runtime helpers. Add `@stream-kit/ui` when you build custom Svelte views.
 
 ### Bot & commands
 

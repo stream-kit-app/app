@@ -38,6 +38,17 @@
 			},
 			"default": ["event"]
 		},
+		"outgoingEvents": {
+			"type": "array",
+			"description": "Event names this overlay sends to Stream Kit over WebSocket (excluding reserved overlay:settings).",
+			"items": {
+				"type": "string",
+				"minLength": 1,
+				"not": {
+					"const": "overlay:settings"
+				}
+			}
+		},
 		"version": {
 			"type": "integer",
 			"minimum": 0,

@@ -1,6 +1,11 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
 
-import { isOnCooldown, markCooldown, type CooldownState } from '../commands/lib/cooldown';
+import {
+	formatCooldownChatMessage,
+	getCooldownBlock,
+	markCooldown,
+	type CooldownState
+} from '../commands/lib/cooldown';
 import type { BotSettings } from '../settings/bot-settings';
 import type { ChatRuntimeDeps } from './chat-runtime';
 import { sendChatMessage } from './send-chat-message';
@@ -104,15 +109,26 @@ export async function tryExecuteBuiltinCommand(
 	commandName: string,
 	cooldownState: CooldownState
 ): Promise<boolean> {
-	if (
-		isOnCooldown(
-			cooldownState,
-			BUILTIN_COMMAND_ID,
-			context.userId,
-			BUILTIN_COOLDOWN_MS,
-			null
-		)
-	) {
+	const cooldownBlock = getCooldownBlock(
+		cooldownState,
+		BUILTIN_COMMAND_ID,
+		context.userId,
+		BUILTIN_COOLDOWN_MS,
+		null
+	);
+
+	if (cooldownBlock) {
+		await sendChatMessage(
+			app,
+			context.source,
+			{
+				channel: context.channel,
+				broadcasterId: context.broadcasterId,
+				liveChatId: context.liveChatId
+			},
+			formatCooldownChatMessage(commandName, deps.settings.prefix, cooldownBlock)
+		);
+
 		return true;
 	}
 

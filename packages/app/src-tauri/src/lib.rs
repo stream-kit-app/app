@@ -3,10 +3,12 @@ mod audio;
 mod dev;
 mod local_tts;
 mod media;
+mod network;
 mod overlay_server;
 mod plugins;
 mod process_watcher;
 mod run_program;
+mod scripts;
 
 use tauri::Manager;
 
@@ -55,6 +57,7 @@ pub fn run() {
             play_audio,
             play_audio_file,
             media::get_media_file_duration_ms,
+            network::is_tcp_port_reachable,
             local_tts::list_local_tts_voices,
             local_tts::get_local_tts_runtime_info,
             local_tts::download_local_tts_runtime,
@@ -83,7 +86,9 @@ pub fn run() {
             overlay_server::commands::overlay_sync_config,
             overlay_server::commands::overlay_sync_all_configs,
             overlay_server::commands::overlay_broadcast_settings,
-            overlay_server::commands::overlay_get_overlays_dir
+            overlay_server::commands::overlay_get_overlays_dir,
+            scripts::script_get_project_dir,
+            scripts::script_get_scripts_dir
         ])
         .setup(|app| {
             #[cfg(desktop)]

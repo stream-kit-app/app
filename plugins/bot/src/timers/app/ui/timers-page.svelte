@@ -8,6 +8,7 @@
 
 	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
+	import BotEmptyState from '../../../ui/bot-empty-state.svelte';
 	import { Timer } from '../lib/timer.svelte';
 	import { tryGetTimersService } from '../lib/get-timers';
 	import TimerCard from './timer-card.svelte';
@@ -138,7 +139,13 @@
 
 	<div class="mt-8 flex flex-col gap-2">
 		{#if !timers || timers.items.length === 0}
-			<p class="text-sm text-dark-300">{t('No timers added yet.')}</p>
+			<BotEmptyState
+				icon="ri:timer-line"
+				title={t('No timers yet')}
+				description={t('Create your first timer to send automatic chat messages.')}
+				actionLabel={t('Add Timer')}
+				onAction={() => Timer.createDraft().open()}
+			/>
 		{:else}
 			{#each timers.items as timer (timer.id)}
 				{#if timer.id != null}

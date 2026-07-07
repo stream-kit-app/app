@@ -27,7 +27,11 @@ export class ActionHandler {
 	) {
 		this.id = props?.id ?? crypto.randomUUID();
 		this.definition = definition;
-		this.fields = createHandlerFields(definition.fields, props?.fields);
+		const resolvedFields = createHandlerFields(definition.fields, props?.fields);
+		this.fields =
+			resolvedFields.length > 0
+				? resolvedFields
+				: props?.fields?.map((field) => ({ ...field })) ?? [];
 		this.thenHandlers = props?.thenHandlers ?? [];
 		this.elseHandlers = props?.elseHandlers ?? [];
 	}

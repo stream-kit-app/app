@@ -5,7 +5,7 @@ import { t as S } from "../../chunks/alert-Xl0et5iT.js";
 import { t as C } from "../../chunks/badge-DWgt6sX1.js";
 import { t as w } from "../../chunks/container-CXvttRa1.js";
 import { t as T } from "../../chunks/heading-DkoXAyj9.js";
-import { t as E } from "../../chunks/button-CgKHPPIe.js";
+import { t as E } from "../../chunks/button-C7Vln2y_.js";
 //#region ../ui/src/lib/blocks/alert/alert-block.svelte
 function D(e, t) {
 	n(t, !0);

@@ -23,7 +23,6 @@
 	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
 	import { resolveApp } from './resolve-app';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
-	import { buildScriptLspWorkspace } from '$lib/codemirror/script-lsp-workspace';
 
 	type Props = {
 		handler: ActionHandler;
@@ -193,10 +192,6 @@
 		language={config.language}
 		value={String(scalarValue ?? '')}
 		oninput={onCodeInput()}
-		languageServer={buildScriptLspWorkspace(String(scalarValue ?? ''))}
-		variables={contextVariables}
-		variablesTitle={t('Variables')}
-		variablesAriaLabel={t('Insert variable')}
 		{error}
 	/>
 {/if}

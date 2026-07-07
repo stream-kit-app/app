@@ -31,7 +31,7 @@
 	});
 </script>
 
-<a href="/logs" class="block text-sm">
+<a href="/logs" class="block text-sm transition hover:opacity-90">
 	<p class="text-2xl font-semibold text-dark-50">{String(logCount)}</p>
-	<p class="mt-1 text-dark-100">{t('View all log entries')}</p>
+	<p class="mt-1 text-xs text-dark-300">{t('View all log entries')}</p>
 </a>

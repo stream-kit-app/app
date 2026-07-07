@@ -53,7 +53,7 @@ import {
 
 import { loadOverlaySettingsDefinition, readOverlayManifest } from './overlay-settings.svelte';
 import { getOverlayFramework } from './templates';
-import { createOverlayId, DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';
+import { OverlayMessageHub } from './overlay-message-hub';
 import {
 	canUseOverlay as isOverlayUsable,
 	getOverlayUnavailableReason as resolveOverlayUnavailableReason
@@ -66,9 +66,14 @@ import {
 
 
 
+import { registerOverlayDefinitions } from './register-overlay-definitions';
+import { createOverlayId, DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';
+
 export class OverlayService {
 
 	items: SaveOverlayInput[] = $state.raw([]);
+
+	messages = new OverlayMessageHub();
 
 
 
@@ -99,13 +104,9 @@ export class OverlayService {
 
 
 	init(app: App): Promise<void> {
-
 		this.app = app;
 
-
-
-		return this.boot();
-
+		return registerOverlayDefinitions(app).then(() => this.boot());
 	}
 
 

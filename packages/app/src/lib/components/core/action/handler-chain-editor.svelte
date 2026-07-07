@@ -1,8 +1,16 @@
 <script lang="ts">
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
-	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+	import type { DndDragEvent } from './dnd-events';
+	import type {
+		HandlerChainEditorHost,
+		HandlerChainFormErrors
+	} from './handler-chain-editor.types';
+	import type { TranslateFn } from './resolve-translate';
 	import type { PluginAppApi } from '@stream-kit/plugin';
 	import type { HandlerFieldVariable } from '@stream-kit/ui/types';
+	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
+	import type { Action } from '$lib/core/action/action.svelte';
+	import type { HandlerDndLayout } from '$lib/core/action/handler-chain-dnd';
+	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
 
 	import {
 		DragDropProvider,
@@ -10,9 +18,10 @@
 		KeyboardSensor,
 		PointerSensor
 	} from '@dnd-kit-svelte/svelte';
+	import { watch } from 'runed';
+
 	import { Label } from '@stream-kit/ui/input';
 	import { VariablePopover } from '@stream-kit/ui/variable-popover';
-	import { watch } from 'runed';
 
 	import {
 		applyHandlerDndLayout,
@@ -20,20 +29,19 @@
 		findHandlerDndEntry,
 		HANDLER_DND_ROOT_KEY,
 		handlerTreeSignature,
-		layoutHasInvalidHandlerPlacements,
-		type HandlerDndLayout
+		layoutHasInvalidHandlerPlacements
 	} from '$lib/core/action/handler-chain-dnd';
-	import { isIfHandler } from '$lib/core/action/if-condition';
 	import { findHandlerDefinition } from '$lib/core/action/handler-tree';
+	import { isIfHandler } from '$lib/core/action/if-condition';
 
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
+	import { applyDndMove } from './dnd-events';
 	import HandlerChainCard from './handler-chain-card.svelte';
-	import IfHandlerBranches from './if-handler-branches.svelte';
-	import SortableChainList from './sortable-chain-list.svelte';
-	import { applyDndMove, type DndDragEvent } from './dnd-events';
 	import { setHandlerChainDndContext } from './handler-chain-dnd-context.svelte';
-	import { resolveTranslate, type TranslateFn } from './resolve-translate';
-	import type { HandlerChainEditorHost, HandlerChainFormErrors } from './handler-chain-editor.types';
+	import IfHandlerBranches from './if-handler-branches.svelte';
+	import { resolveTranslate } from './resolve-translate';
+	import { scrollChainItemIntoView } from './scroll-chain-item';
+	import SortableChainList from './sortable-chain-list.svelte';
 
 	type Props = {
 		host: HandlerChainEditorHost;
@@ -60,6 +68,7 @@
 	}: Props = $props();
 
 	const t = $derived(resolveTranslate(translateProp));
+	const action = $derived('triggers' in host && 'id' in host ? (host as Action) : undefined);
 	const sensors = [KeyboardSensor, PointerSensor];
 
 	let layout = $state<HandlerDndLayout>(buildHandlerDndLayout(host.handlers));
@@ -85,7 +94,11 @@
 		return handler.definition.name;
 	}
 
-	function selectHandlerDefinition(definition: { id: string; isGroup: boolean; isAvailable: boolean }): void {
+	function selectHandlerDefinition(definition: {
+		id: string;
+		isGroup: boolean;
+		isAvailable: boolean;
+	}): void {
 		const found = findHandlerDefinition(definitions, definition.id);
 
 		if (!found || found.isGroup || !found.isAvailable) {
@@ -93,6 +106,11 @@
 		}
 
 		onAddHandler(found);
+
+		const added = host.handlers[host.handlers.length - 1];
+		if (added) {
+			void scrollChainItemIntoView(added.id);
+		}
 	}
 
 	function handleDragStart(): void {
@@ -125,9 +143,9 @@
 	}
 </script>
 
-<section class="grid gap-3">
-	<div class="flex flex-wrap items-center justify-between gap-2">
-		<div class="flex items-center gap-1">
+<section class="grid">
+	<div class="col-start-1 row-start-1 grid gap-3">
+		<div class="-mx-8 flex items-center gap-1 bg-dark-800 px-8 py-2">
 			<Label>{t('Handlers')}</Label>
 			{#if showVariablePopover}
 				<VariablePopover
@@ -139,28 +157,22 @@
 				/>
 			{/if}
 		</div>
-		<DefinitionPickerDropdown
-			label={t('Add Handler')}
-			{definitions}
-			onSelect={selectHandlerDefinition}
-		/>
-	</div>
 
-	{#if formErrors?.handlers}
-		<p class="text-sm text-destructive-50">{formErrors.handlers}</p>
-	{/if}
+		{#if formErrors?.handlers}
+			<p class="text-sm text-destructive-50">{formErrors.handlers}</p>
+		{/if}
 
-	{#if host.handlers.length === 0}
-		<p class="text-sm text-dark-300">{t('No handlers added yet.')}</p>
-	{/if}
+		{#if host.handlers.length === 0}
+			<p class="text-sm text-dark-300">{t('No handlers added yet.')}</p>
+		{/if}
 
-	{#if host.handlers.length > 0}
-		<DragDropProvider
-			{sensors}
-			onDragStart={handleDragStart}
-			onDragOver={handleDragOver}
-			onDragEnd={handleDragEnd}
-		>
+		{#if host.handlers.length > 0}
+			<DragDropProvider
+				{sensors}
+				onDragStart={handleDragStart}
+				onDragOver={handleDragOver}
+				onDragEnd={handleDragEnd}
+			>
 			<SortableChainList
 				items={host.handlers}
 				getId={(handler: ActionHandler) => handler.id}
@@ -171,6 +183,7 @@
 			>
 				{#snippet itemContent(handler: ActionHandler)}
 					<HandlerChainCard
+						{action}
 						{host}
 						{definitions}
 						{handler}
@@ -203,6 +216,7 @@
 					{#if match}
 						<div class="rounded-xl shadow-2xl ring-1 ring-white/10">
 							<HandlerChainCard
+								{action}
 								{host}
 								{definitions}
 								handler={match.entry.handler}
@@ -215,6 +229,19 @@
 					{/if}
 				{/snippet}
 			</DragOverlay>
-		</DragDropProvider>
-	{/if}
+			</DragDropProvider>
+		{/if}
+	</div>
+
+	<div
+		class="pointer-events-none sticky top-1 z-10 col-start-1 row-start-1 self-start justify-self-end py-2"
+	>
+		<div class="pointer-events-auto">
+			<DefinitionPickerDropdown
+				label={t('Add Handler')}
+				{definitions}
+				onSelect={selectHandlerDefinition}
+			/>
+		</div>
+	</div>
 </section>

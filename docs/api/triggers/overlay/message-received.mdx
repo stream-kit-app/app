@@ -1,0 +1,38 @@
+---
+title: "Message Received"
+description: "Overlay trigger: overlay:overlay:message-received"
+---
+
+# Message Received
+
+| | |
+| --- | --- |
+| **Trigger ID** | `overlay:overlay:message-received` |
+| **Plugin** | Overlay |
+| **Category** | Overlay |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "overlayId", type: "string", description: "ID of the overlay that received the event." },
+  { name: "event", type: "string", description: "Lifecycle or queue event name." },
+  { name: "payload", type: "unknown", description: "Event payload sent to the overlay (object or string)." },
+  { name: "message", type: "string", description: "Full message text from the event." },
+  { name: "timestamp", type: "number", description: "ISO timestamp when the event fired." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Overlay | Filter on **Overlay**. Configure in the trigger condition editor. |
+| Event name | Filter on **Event name**. Configure in the trigger condition editor. |
+| Event | Filter on **Event**. Configure in the trigger condition editor. |
+| JSON field | Match a field inside JSON using a dot-path and text operator. |
+
+## Related
+
+- [Overlay plugin](/docs/plugins/overlay)
+- [Triggers guide](/docs/guide/triggers)

@@ -22,7 +22,7 @@ Open **Bot** in the sidebar:
 
 | Page | Description |
 | --- | --- |
-| **Overview** | Connection status, bot settings, summary counts |
+| **Overview** | Connection status, Twitch bot account, bot settings, summary counts |
 | **Commands** | Custom chat commands with handler chains |
 | **Timers** | Scheduled actions on an interval |
 | **Moderation** | Custom auto-mod rules |
@@ -34,7 +34,29 @@ Open **Bot** in the sidebar:
 | Bot enabled | on | Master toggle for commands and timers |
 | Command prefix | `!` | Prefix that triggers commands |
 | Auto-moderation | on | Run moderation rules on chat messages |
+| Send responses as bot account | on | Use the connected Twitch bot account for command replies when available |
 | Twitch / YouTube chat | on | Per-platform toggles |
+
+## Twitch bot account
+
+For Twitch, you can connect a **separate bot account** so command responses appear from a dedicated bot user (similar to Nightbot or StreamElements) instead of your streamer account.
+
+Your **main Twitch account** must stay connected via the [Twitch plugin](/docs/plugins/twitch) for chat listening, EventSub, and moderation. The bot account is used only to send messages.
+
+### Setup
+
+1. Connect your **streamer account** on **Plugins → Twitch** (if not already connected).
+2. Create a separate Twitch account for the bot.
+3. Mod the bot in your channel: `/mod YourBotName`
+4. Open **Bot → Overview**.
+5. Click **Connect bot account** and authorize the bot Twitch account.
+6. Keep **Send responses as bot account** enabled.
+
+If messages still fail, disconnect and reconnect the bot account so Twitch grants the latest chat scopes.
+
+### YouTube
+
+YouTube live chat always sends messages as the connected channel. There is no separate bot identity on YouTube, so the Bot plugin does not offer a second account link for YouTube.
 
 ## Commands
 
@@ -62,7 +84,7 @@ Each command can have optional cooldowns:
 | Global cooldown | Minimum time between any use of the command (all viewers) |
 | User cooldown | Minimum time before the same viewer can use it again |
 
-Leave a field empty for no cooldown on that scope. Cooldown state is kept in memory and resets when the app restarts. Commands blocked by cooldown are ignored silently (no chat message).
+Leave a field empty for no cooldown on that scope. Cooldown state is kept in memory and resets when the app restarts. When a command is blocked by cooldown, the bot replies in chat with the command name and how long is left.
 
 ### Built-in commands
 

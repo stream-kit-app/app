@@ -178,7 +178,11 @@ export function botPlugin(
 			]);
 			activateRuntime(context.app);
 		},
-		onReady: (context) => {
+		onReady: async (context) => {
+			await Promise.all([
+				commandsService.refreshDefinitionBindings(),
+				timersService.refreshDefinitionBindings()
+			]);
 			activateRuntime(context.app);
 		},
 		onDisable: () => {

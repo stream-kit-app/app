@@ -4,6 +4,7 @@ import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
 import type { CommandRecord } from '$lib/types/command-types';
 import { createFilesystemApi } from '../filesystem/create-api';
+import { isTcpPortReachable } from '../network/tcp-port';
 import { getVideoFileDurationMs } from '../media/file-duration';
 import { withResourceLock } from '../resource-lock';
 import { getSettingsFieldValue } from '../settings/settings-field';
@@ -97,6 +98,9 @@ export function createPluginAppApi(app: App): PluginAppApi {
 		},
 		media: {
 			getFileDurationMs: getVideoFileDurationMs
+		},
+		network: {
+			isTcpPortReachable
 		},
 		localTts: {
 			listVoices: app.localTts.listVoices.bind(app.localTts),

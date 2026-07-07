@@ -56,7 +56,7 @@ async function handleChatMessage(
 	);
 
 	if (matchResult) {
-		executeCommand(
+		await executeCommand(
 			app,
 			matchResult.command,
 			{
@@ -65,7 +65,8 @@ async function handleChatMessage(
 			},
 			context.source,
 			cooldownState,
-			matchResult.match
+			matchResult.match,
+			deps.settings.prefix
 		);
 		return;
 	}

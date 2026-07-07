@@ -45,7 +45,19 @@ Add handler **Overlay → Send to Overlay** (`overlay:overlay:send-to-overlay`):
 
 The overlay JavaScript receives events on its WebSocket connection and updates the UI.
 
-See [Send to Overlay handler](/docs/api/handlers/overlay/send-to-overlay) and [Overlay plugin](/docs/plugins/overlay).
+## Receive events in actions
+
+Overlays can send messages back to Stream Kit over the same WebSocket. Add trigger **Overlay → Message Received** (`overlay:overlay:message-received`) to run actions when an overlay sends an event.
+
+| Condition | Description |
+| --- | --- |
+| Overlay | Filter by overlay (optional) |
+| Event | Match event name (equals, contains, …) |
+| JSON field | Optional payload field match |
+
+Use the starter's `connectOverlay()` helper and call `send('event:name', { ... })` from overlay JavaScript. Declare suggested outbound event names in manifest `outgoingEvents`.
+
+See [Message Received trigger](/docs/api/triggers/overlay/message-received) and [Send to Overlay handler](/docs/api/handlers/overlay/send-to-overlay).
 
 ## Action presets
 

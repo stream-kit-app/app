@@ -18,7 +18,8 @@
 		"dev": "vite build --config vite.build.config.js --watch"
 	},
 	"dependencies": {
-		"@stream-kit/core": "workspace:*"
+		"@stream-kit/core": "workspace:*",
+		"sucrase": "^3.35.1"
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",

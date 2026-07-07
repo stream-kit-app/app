@@ -15,11 +15,13 @@ Open **Plugins → OBS**:
 | --- | --- |
 | Host | WebSocket host (`127.0.0.1` default). Supports full `ws://` or `wss://` URLs. |
 | Port | WebSocket port (`4455` default). Ignored when host is a full URL. |
-| Password | OBS WebSocket server password |
+| Password | OBS WebSocket server password (required) |
 
-Use **Test connection**, **Connect**, or **Disconnect**. The plugin auto-connects on enable when host, port, and password are set.
+Use **Test connection**, **Connect**, or **Disconnect**. The plugin auto-connects on enable when host, port, and password are set, and keeps retrying every 5 seconds until OBS is available or you disconnect manually.
 
-Enable the WebSocket server in OBS: **Tools → WebSocket Server Settings**.
+The plugin reports **configured** when host, port, and password are all set. Connection status is shown separately in the settings alerts.
+
+Enable the WebSocket server in OBS: **Tools → WebSocket Server Settings**, and enable authentication with a matching password.
 
 ## Triggers
 

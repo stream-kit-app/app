@@ -28,6 +28,7 @@
     "lock-prediction",
     "end-prediction",
     "cancel-prediction",
-    "create-clip"
+    "create-clip",
+    "get-user-info"
   ]
 }

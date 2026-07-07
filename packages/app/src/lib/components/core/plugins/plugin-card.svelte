@@ -175,28 +175,38 @@
 	}
 </script>
 
-<section
+<article
 	class={cn(
-		'flex min-h-52 flex-col gap-4 rounded-lg border border-dark-600 p-4',
-		hasDependencyIssues ? 'pointer-events-none bg-destructive-900 opacity-70' : 'bg-dark-800'
+		'group/card flex flex-col overflow-hidden rounded-xl border transition-colors',
+		hasDependencyIssues
+			? 'border-dark-700 bg-dark-900/70 opacity-80 hover:border-dark-600'
+			: 'border-dark-600 bg-dark-800 hover:border-dark-500'
 	)}
 >
-	<div class="flex items-start gap-3">
-		<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-dark-700">
-			<Icon icon={plugin.icon ?? 'ri:plug-line'} class="h-5 w-5" />
+	<div class="flex items-start gap-3 p-4 pb-3">
+		<div
+			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+		>
+			<Icon icon={plugin.icon ?? 'ri:plug-line'} class="size-5" />
 		</div>
-		<div class="min-w-0 flex-1">
-			<div class="flex flex-wrap items-center gap-2">
-				<h2 class="font-semibold">{plugin.name}</h2>
+		<div class="min-w-0 flex-1 space-y-2">
+			<div class="flex flex-wrap items-center gap-1.5">
+				<h2 class="min-w-0 flex-1 text-base font-semibold text-dark-50">{plugin.name}</h2>
 				{#if plugin.version}
-					<Badge variant="default">v{plugin.version}</Badge>
+					<Badge variant="default" size="sm">v{plugin.version}</Badge>
 				{/if}
 				{#if pendingUpdate}
-					<Badge variant="warning">v{pendingUpdate.availableVersion}</Badge>
+					<Badge variant="warning" size="sm">v{pendingUpdate.availableVersion}</Badge>
+				{/if}
+				{#if hasDependencyIssues}
+					<Badge variant="destructive" size="sm">
+						<Icon icon="ri:error-warning-line" />
+						{t('Unavailable')}
+					</Badge>
 				{/if}
 			</div>
 			{#if plugin.description}
-				<p class="mt-1 text-sm text-dark-100">{plugin.description}</p>
+				<p class="text-sm text-dark-100">{plugin.description}</p>
 			{/if}
 		</div>
 		<InputSwitch
@@ -205,50 +215,64 @@
 		/>
 	</div>
 
-	<div class="flex flex-col gap-2 text-sm">
-		{#if showDevMode}
-			<div class="flex items-center justify-between gap-3">
-				<div class="flex flex-col gap-0.5">
-					<span class="text-dark-100">{t('Dev mode')}</span>
-					<span class="text-xs text-dark-300"
-						>{t('Watch plugin entry and reload on change')}</span
-					>
+	<div class="border-t border-dark-700/80 bg-dark-900/50 px-4 py-3">
+		<div class="flex flex-col gap-2 text-sm">
+			{#if showDevMode}
+				<div class="flex items-center justify-between gap-3">
+					<div class="flex flex-col gap-0.5">
+						<span class="text-dark-100">{t('Dev mode')}</span>
+						<span class="text-xs text-dark-300">
+							{t('Watch plugin entry and reload on change')}
+						</span>
+					</div>
+					<InputSwitch
+						class="shrink-0"
+						bind:checked={() => isDevMode, (value) => void setPluginDevModeEnabled(value)}
+					/>
 				</div>
-				<InputSwitch
-					class="shrink-0"
-					bind:checked={() => isDevMode, (value) => void setPluginDevModeEnabled(value)}
-				/>
+			{/if}
+			<div class="flex items-center justify-between gap-3">
+				<span class="text-dark-100">{t('Configured')}</span>
+				<Badge variant={isConfigured ? 'success' : 'default'} size="sm">
+					{isConfigured ? t('Yes') : t('No')}
+				</Badge>
 			</div>
-		{/if}
-		<div class="flex items-center justify-between gap-3">
-			<span class="text-dark-100">{t('Configured')}</span>
-			<Badge variant={isConfigured ? 'success' : 'default'}>
-				{isConfigured ? t('Yes') : t('No')}
-			</Badge>
+			{#if plugin.dependencies.length > 0}
+				<div class="flex items-start justify-between gap-3">
+					<span class="shrink-0 text-dark-100">{t('Depends on')}</span>
+					<div class="flex flex-wrap justify-end gap-1.5">
+						{#each plugin.dependencies as dependency (dependency)}
+							<Badge variant={hasDependencyIssues ? 'destructive' : 'success'} size="sm">
+								{dependency}
+							</Badge>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
-		{#if plugin.dependencies.length > 0}
-			<div class="flex items-start justify-between gap-3">
-				<span class="text-dark-100">{t('Depends on')}</span>
-				{#each plugin.dependencies as dependency (dependency)}
-					<Badge variant={hasDependencyIssues ? 'destructive' : 'success'}>
-						{dependency}
-					</Badge>
-				{/each}
-			</div>
-		{/if}
 	</div>
 
-	<div class="mt-auto flex flex-wrap gap-2">
+	<div class="mt-auto flex flex-wrap items-center gap-2 border-t border-dark-700 p-3">
 		{#if pendingUpdate}
-			<Button onclick={updatePlugin} disabled={isUpdating} isLoading={isUpdating}>
+			<Button
+				size="sm"
+				icon="ri:refresh-line"
+				onclick={updatePlugin}
+				disabled={isUpdating}
+				isLoading={isUpdating}
+			>
 				{isUpdating ? t('Updating...') : t('Update plugin')}
 			</Button>
 		{/if}
 		{#if plugin.hasSettings}
-			<Button variant="outline" onclick={openSettings}>{t('Configure')}</Button>
+			<Button size="sm" variant="outline" icon="ri:settings-3-line" onclick={openSettings}>
+				{t('Configure')}
+			</Button>
 		{/if}
 		{#if plugin.source === 'installed'}
-			<Button variant="destructive" onclick={uninstallPlugin}>{t('Remove')}</Button>
+			<Button size="sm" variant="destructive" icon="ri:delete-bin-line" onclick={uninstallPlugin}>
+				{t('Remove')}
+			</Button>
 		{/if}
 	</div>
-</section>
+</article>

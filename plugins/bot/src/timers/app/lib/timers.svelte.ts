@@ -68,6 +68,18 @@ export class Timers {
 		this.items = rows.map((row) => Timer.fromRecord(row, app));
 	}
 
+	async refreshDefinitionBindings(): Promise<void> {
+		const { store, app } = this.requireContext();
+		const rows = await loadTimers(store);
+		const openById = new Map(
+			this.items
+				.filter((timer): timer is Timer & { id: string } => timer.isFormOpen && timer.id != null)
+				.map((timer) => [timer.id, timer])
+		);
+
+		this.items = rows.map((row) => openById.get(row.id) ?? Timer.fromRecord(row, app));
+	}
+
 	async persist(): Promise<void> {
 		const { store } = this.requireContext();
 		await saveTimers(store, this.getSnapshot());
@@ -105,6 +117,10 @@ export class Timers {
 
 		if (!timer) {
 			return false;
+		}
+
+		if (timer.hasUnavailableDefinitions) {
+			timer.rebindDefinitions();
 		}
 
 		timer.runHandlers(context.data, context.trigger);

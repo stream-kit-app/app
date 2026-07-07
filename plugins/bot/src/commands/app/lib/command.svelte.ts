@@ -1,10 +1,12 @@
 import type { HandlerTriggerContext, PluginAppApi } from '@stream-kit/plugin';
 import type { Action, Modal } from '@stream-kit/plugin/action';
+import type { StoredActionHandler } from '@stream-kit/plugin/action';
 import {
 	ActionHandler,
 	HandlerDefinition,
 	addHandlerToChain,
 	cloneHandlerInChain,
+	createHandlerFields,
 	flattenActionHandlers,
 	handlerFromStoredWithResolver,
 	hasHandlerErrors,
@@ -24,6 +26,7 @@ import {
 import { normalizeCommandNames } from '../../../lib/commands-store';
 
 import CommandForm from '../ui/command-form.svelte';
+import CommandFormFooter from '../ui/command-form-footer.svelte';
 
 import { normalizeCommandGroup } from './command-layout';
 import { getCommandsService } from './get-commands';
@@ -87,6 +90,10 @@ export class Command {
 		return this.handlers.some((handler) => !handler.definition.isAvailable);
 	}
 
+	get isFormOpen(): boolean {
+		return this.modalId != null;
+	}
+
 	get displayCommandNames(): string[] {
 		return normalizeCommandNames(this.commandNames);
 	}
@@ -112,17 +119,23 @@ export class Command {
 		});
 	}
 
-	static fromRecord(record: CommandRecord, app: PluginAppApi): Command {
-		const resolveDefinition = (handlerTypeId: string) =>
-			app.actions.findHandler(handlerTypeId);
+	private static handlersFromStored(
+		stored: StoredActionHandler[],
+		app: PluginAppApi
+	): ActionHandler[] {
+		const resolveDefinition = (handlerTypeId: string) => app.actions.findHandler(handlerTypeId);
 
-		const handlers = record.handlers.map((stored) =>
+		return stored.map((item) =>
 			handlerFromStoredWithResolver(
-				stored,
+				item,
 				resolveDefinition,
 				Command.createUnavailableHandlerDefinition
 			)
 		);
+	}
+
+	static fromRecord(record: CommandRecord, app: PluginAppApi): Command {
+		const handlers = Command.handlersFromStored(record.handlers, app);
 
 		return new Command({
 			id: record.id,
@@ -179,8 +192,13 @@ export class Command {
 
 	open(): Modal {
 		const app = getCommandsService().requireApp();
+
 		this.modalId =
 			this.id != null ? `command-${this.id}` : `command-draft-${crypto.randomUUID()}`;
+
+		if (this.hasUnavailableDefinitions) {
+			this.rebindDefinitions();
+		}
 
 		const modal =
 			app.modal.get(this.modalId) ??
@@ -191,6 +209,7 @@ export class Command {
 						? app.i18n.translate('Edit {name}', { name: this.name })
 						: app.i18n.translate('New Command'),
 				content: CommandForm,
+				footer: CommandFormFooter,
 				props: { command: this }
 			});
 
@@ -244,6 +263,44 @@ export class Command {
 		this.handlers = reorderBranchHandlersInChain(this.handlers, parentId, branch, handlers);
 	}
 
+	rebindDefinitions(): void {
+		if (this.isFormOpen) {
+			this.rebindDefinitionsInPlace();
+			return;
+		}
+
+		const app = getCommandsService().requireApp();
+
+		this.rebindDefinitionsInPlace();
+
+		if (this.hasUnavailableDefinitions) {
+			this.handlers = Command.handlersFromStored(
+				this.handlers.map((handler) => structuredClone(handler.toStored())),
+				app
+			);
+		}
+	}
+
+	private rebindDefinitionsInPlace(): void {
+		const app = getCommandsService().requireApp();
+
+		for (const handler of flattenActionHandlers(this.handlers)) {
+			const resolved = app.actions.findHandler(handler.definition.id);
+
+			if (!resolved?.isAvailable) {
+				continue;
+			}
+
+			if (handler.definition === resolved) {
+				continue;
+			}
+
+			const storedFields = structuredClone($state.snapshot(handler.fields));
+			handler.definition = resolved;
+			handler.fields = createHandlerFields(resolved.fields, storedFields);
+		}
+	}
+
 	async runHandlerBranch(
 		handlers: ActionHandler[],
 		context: HandlerTriggerContext
@@ -256,9 +313,14 @@ export class Command {
 			return;
 		}
 
+		if (this.hasUnavailableDefinitions) {
+			this.rebindDefinitions();
+		}
+
 		const context: HandlerTriggerContext = {
 			trigger: triggerLabel,
-			data
+			data,
+			actionVariables: {}
 		};
 
 		void runHandlerChain(this.handlers, this as unknown as Action, context);

@@ -23,4 +23,10 @@
 	);
 </script>
 
-<StatCard icon="ri:plug-line" {value} href="/plugins" embedded />
+<StatCard
+	icon="ri:plug-line"
+	{value}
+	href="/plugins"
+	embedded
+	description={t('View all plugins')}
+/>

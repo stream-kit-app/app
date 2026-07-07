@@ -133,7 +133,7 @@
 
 <div class="relative">
 	{#if editMode}
-		<div class="boot-grid pointer-events-none absolute inset-0 rounded-lg opacity-30" aria-hidden="true"></div>
+		<div class="boot-grid pointer-events-none absolute inset-0 rounded-xl opacity-30" aria-hidden="true"></div>
 	{/if}
 
 	{#if list.length === 0}
@@ -145,7 +145,7 @@
 			onDragOver={handleDragOver}
 			onDragEnd={() => void handleDragEnd()}
 		>
-			<div class="relative grid grid-cols-4 gap-4">
+			<div class="relative grid grid-cols-4 gap-5">
 				{#each list as entry, index (entry.id)}
 					{@const definition = app.dashboard.resolveDefinition(entry.instance.definitionId)}
 					{@const unavailable =
@@ -179,7 +179,7 @@
 			</DragOverlay>
 		</DragDropProvider>
 	{:else}
-		<div class="grid grid-cols-4 gap-4">
+		<div class="grid grid-cols-4 gap-5">
 			{#each sortedInstances as instance (instance.id)}
 				{@const definition = app.dashboard.resolveDefinition(instance.definitionId)}
 				{@const unavailable =

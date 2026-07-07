@@ -17,6 +17,7 @@ Each overlay includes `overlay.manifest.json`:
   "name": "My Alerts",
   "framework": "svelte",
   "expectedEvents": ["alert", "clear"],
+  "outgoingEvents": ["button:clicked", "alert:dismissed"],
   "settings": [],
   "testHandlers": [],
   "requiredPlugins": ["twitch"],
@@ -29,7 +30,8 @@ Each overlay includes `overlay.manifest.json`:
 | `id` | Stable overlay id (folder name) |
 | `name` | Display name in the app |
 | `framework` | Starter template id (`vanilla`, `svelte`, `react`, …) |
-| `expectedEvents` | Event names for **Send to Overlay** combobox |
+| `expectedEvents` | Event names for **Send to Overlay** combobox (app → overlay) |
+| `outgoingEvents` | Event names this overlay sends to Stream Kit (overlay → app); used for **Message Received** trigger setup |
 | `settings` | Configure page fields (text, switch, select, slider, sections) |
 | `testHandlers` | Quick test buttons on overlay detail page |
 | `requiredPlugins` | Plugin keys required for action presets |
@@ -45,13 +47,37 @@ Use `__overlay__` token in select items when a field should reference the curren
 
 ## Receiving events
 
-The overlay runtime connects to `ws://127.0.0.1:PORT/ws?overlayId={id}`. Listen for messages:
+The overlay runtime connects to `ws://127.0.0.1:PORT/ws?overlayId=...`. Incoming messages use this shape:
+
+```json
+{ "event": "alert", "payload": { "username": "viewer" } }
+```
+
+The reserved event `overlay:settings` is only sent from Stream Kit to the overlay.
+
+## Sending events to Stream Kit
+
+Use the starter's `connectOverlay()` helper, which returns a `send()` function:
 
 ```js
-// Simplified — use the starter's overlay client helper
+const overlay = connectOverlay({
+  'overlay:settings': (payload) => applySettings(payload),
+  alert: (payload) => showAlert(payload)
+});
+
+document.getElementById('follow-btn')?.addEventListener('click', () => {
+  overlay.send('button:clicked', { id: 'follow' });
+});
+```
+
+Stream Kit receives these messages and can run actions via **Overlay → Message Received** (`overlay:overlay:message-received`).
+
+Listen for inbound messages manually:
+
+```js
 socket.addEventListener('message', (event) => {
-  const { type, event: eventName, payload } = JSON.parse(event.data);
-  if (type === 'overlay:event' && eventName === 'alert') {
+  const { event: eventName, payload } = JSON.parse(event.data);
+  if (eventName === 'alert') {
     showAlert(payload);
   }
 });

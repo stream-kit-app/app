@@ -32,6 +32,7 @@
     "@lezer/highlight": "^1.2.3",
     "@stream-kit/core": "workspace:*",
     "@stream-kit/plugin": "workspace:*",
+    "@stream-kit/script-api": "workspace:*",
     "@stream-kit/ui": "workspace:*",
     "@svelte-i18n/core": "^2.0.1",
     "@tauri-apps/api": "^2.11.0",

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::sync::{broadcast, RwLock};
 
@@ -22,6 +22,44 @@ pub struct OverlayBroadcastMessage {
     pub event: String,
     pub payload: Value,
     pub timestamp: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OverlayIncomingMessage {
+    pub overlay_id: String,
+    pub event: String,
+    pub payload: Value,
+    pub timestamp: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct OverlayIncomingFrame {
+    event: String,
+    #[serde(default)]
+    payload: Value,
+}
+
+pub fn parse_overlay_incoming(text: &str, overlay_id: &str) -> Option<OverlayIncomingMessage> {
+    let frame: OverlayIncomingFrame = serde_json::from_str(text).ok()?;
+    let event = frame.event.trim();
+
+    if event.is_empty() || event == OVERLAY_SETTINGS_EVENT {
+        return None;
+    }
+
+    let payload = if frame.payload.is_null() {
+        Value::Object(Default::default())
+    } else {
+        frame.payload
+    };
+
+    Some(OverlayIncomingMessage {
+        overlay_id: overlay_id.to_string(),
+        event: event.to_string(),
+        payload,
+        timestamp: current_timestamp_ms(),
+    })
 }
 
 pub type OverlayConfigCache = Arc<RwLock<HashMap<String, Value>>>;

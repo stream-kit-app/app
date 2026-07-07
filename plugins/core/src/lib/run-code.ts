@@ -1,66 +1,53 @@
 import type { HandlerTriggerContext } from '@stream-kit/core';
 import type { PluginAppApi } from '@stream-kit/plugin';
+import { transform } from 'sucrase';
 
-export const SCRIPT_TEMPLATE = `export default (context: HandlerTriggerContext[]) => {
-\tconst [{ trigger, data }] = context;
-\t// trigger: name of the trigger that fired
-\t// data: full payload from that trigger (e.g. chat message object)
-}`;
+export const SCRIPT_TEMPLATE = `export default defineScript(async ({ app, context }) => {
+\tconst [{ trigger, data, actionVariables }] = context;
+\t// app: full Stream Kit API (toast, fs, plugins, actions, …)
+\t// trigger: ID of the trigger that fired
+\t// data: trigger payload (typed in the editor when triggers are configured)
+\t// actionVariables: mutable action-scoped variables for this run
+});`;
 
 const SCRIPT_TIMEOUT_MS = 5_000;
 
-// The worker runs user code in an isolated global scope with no access to the
-// app, the DOM, or Tauri APIs. It only receives the (cloned) trigger context and
-// returns the mutated context, so scripts can set action variables but cannot
-// reach into the host application.
-const WORKER_SOURCE = `
-self.onmessage = async (event) => {
-	const { id, source, context } = event.data;
+function toRunnableJavaScript(source: string): string {
+	const { code } = transform(source, {
+		transforms: ['typescript']
+	});
 
-	try {
-		const fn = new Function('context', 'const f = (' + source + '); return f(context);');
-		await fn(context);
-		self.postMessage({ id, ok: true, context });
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		self.postMessage({ id, ok: false, error: message });
-	}
-};
-`;
-
-type WorkerResponse =
-	| { id: number; ok: true; context: HandlerTriggerContext[] }
-	| { id: number; ok: false; error: string };
-
-let worker: Worker | undefined;
-let workerUrl: string | undefined;
-let messageId = 0;
-
-function getWorker(): Worker {
-	if (!worker) {
-		const blob = new Blob([WORKER_SOURCE], { type: 'application/javascript' });
-		workerUrl = URL.createObjectURL(blob);
-		worker = new Worker(workerUrl);
-	}
-
-	return worker;
+	return code.trim().replace(/^\s*export\s+default\s+/, 'const __script = ');
 }
 
-function disposeWorker(): void {
-	worker?.terminate();
-	worker = undefined;
+type ScriptHandler = (ctx: {
+	app: PluginAppApi;
+	context: HandlerTriggerContext[];
+}) => unknown;
 
-	if (workerUrl) {
-		URL.revokeObjectURL(workerUrl);
-		workerUrl = undefined;
-	}
-}
+// Identity helper so `defineScript(...)` works at runtime; it only exists to
+// provide contextual typing for `app`/`context` in the editor.
+const defineScript = (handler: ScriptHandler): ScriptHandler => handler;
 
-function normalizeScriptSource(source: string): string {
-	return source
-		.trim()
-		.replace(/^\s*export\s+default\s+/, '')
-		.replace(/(\w+)\s*:\s*[\w.<>,\s\[\]|&]+/g, '$1');
+function compileScript(
+	source: string
+): (app: PluginAppApi, context: HandlerTriggerContext[]) => Promise<unknown> {
+	const body = toRunnableJavaScript(source);
+
+	// Use Function + Promise.resolve so async user scripts work without AsyncFunction,
+	// which is unavailable in some plugin execution contexts.
+	const runner = new Function(
+		'app',
+		'context',
+		'defineScript',
+		`${body};\nreturn Promise.resolve(__script({ app, context }));`
+	) as (
+		app: PluginAppApi,
+		context: HandlerTriggerContext[],
+		define: typeof defineScript
+	) => Promise<unknown>;
+
+	return (app, context) => runner(app, context, defineScript);
 }
 
 function toCloneable(context: HandlerTriggerContext[]): HandlerTriggerContext[] {
@@ -68,8 +55,6 @@ function toCloneable(context: HandlerTriggerContext[]): HandlerTriggerContext[] 
 		structuredClone(context);
 		return context;
 	} catch {
-		// Fall back to a JSON-safe copy when the payload contains non-cloneable
-		// values (functions, class instances, etc.).
 		return JSON.parse(JSON.stringify(context)) as HandlerTriggerContext[];
 	}
 }
@@ -91,43 +76,11 @@ function applyContextResult(
 	});
 }
 
-function runInWorker(
-	source: string,
-	context: HandlerTriggerContext[]
-): Promise<HandlerTriggerContext[]> {
-	const activeWorker = getWorker();
-	const id = ++messageId;
-
-	return new Promise<HandlerTriggerContext[]>((resolve, reject) => {
-		const cleanup = (): void => {
-			clearTimeout(timeout);
-			activeWorker.removeEventListener('message', onMessage);
-		};
-
-		const timeout = setTimeout(() => {
-			cleanup();
-			// Terminate the stuck worker so a runaway script can't hang forever; a
-			// fresh worker is created on the next run.
-			disposeWorker();
-			reject(new Error(`Script exceeded the ${SCRIPT_TIMEOUT_MS}ms time limit`));
-		}, SCRIPT_TIMEOUT_MS);
-
-		const onMessage = (event: MessageEvent<WorkerResponse>): void => {
-			if (event.data?.id !== id) {
-				return;
-			}
-
-			cleanup();
-
-			if (event.data.ok) {
-				resolve(event.data.context);
-			} else {
-				reject(new Error(event.data.error));
-			}
-		};
-
-		activeWorker.addEventListener('message', onMessage);
-		activeWorker.postMessage({ id, source, context: toCloneable(context) });
+function timeoutAfter(ms: number): Promise<never> {
+	return new Promise((_, reject) => {
+		setTimeout(() => {
+			reject(new Error(`Script exceeded the ${ms}ms time limit`));
+		}, ms);
 	});
 }
 
@@ -137,9 +90,10 @@ export async function runUserScript(
 	context: HandlerTriggerContext[]
 ): Promise<void> {
 	try {
-		const normalized = normalizeScriptSource(source);
-		const updated = await runInWorker(normalized, context);
-		applyContextResult(context, updated);
+		const runnable = compileScript(source);
+		const clone = toCloneable(context);
+		await Promise.race([runnable(app, clone), timeoutAfter(SCRIPT_TIMEOUT_MS)]);
+		applyContextResult(context, clone);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error('Script execution failed', error);

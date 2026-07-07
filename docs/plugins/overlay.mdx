@@ -1,18 +1,18 @@
 ---
 title: Overlay
-description: Send events from actions to browser source overlays in OBS.
+description: Send events between Stream Kit actions and browser source overlays in OBS.
 ---
 
 # Overlay
 
-The Overlay integration is built into Stream Kit (not a separate installable plugin). It serves overlay projects locally and exposes the **Send to Overlay** handler for actions.
+The Overlay integration is built into Stream Kit (not a separate installable plugin). It serves overlay projects locally and exposes overlay triggers and handlers for actions.
 
 ## User workflow
 
 1. [Create an overlay](/docs/guide/overlays) from a framework starter.
 2. Add the **browser source URL** to OBS.
 3. Configure overlay settings on the overlay **Configure** page.
-4. In an action, add **Overlay → Send to Overlay**.
+4. In an action, add **Overlay → Send to Overlay** (app → overlay) or **Overlay → Message Received** (overlay → app).
 
 ## Send to Overlay handler
 
@@ -23,14 +23,32 @@ The Overlay integration is built into Stream Kit (not a separate installable plu
 | Field | Description |
 | --- | --- |
 | Overlay | Select target overlay |
-| Event | Event name from the overlay manifest |
+| Event | Event name from the overlay manifest `expectedEvents` |
 | Payload | Optional JSON; supports `\{variables\}` |
 
 Full reference: [Send to Overlay](/docs/api/handlers/overlay/send-to-overlay).
 
+## Message Received trigger
+
+| | |
+| --- | --- |
+| **Trigger ID** | `overlay:overlay:message-received` |
+
+| Condition | Description |
+| --- | --- |
+| Overlay | Filter by overlay (optional) |
+| Event | Match event name (equals, contains, …) |
+| JSON field | Optional payload field match |
+
+Full reference: [Message Received](/docs/api/triggers/overlay/message-received).
+
 ## Events and payloads
 
-Overlays declare `expectedEvents` in their manifest. Your overlay JavaScript listens on WebSocket and handles each event type. Payload can be omitted to forward the full trigger context, or set explicit JSON for structured data.
+**App → overlay:** Overlays declare `expectedEvents` in their manifest. Your overlay JavaScript listens on WebSocket and handles each event type.
+
+**Overlay → app:** Overlays send `{ event, payload }` frames over the same WebSocket. Declare suggested names in manifest `outgoingEvents`. Stream Kit runs matching **Message Received** actions.
+
+Payload can be omitted on **Send to Overlay** to forward the full trigger context, or set explicit JSON for structured data.
 
 ## Action presets
 
