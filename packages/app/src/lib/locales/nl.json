@@ -41,6 +41,7 @@
 	"Drag to reorder group {name}": "Sleep om groep {name} te herschikken",
 	"Collapse group {name}": "Groep {name} inklappen",
 	"Expand group {name}": "Groep {name} uitklappen",
+	"Expand": "Vergroten",
 	"Moving: {name}": "Verplaatsen: {name}",
 	"Moving group: {name}": "Groep verplaatsen: {name}",
 	"Enable selected": "Geselecteerde inschakelen",

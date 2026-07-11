@@ -43,6 +43,8 @@ Add handler **Overlay → Send to Overlay** (`overlay:overlay:send-to-overlay`):
 | Event | Event name the overlay listens for (from manifest `expectedEvents`) |
 | Payload | Optional JSON with `\{variables\}` from the trigger |
 
+A quoted placeholder whose value is a number or boolean is sent as that type, so `"\{prediction\}"` arrives as the number `5` rather than the string `"5"`.
+
 The overlay JavaScript receives events on its WebSocket connection and updates the UI.
 
 ## Receive events in actions

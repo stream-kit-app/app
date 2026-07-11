@@ -83,7 +83,7 @@
 					}
 				)}
 			>
-				<div class="shrink-0 px-8 pt-8 pb-6">
+				<div class="shrink-0 border-b border-dark-600 px-8 pt-8 pb-6">
 					{#if modal.header}
 						<Dialog.Title class="sr-only">{modal.title}</Dialog.Title>
 						{#if modal.contentHost === 'plugin'}
@@ -102,7 +102,7 @@
 				</div>
 
 				<ScrollArea orientation="vertical" class="min-h-0 flex-1" viewportClasses="h-full w-full">
-					<div class="px-8 pb-8">
+					<div class="px-8 pt-6 pb-8">
 						{#if modal.contentHost === 'plugin'}
 							<PluginComponentHost component={modal.content} props={modal.props} />
 						{:else}

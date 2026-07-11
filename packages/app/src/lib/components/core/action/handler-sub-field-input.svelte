@@ -64,7 +64,7 @@
 		};
 
 	function resolveFieldVariables(
-		fieldConfig: Extract<HandlerOneOfInnerFieldDefinition, { type: 'text' }>
+		fieldConfig: Extract<HandlerOneOfInnerFieldDefinition, { type: 'text' | 'json' }>
 	): HandlerFieldVariable[] {
 		if ('useContextVariables' in fieldConfig && fieldConfig.useContextVariables) {
 			return contextVariables;
@@ -192,6 +192,24 @@
 		language={config.language}
 		value={String(scalarValue ?? '')}
 		oninput={onCodeInput()}
+		{error}
+	/>
+{:else if config.type === 'json'}
+	<InputCode
+		label={config.name}
+		placeholder={config.placeholder}
+		required={config.required}
+		language="json"
+		minHeight="8rem"
+		value={String(scalarValue ?? '')}
+		oninput={onCodeInput()}
+		variables={resolveFieldVariables(config)}
+		variablesTitle={t('Variables')}
+		variablesAriaLabel={t('Insert variable')}
+		formatLabel={t('Format')}
+		expandLabel={t('Expand')}
+		collapseLabel={t('Close')}
+		loadingLabel={t('Loading editor...')}
 		{error}
 	/>
 {/if}

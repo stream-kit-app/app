@@ -66,7 +66,7 @@
 	{/if}
 
 	{#if hasTrailing && !isOverlay}
-		<div class="min-w-0 flex-1 overflow-hidden rounded-xl border border-dark-600">
+		<div class="min-w-0 flex-1 rounded-xl border border-dark-600">
 			<div {@attach ref} class="relative min-w-0">
 				<div
 					class={cn(isDragging.current && 'pointer-events-none select-none opacity-0')}

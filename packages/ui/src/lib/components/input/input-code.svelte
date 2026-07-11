@@ -14,6 +14,7 @@
 		streamKitMonacoTheme
 	} from '../../monaco';
 	import { VariablePopover } from '../variable-popover';
+	import { Button } from '../button';
 	import { cn } from '../../utils';
 	import Label from './label.svelte';
 
@@ -28,6 +29,12 @@
 		language?: 'typescript' | 'javascript' | 'json';
 		minHeight?: string;
 		fillHeight?: boolean;
+		formatOnBlur?: boolean;
+		showFormatButton?: boolean;
+		formatLabel?: string;
+		showExpandButton?: boolean;
+		expandLabel?: string;
+		collapseLabel?: string;
 		class?: string;
 		extraLibs?: MonacoExtraLib[];
 		loadingLabel?: string;
@@ -47,6 +54,12 @@
 		language = 'typescript',
 		minHeight = '12rem',
 		fillHeight = false,
+		formatOnBlur = true,
+		showFormatButton = true,
+		formatLabel = 'Format',
+		showExpandButton = true,
+		expandLabel = 'Expand',
+		collapseLabel = 'Close',
 		class: className,
 		extraLibs = [],
 		loadingLabel = 'Loading...',
@@ -55,6 +68,9 @@
 		variablesAriaLabel = 'Insert variable',
 		toolbar
 	}: Props = $props();
+
+	let expanded = $state(false);
+	const fillsHeight = $derived(fillHeight || expanded);
 
 	type MonacoEditor = import('monaco-editor').editor.IStandaloneCodeEditor;
 	type MonacoModule = typeof import('monaco-editor');
@@ -172,7 +188,58 @@
 			emitValueChange(editor.getValue());
 		});
 
+		if (formatOnBlur) {
+			editor.onDidBlurEditorText(() => {
+				void formatDocument();
+			});
+		}
+
 		isReady = true;
+	}
+
+	function replaceEditorText(next: string): void {
+		if (!editor) {
+			return;
+		}
+
+		const model = editor.getModel();
+
+		if (!model || model.getValue() === next) {
+			return;
+		}
+
+		editor.pushUndoStop();
+		editor.executeEdits('format', [
+			{ range: model.getFullModelRange(), text: next, forceMoveMarkers: true }
+		]);
+		editor.pushUndoStop();
+	}
+
+	async function formatDocument(): Promise<void> {
+		if (!editor) {
+			return;
+		}
+
+		const source = editor.getValue();
+
+		if (source.trim() === '') {
+			return;
+		}
+
+		if (language === 'json') {
+			try {
+				replaceEditorText(JSON.stringify(JSON.parse(source), null, 2));
+			} catch {
+				// Invalid JSON (e.g. unresolved template placeholders) is left as-is.
+			}
+			return;
+		}
+
+		try {
+			await editor.getAction('editor.action.formatDocument')?.run();
+		} catch {
+			// Best-effort: leave content as-is when no formatter is available.
+		}
 	}
 
 	onMount(() => {
@@ -210,6 +277,20 @@
 	});
 
 	$effect(() => {
+		// Re-layout Monaco right after the container resizes on expand/collapse,
+		// so it never keeps the stale (fullscreen) dimensions.
+		void expanded;
+
+		if (!editor) {
+			return;
+		}
+
+		const frame = requestAnimationFrame(() => editor?.layout());
+
+		return () => cancelAnimationFrame(frame);
+	});
+
+	$effect(() => {
 		if (!isReady) {
 			return;
 		}
@@ -232,22 +313,64 @@
 	});
 </script>
 
-<div class={cn('relative flex w-full flex-col', fillHeight ? 'h-full min-h-0 flex-1' : 'grid gap-2')}>
-	{#if label || variables.length > 0}
+<svelte:window
+	onkeydown={(event) => {
+		if (expanded && event.key === 'Escape') {
+			expanded = false;
+		}
+	}}
+/>
+
+<div
+	class={cn(
+		'relative flex w-full flex-col',
+		expanded
+			? 'fixed inset-0 z-60 gap-3 bg-dark-900 p-4'
+			: fillHeight
+				? 'h-full min-h-0 flex-1'
+				: 'grid gap-2'
+	)}
+>
+	{#if label || variables.length > 0 || showFormatButton || showExpandButton}
 		<div class="flex items-center justify-between gap-2">
 			{#if label}
 				<Label for={id}>{label}</Label>
 			{:else}
 				<span></span>
 			{/if}
-			{#if variables.length > 0}
-				<VariablePopover
-					{variables}
-					title={variablesTitle}
-					ariaLabel={variablesAriaLabel}
-					onInsert={insertVariableAtCursor}
-				/>
-			{/if}
+			<div class="flex items-center gap-1">
+				{#if showFormatButton}
+					<Button
+						type="button"
+						variant="ghost"
+						size="xs"
+						icon="ri:magic-line"
+						onclick={() => void formatDocument()}
+						class="text-dark-400 hover:text-dark-100"
+					>
+						{formatLabel}
+					</Button>
+				{/if}
+				{#if showExpandButton}
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon-sm"
+						icon={expanded ? 'ri:fullscreen-exit-line' : 'ri:fullscreen-line'}
+						aria-label={expanded ? collapseLabel : expandLabel}
+						onclick={() => (expanded = !expanded)}
+						class="size-7 text-dark-400 hover:text-dark-100"
+					/>
+				{/if}
+				{#if variables.length > 0}
+					<VariablePopover
+						{variables}
+						title={variablesTitle}
+						ariaLabel={variablesAriaLabel}
+						onInsert={insertVariableAtCursor}
+					/>
+				{/if}
+			</div>
 		</div>
 	{/if}
 	{#if toolbar}
@@ -265,13 +388,13 @@
 		aria-placeholder={placeholder}
 		class={cn(
 			'relative overflow-hidden rounded-lg border bg-dark-900 focus-within:ring-2',
-			fillHeight ? 'flex min-h-0 flex-1 flex-col' : '',
+			fillsHeight ? 'flex min-h-0 flex-1 flex-col' : '',
 			error
 				? 'border-red-500 focus-within:ring-red-500'
 				: 'border-dark-600 focus-within:ring-primary',
 			className
 		)}
-		style:min-height={fillHeight ? undefined : minHeight}
+		style:height={fillsHeight ? undefined : minHeight}
 	>
 		{#if !isReady}
 			<div

@@ -204,6 +204,9 @@
 	variables={contextVariables}
 	variablesTitle={t('Variables')}
 	variablesAriaLabel={t('Insert variable')}
+	formatLabel={t('Format')}
+	expandLabel={t('Expand')}
+	collapseLabel={t('Close')}
 	loadingLabel={t('Loading editor...')}
 	{error}
 >

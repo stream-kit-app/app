@@ -133,6 +133,14 @@ export type HandlerOneOfInnerFieldDefinition =
 			defaultValue?: string;
 	  })
 	| (HandlerFieldBase & {
+			type: 'json';
+			/** Variables available in the editor's variable picker. */
+			variables?: HandlerFieldVariable[];
+			/** Include trigger context variables in the picker. */
+			useContextVariables?: boolean;
+			defaultValue?: string;
+	  })
+	| (HandlerFieldBase & {
 			type: 'slider';
 			/** Minimum slider value. */
 			min: number;

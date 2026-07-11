@@ -8,6 +8,25 @@ import type {
 } from '../../action/handler/types';
 import { getHandlerFieldValue } from '../../action/handler-field';
 
+const JSON_NUMBER_PATTERN = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
+
+/**
+ * Returns the value as a bare JSON literal (number, boolean, or null) when it
+ * looks like one, so a quoted placeholder such as `"{prediction}"` becomes a
+ * real number instead of a string. Otherwise returns null (treat as string).
+ */
+function asJsonScalarLiteral(value: string): string | null {
+	if (JSON_NUMBER_PATTERN.test(value)) {
+		return value;
+	}
+
+	if (value === 'true' || value === 'false' || value === 'null') {
+		return value;
+	}
+
+	return null;
+}
+
 function resolvePayload(
 	app: App,
 	template: string | undefined,
@@ -25,7 +44,14 @@ function resolvePayload(
 	let resolved = template;
 
 	for (const [key, value] of Object.entries(variables)) {
-		resolved = resolved.replaceAll(`{${key}}`, value);
+		// A standalone quoted placeholder is cast to a JSON number/boolean/null
+		// when the value looks like one; otherwise it stays a JSON string.
+		const literal = asJsonScalarLiteral(value);
+		resolved = resolved.replaceAll(`"{${key}}"`, literal ?? JSON.stringify(value));
+
+		// Embedded placeholders (inside a larger string) get the escaped value.
+		const escaped = JSON.stringify(value).slice(1, -1);
+		resolved = resolved.replaceAll(`{${key}}`, escaped);
 	}
 
 	try {
@@ -73,8 +99,9 @@ export const createSendToOverlayHandler = (app: App) =>
 				}
 			},
 			{
-				type: 'text',
+				type: 'json',
 				name: 'Payload',
+				useContextVariables: true,
 				placeholder: '{"username":"{username}","message":"{message}"}'
 			}
 		],

@@ -41,6 +41,7 @@
 	"Drag to reorder group {name}": "Drag to reorder group {name}",
 	"Collapse group {name}": "Collapse group {name}",
 	"Expand group {name}": "Expand group {name}",
+	"Expand": "Expand",
 	"Moving: {name}": "Moving: {name}",
 	"Moving group: {name}": "Moving group: {name}",
 	"Enable selected": "Enable selected",

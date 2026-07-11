@@ -23,6 +23,7 @@
 	import { cn } from '$lib/utils';
 
 	import ConditionGroup from './condition-group.svelte';
+	import DefinitionIdPopover from './definition-id-popover.svelte';
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
 	import HandlerChainEditor from './handler-chain-editor.svelte';
 	import { scrollChainItemIntoView } from './scroll-chain-item';
@@ -190,9 +191,12 @@
 									<span class={cn('font-bold text-green-500')}>
 										{t('ON')}
 									</span>
-									<span class="truncate text-dark-50 italic">
+									<DefinitionIdPopover
+										id={trigger.definition.id}
+										class="min-w-0 truncate text-dark-50 italic"
+									>
 										{trigger.definition.name.toLowerCase()}
-									</span>
+									</DefinitionIdPopover>
 								</span>
 								<VariablePopover
 									variables={getTriggerVariables(action, trigger)}

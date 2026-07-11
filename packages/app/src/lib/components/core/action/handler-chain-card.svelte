@@ -11,6 +11,7 @@
 	import { isIfHandler } from '$lib/core/action/if-condition';
 	import { cn } from '$lib/utils';
 
+	import DefinitionIdPopover from './definition-id-popover.svelte';
 	import HandlerFieldGroup from './handler-field-group.svelte';
 	import IfConditionSummary from './if-condition-summary.svelte';
 	import IfHandlerBranches from './if-handler-branches.svelte';
@@ -80,7 +81,9 @@
 			</div>
 		{:else}
 			<p class="min-w-0 font-medium text-dark-50">
-				{handler.definition.name}
+				<DefinitionIdPopover id={handler.definition.id} {t}>
+					{handler.definition.name}
+				</DefinitionIdPopover>
 				{#if !handler.definition.isAvailable}
 					<span class="ml-2 text-sm font-normal text-destructive-50">
 						{t('Unavailable')}

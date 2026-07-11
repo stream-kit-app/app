@@ -21,6 +21,7 @@
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import {
 		InputCheckbox,
+		InputCode,
 		InputFilePath,
 		InputHotkey,
 		InputKeyValueList,
@@ -106,7 +107,7 @@
 	}
 
 	function resolveFieldVariables(
-		config: Extract<HandlerFieldDefinition, { type: 'text' | 'text-select-text' }>
+		config: Extract<HandlerFieldDefinition, { type: 'text' | 'text-select-text' | 'json' }>
 	): HandlerFieldVariable[] {
 		if ('useContextVariables' in config && config.useContextVariables) {
 			return contextVariables;
@@ -302,6 +303,24 @@
 			required={config.required}
 			language={config.language}
 			oninput={onCodeInput(field)}
+			{error}
+		/>
+	{:else if config.type === 'json'}
+		<InputCode
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			language="json"
+			minHeight="8rem"
+			value={String(field.value ?? '')}
+			oninput={onCodeInput(field)}
+			variables={resolveFieldVariables(config)}
+			variablesTitle={t('Variables')}
+			variablesAriaLabel={t('Insert variable')}
+			formatLabel={t('Format')}
+			expandLabel={t('Expand')}
+			collapseLabel={t('Close')}
+			loadingLabel={t('Loading editor...')}
 			{error}
 		/>
 	{:else if config.type === 'text-select-text'}

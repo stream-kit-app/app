@@ -2,6 +2,8 @@
 	import { Button } from '@stream-kit/ui/button';
 	import * as Dropdown from '@stream-kit/ui/dropdown';
 
+	import { tooltip } from '$lib/attachments';
+
 	type DefinitionNode = {
 		id: string;
 		name: string;
@@ -45,7 +47,7 @@
 			</Dropdown.SubContent>
 		</Dropdown.Sub>
 	{:else}
-		<Dropdown.Item onclick={() => onSelect(definition)}>
+		<Dropdown.Item onclick={() => onSelect(definition)} {@attach tooltip(() => definition.id)}>
 			{definition.name}
 		</Dropdown.Item>
 	{/if}

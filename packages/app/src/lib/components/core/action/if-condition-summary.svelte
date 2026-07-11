@@ -9,6 +9,7 @@
 		isValuelessIfOperator
 	} from '$lib/core/action/if-condition';
 
+	import DefinitionIdPopover from './definition-id-popover.svelte';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 
 	type Props = {
@@ -42,7 +43,9 @@
 
 {#if ifCondition}
 	<Label class="flex flex-wrap items-baseline gap-x-1.5 font-mono text-base">
-		<span class="font-bold text-green-500 uppercase">{t('if')}</span>
+		<DefinitionIdPopover id={handler.definition.id} class="font-bold text-green-500 uppercase" {t}>
+			{t('if')}
+		</DefinitionIdPopover>
 		{#if pathText}
 			<span class="text-primary-100">{pathText}</span>
 		{:else}
