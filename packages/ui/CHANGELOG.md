@@ -1,5 +1,14 @@
 # @stream-kit/ui
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- [`d9ac5f6`](https://github.com/stream-kit-app/app/commit/d9ac5f6353bb12b219542296f6d7e30d627ea75f) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - many small fixes
+
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.4
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes
