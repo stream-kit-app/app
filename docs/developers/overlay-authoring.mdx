@@ -85,9 +85,14 @@ socket.addEventListener('message', (event) => {
 
 ## Payload from actions
 
-**Send to Overlay** resolves `\{variables\}` in the payload template, then parses JSON when possible. Omit payload to receive trigger context data.
+**Send to Overlay** payload supports two modes:
 
-A **quoted standalone placeholder** is automatically cast to a real JSON type when its value looks like one. For example, if `\{prediction\}` resolves to `5`, then `"\{prediction\}"` is sent as the number `5`, and `true` / `false` / `null` are sent as those literals. Values that are not numbers or booleans stay JSON strings, and placeholders embedded inside a larger string (for example `"user-\{id\}"`) always stay strings.
+| Mode | Use when |
+| --- | --- |
+| **JSON** | Build a payload template with `\{variables\}`. Quoted standalone placeholders are cast to real JSON when the value is valid JSON (objects, arrays, numbers, booleans, or `null`). For example, `"\{message\}"` sends the object when `{message}` is a JSON object. |
+| **Variable** | Pass one variable through unchanged — for example `{message}` when the trigger already provides a JSON object. |
+
+Leave payload empty to receive the full trigger context.
 
 Handler ID: `overlay:overlay:send-to-overlay`.
 

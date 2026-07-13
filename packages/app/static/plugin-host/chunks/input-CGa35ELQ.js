@@ -2512,9 +2512,8 @@ function jr(n, i) {
 				},
 				$$slots: { child: !0 }
 			}), St(t(v, 2), {
-				align: "end",
-				collisionPadding: 8,
-				class: "w-80 max-w-[calc(100vw-2rem)] p-4",
+				align: "start",
+				class: "w-80 p-4",
 				children: (n, s) => {
 					var c = kr(), d = m(c), _ = w(d), v = (e) => {
 						var t = Tr(), n = w(t, !0);

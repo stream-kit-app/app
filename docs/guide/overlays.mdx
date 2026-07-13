@@ -41,9 +41,9 @@ Add handler **Overlay → Send to Overlay** (`overlay:overlay:send-to-overlay`):
 | --- | --- |
 | Overlay | Target overlay |
 | Event | Event name the overlay listens for (from manifest `expectedEvents`) |
-| Payload | Optional JSON with `\{variables\}` from the trigger |
+| Payload | Optional. **JSON** tab: template with `\{variables\}`; **Variable** tab: pass one variable through (for example `{message}`). Leave empty to forward trigger context. |
 
-A quoted placeholder whose value is a number or boolean is sent as that type, so `"\{prediction\}"` arrives as the number `5` rather than the string `"5"`.
+Quoted placeholders whose values are valid JSON (objects, arrays, numbers, booleans, or `null`) are inserted as real JSON types. For example, `"\{message\}"` sends the parsed object when `{message}` is a JSON object, and `"\{prediction\}"` sends the number `5`.
 
 The overlay JavaScript receives events on its WebSocket connection and updates the UI.
 

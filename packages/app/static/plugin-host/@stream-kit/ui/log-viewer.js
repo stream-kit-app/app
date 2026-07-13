@@ -2,7 +2,7 @@ import { $ as e, $n as t, Dt as n, E as r, Gn as i, Hr as a, On as o, Qn as s, Q
 import "../../chunks/disclose-version-YhYaTdgb.js";
 import { t as C } from "../../chunks/Icon-AeqJGRQj.js";
 import { t as w } from "../../chunks/utils-DJt177zd.js";
-import { a as T, f as E } from "../../chunks/input-CX6gEIuJ.js";
+import { a as T, f as E } from "../../chunks/input-CGa35ELQ.js";
 import { t as D } from "../../chunks/scroll-area-7qg9ezvn.js";
 import { t as O } from "../../chunks/button-C7Vln2y_.js";
 //#region ../ui/src/lib/components/log-viewer/log-viewer.svelte

@@ -283,6 +283,10 @@ export function describeField(type, placeholder) {
 			return 'Enable or disable this option.';
 		case 'code':
 			return 'Code or script body.';
+		case 'json':
+			return 'JSON template. Supports variable interpolation.';
+		case 'one-of':
+			return 'Choose between a JSON template or passing a single variable through.';
 		case 'key-value-list':
 			return 'Key-value pairs.';
 		default:

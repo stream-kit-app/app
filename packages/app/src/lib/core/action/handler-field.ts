@@ -9,20 +9,92 @@ import type {
 import type { ConditionGroupNode } from './trigger/condition';
 import { isOneOfFieldValue } from '@stream-kit/core';
 
+function normalizeOneOfFieldValue(
+	definition: ResolvedHandlerFieldDefinition,
+	oneOf: OneOfFieldValue
+): OneOfFieldValue {
+	if (definition.type !== 'one-of') {
+		return oneOf;
+	}
+
+	const defaultVariant = definition.defaultVariant ?? definition.variants[0]?.id ?? '';
+	const currentVariant = definition.variants.find((variant) => variant.id === oneOf.variant);
+	const currentValue = oneOf.values[oneOf.variant];
+
+	if (
+		currentVariant &&
+		currentValue !== undefined &&
+		!isInnerHandlerFieldValueEmpty(currentVariant.field, currentValue)
+	) {
+		return oneOf;
+	}
+
+	for (const variant of definition.variants) {
+		const variantValue = oneOf.values[variant.id];
+
+		if (
+			variantValue !== undefined &&
+			!isInnerHandlerFieldValueEmpty(variant.field, variantValue)
+		) {
+			if (oneOf.variant === variant.id) {
+				return oneOf;
+			}
+
+			return {
+				...oneOf,
+				variant: variant.id
+			};
+		}
+	}
+
+	if (oneOf.variant) {
+		return oneOf;
+	}
+
+	return {
+		...oneOf,
+		variant: defaultVariant
+	};
+}
+
+function normalizeHandlerFieldValue(
+	definition: ResolvedHandlerFieldDefinition,
+	value: HandlerFieldValue
+): HandlerFieldValue {
+	if (definition.type === 'one-of' && isOneOfFieldValue(value)) {
+		return normalizeOneOfFieldValue(definition, value);
+	}
+
+	return value;
+}
+
+/** Pick the one-of variant tab that has a value, when the active tab is empty. */
+export function resolveOneOfFieldValue(
+	definition: ResolvedHandlerFieldDefinition,
+	value: HandlerFieldValue | undefined
+): OneOfFieldValue | undefined {
+	if (definition.type !== 'one-of' || !isOneOfFieldValue(value)) {
+		return undefined;
+	}
+
+	return normalizeOneOfFieldValue(definition, value);
+}
+
 export function createHandlerFields(
 	definitions: ResolvedHandlerFieldDefinition[] | undefined,
 	stored?: HandlerFieldInstance[]
 ): HandlerFieldInstance[] {
 	return (definitions ?? []).map((definition) => {
 		const existing = stored?.find((field) => field.key === definition.key);
+		const value =
+			coerceLegacyOneOfFieldValue(definition, existing?.value) ??
+			migrateOneOfFieldValue(definition, stored) ??
+			initHandlerFieldValue(definition);
 
 		return {
 			id: existing?.id ?? crypto.randomUUID(),
 			key: definition.key,
-			value:
-				coerceLegacyOneOfFieldValue(definition, existing?.value) ??
-				migrateOneOfFieldValue(definition, stored) ??
-				initHandlerFieldValue(definition)
+			value: normalizeHandlerFieldValue(definition, value)
 		};
 	});
 }
@@ -31,7 +103,11 @@ function coerceLegacyOneOfFieldValue(
 	definition: ResolvedHandlerFieldDefinition,
 	value: HandlerFieldValue | undefined
 ): HandlerFieldValue | undefined {
-	if (value === undefined || definition.type !== 'one-of' || isOneOfFieldValue(value)) {
+	if (value === undefined || definition.type !== 'one-of') {
+		return value;
+	}
+
+	if (isOneOfFieldValue(value)) {
 		return value;
 	}
 

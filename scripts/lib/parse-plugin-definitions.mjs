@@ -311,31 +311,59 @@ function parseConditionCalls(conditionsBlock) {
 }
 
 /**
+ * Split a comma-separated list of top-level `{ ... }` object literals.
+ * @param {string} source
+ */
+function splitTopLevelObjects(source) {
+	/** @type {string[]} */
+	const blocks = [];
+	let i = 0;
+
+	while (i < source.length) {
+		const slice = source.slice(i).trimStart();
+		const skip = source.slice(i).length - slice.length;
+		i += skip;
+
+		if (!slice || !slice.startsWith('{')) {
+			break;
+		}
+
+		const { content, end } = extractBalancedBraces(slice, 0);
+		blocks.push(content);
+		i += skip + end;
+
+		const after = source.slice(i).trimStart();
+		if (after.startsWith(',')) {
+			i += source.slice(i).length - after.length + 1;
+		}
+	}
+
+	return blocks;
+}
+
+/**
  * @param {string} content
  */
 export function parseDefinitionProps(content) {
 	const nameMatch = content.match(/name:\s*['"]([^'"]+)['"]/);
-	const idMatch = content.match(/\bid:\s*['"]([^'"]+)['"]/);
-	/** @type {{ name: string, type: string, required?: boolean, description?: string }[]} */
+	/** @type {{ name: string, type: string, required?: boolean, description?: string, placeholder?: string }[]} */
 	const fields = [];
 
 	const fieldsIndex = content.indexOf('fields:');
 	if (fieldsIndex !== -1) {
 		const bracketStart = content.indexOf('[', fieldsIndex);
 		const fieldsBlock = extractBalanced(content, bracketStart);
-		const fieldBlocks = fieldsBlock.split(/\},\s*\{/).map((part, idx, arr) => {
-			if (idx === 0) return `${part}}`;
-			if (idx === arr.length - 1) return `{${part}`;
-			return `{${part}}`;
-		});
 
-		for (const block of fieldBlocks) {
+		for (const block of splitTopLevelObjects(fieldsBlock)) {
 			const type = block.match(/type:\s*['"]([^'"]+)['"]/)?.[1];
 			const name = block.match(/name:\s*['"]([^'"]+)['"]/)?.[1];
 			const placeholderMatch = block.match(/placeholder:\s*'((?:\\'|[^'])*)'/);
 			const placeholder = placeholderMatch?.[1]?.replace(/\\'/g, "'");
 			const required = /required:\s*true/.test(block);
-			if (type && name) fields.push({ name, type, required, placeholder });
+
+			if (type && name) {
+				fields.push({ name, type, required, placeholder });
+			}
 		}
 	}
 
@@ -355,7 +383,7 @@ export function parseDefinitionProps(content) {
 
 	return {
 		name: nameMatch?.[1],
-		explicitId: idMatch?.[1],
+		explicitId: undefined,
 		fields,
 		conditions,
 		testFactory
