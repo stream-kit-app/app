@@ -2,25 +2,44 @@ import { Jr as e, Lr as t, On as n, cr as r, nr as i, or as a } from "./chunks/c
 import { a as o } from "./chunks/dist-7Fg9me4U.js";
 //#region src/lib/core/action/handler-field.ts
 function s(e, t) {
+	if (e.type !== "one-of") return t;
+	let n = e.defaultVariant ?? e.variants[0]?.id ?? "", r = e.variants.find((e) => e.id === t.variant), i = t.values[t.variant];
+	if (r && i !== void 0 && !p(r.field, i)) return t;
+	for (let n of e.variants) {
+		let e = t.values[n.id];
+		if (e !== void 0 && !p(n.field, e)) return t.variant === n.id ? t : {
+			...t,
+			variant: n.id
+		};
+	}
+	return t.variant ? t : {
+		...t,
+		variant: n
+	};
+}
+function c(e, t) {
+	return e.type === "one-of" && o(t) ? s(e, t) : t;
+}
+function l(e, t) {
 	return (e ?? []).map((e) => {
-		let n = t?.find((t) => t.key === e.key);
+		let n = t?.find((t) => t.key === e.key), r = u(e, n?.value) ?? f(e, t) ?? ee(e);
 		return {
 			id: n?.id ?? crypto.randomUUID(),
 			key: e.key,
-			value: c(e, n?.value) ?? ee(e, t) ?? u(e)
+			value: c(e, r)
 		};
 	});
 }
-function c(e, t) {
+function u(e, t) {
 	if (t === void 0 || e.type !== "one-of" || o(t) || typeof t != "string" && typeof t != "number" && typeof t != "boolean") return t;
 	let n = e.defaultVariant ?? e.variants[0]?.id ?? "", r = t, i = {};
-	for (let t of e.variants) i[t.id] = t.id === n ? r : l(t.field);
+	for (let t of e.variants) i[t.id] = t.id === n ? r : d(t.field);
 	return {
 		variant: n,
 		values: i
 	};
 }
-function l(e) {
+function d(e) {
 	return e.defaultValue === void 0 ? e.type === "key-value-list" ? [] : e.type === "slider" ? e.defaultValue ?? e.min : e.type === "text-select-text" ? {
 		path: "",
 		type: "equals",
@@ -28,18 +47,18 @@ function l(e) {
 		negate: !1
 	} : e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" ? "" : !1 : e.defaultValue;
 }
-function u(e) {
+function ee(e) {
 	if (e.type === "one-of") {
 		let t = e.defaultVariant ?? e.variants[0]?.id ?? "", n = {};
-		for (let t of e.variants) n[t.id] = l(t.field);
+		for (let t of e.variants) n[t.id] = d(t.field);
 		return {
 			variant: t,
 			values: n
 		};
 	}
-	return l(e);
+	return d(e);
 }
-function ee(e, t) {
+function f(e, t) {
 	if (!(e.type !== "one-of" || !t?.length || !e.migrateFrom?.length) && !t.some((t) => t.key === e.key)) for (let n of e.migrateFrom) {
 		let r = /* @__PURE__ */ new Map();
 		for (let e of n.keys) {
@@ -52,38 +71,38 @@ function ee(e, t) {
 		let i = e.defaultVariant ?? e.variants[0]?.id ?? "";
 		for (let r of n.keys) {
 			let a = n.variantMap[r], o = t.find((e) => e.key === r)?.value;
-			if (a && typeof o == "string" && o.trim() && !d(e.variants.find((e) => e.id === a)?.field, o)) {
+			if (a && typeof o == "string" && o.trim() && !p(e.variants.find((e) => e.id === a)?.field, o)) {
 				i = a;
 				break;
 			}
 		}
 		let a = {};
-		for (let t of e.variants) a[t.id] = r.get(t.id) ?? l(t.field);
+		for (let t of e.variants) a[t.id] = r.get(t.id) ?? d(t.field);
 		return {
 			variant: i,
 			values: a
 		};
 	}
 }
-function d(e, t) {
-	return !e || e.type === "one-of" ? !0 : m({
+function p(e, t) {
+	return !e || e.type === "one-of" ? !0 : g({
 		...e,
 		key: "inner"
 	}, t);
 }
-function f(e, t) {
+function m(e, t) {
 	return e?.find((e) => e.key === t);
 }
-function p(e, t) {
+function h(e, t) {
 	return e.find((e) => e.key === t)?.value;
 }
-function m(e, t) {
+function g(e, t) {
 	if (e.type === "one-of") {
 		if (!t || typeof t != "object" || !("variant" in t) || !("values" in t)) return !0;
 		let n = t, r = e.variants.find((e) => e.id === n.variant);
 		if (!r) return !0;
 		let i = n.values[n.variant];
-		return d(r.field, i);
+		return p(r.field, i);
 	}
 	if (e.type === "key-value-list") return !Array.isArray(t) || t.length === 0 ? !0 : t.every((e) => !e.key.trim());
 	if (e.type === "text-select-text") {
@@ -93,11 +112,11 @@ function m(e, t) {
 	}
 	return e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" ? !String(t ?? "").trim() : !1;
 }
-function h(e) {
-	return e.children.flatMap((e) => e.kind === "condition" ? [e] : h(e));
+function _(e) {
+	return e.children.flatMap((e) => e.kind === "condition" ? [e] : _(e));
 }
-function g(e) {
-	return e.fields ? e.fields : e.config ? h(e.config).map((e) => ({
+function v(e) {
+	return e.fields ? e.fields : e.config ? _(e.config).map((e) => ({
 		id: e.id,
 		key: e.key,
 		value: typeof e.value == "object" && e.value !== null && "value" in e.value ? String(e.value.value) : e.value
@@ -105,7 +124,7 @@ function g(e) {
 }
 //#endregion
 //#region src/lib/core/action/action-handler.svelte.ts
-var _ = class t {
+var y = class t {
 	id;
 	definition;
 	#e = r(i([]));
@@ -131,7 +150,7 @@ var _ = class t {
 	}
 	constructor(e, t) {
 		this.id = t?.id ?? crypto.randomUUID(), this.definition = e;
-		let n = s(e.fields, t?.fields);
+		let n = l(e.fields, t?.fields);
 		this.fields = n.length > 0 ? n : t?.fields?.map((e) => ({ ...e })) ?? [], this.thenHandlers = t?.thenHandlers ?? [], this.elseHandlers = t?.elseHandlers ?? [];
 	}
 	get fieldDefinitions() {
@@ -141,7 +160,7 @@ var _ = class t {
 		return this.fields.find((t) => t.key === e);
 	}
 	getFieldDefinition(e) {
-		return f(this.definition.fields, e);
+		return m(this.definition.fields, e);
 	}
 	getFieldError(e, t) {
 		return t?.fieldErrors[e];
@@ -174,17 +193,17 @@ var _ = class t {
 };
 //#endregion
 //#region src/lib/utils.ts
-function v(e, t = "item") {
+function b(e, t = "item") {
 	return (e ?? t).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || t;
 }
-function y(e, t, n = "item") {
-	let r = v(e, n), i = r, a = 2;
+function x(e, t, n = "item") {
+	let r = b(e, n), i = r, a = 2;
 	for (; t.has(i);) i = `${r}-${a}`, a += 1;
 	return t.add(i), i;
 }
 //#endregion
 //#region src/lib/core/action/handler/handler-definition.svelte.ts
-var b = class {
+var te = class {
 	#e = r([]);
 	get items() {
 		return n(this.#e);
@@ -196,10 +215,10 @@ var b = class {
 		let n = {
 			...e,
 			id: w(e.id, e.name, t.idScope, "handler"),
-			fields: S(e.fields)
+			fields: C(e.fields)
 		};
 		if (this.find(n.id)) throw Error(`Handler definition with id ${n.id} already exists`);
-		let r = new x(n);
+		let r = new S(n);
 		return this.items = [...this.items, r], r;
 	}
 	find(e) {
@@ -211,7 +230,7 @@ var b = class {
 	remove(e) {
 		this.items = this.items.filter((t) => t.id !== e);
 	}
-}, x = class {
+}, S = class {
 	id;
 	name;
 	#e = r(!0);
@@ -223,9 +242,9 @@ var b = class {
 	}
 	fields;
 	execute;
-	children = new b();
+	children = new te();
 	constructor(e) {
-		this.id = e.id, this.name = e.name, this.fields = S(e.fields), this.execute = e.execute, e.children?.forEach((e) => this.children.add(e, { idScope: this.id }));
+		this.id = e.id, this.name = e.name, this.fields = C(e.fields), this.execute = e.execute, e.children?.forEach((e) => this.children.add(e, { idScope: this.id }));
 	}
 	get isGroup() {
 		return this.children.items.length > 0;
@@ -238,23 +257,23 @@ var b = class {
 		for (let t of this.children.items) t.setAvailable(e);
 	}
 };
-function S(e) {
+function C(e) {
 	let t = /* @__PURE__ */ new Set();
 	return e?.map((e) => ({
 		...e,
-		key: "key" in e && typeof e.key == "string" ? e.key : y(e.name, t, "field")
+		key: "key" in e && typeof e.key == "string" ? e.key : x(e.name, t, "field")
 	}));
 }
-function C(e, t, n = "item") {
-	let r = v(e, n);
+function ne(e, t, n = "item") {
+	let r = b(e, n);
 	return t ? `${t}:${r}` : r;
 }
 function w(e, t, n, r = "item") {
 	if (e) {
-		let t = v(e, r);
+		let t = b(e, r);
 		return n ? `${n}:${t}` : t;
 	}
-	return C(t, n, r);
+	return ne(t, n, r);
 }
 //#endregion
 //#region src/lib/core/action/run-handler-chain.ts
@@ -330,119 +349,119 @@ function A(e, t, n = null, r = null) {
 	}
 	return null;
 }
-function te(e, t, n) {
-	return j(e, (e) => D(t, e), n);
-}
 function j(e, t, n) {
-	return new _(t(e.handlerTypeId) ?? n(e.handlerTypeId), {
+	return M(e, (e) => D(t, e), n);
+}
+function M(e, t, n) {
+	return new y(t(e.handlerTypeId) ?? n(e.handlerTypeId), {
 		id: e.id,
-		fields: g(e),
-		thenHandlers: (e.thenHandlers ?? []).map((e) => j(e, t, n)),
-		elseHandlers: (e.elseHandlers ?? []).map((e) => j(e, t, n))
+		fields: v(e),
+		thenHandlers: (e.thenHandlers ?? []).map((e) => M(e, t, n)),
+		elseHandlers: (e.elseHandlers ?? []).map((e) => M(e, t, n))
 	});
 }
-function M(e) {
+function N(e) {
 	return e.flatMap((e) => [
 		e,
-		...M(e.thenHandlers),
-		...M(e.elseHandlers)
+		...N(e.thenHandlers),
+		...N(e.elseHandlers)
 	]);
 }
 //#endregion
 //#region src/lib/core/action/handler-chain-mutations.ts
-function N(e, t, n) {
-	let r = new _(t);
+function P(e, t, n) {
+	let r = new y(t);
 	if (!n) return [...e, r];
 	let i = k(e, n.parentId);
 	if (!i) return e;
 	let a = i.getBranchHandlers(n.branch);
 	return i.setBranchHandlers(n.branch, [...a, r]), [...e];
 }
-function P(e, t) {
+function F(e, t) {
 	let n = A(e, t);
 	if (!n) return e;
 	let r = n.handlers.filter((e) => e.id !== t);
 	return n.parent && n.branch ? (n.parent.setBranchHandlers(n.branch, r), [...e]) : r;
 }
-function F(e, t) {
+function I(e, t) {
 	let n = A(e, t);
 	if (!n) return e;
-	let r = _.clone(n.handlers[n.index]), i = [
+	let r = y.clone(n.handlers[n.index]), i = [
 		...n.handlers.slice(0, n.index + 1),
 		r,
 		...n.handlers.slice(n.index + 1)
 	];
 	return n.parent && n.branch ? (n.parent.setBranchHandlers(n.branch, i), [...e]) : i;
 }
-function I(e, t, n, r) {
+function L(e, t, n, r) {
 	let i = k(e, t);
 	return i ? (i.setBranchHandlers(n, r), [...e]) : e;
 }
 //#endregion
 //#region src/lib/core/action/variable-helpers.ts
-function L(e) {
+function R(e) {
 	return e.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/\b\w/g, (e) => e.toUpperCase());
 }
-function R(e) {
+function z(e) {
 	let t = e.plugins.tryGet("core");
 	return t ? t.variables.listKeys("global").map((e) => ({
 		key: e,
-		label: L(e)
+		label: R(e)
 	})) : [];
 }
-function z(e, t) {
-	return H(e.slice(0, t));
-}
 function B(e, t) {
-	return H(V(e, t) ?? []);
+	return U(e.slice(0, t));
 }
-function V(e, t, n = []) {
+function V(e, t) {
+	return U(H(e, t) ?? []);
+}
+function H(e, t, n = []) {
 	for (let r = 0; r < e.length; r += 1) {
 		let i = e[r];
 		if (i.id === t) return [...n, ...e.slice(0, r)];
-		let a = [...n, ...e.slice(0, r)], o = V(i.thenHandlers, t, a);
+		let a = [...n, ...e.slice(0, r)], o = H(i.thenHandlers, t, a);
 		if (o !== null) return o;
-		let s = V(i.elseHandlers, t, a);
+		let s = H(i.elseHandlers, t, a);
 		if (s !== null) return s;
 	}
 	return null;
 }
-function H(e) {
+function U(e) {
 	let t = [], n = /* @__PURE__ */ new Set();
 	for (let r of e) {
-		let e = p(r.fields, "target-name");
+		let e = h(r.fields, "target-name");
 		if (typeof e == "string") {
 			let r = e.trim();
 			r && !n.has(r) && (n.add(r), t.push({
 				key: r,
-				label: L(r)
+				label: R(r)
 			}));
 		}
-		let i = p(r.fields, "scope"), a = p(r.fields, "variable-name");
+		let i = h(r.fields, "scope"), a = h(r.fields, "variable-name");
 		if (i === "action" && typeof a == "string") {
 			let e = a.trim();
 			e && !n.has(e) && (n.add(e), t.push({
 				key: e,
-				label: L(e)
+				label: R(e)
 			}));
 		}
 	}
 	return t;
 }
-function U(...e) {
+function W(...e) {
 	let t = /* @__PURE__ */ new Set(), n = [];
 	for (let r of e) for (let e of r) t.has(e.key) || (t.add(e.key), n.push(e));
 	return n.sort((e, t) => e.key.localeCompare(t.key));
 }
 //#endregion
 //#region src/lib/i18n.ts
-var [ne, re] = t(), W = null;
-function G(e, t) {
-	return W ? W.t(e, t) : e;
+var [re, ie] = t(), G = null;
+function K(e, t) {
+	return G ? G.t(e, t) : e;
 }
 //#endregion
 //#region src/lib/core/action/validate-form.ts
-function K(e, t) {
+function q(e, t) {
 	if (e.type === "checkbox") return !1;
 	if (e.type === "text" || e.type === "select" || e.type === "cron-expression" || e.type === "hotkey") return !String(t ?? "").trim();
 	if (e.type === "text-select-text") {
@@ -452,7 +471,7 @@ function K(e, t) {
 	let n = t;
 	return !n.type.trim() || !n.value.trim();
 }
-function q(e, t) {
+function J(e, t) {
 	let n = {
 		fieldErrors: {},
 		missingFields: []
@@ -463,23 +482,23 @@ function q(e, t) {
 			r.required && n.missingFields.push(r.name);
 			continue;
 		}
-		r.required && m(r, t.value) && (n.fieldErrors[t.id] = G("{field} is required", { field: r.name }));
+		r.required && g(r, t.value) && (n.fieldErrors[t.id] = K("{field} is required", { field: r.name }));
 	}
 	return n;
 }
-function J(e) {
+function Y(e) {
 	return e.missingFields.length > 0 || Object.keys(e.fieldErrors).length > 0;
 }
 //#endregion
 //#region src/lib/core/action/condition-tree.ts
-function Y() {
+function X() {
 	return {
 		kind: "group",
 		id: "root",
 		children: []
 	};
 }
-function X(e, t) {
+function ae(e, t) {
 	return (e.type === "select-text" || e.type === "text-select-text") && typeof t == "object" && !!t;
 }
 function Z(e) {
@@ -490,12 +509,12 @@ function Z(e) {
 	} : e.type === "select-text" ? {
 		type: "",
 		value: ""
-	} : e.type === "checkbox" ? !0 : (e.type === "cron-expression" || e.type, "") : X(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
+	} : e.type === "checkbox" ? !0 : (e.type === "cron-expression" || e.type, "") : ae(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
 }
 function Q(e, t) {
 	return e?.find((e) => e.key === t);
 }
-function ie(e, t, n) {
+function oe(e, t, n) {
 	let r = Q(n, t);
 	r && e.children.push({
 		kind: "condition",
@@ -505,7 +524,7 @@ function ie(e, t, n) {
 		...e.children.length > 0 ? { operator: "and" } : {}
 	});
 }
-function ae(e) {
+function se(e) {
 	e.id === "root" && e.children.push({
 		kind: "group",
 		id: crypto.randomUUID(),
@@ -516,11 +535,11 @@ function ae(e) {
 function $(e) {
 	for (let [t, n] of e.children.entries()) t === 0 ? delete n.operator : n.operator ||= "and", n.kind === "group" && $(n);
 }
-function oe(e, t) {
+function ce(e, t) {
 	e.children.splice(t, 1), $(e);
 }
-function se(e, t) {
+function le(e, t) {
 	e.operator = t;
 }
 //#endregion
-export { _ as ActionHandler, x as HandlerDefinition, ie as addConditionToGroup, ae as addGroupToRoot, N as addHandlerToChain, F as cloneHandlerInChain, s as createHandlerFields, Y as emptyConditionGroup, k as findHandler, O as findHandlerDefinition, A as findHandlerLocation, M as flattenActionHandlers, Q as getConditionDefinition, R as getGlobalVariables, p as getHandlerFieldValue, z as getPrecedingActionVariables, B as getPrecedingActionVariablesForHandler, te as handlerFromStored, j as handlerFromStoredWithResolver, J as hasHandlerErrors, Z as initConditionValue, K as isFieldValueEmpty, U as mergeContextVariables, g as migrateLegacyHandlerFields, $ as normalizeConditionGroupOperators, oe as removeConditionChild, P as removeHandlerFromChain, I as reorderBranchHandlersInChain, T as runHandlerChain, se as setConditionOperator, q as validateHandlerFields };
+export { y as ActionHandler, S as HandlerDefinition, oe as addConditionToGroup, se as addGroupToRoot, P as addHandlerToChain, I as cloneHandlerInChain, l as createHandlerFields, X as emptyConditionGroup, k as findHandler, O as findHandlerDefinition, A as findHandlerLocation, N as flattenActionHandlers, Q as getConditionDefinition, z as getGlobalVariables, h as getHandlerFieldValue, B as getPrecedingActionVariables, V as getPrecedingActionVariablesForHandler, j as handlerFromStored, M as handlerFromStoredWithResolver, Y as hasHandlerErrors, Z as initConditionValue, q as isFieldValueEmpty, W as mergeContextVariables, v as migrateLegacyHandlerFields, $ as normalizeConditionGroupOperators, ce as removeConditionChild, F as removeHandlerFromChain, L as reorderBranchHandlersInChain, T as runHandlerChain, le as setConditionOperator, J as validateHandlerFields };

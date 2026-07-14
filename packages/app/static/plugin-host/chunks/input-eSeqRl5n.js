@@ -4144,8 +4144,8 @@ var Xi = new Set([
 	"contentProps",
 	"error",
 	"value"
-]), Zi = q("<!> <!>", 1), Qi = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), $i = q(" <!>", 1), ea = q("<!> <!> <!>", 1), ta = q("<div class=\"flex flex-wrap gap-1.5\"></div>"), na = q("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), ra = q("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), ia = q("<p class=\"text-sm text-red-400\"> </p>"), aa = q("<div><!> <div><!> <div class=\"min-w-0 flex-1\"><input/></div></div> <!> <!> <!></div>");
-function oa(o, c) {
+]), Zi = q("<!> <!>", 1), Qi = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), $i = q(" <!>", 1), ea = q("<!> <!> <!>", 1), ta = q("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), na = q("<ul class=\"absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), ra = q("<p class=\"text-sm text-red-400\"> </p>"), ia = q("<div><!> <div><!> <div class=\"relative min-w-0 flex-1\"><input/> <!></div></div> <!></div>");
+function aa(o, c) {
 	s(c, !0);
 	let l = D(c, "variables", 19, () => []), u = D(c, "id", 19, Ne), d = D(c, "value", 31, () => B({
 		type: "",
@@ -4186,27 +4186,9 @@ function oa(o, c) {
 			f(x).focus(), f(x).setSelectionRange(t, t);
 		});
 	}
-	function z(e) {
-		let t = d().value;
-		if (!f(x)) {
-			d({
-				...d(),
-				value: `${t}{${e}}`
-			});
-			return;
-		}
-		let n = f(x).selectionStart ?? t.length, r = t.slice(0, n), i = t.slice(n);
-		d({
-			...d(),
-			value: `${r}{${e}}${i}`
-		}), queueMicrotask(() => {
-			let t = r.length + e.length + 2;
-			f(x)?.focus(), f(x)?.setSelectionRange(t, t);
-		});
-	}
-	let q = () => {
+	let z = () => {
 		L();
-	}, J = (e) => {
+	}, q = (e) => {
 		if (!(!f(S) || f(k).length === 0)) {
 			if (e.key === "ArrowDown") {
 				e.preventDefault(), U(O, (f(O) + 1) % f(k).length);
@@ -4223,12 +4205,12 @@ function oa(o, c) {
 			}
 			e.key === "Escape" && U(S, !1);
 		}
-	}, Y = () => {
+	}, J = () => {
 		setTimeout(() => {
 			U(S, !1);
 		}, 120);
 	};
-	var X = aa(), te = w(X), ne = (e) => {
+	var Y = ia(), X = w(Y), te = (e) => {
 		lr(e, {
 			get for() {
 				return u();
@@ -4241,11 +4223,11 @@ function oa(o, c) {
 			$$slots: { default: !0 }
 		});
 	};
-	P(te, (e) => {
-		c.label && e(ne);
+	P(X, (e) => {
+		c.label && e(te);
 	});
-	var re = t(te, 2), ie = w(re);
-	n(ie, () => Hn, (e, i) => {
+	var ne = t(X, 2), re = w(ne);
+	n(re, () => Hn, (e, i) => {
 		i(e, {
 			type: "single",
 			get items() {
@@ -4390,46 +4372,23 @@ function oa(o, c) {
 			$$slots: { default: !0 }
 		});
 	});
-	var ae = t(ie, 2), oe = w(ae);
-	C(oe, (e) => ({
+	var ie = t(re, 2), ae = w(ie);
+	C(ae, (e) => ({
 		id: u(),
 		placeholder: c.placeholder,
 		class: e,
 		"aria-invalid": c.error ? !0 : void 0,
-		oninput: l().length > 0 ? q : void 0,
-		onkeydown: l().length > 0 ? J : void 0,
-		onblur: l().length > 0 ? Y : void 0,
+		oninput: l().length > 0 ? z : void 0,
+		onkeydown: l().length > 0 ? q : void 0,
+		onblur: l().length > 0 ? J : void 0,
 		onfocus: l().length > 0 ? L : void 0,
 		onclick: l().length > 0 ? L : void 0,
 		...p
-	}), [() => Q("min-w-0 w-full truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none", He.md, c.error ? "border-red-500" : "border-dark-500")], void 0, void 0, void 0, !0), i(oe, (e) => U(x, e), () => f(x)), h(ae), h(re);
-	var se = t(re, 2), ce = (e) => {
-		var t = ta();
-		r(t, 21, l, (e) => e.key, (e, t) => {
-			Et(e, {
-				variant: "outline",
-				size: "xs",
-				get title() {
-					return f(t).label;
-				},
-				onclick: () => z(f(t).key),
-				class: "font-mono text-xs font-normal text-dark-200",
-				children: (e, n) => {
-					T();
-					var r = N();
-					y(() => H(r, `{${f(t).key}}`)), A(e, r);
-				},
-				$$slots: { default: !0 }
-			});
-		}), h(t), A(e, t);
-	};
-	P(se, (e) => {
-		l().length > 0 && e(ce);
-	});
-	var $ = t(se, 2), le = (n) => {
-		var i = ra();
+	}), [() => Q("min-w-0 w-full truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none", He.md, c.error ? "border-red-500" : "border-dark-500")], void 0, void 0, void 0, !0), i(ae, (e) => U(x, e), () => f(x));
+	var oe = t(ae, 2), se = (n) => {
+		var i = na();
 		r(i, 23, () => f(k), (e) => e.key, (n, r, i) => {
-			var a = na(), o = w(a), s = w(o), c = w(s, !0);
+			var a = ta(), o = w(a), s = w(o), c = w(s, !0);
 			h(s);
 			var l = t(s, 2), u = w(l, !0);
 			h(l), h(o), h(a), y((t) => {
@@ -4439,28 +4398,28 @@ function oa(o, c) {
 			}), A(n, a);
 		}), h(i), A(n, i);
 	};
-	P($, (e) => {
-		f(S) && f(k).length > 0 && e(le);
-	});
-	var ue = t($, 2), de = (e) => {
-		var t = ia(), n = w(t, !0);
+	P(oe, (e) => {
+		f(S) && f(k).length > 0 && e(se);
+	}), h(ie), h(ne);
+	var ce = t(ne, 2), $ = (e) => {
+		var t = ra(), n = w(t, !0);
 		h(t), y(() => H(n, c.error)), A(e, t);
 	};
-	P(ue, (e) => {
-		c.error && e(de);
-	}), h(X), y((e, t) => {
-		M(X, 1, e), M(re, 1, t);
-	}, [() => G(Q("relative grid w-full min-w-0 gap-2", c.class)), () => G(Q("flex w-full min-w-0 items-stretch rounded-xl has-focus:ring-2 has-focus:ring-primary", c.error && "has-focus:ring-red-500"))]), a(oe, () => d().value, (e) => d(d().value = e, !0)), A(o, X), v();
+	P(ce, (e) => {
+		c.error && e($);
+	}), h(Y), y((e, t) => {
+		M(Y, 1, e), M(ne, 1, t);
+	}, [() => G(Q("relative grid w-full min-w-0 gap-2", c.class)), () => G(Q("flex w-full min-w-0 items-stretch rounded-xl has-focus:ring-2 has-focus:ring-primary", c.error && "has-focus:ring-red-500"))]), a(ae, () => d().value, (e) => d(d().value = e, !0)), A(o, Y), v();
 }
 Y(["mousedown"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-slider.svelte
-var sa = q("<div class=\"flex items-center justify-between gap-4\"><!> <span class=\"text-sm text-dark-100\"> </span></div>"), ca = q("<p class=\"text-sm text-red-500\"> </p>"), la = q("<div><!> <input type=\"range\"/> <!></div>");
-function ua(n, r) {
+var oa = q("<div class=\"flex items-center justify-between gap-4\"><!> <span class=\"text-sm text-dark-100\"> </span></div>"), sa = q("<p class=\"text-sm text-red-500\"> </p>"), ca = q("<div><!> <input type=\"range\"/> <!></div>");
+function la(n, r) {
 	s(r, !0);
 	let i = D(r, "id", 19, Ne), o = D(r, "min", 3, 0), c = D(r, "max", 3, 100), l = D(r, "step", 3, 1), u = D(r, "value", 15, 0);
-	var d = la(), f = w(d), m = (e) => {
-		var n = sa(), a = w(n);
+	var d = ca(), f = w(d), m = (e) => {
+		var n = oa(), a = w(n);
 		lr(a, {
 			get for() {
 				return i();
@@ -4481,7 +4440,7 @@ function ua(n, r) {
 	var g = t(f, 2);
 	p(g);
 	var _ = t(g, 2), b = (e) => {
-		var t = ca(), n = w(t, !0);
+		var t = sa(), n = w(t, !0);
 		h(t), y(() => H(n, r.error)), A(e, t);
 	};
 	P(_, (e) => {
@@ -4493,11 +4452,11 @@ function ua(n, r) {
 Y(["input"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-switch.svelte
-var da = q("<p class=\"text-sm text-red-400\"> </p>"), fa = q("<div><div class=\"flex items-center gap-3\"><!> <!></div> <!></div>");
-function pa(e, r) {
+var ua = q("<p class=\"text-sm text-red-400\"> </p>"), da = q("<div><div class=\"flex items-center gap-3\"><!> <!></div> <!></div>");
+function fa(e, r) {
 	s(r, !0);
 	let i = D(r, "checked", 15, !1), a = D(r, "id", 19, Ne);
-	var o = fa(), c = w(o), l = w(c);
+	var o = da(), c = w(o), l = w(c);
 	{
 		let e = W(() => r.label ? `${a()}-label` : void 0), t = W(() => r.error ? !0 : void 0), o = W(() => Q("inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors outline-none", "data-[state=checked]:bg-primary/15", r.error ? "data-[state=unchecked]:bg-red-500/30" : "data-[state=unchecked]:bg-dark-600", "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800", "disabled:cursor-not-allowed disabled:opacity-50"));
 		n(l, () => ir, (r, s) => {
@@ -4557,7 +4516,7 @@ function pa(e, r) {
 		r.label && e(d);
 	}), h(c);
 	var p = t(c, 2), g = (e) => {
-		var t = da(), n = w(t, !0);
+		var t = ua(), n = w(t, !0);
 		h(t), y(() => H(n, r.error)), A(e, t);
 	};
 	P(p, (e) => {
@@ -4566,8 +4525,8 @@ function pa(e, r) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-list.svelte
-var ma = q("<div class=\"flex items-center gap-2\"><!> <!></div>"), ha = q("<p class=\"text-sm text-destructive-50\"> </p>"), ga = q("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
-function _a(n, i) {
+var pa = q("<div class=\"flex items-center gap-2\"><!> <!></div>"), ma = q("<p class=\"text-sm text-destructive-50\"> </p>"), ha = q("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
+function ga(n, i) {
 	s(i, !0);
 	let a = D(i, "values", 31, () => B([])), o = D(i, "id", 19, Ne), c = D(i, "addLabel", 3, "Add"), u = D(i, "removeLabel", 3, "Remove"), d = j(B([]));
 	function p(e) {
@@ -4598,7 +4557,7 @@ function _a(n, i) {
 		let e = a(), t = f(d).map((e) => e.value);
 		e.length === t.length && e.every((e, n) => e === t[n]) || U(d, p(e), !0);
 	});
-	var x = ga(), S = w(x), C = (e) => {
+	var x = ha(), S = w(x), C = (e) => {
 		{
 			let t = W(() => `${o()}-label`);
 			lr(e, {
@@ -4619,7 +4578,7 @@ function _a(n, i) {
 	});
 	var E = t(S, 2), O = w(E);
 	r(O, 17, () => f(d), (e) => e.id, (e, n) => {
-		var r = ma(), a = w(r);
+		var r = pa(), a = w(r);
 		{
 			let e = W(() => `${o()}-${f(n).id}`);
 			Pi(a, {
@@ -4666,7 +4625,7 @@ function _a(n, i) {
 		$$slots: { default: !0 }
 	}), h(E);
 	var k = t(E, 2), F = (e) => {
-		var t = ha(), n = w(t, !0);
+		var t = ma(), n = w(t, !0);
 		h(t), y(() => H(n, i.error)), A(e, t);
 	};
 	P(k, (e) => {
@@ -4677,7 +4636,7 @@ function _a(n, i) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/use-dropdown-scroll.svelte.ts
-var va = class {
+var _a = class {
 	#e = j(0);
 	get scrollTop() {
 		return f(this.#e);
@@ -4708,12 +4667,12 @@ var va = class {
 		let n = e.findIndex((e) => e.value === t);
 		n >= 0 && this.scrollToIndex(n);
 	}
-}, ya = q("<div class=\"relative w-full\"><div class=\"absolute inset-x-0 top-0\"></div></div>");
-function ba(e, t) {
+}, va = q("<div class=\"relative w-full\"><div class=\"absolute inset-x-0 top-0\"></div></div>");
+function ya(e, t) {
 	s(t, !0);
 	let n = D(t, "viewportHeight", 3, 200), i = W(() => si(t.items.length)), a = W(() => f(i) ? oi(t.items, t.scrollTop, n()) : null), o = W(() => f(i) && f(a) ? f(a).items : t.items);
 	var c = F(), l = m(c), u = (e) => {
-		var n = ya();
+		var n = va();
 		let i;
 		var s = w(n);
 		let c;
@@ -4736,14 +4695,14 @@ function ba(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-select.svelte
-var xa = (e, r = z) => {
+var ba = (e, r = z) => {
 	let i = W(() => r().value), a = W(() => r().label), o = W(() => r().disabled);
 	var s = F(), c = m(s);
 	{
 		let e = (e, n) => {
 			let r = () => n?.().selected;
 			T();
-			var i = Ca(), o = m(i), s = t(o), c = (e) => {
+			var i = Sa(), o = m(i), s = t(o), c = (e) => {
 				Z(e, {
 					icon: "ri:check-line",
 					class: "size-5 text-primary"
@@ -4773,7 +4732,7 @@ var xa = (e, r = z) => {
 		});
 	}
 	A(e, s);
-}, Sa = new Set([
+}, xa = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -4791,10 +4750,10 @@ var xa = (e, r = z) => {
 	"contentProps",
 	"error",
 	"value"
-]), Ca = q(" <!>", 1), wa = q("<span class=\"text-red-400\">*</span>"), Ta = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Ea = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"></div>"), Da = q("<!> <!> <!>", 1), Oa = q("<div><div class=\"min-w-0 flex-1\"><!></div> <button type=\"button\" aria-haspopup=\"listbox\"><!></button></div> <!>", 1), ka = q("<p class=\"text-sm text-red-400\"> </p>"), Aa = q("<div><!> <!> <!></div>");
-function ja(r, i) {
+]), Sa = q(" <!>", 1), Ca = q("<span class=\"text-red-400\">*</span>"), wa = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Ta = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"></div>"), Ea = q("<!> <!> <!>", 1), Da = q("<div><div class=\"min-w-0 flex-1\"><!></div> <button type=\"button\" aria-haspopup=\"listbox\"><!></button></div> <!>", 1), Oa = q("<p class=\"text-sm text-red-400\"> </p>"), ka = q("<div><!> <!> <!></div>");
+function Aa(r, i) {
 	s(i, !0);
-	let a = D(i, "allowCustomValue", 3, !0), c = D(i, "id", 19, Ne), l = D(i, "value", 15, ""), d = V(i, Sa), p = W(() => i.placeholder), g = W(() => i.loadingPlaceholder ?? "Loading..."), _ = W(() => i.selectAriaLabel ?? "Select value"), b = j(!1), x = j(""), S = j(!1), C = new va(), E = ii(() => i.items, () => i.reloadKey?.()), O = new Qr(() => f(x), 100), k = W(() => new Map(E.items.map((e) => [e.value, e]))), N = W(() => f(k).get(l())), I = W(() => f(N)?.value ?? ""), L = W(() => {
+	let a = D(i, "allowCustomValue", 3, !0), c = D(i, "id", 19, Ne), l = D(i, "value", 15, ""), d = V(i, xa), p = W(() => i.placeholder), g = W(() => i.loadingPlaceholder ?? "Loading..."), _ = W(() => i.selectAriaLabel ?? "Select value"), b = j(!1), x = j(""), S = j(!1), C = new _a(), E = ii(() => i.items, () => i.reloadKey?.()), O = new Qr(() => f(x), 100), k = W(() => new Map(E.items.map((e) => [e.value, e]))), N = W(() => f(k).get(l())), I = W(() => f(N)?.value ?? ""), L = W(() => {
 		if (E.loading) return [];
 		if (!f(S)) return E.items;
 		let e = O.current.trim();
@@ -4840,15 +4799,15 @@ function ja(r, i) {
 		onfocus: J,
 		onblur: Y
 	}));
-	var re = Aa(), ie = w(re), ae = (e) => {
+	var re = ka(), ie = w(re), ae = (e) => {
 		lr(e, {
 			get for() {
 				return c();
 			},
 			children: (e, n) => {
 				T();
-				var r = Ca(), a = m(r), o = t(a), s = (e) => {
-					A(e, wa());
+				var r = Sa(), a = m(r), o = t(a), s = (e) => {
+					A(e, Ca());
 				};
 				P(o, (e) => {
 					i.required && e(s);
@@ -4889,7 +4848,7 @@ function ja(r, i) {
 					U(b, e, !0);
 				},
 				children: (r, a) => {
-					var o = Oa(), s = m(o), c = w(s);
+					var o = Da(), s = m(o), c = w(s);
 					n(w(c), () => hn, (e, t) => {
 						t(e, K(() => f(ne)));
 					}), h(c);
@@ -4912,7 +4871,7 @@ function ja(r, i) {
 												return f(r);
 											},
 											children: (e, r) => {
-												var i = Da(), a = m(i);
+												var i = Ea(), a = m(i);
 												n(a, () => Fn, (e, t) => {
 													t(e, {
 														class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -4936,10 +4895,10 @@ function ja(r, i) {
 														},
 														children: (e, t) => {
 															var n = F(), r = m(n), i = (e) => {
-																var t = Ta(), n = w(t, !0);
+																var t = wa(), n = w(t, !0);
 																h(t), y(() => H(n, f(g))), A(e, t);
 															}, a = (e) => {
-																ba(e, {
+																ya(e, {
 																	get items() {
 																		return f(L);
 																	},
@@ -4947,11 +4906,11 @@ function ja(r, i) {
 																		return C.scrollTop;
 																	},
 																	get item() {
-																		return xa;
+																		return ba;
 																	}
 																});
 															}, o = (e) => {
-																var t = Ea();
+																var t = Ta();
 																t.textContent = "No matches found", A(e, t);
 															};
 															P(r, (e) => {
@@ -4987,7 +4946,7 @@ function ja(r, i) {
 		});
 	}
 	var se = t(oe, 2), ce = (e) => {
-		var t = ka(), n = w(t, !0);
+		var t = Oa(), n = w(t, !0);
 		h(t), y(() => H(n, i.error)), A(e, t);
 	};
 	P(se, (e) => {
@@ -4997,7 +4956,7 @@ function ja(r, i) {
 Y(["click"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-select-text.svelte
-var Ma = new Set([
+var ja = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -5016,14 +4975,14 @@ var Ma = new Set([
 	"error",
 	"suffix",
 	"value"
-]), Na = q("<!> <!>", 1), Pa = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Fa = q(" <!>", 1), Ia = q("<!> <!> <!>", 1), La = q("<div aria-hidden=\"true\">—</div>"), Ra = q("<input/>"), za = q("<div class=\"flex shrink-0 items-center self-center\"><!></div>"), Ba = q("<div class=\"flex flex-wrap gap-1.5\"></div>"), Va = q("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Ha = q("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Ua = q("<p class=\"text-sm text-red-400\"> </p>"), Wa = q("<div><!> <div class=\"flex items-center gap-3\"><div><input/> <!> <!></div> <!></div> <!> <!> <!></div>");
-function Ga(o, c) {
+]), Ma = q("<!> <!>", 1), Na = q("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Pa = q(" <!>", 1), Fa = q("<!> <!> <!>", 1), Ia = q("<div aria-hidden=\"true\">—</div>"), La = q("<input/>"), Ra = q("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), za = q("<ul class=\"absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Ba = q("<div class=\"flex shrink-0 items-center self-center\"><!></div>"), Va = q("<p class=\"text-sm text-red-400\"> </p>"), Ha = q("<div><!> <div class=\"flex items-center gap-3\"><div><input/> <!> <!> <!></div> <!></div> <!></div>");
+function Ua(o, c) {
 	s(c, !0);
 	let l = D(c, "variables", 19, () => []), u = D(c, "valuelessOperators", 19, () => []), d = D(c, "id", 19, Ne), _ = D(c, "value", 31, () => B({
 		path: "",
 		type: "equals",
 		value: ""
-	})), b = V(c, Ma), x = W(() => c.selectPlaceholder ?? "Select"), E = W(() => c.loadingPlaceholder ?? "Loading..."), O = ii(() => c.items), I = j(null), L = j(null), R = j("path"), z = j(!1), q = j(""), J = j(0), Y = W(() => {
+	})), b = V(c, ja), x = W(() => c.selectPlaceholder ?? "Select"), E = W(() => c.loadingPlaceholder ?? "Loading..."), O = ii(() => c.items), I = j(null), L = j(null), R = j("path"), z = j(!1), q = j(""), J = j(0), Y = W(() => {
 		if (!f(q)) return l();
 		let e = f(q).toLowerCase();
 		return l().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -5077,19 +5036,7 @@ function Ga(o, c) {
 			r.focus(), r.setSelectionRange(t, t);
 		});
 	}
-	function oe(e, t = f(R)) {
-		let n = te(t), r = X(t);
-		if (!r) {
-			ne(t, `${n}{${e}}`);
-			return;
-		}
-		let i = r.selectionStart ?? n.length, a = n.slice(0, i);
-		ne(t, `${a}{${e}}${n.slice(i)}`), queueMicrotask(() => {
-			let t = a.length + e.length + 2;
-			r.focus(), r.setSelectionRange(t, t);
-		});
-	}
-	let se = (e) => ({
+	let oe = (e) => ({
 		handleInput: () => {
 			ie(e);
 		},
@@ -5112,16 +5059,16 @@ function Ga(o, c) {
 			}
 		},
 		handleBlur: () => {
-			ce && clearTimeout(ce), ce = setTimeout(() => {
-				U(z, !1), ce = void 0;
+			se && clearTimeout(se), se = setTimeout(() => {
+				U(z, !1), se = void 0;
 			}, 120);
 		}
-	}), ce;
+	}), se;
 	S(() => {
-		ce && clearTimeout(ce);
+		se && clearTimeout(se);
 	});
-	let $ = se("path"), le = se("value"), ue = W(() => c.error ? "border-red-500" : "border-dark-500"), de = W(() => u().includes(_().type));
-	var fe = Wa(), pe = w(fe), me = (e) => {
+	let ce = oe("path"), $ = oe("value"), le = W(() => c.error ? "border-red-500" : "border-dark-500"), ue = W(() => u().includes(_().type));
+	var de = Ha(), fe = w(de), pe = (e) => {
 		lr(e, {
 			get for() {
 				return d();
@@ -5134,11 +5081,11 @@ function Ga(o, c) {
 			$$slots: { default: !0 }
 		});
 	};
-	P(pe, (e) => {
-		c.label && e(me);
+	P(fe, (e) => {
+		c.label && e(pe);
 	});
-	var he = t(pe, 2), ge = w(he), _e = w(ge);
-	C(_e, (e) => ({
+	var me = t(fe, 2), he = w(me), ge = w(he);
+	C(ge, (e) => ({
 		id: d(),
 		placeholder: c.pathPlaceholder,
 		class: e,
@@ -5148,15 +5095,15 @@ function Ga(o, c) {
 		"aria-expanded": l().length > 0 ? f(z) && f(R) === "path" && f(Y).length > 0 : void 0,
 		"aria-controls": l().length > 0 ? `${d()}-listbox` : void 0,
 		"aria-activedescendant": f(z) && f(R) === "path" && f(Y).length > 0 ? `${d()}-option-${f(J)}` : void 0,
-		oninput: l().length > 0 ? $.handleInput : void 0,
-		onkeydown: l().length > 0 ? $.handleKeydown : void 0,
-		onblur: l().length > 0 ? $.handleBlur : void 0,
+		oninput: l().length > 0 ? ce.handleInput : void 0,
+		onkeydown: l().length > 0 ? ce.handleKeydown : void 0,
+		onblur: l().length > 0 ? ce.handleBlur : void 0,
 		onfocus: l().length > 0 ? () => ie("path") : void 0,
 		onclick: l().length > 0 ? () => ie("path") : void 0,
 		...b
-	}), [() => Q("min-w-0 flex-1 truncate border border-r bg-dark-700 text-dark-50 outline-none", "rounded-l-xl", He.md, f(ue))], void 0, void 0, void 0, !0), i(_e, (e) => U(I, e), () => f(I));
-	var ve = t(_e, 2);
-	n(ve, () => Hn, (e, i) => {
+	}), [() => Q("min-w-0 flex-1 truncate border border-r bg-dark-700 text-dark-50 outline-none", "rounded-l-xl", He.md, f(le))], void 0, void 0, void 0, !0), i(ge, (e) => U(I, e), () => f(I));
+	var _e = t(ge, 2);
+	n(_e, () => Hn, (e, i) => {
 		i(e, {
 			type: "single",
 			get items() {
@@ -5169,16 +5116,16 @@ function Ga(o, c) {
 				_(_().type = e, !0);
 			},
 			children: (e, i) => {
-				var a = Na(), o = m(a);
+				var a = Ma(), o = m(a);
 				{
-					let e = W(() => Q("flex shrink-0 cursor-pointer items-center justify-between gap-2 border border-x-0 bg-dark-700 text-dark-50 outline-none", He.md, f(ue), c.selectClass ?? "w-32"));
+					let e = W(() => Q("flex shrink-0 cursor-pointer items-center justify-between gap-2 border border-x-0 bg-dark-700 text-dark-50 outline-none", He.md, f(le), c.selectClass ?? "w-32"));
 					n(o, () => Jn, (r, i) => {
 						i(r, {
 							get class() {
 								return f(e);
 							},
 							children: (e, r) => {
-								var i = Na(), a = m(i);
+								var i = Ma(), a = m(i);
 								{
 									let e = W(() => O.loading ? f(E) : f(x));
 									n(a, () => Gn, (t, n) => {
@@ -5214,7 +5161,7 @@ function Ga(o, c) {
 											return f(i);
 										},
 										children: (e, i) => {
-											var a = Ia(), o = m(a);
+											var a = Fa(), o = m(a);
 											n(o, () => Fn, (e, t) => {
 												t(e, {
 													class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -5229,7 +5176,7 @@ function Ga(o, c) {
 												i(e, {
 													children: (e, i) => {
 														var a = F(), o = m(a), s = (e) => {
-															var t = Pa(), n = w(t, !0);
+															var t = Na(), n = w(t, !0);
 															h(t), y(() => H(n, f(E))), A(e, t);
 														}, c = (e) => {
 															var i = F();
@@ -5240,7 +5187,7 @@ function Ga(o, c) {
 																	let e = (e, n) => {
 																		let r = () => n?.().selected;
 																		T();
-																		var i = Fa(), o = m(i), s = t(o), c = (e) => {
+																		var i = Pa(), o = m(i), s = t(o), c = (e) => {
 																			Z(e, {
 																				icon: "ri:check-line",
 																				class: "size-5 text-primary"
@@ -5301,62 +5248,32 @@ function Ga(o, c) {
 			$$slots: { default: !0 }
 		});
 	});
-	var ye = t(ve, 2), be = (e) => {
-		var t = La();
-		y((e) => M(t, 1, e), [() => G(Q("flex min-w-0 items-center rounded-r-xl border border-l-0 bg-dark-700 px-3 text-dark-500 select-none", He.md, f(ue)))]), A(e, t);
-	}, xe = (t) => {
-		var n = Ra();
+	var ve = t(_e, 2), ye = (e) => {
+		var t = Ia();
+		y((e) => M(t, 1, e), [() => G(Q("flex min-w-0 items-center rounded-r-xl border border-l-0 bg-dark-700 px-3 text-dark-500 select-none", He.md, f(le)))]), A(e, t);
+	}, be = (t) => {
+		var n = La();
 		p(n), i(n, (e) => U(L, e), () => f(L)), y((t) => {
 			e(n, "placeholder", c.valuePlaceholder), M(n, 1, t), e(n, "aria-invalid", c.error ? !0 : void 0), e(n, "role", l().length > 0 ? "combobox" : void 0), e(n, "aria-autocomplete", l().length > 0 ? "list" : void 0), e(n, "aria-expanded", l().length > 0 ? f(z) && f(R) === "value" && f(Y).length > 0 : void 0), e(n, "aria-controls", l().length > 0 ? `${d()}-listbox` : void 0), e(n, "aria-activedescendant", f(z) && f(R) === "value" && f(Y).length > 0 ? `${d()}-option-${f(J)}` : void 0);
-		}, [() => G(Q("min-w-0 flex-1 truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none", He.md, f(ue)))]), ee("input", n, function(...e) {
-			(l().length > 0 ? le.handleInput : void 0)?.apply(this, e);
+		}, [() => G(Q("min-w-0 flex-1 truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none", He.md, f(le)))]), ee("input", n, function(...e) {
+			(l().length > 0 ? $.handleInput : void 0)?.apply(this, e);
 		}), ee("keydown", n, function(...e) {
-			(l().length > 0 ? le.handleKeydown : void 0)?.apply(this, e);
+			(l().length > 0 ? $.handleKeydown : void 0)?.apply(this, e);
 		}), k("blur", n, function(...e) {
-			(l().length > 0 ? le.handleBlur : void 0)?.apply(this, e);
+			(l().length > 0 ? $.handleBlur : void 0)?.apply(this, e);
 		}), k("focus", n, function(...e) {
 			(l().length > 0 ? () => ie("value") : void 0)?.apply(this, e);
 		}), ee("click", n, function(...e) {
 			(l().length > 0 ? () => ie("value") : void 0)?.apply(this, e);
 		}), a(n, () => _().value, (e) => _(_().value = e, !0)), A(t, n);
 	};
-	P(ye, (e) => {
-		f(de) ? e(be) : e(xe, -1);
-	}), h(ge);
-	var Se = t(ge, 2), Ce = (e) => {
-		var t = za();
-		g(w(t), () => c.suffix), h(t), A(e, t);
-	};
-	P(Se, (e) => {
-		c.suffix && e(Ce);
-	}), h(he);
-	var we = t(he, 2), Te = (e) => {
-		var t = Ba();
-		r(t, 21, l, (e) => e.key, (e, t) => {
-			Et(e, {
-				variant: "outline",
-				size: "xs",
-				get title() {
-					return f(t).label;
-				},
-				onclick: () => oe(f(t).key),
-				class: "font-mono text-xs font-normal text-dark-200",
-				children: (e, n) => {
-					T();
-					var r = N();
-					y(() => H(r, `{${f(t).key}}`)), A(e, r);
-				},
-				$$slots: { default: !0 }
-			});
-		}), h(t), A(e, t);
-	};
-	P(we, (e) => {
-		l().length > 0 && e(Te);
+	P(ve, (e) => {
+		f(ue) ? e(ye) : e(be, -1);
 	});
-	var Ee = t(we, 2), De = (n) => {
-		var i = Ha();
+	var xe = t(ve, 2), Se = (n) => {
+		var i = za();
 		r(i, 23, () => f(Y), (e) => e.key, (n, r, i) => {
-			var a = Va(), o = w(a), s = w(o), c = w(s, !0);
+			var a = Ra(), o = w(a), s = w(o), c = w(s, !0);
 			h(s);
 			var l = t(s, 2), u = w(l, !0);
 			h(l), h(o), h(a), y((t) => {
@@ -5366,18 +5283,25 @@ function Ga(o, c) {
 			}), A(n, a);
 		}), h(i), y(() => e(i, "id", `${d()}-listbox`)), A(n, i);
 	};
-	P(Ee, (e) => {
-		f(z) && f(Y).length > 0 && e(De);
-	});
-	var Oe = t(Ee, 2), ke = (e) => {
-		var t = Ua(), n = w(t, !0);
+	P(xe, (e) => {
+		f(z) && f(Y).length > 0 && e(Se);
+	}), h(he);
+	var Ce = t(he, 2), we = (e) => {
+		var t = Ba();
+		g(w(t), () => c.suffix), h(t), A(e, t);
+	};
+	P(Ce, (e) => {
+		c.suffix && e(we);
+	}), h(me);
+	var Te = t(me, 2), Ee = (e) => {
+		var t = Va(), n = w(t, !0);
 		h(t), y(() => H(n, c.error)), A(e, t);
 	};
-	P(Oe, (e) => {
-		c.error && e(ke);
-	}), h(fe), y((e, t) => {
-		M(fe, 1, e), M(ge, 1, t);
-	}, [() => G(Q("relative grid w-full gap-2", c.class)), () => G(Q("grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl has-focus:ring-2 has-focus:ring-primary", c.error && "has-focus:ring-red-500"))]), a(_e, () => _().path, (e) => _(_().path = e, !0)), A(o, fe), v();
+	P(Te, (e) => {
+		c.error && e(Ee);
+	}), h(de), y((e, t) => {
+		M(de, 1, e), M(he, 1, t);
+	}, [() => G(Q("relative grid w-full gap-2", c.class)), () => G(Q("relative grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl has-focus:ring-2 has-focus:ring-primary", c.error && "has-focus:ring-red-500"))]), a(ge, () => _().path, (e) => _(_().path = e, !0)), A(o, de), v();
 }
 Y([
 	"input",
@@ -5387,7 +5311,7 @@ Y([
 ]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-variables.svelte
-var Ka = new Set([
+var Wa = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -5399,10 +5323,10 @@ var Ka = new Set([
 	"id",
 	"placeholder",
 	"class"
-]), qa = q("<div class=\"flex flex-wrap gap-1.5\"></div>"), Ja = q("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Ya = q("<ul class=\"absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Xa = q("<p class=\"text-sm text-red-400\"> </p>"), Za = q("<div class=\"relative grid w-full min-w-0 gap-2\"><!> <div><input/></div> <!> <!> <!></div>");
-function Qa(n, o) {
+]), Ga = q("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Ka = q("<ul class=\"absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), qa = q("<p class=\"text-sm text-red-400\"> </p>"), Ja = q("<div class=\"relative grid w-full min-w-0 gap-2\"><!> <div><input/> <!></div> <!></div>");
+function Ya(n, o) {
 	s(o, !0);
-	let c = D(o, "variables", 19, () => []), l = D(o, "value", 15, ""), u = D(o, "id", 19, Ne), d = V(o, Ka), p = j(null), m = j(!1), g = j(""), _ = j(0), b = W(() => {
+	let c = D(o, "variables", 19, () => []), l = D(o, "value", 15, ""), u = D(o, "id", 19, Ne), d = V(o, Wa), p = j(null), m = j(!1), g = j(""), _ = j(0), b = W(() => {
 		if (!f(g)) return c();
 		let e = f(g).toLowerCase();
 		return c().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -5435,20 +5359,9 @@ function Qa(n, o) {
 			f(p).focus(), f(p).setSelectionRange(t, t);
 		});
 	}
-	function k(e) {
-		if (!f(p)) {
-			l(`${l()}{${e}}`);
-			return;
-		}
-		let t = f(p).selectionStart ?? l().length, n = l().slice(0, t);
-		l(`${n}{${e}}${l().slice(t)}`), queueMicrotask(() => {
-			let t = n.length + e.length + 2;
-			f(p)?.focus(), f(p)?.setSelectionRange(t, t);
-		});
-	}
-	let F = (e) => {
+	let k = (e) => {
 		o.oninput?.(e), E();
-	}, I = (e) => {
+	}, F = (e) => {
 		if (!(!f(m) || f(b).length === 0)) {
 			if (e.key === "ArrowDown") {
 				e.preventDefault(), U(_, (f(_) + 1) % f(b).length);
@@ -5465,15 +5378,15 @@ function Qa(n, o) {
 			}
 			e.key === "Escape" && U(m, !1);
 		}
-	}, L, R = () => {
-		L && clearTimeout(L), L = setTimeout(() => {
-			U(m, !1), L = void 0;
+	}, I, L = () => {
+		I && clearTimeout(I), I = setTimeout(() => {
+			U(m, !1), I = void 0;
 		}, 120);
 	};
 	S(() => {
-		L && clearTimeout(L);
+		I && clearTimeout(I);
 	});
-	var z = Za(), B = w(z), K = (e) => {
+	var R = Ja(), z = w(R), B = (e) => {
 		lr(e, {
 			get for() {
 				return u();
@@ -5486,11 +5399,11 @@ function Qa(n, o) {
 			$$slots: { default: !0 }
 		});
 	};
-	P(B, (e) => {
-		o.label && e(K);
+	P(z, (e) => {
+		o.label && e(B);
 	});
-	var q = t(B, 2), J = w(q);
-	C(J, (e) => ({
+	var K = t(z, 2), q = w(K);
+	C(q, (e) => ({
 		id: u(),
 		placeholder: o.placeholder,
 		class: e,
@@ -5500,40 +5413,17 @@ function Qa(n, o) {
 		"aria-expanded": f(m) && f(b).length > 0,
 		"aria-controls": `${u()}-listbox`,
 		"aria-activedescendant": f(m) && f(b).length > 0 ? `${u()}-option-${f(_)}` : void 0,
-		oninput: F,
-		onkeydown: I,
-		onblur: R,
+		oninput: k,
+		onkeydown: F,
+		onblur: L,
 		onfocus: E,
 		onclick: E,
 		...d
-	}), [() => Q("min-w-0 w-full truncate rounded-xl border bg-dark-700 text-dark-50 outline-none", He.md, o.error ? "border-red-500" : "border-dark-500")], void 0, void 0, void 0, !0), i(J, (e) => U(p, e), () => f(p)), h(q);
-	var Y = t(q, 2), X = (e) => {
-		var t = qa();
-		r(t, 21, c, (e) => e.key, (e, t) => {
-			Et(e, {
-				variant: "outline",
-				size: "xs",
-				get title() {
-					return f(t).label;
-				},
-				onclick: () => k(f(t).key),
-				class: "font-mono text-xs font-normal text-dark-200",
-				children: (e, n) => {
-					T();
-					var r = N();
-					y(() => H(r, `{${f(t).key}}`)), A(e, r);
-				},
-				$$slots: { default: !0 }
-			});
-		}), h(t), A(e, t);
-	};
-	P(Y, (e) => {
-		c().length > 0 && e(X);
-	});
-	var te = t(Y, 2), ne = (n) => {
-		var i = Ya();
+	}), [() => Q("min-w-0 w-full truncate rounded-xl border bg-dark-700 text-dark-50 outline-none", He.md, o.error ? "border-red-500" : "border-dark-500")], void 0, void 0, void 0, !0), i(q, (e) => U(p, e), () => f(p));
+	var J = t(q, 2), Y = (n) => {
+		var i = Ka();
 		r(i, 23, () => f(b), (e) => e.key, (n, r, i) => {
-			var a = Ja(), o = w(a), s = w(o), c = w(s, !0);
+			var a = Ga(), o = w(a), s = w(o), c = w(s, !0);
 			h(s);
 			var l = t(s, 2), d = w(l, !0);
 			h(l), h(o), h(a), y((t) => {
@@ -5543,17 +5433,17 @@ function Qa(n, o) {
 			}), A(n, a);
 		}), h(i), y(() => e(i, "id", `${u()}-listbox`)), A(n, i);
 	};
-	P(te, (e) => {
-		f(m) && f(b).length > 0 && e(ne);
-	});
-	var re = t(te, 2), ie = (e) => {
-		var t = Xa(), n = w(t, !0);
+	P(J, (e) => {
+		f(m) && f(b).length > 0 && e(Y);
+	}), h(K);
+	var X = t(K, 2), te = (e) => {
+		var t = qa(), n = w(t, !0);
 		h(t), y(() => H(n, o.error)), A(e, t);
 	};
-	P(re, (e) => {
-		o.error && e(ie);
-	}), h(z), y((e) => M(q, 1, e), [() => G(Q("relative flex w-full min-w-0 items-center rounded-xl", "has-focus-within:ring-2 has-focus-within:ring-primary", o.error && "has-focus-within:ring-red-500", o.class))]), a(J, l), A(n, z), v();
+	P(X, (e) => {
+		o.error && e(te);
+	}), h(R), y((e) => M(K, 1, e), [() => G(Q("relative flex w-full min-w-0 items-center rounded-xl", "has-focus-within:ring-2 has-focus-within:ring-primary", o.error && "has-focus-within:ring-red-500", o.class))]), a(q, l), A(n, R), v();
 }
 Y(["mousedown"]);
 //#endregion
-export { jr as _, pa as a, Yi as c, Ii as d, Pi as f, Rr as g, ii as h, _a as i, Ui as l, _i as m, Ga as n, ua as o, Oi as p, ja as r, oa as s, Qa as t, zi as u, pr as v, lr as y };
+export { jr as _, fa as a, Yi as c, Ii as d, Pi as f, Rr as g, ii as h, ga as i, Ui as l, _i as m, Ua as n, la as o, Oi as p, Aa as r, aa as s, Ya as t, zi as u, pr as v, lr as y };

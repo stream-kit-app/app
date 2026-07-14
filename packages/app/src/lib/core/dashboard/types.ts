@@ -44,6 +44,7 @@ export type DashboardWidgetSeed = {
 
 export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetSeed[] = [
 	{ definitionId: 'app:stat-actions', columns: 1 },
+	{ definitionId: 'app:running-actions', columns: 2 },
 	{ definitionId: 'app:stat-plugins', columns: 1 },
 	{ definitionId: 'bot:commands', columns: 1 },
 	{ definitionId: 'core:logs', columns: 1 },

@@ -13,7 +13,6 @@
 	import { onDestroy } from 'svelte';
 
 	import { cn } from '../../utils';
-	import { Button } from '../button';
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
@@ -169,27 +168,6 @@
 		});
 	}
 
-	function insertVariableAtCursor(variableKey: string, field: ActiveField = activeField): void {
-		const text = getFieldText(field);
-		const inputElement = getInputElement(field);
-
-		if (!inputElement) {
-			setFieldText(field, `${text}{${variableKey}}`);
-			return;
-		}
-
-		const cursor = inputElement.selectionStart ?? text.length;
-		const before = text.slice(0, cursor);
-		const after = text.slice(cursor);
-		setFieldText(field, `${before}{${variableKey}}${after}`);
-
-		queueMicrotask(() => {
-			const nextCursor = before.length + variableKey.length + 2;
-			inputElement.focus();
-			inputElement.setSelectionRange(nextCursor, nextCursor);
-		});
-	}
-
 	const createInputHandlers = (field: ActiveField) => {
 		const handleInput: FormEventHandler<HTMLInputElement> = () => {
 			updateSuggestions(field);
@@ -264,7 +242,7 @@
 	<div class="flex items-center gap-3">
 		<div
 			class={cn(
-				'grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl has-focus:ring-2 has-focus:ring-primary',
+				'relative grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl has-focus:ring-2 has-focus:ring-primary',
 				error && 'has-focus:ring-red-500'
 			)}
 		>
@@ -407,6 +385,36 @@
 				onclick={variables.length > 0 ? () => updateSuggestions('value') : undefined}
 			/>
 		{/if}
+
+		{#if showSuggestions && filteredVariables.length > 0}
+			<ul
+				id={`${id}-listbox`}
+				class="absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
+				role="listbox"
+			>
+				{#each filteredVariables as variable, index (variable.key)}
+					<li role="presentation">
+						<button
+							type="button"
+							role="option"
+							id={`${id}-option-${index}`}
+							aria-selected={index === highlightedIndex}
+							class={cn(
+								'flex w-full items-center justify-between gap-2 rounded-md px-3 py-1.5 text-left text-sm text-dark-50',
+								index === highlightedIndex && 'bg-dark-700'
+							)}
+							onmousedown={(event) => {
+								event.preventDefault();
+								insertVariable(variable.key, activeField);
+							}}
+						>
+							<span>{`{${variable.key}}`}</span>
+							<span class="text-dark-300">{variable.label}</span>
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{/if}
 		</div>
 		{#if suffix}
 			<div class="flex shrink-0 items-center self-center">
@@ -414,52 +422,6 @@
 			</div>
 		{/if}
 	</div>
-
-	{#if variables.length > 0}
-		<div class="flex flex-wrap gap-1.5">
-			{#each variables as variable (variable.key)}
-				<Button
-					variant="outline"
-					size="xs"
-					title={variable.label}
-					onclick={() => insertVariableAtCursor(variable.key)}
-					class="font-mono text-xs font-normal text-dark-200"
-				>
-					{`{${variable.key}}`}
-				</Button>
-			{/each}
-		</div>
-	{/if}
-
-	{#if showSuggestions && filteredVariables.length > 0}
-		<ul
-			id={`${id}-listbox`}
-			class="absolute top-[calc(100%-1.5rem)] z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
-			role="listbox"
-		>
-			{#each filteredVariables as variable, index (variable.key)}
-				<li role="presentation">
-					<button
-						type="button"
-						role="option"
-						id={`${id}-option-${index}`}
-						aria-selected={index === highlightedIndex}
-						class={cn(
-							'flex w-full items-center justify-between gap-2 rounded-md px-3 py-1.5 text-left text-sm text-dark-50',
-							index === highlightedIndex && 'bg-dark-700'
-						)}
-						onmousedown={(event) => {
-							event.preventDefault();
-							insertVariable(variable.key, activeField);
-						}}
-					>
-						<span>{`{${variable.key}}`}</span>
-						<span class="text-dark-300">{variable.label}</span>
-					</button>
-				</li>
-			{/each}
-		</ul>
-	{/if}
 
 	{#if error}
 		<p class="text-sm text-red-400">{error}</p>
