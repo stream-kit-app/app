@@ -131,18 +131,26 @@
 		onValueChange={onQueueChange}
 	/>
 
-	<section class="grid">
-		<div class="col-start-1 row-start-1 grid gap-3">
-			<div class="-mx-8 flex items-center gap-1 bg-dark-800 px-8 py-2">
-				<Label>{t('Triggers')}</Label>
-				<VariablePopover
-					variables={globalVariables}
-					title={t('Global variables')}
-					emptyLabel={t('No global variables defined yet.')}
-					ariaLabel={t('Show global variables')}
-					copiedLabel={t('Copied')}
+	<section class="grid gap-3">
+		<div class="sticky top-0 z-20 -mx-8 flex items-center gap-1 bg-dark-800 px-8 py-2">
+			<Label>{t('Triggers')}</Label>
+			<VariablePopover
+				variables={globalVariables}
+				title={t('Global variables')}
+				emptyLabel={t('No global variables defined yet.')}
+				ariaLabel={t('Show global variables')}
+				copiedLabel={t('Copied')}
+			/>
+			<div class="ml-auto shrink-0">
+				<DefinitionPickerDropdown
+					label={t('Add Trigger')}
+					definitions={getApp().actions.triggers.items}
+					onSelect={addTrigger}
 				/>
 			</div>
+		</div>
+
+		<div class="grid gap-3">
 
 			{#if action.formErrors?.triggers}
 				<p class="text-sm text-destructive-50">{action.formErrors.triggers}</p>
@@ -254,18 +262,6 @@
 				{/snippet}
 				</SortableChainList>
 			{/if}
-		</div>
-
-		<div
-			class="pointer-events-none sticky top-1 z-10 col-start-1 row-start-1 self-start justify-self-end py-2"
-		>
-			<div class="pointer-events-auto">
-				<DefinitionPickerDropdown
-					label={t('Add Trigger')}
-					definitions={getApp().actions.triggers.items}
-					onSelect={addTrigger}
-				/>
-			</div>
 		</div>
 	</section>
 

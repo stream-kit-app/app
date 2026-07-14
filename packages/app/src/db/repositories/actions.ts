@@ -17,6 +17,7 @@ export type SaveActionInput = {
 	group: string;
 	enabled: boolean;
 	queueId: number | null;
+	ownerPluginKey?: string | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 };
@@ -114,6 +115,7 @@ export async function saveAction(
 				sortOrder,
 				enabled: input.enabled,
 				queueId: input.queueId,
+				ownerPluginKey: input.ownerPluginKey ?? null,
 				triggers: input.triggers,
 				handlers: input.handlers,
 				updatedAt: now
@@ -137,6 +139,7 @@ export async function saveAction(
 			sortOrder,
 			enabled: input.enabled,
 			queueId,
+			ownerPluginKey: input.ownerPluginKey ?? null,
 			triggers: input.triggers,
 			handlers: input.handlers,
 			createdAt: now,
@@ -229,4 +232,20 @@ export async function deleteActions(ids: number[]): Promise<void> {
 	}
 
 	await db.delete(actions).where(inArray(actions.id, ids));
+}
+
+export async function deleteActionsByOwner(ownerPluginKey: string): Promise<number> {
+	const rows = await db
+		.select({ id: actions.id })
+		.from(actions)
+		.where(eq(actions.ownerPluginKey, ownerPluginKey));
+
+	if (rows.length === 0) {
+		return 0;
+	}
+
+	const ids = rows.map((row) => row.id);
+	await deleteActions(ids);
+
+	return ids.length;
 }

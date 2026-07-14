@@ -3,6 +3,7 @@ import type { HandlerTriggerContext } from './handler-context';
 import type {
 	ActionLayoutUpdate,
 	ActionRecord,
+	NewActionRecord,
 	StoredActionHandler,
 	StoredActionTrigger
 } from './stored-action';
@@ -11,6 +12,7 @@ import type { ActionFormErrors } from './validate-form';
 import {
 	deleteAction,
 	deleteActions,
+	deleteActionsByOwner,
 	getActions,
 	normalizeActionGroup,
 	reorderActionsLayout,
@@ -63,8 +65,13 @@ export type ActionProps = {
 	id?: number;
 	enabled?: boolean;
 	queueId?: number | null;
+	ownerPluginKey?: string;
 	triggers?: ActionTrigger[];
 	handlers?: ActionHandler[];
+};
+
+export type CreateActionRecordOptions = {
+	ownerPluginKey?: string;
 };
 
 export class Actions {
@@ -369,6 +376,129 @@ export class Actions {
 
 		return true;
 	}
+
+	async createFromRecord(
+		input: NewActionRecord,
+		options?: CreateActionRecordOptions
+	): Promise<ActionRecord> {
+		const app = getApp();
+		const ownerPluginKey = options?.ownerPluginKey ?? input.ownerPluginKey;
+		const row = await saveAction({
+			name: input.name,
+			group: normalizeActionGroup(input.group),
+			enabled: input.enabled ?? true,
+			queueId: input.queueId ?? app.actionQueues.defaultQueueId,
+			ownerPluginKey: ownerPluginKey ?? null,
+			triggers: input.triggers,
+			handlers: input.handlers
+		});
+
+		if (!row) {
+			throw new Error('Action could not be saved');
+		}
+
+		const action = Action.fromRecord(row);
+		this.add(action);
+
+		if (action.enabled) {
+			this.activate(action);
+		}
+
+		return row;
+	}
+
+	async updateFromRecord(
+		id: number,
+		input: Omit<NewActionRecord, 'id'>,
+		options?: CreateActionRecordOptions
+	): Promise<ActionRecord> {
+		const app = getApp();
+		const existing = this.items.find((item) => item.id === id);
+		const ownerPluginKey =
+			options?.ownerPluginKey ?? input.ownerPluginKey ?? existing?.ownerPluginKey;
+		const row = await saveAction(
+			{
+				name: input.name,
+				group: normalizeActionGroup(input.group ?? existing?.group),
+				enabled: input.enabled ?? existing?.enabled ?? true,
+				queueId: input.queueId ?? existing?.queueId ?? app.actionQueues.defaultQueueId,
+				ownerPluginKey: ownerPluginKey ?? null,
+				triggers: input.triggers,
+				handlers: input.handlers
+			},
+			id
+		);
+
+		if (!row) {
+			throw new Error('Action could not be saved');
+		}
+
+		const action = Action.fromRecord(row);
+		const index = this.items.findIndex((item) => item.id === id);
+
+		if (index >= 0) {
+			this.deactivate(this.items[index]!);
+			this.items = [
+				...this.items.slice(0, index),
+				action,
+				...this.items.slice(index + 1)
+			].sort(compareActionsByLayout);
+
+			if (action.enabled) {
+				this.activate(action);
+			}
+		} else {
+			this.add(action);
+
+			if (action.enabled) {
+				this.activate(action);
+			}
+		}
+
+		return row;
+	}
+
+	findByOwnerAndName(ownerPluginKey: string, name: string): Action | undefined {
+		return this.items.find(
+			(item) => item.ownerPluginKey === ownerPluginKey && item.name === name
+		);
+	}
+
+	async deleteByOwner(ownerPluginKey: string): Promise<number> {
+		const owned = this.items.filter((item) => item.ownerPluginKey === ownerPluginKey);
+
+		for (const action of owned) {
+			this.deactivate(action);
+			action.commitFormChanges();
+			action.close();
+		}
+
+		const deleted = await deleteActionsByOwner(ownerPluginKey);
+		const ownedIds = new Set(owned.map((item) => item.id));
+
+		this.items = this.items.filter((item) => item.id == null || !ownedIds.has(item.id));
+
+		return deleted;
+	}
+
+	getSnapshot(): ActionRecord[] {
+		return this.items
+			.filter((action): action is Action & { id: number } => action.id != null)
+			.map((action) => ({
+				id: action.id,
+				name: action.name,
+				group: action.group,
+				groupSortOrder: action.groupSortOrder,
+				sortOrder: action.sortOrder,
+				enabled: action.enabled,
+				queueId: action.queueId,
+				ownerPluginKey: action.ownerPluginKey ?? null,
+				triggers: action.triggers.map((trigger) => trigger.toStored()),
+				handlers: action.handlers.map((handler) => handler.toStored()),
+				createdAt: new Date(),
+				updatedAt: new Date()
+			}));
+	}
 }
 
 export class Action {
@@ -380,6 +510,7 @@ export class Action {
 	sortOrder: number = $state(0);
 	enabled: boolean = $state(true);
 	queueId: number | null = $state(null);
+	ownerPluginKey?: string;
 	triggers: ActionTrigger[] = $state([]);
 	handlers: ActionHandler[] = $state([]);
 
@@ -395,6 +526,7 @@ export class Action {
 		this.sortOrder = props.sortOrder ?? 0;
 		this.enabled = props.enabled ?? true;
 		this.queueId = props.queueId ?? null;
+		this.ownerPluginKey = props.ownerPluginKey;
 		this.triggers = props.triggers ?? [];
 		this.handlers = props.handlers ?? [];
 	}
@@ -461,6 +593,7 @@ export class Action {
 			sortOrder: record.sortOrder,
 			enabled: record.enabled ?? true,
 			queueId: record.queueId ?? getApp().actionQueues.defaultQueueId,
+			ownerPluginKey: record.ownerPluginKey ?? undefined,
 			triggers,
 			handlers
 		});
@@ -921,6 +1054,7 @@ export class Action {
 				group: this.group,
 				enabled: this.enabled,
 				queueId: this.queueId,
+				ownerPluginKey: this.ownerPluginKey ?? null,
 				triggers: this.triggers.map((trigger) => trigger.toStored()),
 				handlers: this.handlers.map((handler) => handler.toStored())
 			},

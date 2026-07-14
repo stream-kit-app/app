@@ -639,6 +639,37 @@ interface PluginAppActionsApi {
 
 	/** Return all registered action handler definitions. */
 	getHandlers(): HandlerDefinition[];
+
+	/**
+	 * Create a user-configured action record.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.actions.create({
+	 *   name: 'Points on follow',
+	 *   group: pluginKey,
+	 *   enabled: false,
+	 *   triggers: [...],
+	 *   handlers: [...]
+	 * });
+	 * ```
+	 */
+	create(input: NewActionRecord, options?: { ownerPluginKey?: string }): Promise<ActionRecord>;
+
+	/**
+	 * Update an existing action by database id.
+	 */
+	update(
+		id: number,
+		input: Omit<NewActionRecord, 'id'>,
+		options?: { ownerPluginKey?: string }
+	): Promise<ActionRecord>;
+
+	/** Delete all actions owned by a plugin. */
+	deleteByOwner(ownerPluginKey: string): Promise<number>;
+
+	/** Return all configured actions as records. */
+	getSnapshot(): ActionRecord[];
 }
 
 /**

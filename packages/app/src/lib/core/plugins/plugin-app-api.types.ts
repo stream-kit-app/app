@@ -27,6 +27,7 @@ import type { OAuthStartOptions } from '../oauth/oauth';
 import type { ToastCreateProps } from '../toast/toast.svelte';
 import type { ToastItem } from '../toast/toast-item.svelte';
 import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
+import type { ActionRecord, NewActionRecord } from '../action/stored-action';
 import type { PluginMigration } from '$db/plugin-migrations';
 import type { DirEntry, FileInfo, UnwatchFn } from '../filesystem/types';
 import type { FileHandle } from '../filesystem/file-handle';
@@ -161,7 +162,8 @@ export interface PluginAppModalApi {
 	 *   id: 'edit-item',
 	 *   title: 'Edit item',
 	 *   content: EditItemModal,
-	 *   props: { itemId: 'abc' }
+	 *   props: { itemId: 'abc' },
+	 *   size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'full'
 	 * });
 	 * modal.open();
 	 * ```
@@ -605,6 +607,37 @@ export interface PluginAppActionsApi {
 
 	/** Return all registered action handler definitions. */
 	getHandlers(): HandlerDefinition[];
+
+	/**
+	 * Create a user-configured action record.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.actions.create({
+	 *   name: 'Points on follow',
+	 *   group: pluginKey,
+	 *   enabled: false,
+	 *   triggers: [...],
+	 *   handlers: [...]
+	 * });
+	 * ```
+	 */
+	create(input: NewActionRecord, options?: { ownerPluginKey?: string }): Promise<ActionRecord>;
+
+	/**
+	 * Update an existing action by database id.
+	 */
+	update(
+		id: number,
+		input: Omit<NewActionRecord, 'id'>,
+		options?: { ownerPluginKey?: string }
+	): Promise<ActionRecord>;
+
+	/** Delete all actions owned by a plugin. */
+	deleteByOwner(ownerPluginKey: string): Promise<number>;
+
+	/** Return all configured actions as records. */
+	getSnapshot(): ActionRecord[];
 }
 
 /**

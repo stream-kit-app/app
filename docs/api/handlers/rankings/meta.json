@@ -1,0 +1,11 @@
+{
+  "title": "Rankings",
+  "pages": [
+    "index",
+    "add-points",
+    "set-points",
+    "remove-points",
+    "send-rank-message",
+    "send-leaderboard-message"
+  ]
+}

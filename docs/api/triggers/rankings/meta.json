@@ -1,0 +1,9 @@
+{
+  "title": "Rankings",
+  "pages": [
+    "index",
+    "points-earned",
+    "rank-changed",
+    "tier-advanced"
+  ]
+}

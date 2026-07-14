@@ -3,6 +3,7 @@
 		"plugins/core",
 		"plugins/bot",
 		"plugins/obs",
+		"plugins/rankings",
 		"plugins/tts",
 		"plugins/twitch",
 		"plugins/websocket",

@@ -1,22 +1,23 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 
-	import { ScrollArea } from '../scroll-area';
 	import { cn } from '../../utils';
 
 	type Props = DropdownMenu.ContentProps;
-	const { children, ...props }: Props = $props();
+	const { children, class: className, ...props }: Props = $props();
 </script>
 
-<DropdownMenu.Content
-	{...props}
-	class={cn(
-		'min-w-(--bits-floating-anchor-width) rounded-xl bg-dark-800 p-[5px] shadow-md',
-		'relative z-50 border border-dark-600'
-	)}
-	sideOffset={4}
->
-	<ScrollArea orientation="vertical" viewportClasses="max-h-120 overflow-hidden">
+<DropdownMenu.Portal>
+	<DropdownMenu.Content
+		{...props}
+		class={cn(
+			'z-50 max-h-[min(30rem,var(--bits-menu-content-available-height,30rem))] min-w-(--bits-floating-anchor-width) overflow-y-auto overscroll-contain',
+			'rounded-xl bg-dark-800 p-[5px] shadow-md',
+			'border border-dark-600',
+			className
+		)}
+		sideOffset={4}
+	>
 		{@render children?.()}
-	</ScrollArea>
-</DropdownMenu.Content>
+	</DropdownMenu.Content>
+</DropdownMenu.Portal>

@@ -28,6 +28,7 @@ export type ActionRecord = {
 	sortOrder: number;
 	enabled: boolean;
 	queueId?: number | null;
+	ownerPluginKey?: string | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
 	createdAt: Date;
@@ -42,10 +43,11 @@ export type NewActionRecord = {
 	sortOrder?: number;
 	enabled?: boolean;
 	queueId?: number | null;
+	ownerPluginKey?: string;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt?: Date;
+	updatedAt?: Date;
 };
 
 export type ActionLayoutUpdate = {

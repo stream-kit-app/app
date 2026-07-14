@@ -24,6 +24,7 @@ export const actions = sqliteTable('actions', {
 	handlers: text('handlers', { mode: 'json' }).$type<StoredActionHandler[]>().notNull(),
 	enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
 	queueId: integer('queue_id'),
+	ownerPluginKey: text('owner_plugin_key'),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 });

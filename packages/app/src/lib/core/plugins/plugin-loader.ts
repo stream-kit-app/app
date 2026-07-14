@@ -221,6 +221,8 @@ export async function uninstallInstalledPlugin(app: App, key: string): Promise<v
 		.commands.deleteByOwner(key)
 		.catch(() => 0);
 
+	await app.actions.deleteByOwner(key).catch(() => 0);
+
 	await stopPluginDevWatcher(key);
 	await app.settings.clearPluginDevMode(key);
 

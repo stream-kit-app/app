@@ -348,6 +348,14 @@ async function addActionsQueueIdColumn(sqlite: Database): Promise<void> {
 	}
 }
 
+async function addActionsOwnerPluginKeyColumn(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(actions)');
+
+	if (!columns.some((column) => column.name === 'owner_plugin_key')) {
+		await sqlite.execute('ALTER TABLE actions ADD COLUMN owner_plugin_key TEXT');
+	}
+}
+
 const DEFAULT_ACTION_QUEUE_NAME = 'default';
 
 async function ensureDefaultActionQueue(sqlite: Database): Promise<number> {
@@ -447,6 +455,7 @@ export async function migrate(sqlite: Database): Promise<void> {
 	await migrateOverlaysTable(sqlite);
 	await createActionQueuesTable(sqlite);
 	await addActionsQueueIdColumn(sqlite);
+	await addActionsOwnerPluginKeyColumn(sqlite);
 	await assignUnqueuedActionsToDefault(sqlite);
 	await migrateDashboardWidgetsTable(sqlite);
 	await migrateMapsToCollections(sqlite);

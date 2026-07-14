@@ -165,7 +165,7 @@ function collectPluginDefinitions(pluginDir, pluginKey, pluginName, kind) {
 		let props = { name: undefined, explicitId: undefined, fields: [], conditions: [], testFactory: null };
 
 		if (factoryFile) {
-			props = parseDefinitionProps(fs.readFileSync(factoryFile, 'utf8'));
+			props = parseDefinitionProps(fs.readFileSync(factoryFile, 'utf8'), leaf.factory);
 		}
 
 		const resolvedName =

@@ -143,20 +143,28 @@
 	}
 </script>
 
-<section class="grid">
-	<div class="col-start-1 row-start-1 grid gap-3">
-		<div class="-mx-8 flex items-center gap-1 bg-dark-800 px-8 py-2">
-			<Label>{t('Handlers')}</Label>
-			{#if showVariablePopover}
-				<VariablePopover
-					variables={globalVariables}
-					title={t('Global variables')}
-					emptyLabel={t('No global variables defined yet.')}
-					ariaLabel={t('Show global variables')}
-					copiedLabel={t('Copied')}
-				/>
-			{/if}
+<section class="grid gap-3">
+	<div class="sticky top-0 z-20 -mx-8 flex items-center gap-1 bg-dark-800 px-8 py-2">
+		<Label>{t('Handlers')}</Label>
+		{#if showVariablePopover}
+			<VariablePopover
+				variables={globalVariables}
+				title={t('Global variables')}
+				emptyLabel={t('No global variables defined yet.')}
+				ariaLabel={t('Show global variables')}
+				copiedLabel={t('Copied')}
+			/>
+		{/if}
+		<div class="ml-auto shrink-0">
+			<DefinitionPickerDropdown
+				label={t('Add Handler')}
+				{definitions}
+				onSelect={selectHandlerDefinition}
+			/>
 		</div>
+	</div>
+
+	<div class="grid gap-3">
 
 		{#if formErrors?.handlers}
 			<p class="text-sm text-destructive-50">{formErrors.handlers}</p>
@@ -231,17 +239,5 @@
 			</DragOverlay>
 			</DragDropProvider>
 		{/if}
-	</div>
-
-	<div
-		class="pointer-events-none sticky top-1 z-10 col-start-1 row-start-1 self-start justify-self-end py-2"
-	>
-		<div class="pointer-events-auto">
-			<DefinitionPickerDropdown
-				label={t('Add Handler')}
-				{definitions}
-				onSelect={selectHandlerDefinition}
-			/>
-		</div>
 	</div>
 </section>

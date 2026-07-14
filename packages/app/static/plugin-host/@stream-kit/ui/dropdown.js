@@ -6,13 +6,13 @@ import { D as E } from "../../chunks/animations-complete-BfqHI4B-.js";
 import { S as D, c as O, d as k, f as A, l as j, o as M, p as N, s as P, u as F } from "../../chunks/scroll-lock-BZF1_Y9Y.js";
 import { i as I, n as L } from "../../chunks/use-id-C9llEPxa.js";
 import { r as R } from "../../chunks/dom-B4Rzp8oi.js";
-import { a as z } from "../../chunks/presence-manager.svelte-BOTfPcjg.js";
-import { a as B, n as V, r as H, t as ee } from "../../chunks/popper-layer-force-mount-BxV85AhM.js";
-import { t as U } from "../../chunks/floating-layer-anchor-B_R8arju.js";
-import { t as W } from "../../chunks/scroll-area-7qg9ezvn.js";
-import { t as te } from "../../chunks/button-C7Vln2y_.js";
+import { a as ee } from "../../chunks/presence-manager.svelte-BOTfPcjg.js";
+import { t as z } from "../../chunks/portal-D-OgjF3O.js";
+import { a as B, n as te, r as V, t as ne } from "../../chunks/popper-layer-force-mount-BxV85AhM.js";
+import { t as H } from "../../chunks/floating-layer-anchor-B_R8arju.js";
+import { t as U } from "../../chunks/button-C7Vln2y_.js";
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/menu/components/menu-sub.svelte
-function ne(e, t) {
+function W(e, t) {
 	n(t, !0);
 	let r = f(t, "open", 15, !1), a = f(t, "onOpenChange", 3, R), c = f(t, "onOpenChangeComplete", 3, R);
 	N.create({
@@ -20,7 +20,7 @@ function ne(e, t) {
 			r(e), a()?.(e);
 		}),
 		onOpenChangeComplete: E(() => c())
-	}), H(e, {
+	}), V(e, {
 		children: (e, n) => {
 			var r = g();
 			o(i(r), () => t.children ?? v), p(e, r);
@@ -89,51 +89,51 @@ var re = new Set([
 function Y(e, t) {
 	let c = _();
 	n(t, !0);
-	let d = f(t, "id", 19, () => L(c)), m = f(t, "ref", 15, null), b = f(t, "loop", 3, !0), C = f(t, "onInteractOutside", 3, R), w = f(t, "forceMount", 3, !1), T = f(t, "onEscapeKeydown", 3, R), O = f(t, "interactOutsideBehavior", 3, "defer-otherwise-close"), k = f(t, "escapeKeydownBehavior", 3, "defer-otherwise-close"), A = f(t, "onOpenAutoFocus", 3, R), j = f(t, "onCloseAutoFocus", 3, R), M = f(t, "onFocusOutside", 3, R), N = f(t, "side", 3, "right"), H = f(t, "trapFocus", 3, !1), U = y(t, re), W = P.create({
+	let d = f(t, "id", 19, () => L(c)), m = f(t, "ref", 15, null), b = f(t, "loop", 3, !0), C = f(t, "onInteractOutside", 3, R), w = f(t, "forceMount", 3, !1), T = f(t, "onEscapeKeydown", 3, R), O = f(t, "interactOutsideBehavior", 3, "defer-otherwise-close"), k = f(t, "escapeKeydownBehavior", 3, "defer-otherwise-close"), A = f(t, "onOpenAutoFocus", 3, R), j = f(t, "onCloseAutoFocus", 3, R), M = f(t, "onFocusOutside", 3, R), N = f(t, "side", 3, "right"), z = f(t, "trapFocus", 3, !1), V = y(t, re), H = P.create({
 		id: E(() => d()),
 		loop: E(() => b()),
 		ref: E(() => m(), (e) => m(e)),
 		isSub: !0,
 		onCloseAutoFocus: E(() => q)
 	});
-	function te(e) {
-		let t = e.currentTarget.contains(e.target), n = D[W.parentMenu.root.opts.dir.current].includes(e.key);
-		t && n && (W.parentMenu.onClose(), W.parentMenu.triggerNode?.focus(), e.preventDefault());
+	function U(e) {
+		let t = e.currentTarget.contains(e.target), n = D[H.parentMenu.root.opts.dir.current].includes(e.key);
+		t && n && (H.parentMenu.onClose(), H.parentMenu.triggerNode?.focus(), e.preventDefault());
 	}
-	let ne = x(() => W.parentMenu.root.getBitsAttr("sub-content")), G = x(() => I(U, W.props, {
+	let W = x(() => H.parentMenu.root.getBitsAttr("sub-content")), G = x(() => I(V, H.props, {
 		side: N(),
-		onkeydown: te,
-		[r(ne)]: ""
+		onkeydown: U,
+		[r(W)]: ""
 	}));
 	function K(e) {
-		A()(e), !e.defaultPrevented && (e.preventDefault(), W.parentMenu.root.isUsingKeyboard && W.parentMenu.contentNode && F.dispatch(W.parentMenu.contentNode));
+		A()(e), !e.defaultPrevented && (e.preventDefault(), H.parentMenu.root.isUsingKeyboard && H.parentMenu.contentNode && F.dispatch(H.parentMenu.contentNode));
 	}
 	function q(e) {
 		j()(e), !e.defaultPrevented && e.preventDefault();
 	}
 	function Y(e) {
-		C()(e), !e.defaultPrevented && W.parentMenu.onClose();
+		C()(e), !e.defaultPrevented && H.parentMenu.onClose();
 	}
 	function X(e) {
-		T()(e), !e.defaultPrevented && W.parentMenu.onClose();
+		T()(e), !e.defaultPrevented && H.parentMenu.onClose();
 	}
 	function Z(e) {
-		if (M()(e), e.defaultPrevented || !z(e.target) || e.target.id === W.parentMenu.triggerNode?.id) return;
-		if ((W.parentMenu.parentMenu?.contentNode)?.contains(e.target)) {
-			W.parentMenu.onClose(), e.preventDefault();
+		if (M()(e), e.defaultPrevented || !ee(e.target) || e.target.id === H.parentMenu.triggerNode?.id) return;
+		if ((H.parentMenu.parentMenu?.contentNode)?.contains(e.target)) {
+			H.parentMenu.onClose(), e.preventDefault();
 			return;
 		}
-		let t = `[${W.parentMenu.root.getBitsAttr("sub-content")}]`;
+		let t = `[${H.parentMenu.root.getBitsAttr("sub-content")}]`;
 		if (e.target.closest(t)) {
 			e.preventDefault();
 			return;
 		}
-		W.parentMenu.onClose();
+		H.parentMenu.onClose();
 	}
 	var Q = g(), ie = i(Q), ae = (e) => {
-		ee(e, S(() => r(G), {
+		ne(e, S(() => r(G), {
 			get ref() {
-				return W.opts.ref;
+				return H.opts.ref;
 			},
 			get interactOutsideBehavior() {
 				return O();
@@ -143,7 +143,7 @@ function Y(e, t) {
 			},
 			onOpenAutoFocus: K,
 			get enabled() {
-				return W.parentMenu.opts.open.current;
+				return H.parentMenu.opts.open.current;
 			},
 			onInteractOutside: Y,
 			onEscapeKeydown: X,
@@ -153,10 +153,10 @@ function Y(e, t) {
 				return b();
 			},
 			get trapFocus() {
-				return H();
+				return z();
 			},
 			get shouldRender() {
-				return W.shouldRender;
+				return H.shouldRender;
 			},
 			popper: (e, n) => {
 				let s = () => n?.().props, c = () => n?.().wrapperProps, d = x(() => I(s(), r(G), { style: B("menu") }, { style: t.style }));
@@ -166,7 +166,7 @@ function Y(e, t) {
 						let e = x(() => ({
 							props: r(d),
 							wrapperProps: c(),
-							...W.snippetProps
+							...H.snippetProps
 						}));
 						o(a, () => t.child, () => r(e));
 					}
@@ -184,9 +184,9 @@ function Y(e, t) {
 			$$slots: { popper: !0 }
 		}));
 	}, $ = (e) => {
-		V(e, S(() => r(G), {
+		te(e, S(() => r(G), {
 			get ref() {
-				return W.opts.ref;
+				return H.opts.ref;
 			},
 			get interactOutsideBehavior() {
 				return O();
@@ -197,7 +197,7 @@ function Y(e, t) {
 			onCloseAutoFocus: q,
 			onOpenAutoFocus: K,
 			get open() {
-				return W.parentMenu.opts.open.current;
+				return H.parentMenu.opts.open.current;
 			},
 			onInteractOutside: Y,
 			onEscapeKeydown: X,
@@ -207,10 +207,10 @@ function Y(e, t) {
 				return b();
 			},
 			get trapFocus() {
-				return H();
+				return z();
 			},
 			get shouldRender() {
-				return W.shouldRender;
+				return H.shouldRender;
 			},
 			popper: (e, n) => {
 				let s = () => n?.().props, c = () => n?.().wrapperProps, d = x(() => I(s(), r(G), { style: B("menu") }, { style: t.style }));
@@ -220,7 +220,7 @@ function Y(e, t) {
 						let e = x(() => ({
 							props: r(d),
 							wrapperProps: c(),
-							...W.snippetProps
+							...H.snippetProps
 						}));
 						o(a, () => t.child, () => r(e));
 					}
@@ -266,7 +266,7 @@ function Q(e, t) {
 		ref: E(() => b(), (e) => b(e)),
 		openDelay: E(() => C())
 	}), D = x(() => I(w, T.props));
-	U(e, {
+	H(e, {
 		get id() {
 			return d();
 		},
@@ -305,7 +305,7 @@ function ie(e, t) {
 			r(e), c()(e);
 		}),
 		onOpenChangeComplete: E(() => l())
-	}, m), H(e, {
+	}, m), V(e, {
 		children: (e, n) => {
 			var r = g();
 			o(i(r), () => t.children ?? v), p(e, r);
@@ -352,8 +352,8 @@ function oe(e, t) {
 	function N(e) {
 		w()(e), !e.defaultPrevented && A.parentMenu.onClose();
 	}
-	var F = g(), z = i(F), H = (e) => {
-		ee(e, S(() => r(j), () => A.popperProps, {
+	var F = g(), ee = i(F), z = (e) => {
+		ne(e, S(() => r(j), () => A.popperProps, {
 			get ref() {
 				return A.opts.ref;
 			},
@@ -400,8 +400,8 @@ function oe(e, t) {
 			},
 			$$slots: { popper: !0 }
 		}));
-	}, U = (e) => {
-		V(e, S(() => r(j), () => A.popperProps, {
+	}, V = (e) => {
+		te(e, S(() => r(j), () => A.popperProps, {
 			get ref() {
 				return A.opts.ref;
 			},
@@ -449,8 +449,8 @@ function oe(e, t) {
 			$$slots: { popper: !0 }
 		}));
 	};
-	h(z, (e) => {
-		D() ? e(H) : D() || e(U, 1);
+	h(ee, (e) => {
+		D() ? e(z) : D() || e(V, 1);
 	}), p(e, F), s();
 }
 //#endregion
@@ -474,7 +474,7 @@ function le(e, t) {
 		disabled: E(() => b() ?? !1),
 		ref: E(() => m(), (e) => m(e))
 	}), T = x(() => I(C, w.props, { type: S() }));
-	U(e, {
+	H(e, {
 		get id() {
 			return d();
 		},
@@ -502,36 +502,38 @@ var ue = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
-	"children"
+	"children",
+	"class"
 ]);
 function de(e, a) {
 	n(a, !0);
 	let c = y(a, ue);
-	var l = g(), u = i(l);
-	{
-		let e = x(() => T("min-w-(--bits-floating-anchor-width) rounded-xl bg-dark-800 p-[5px] shadow-md", "relative z-50 border border-dark-600"));
-		t(u, () => oe, (t, n) => {
-			n(t, S(() => c, {
-				get class() {
-					return r(e);
-				},
-				sideOffset: 4,
-				children: (e, t) => {
-					W(e, {
-						orientation: "vertical",
-						viewportClasses: "max-h-120 overflow-hidden",
-						children: (e, t) => {
-							var n = g();
-							o(i(n), () => a.children ?? v), p(e, n);
-						},
-						$$slots: { default: !0 }
+	var l = g();
+	t(i(l), () => z, (e, n) => {
+		n(e, {
+			children: (e, n) => {
+				var s = g(), l = i(s);
+				{
+					let e = x(() => T("z-50 max-h-[min(30rem,var(--bits-menu-content-available-height,30rem))] min-w-(--bits-floating-anchor-width) overflow-y-auto overscroll-contain", "rounded-xl bg-dark-800 p-[5px] shadow-md", "border border-dark-600", a.class));
+					t(l, () => oe, (t, n) => {
+						n(t, S(() => c, {
+							get class() {
+								return r(e);
+							},
+							sideOffset: 4,
+							children: (e, t) => {
+								var n = g();
+								o(i(n), () => a.children ?? v), p(e, n);
+							},
+							$$slots: { default: !0 }
+						}));
 					});
-				},
-				$$slots: { default: !0 }
-			}));
+				}
+				p(e, s);
+			},
+			$$slots: { default: !0 }
 		});
-	}
-	p(e, l), s();
+	}), p(e, l), s();
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown-item.svelte
@@ -568,29 +570,38 @@ var me = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
-	"children"
+	"children",
+	"class"
 ]);
 function he(e, a) {
 	n(a, !0);
 	let c = y(a, me);
-	var l = g(), u = i(l);
-	{
-		let e = x(() => T("min-w-(--bits-floating-anchor-width) rounded-xl bg-dark-800 p-[5px] shadow-md", "border border-dark-600", a.class));
-		t(u, () => Y, (t, n) => {
-			n(t, S(() => c, {
-				get class() {
-					return r(e);
-				},
-				sideOffset: 12,
-				children: (e, t) => {
-					var n = g();
-					o(i(n), () => a.children ?? v), p(e, n);
-				},
-				$$slots: { default: !0 }
-			}));
+	var l = g();
+	t(i(l), () => z, (e, n) => {
+		n(e, {
+			children: (e, n) => {
+				var s = g(), l = i(s);
+				{
+					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width) max-h-[min(30rem,var(--bits-menu-content-available-height,30rem))] overflow-y-auto overscroll-contain", "rounded-xl bg-dark-800 p-[5px] shadow-md", "border border-dark-600", a.class));
+					t(l, () => Y, (t, n) => {
+						n(t, S(() => c, {
+							get class() {
+								return r(e);
+							},
+							sideOffset: 8,
+							children: (e, t) => {
+								var n = g();
+								o(i(n), () => a.children ?? v), p(e, n);
+							},
+							$$slots: { default: !0 }
+						}));
+					});
+				}
+				p(e, s);
+			},
+			$$slots: { default: !0 }
 		});
-	}
-	p(e, l), s();
+	}), p(e, l), s();
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown-sub-trigger.svelte
@@ -632,7 +643,7 @@ var ye = new Set([
 function be(e, n) {
 	let r = y(n, ye);
 	var a = g();
-	t(i(a), () => ne, (e, t) => {
+	t(i(a), () => W, (e, t) => {
 		t(e, S(() => r, {
 			children: (e, t) => {
 				var r = g();
@@ -662,7 +673,7 @@ function Ce(n, r) {
 					let e = (e, t) => {
 						let n = () => t?.().props;
 						var a = g(), s = i(a), l = (e) => {
-							te(e, S(n, {
+							U(e, S(n, {
 								variant: "outline",
 								children: (e, t) => {
 									d();

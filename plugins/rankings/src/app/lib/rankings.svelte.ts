@@ -1,0 +1,456 @@
+import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
+
+import type { RankingsEventContext, RankingsEventMap, RankingsStats } from '../../lib/contexts';
+import {
+	clampPoints,
+	didRankChange,
+	didTierAdvance,
+	orderRanks,
+	resolveProgress,
+	sortUsersByPoints
+} from '../../lib/ranking-engine';
+import {
+	ensureDefaultConfig,
+	loadRanks,
+	loadSettings,
+	loadTiers,
+	loadUsers,
+	saveRanks,
+	saveSettings,
+	saveTiers,
+	saveUsers
+} from '../../lib/rankings-store';
+import type {
+	PointsMutationResult,
+	RankProgress,
+	RankRecord,
+	RankingsPlatform,
+	RankingsSettings,
+	TierRecord,
+	UserRankingRecord
+} from '../../lib/types';
+
+export class RankingsService {
+	tiers: TierRecord[] = $state([]);
+	ranks: RankRecord[] = $state([]);
+	users: UserRankingRecord[] = $state([]);
+	settings: RankingsSettings = $state({
+		watchTimeEnabled: true,
+		pointsPerMinute: 1,
+		awardIntervalSeconds: 60,
+		leaderboardSize: 10
+	});
+
+	private store?: PluginStore;
+	private app?: PluginAppApi;
+	private listeners = new Map<keyof RankingsEventMap, Set<(context: RankingsEventContext) => void>>();
+
+	bind(store: PluginStore, app: PluginAppApi): void {
+		this.store = store;
+		this.app = app;
+	}
+
+	requireApp(): PluginAppApi {
+		return this.requireContext().app;
+	}
+
+	private requireContext(): { store: PluginStore; app: PluginAppApi } {
+		if (!this.store || !this.app) {
+			throw new Error('Rankings service has not been bound to a plugin store');
+		}
+
+		return { store: this.store, app: this.app };
+	}
+
+	subscribe<K extends keyof RankingsEventMap>(
+		event: K,
+		handler: (context: RankingsEventMap[K]) => void
+	): () => void {
+		let handlers = this.listeners.get(event);
+
+		if (!handlers) {
+			handlers = new Set();
+			this.listeners.set(event, handlers);
+		}
+
+		handlers.add(handler as (context: RankingsEventContext) => void);
+
+		return () => {
+			handlers?.delete(handler as (context: RankingsEventContext) => void);
+		};
+	}
+
+	private emit(event: keyof RankingsEventMap, context: RankingsEventContext): void {
+		const handlers = this.listeners.get(event);
+
+		if (!handlers) {
+			return;
+		}
+
+		for (const handler of handlers) {
+			handler(context);
+		}
+	}
+
+	private getOrderedRanks() {
+		return orderRanks(this.tiers, this.ranks);
+	}
+
+	async load(): Promise<void> {
+		const { store } = this.requireContext();
+		await ensureDefaultConfig(store);
+
+		const [tiers, ranks, users, settings] = await Promise.all([
+			loadTiers(store),
+			loadRanks(store),
+			loadUsers(store),
+			loadSettings(store)
+		]);
+
+		this.tiers = tiers;
+		this.ranks = ranks;
+		this.users = users;
+		this.settings = settings;
+	}
+
+	async persistUsers(): Promise<void> {
+		const { store } = this.requireContext();
+		await saveUsers(store, this.users);
+	}
+
+	async persistTiersAndRanks(): Promise<void> {
+		const { store } = this.requireContext();
+		await Promise.all([saveTiers(store, this.tiers), saveRanks(store, this.ranks)]);
+	}
+
+	async persistSettings(): Promise<void> {
+		const { store } = this.requireContext();
+		await saveSettings(store, this.settings);
+	}
+
+	getProgressForPoints(totalPoints: number): RankProgress {
+		return resolveProgress(totalPoints, this.getOrderedRanks());
+	}
+
+	getUser(userId: string): UserRankingRecord | undefined {
+		return this.users.find((user) => user.userId === userId);
+	}
+
+	getLeaderboard(limit = this.settings.leaderboardSize): UserRankingRecord[] {
+		return sortUsersByPoints(this.users).slice(0, limit);
+	}
+
+	getStats(): RankingsStats {
+		const ordered = this.getOrderedRanks();
+		const topUsers = this.getLeaderboard(5);
+		const tierDistribution = this.tiers.map((tier) => ({
+			tier,
+			count: this.users.filter((user) => {
+				const progress = resolveProgress(user.totalPoints, ordered);
+
+				return progress.tier?.id === tier.id;
+			}).length
+		}));
+
+		return {
+			totalUsers: this.users.length,
+			totalPointsAwarded: this.users.reduce((sum, user) => sum + user.totalPoints, 0),
+			topUsers,
+			tierDistribution
+		};
+	}
+
+	formatRankMessage(userId: string, template: string): string {
+		const user = this.getUser(userId);
+		const progress = this.getProgressForPoints(user?.totalPoints ?? 0);
+
+		return template
+			.replaceAll('{username}', user?.username ?? 'Unknown')
+			.replaceAll('{points}', String(user?.totalPoints ?? 0))
+			.replaceAll('{rank}', progress.rank?.name ?? 'None')
+			.replaceAll('{tier}', progress.tier?.name ?? 'None')
+			.replaceAll('{watchTime}', String(Math.floor((user?.watchTimeSeconds ?? 0) / 60)));
+	}
+
+	formatLeaderboardMessage(limit = this.settings.leaderboardSize): string {
+		const leaderboard = this.getLeaderboard(limit);
+		const ordered = this.getOrderedRanks();
+
+		if (leaderboard.length === 0) {
+			return 'No rankings yet.';
+		}
+
+		return leaderboard
+			.map((user, index) => {
+				const progress = resolveProgress(user.totalPoints, ordered);
+				const rankName = progress.rank?.name ?? 'Unranked';
+
+				return `${index + 1}. ${user.username} — ${user.totalPoints} pts (${rankName})`;
+			})
+			.join(' | ');
+	}
+
+	private upsertUser(input: {
+		userId: string;
+		username: string;
+		platform: RankingsPlatform;
+	}): UserRankingRecord {
+		const existing = this.getUser(input.userId);
+		const now = new Date().toISOString();
+
+		if (existing) {
+			const updated: UserRankingRecord = {
+				...existing,
+				username: input.username,
+				platform: input.platform,
+				updatedAt: now
+			};
+			this.users = this.users.map((user) => (user.userId === input.userId ? updated : user));
+
+			return updated;
+		}
+
+		const created: UserRankingRecord = {
+			userId: input.userId,
+			username: input.username,
+			platform: input.platform,
+			totalPoints: 0,
+			watchTimeSeconds: 0,
+			updatedAt: now
+		};
+		this.users = [...this.users, created];
+
+		return created;
+	}
+
+	private buildEventContext(
+		user: UserRankingRecord,
+		amount: number,
+		source: string,
+		previousProgress: RankProgress,
+		currentProgress: RankProgress
+	): RankingsEventContext {
+		return {
+			userId: user.userId,
+			username: user.username,
+			platform: user.platform,
+			totalPoints: user.totalPoints,
+			watchTimeSeconds: user.watchTimeSeconds,
+			source,
+			amount,
+			previousRank: previousProgress.rank,
+			currentRank: currentProgress.rank,
+			previousTier: previousProgress.tier,
+			currentTier: currentProgress.tier
+		};
+	}
+
+	private applyPointsMutation(
+		user: UserRankingRecord,
+		nextPoints: number,
+		amount: number,
+		source: string
+	): PointsMutationResult {
+		const ordered = this.getOrderedRanks();
+		const previousPoints = user.totalPoints;
+		const previousProgress = resolveProgress(previousPoints, ordered);
+		const totalPoints = clampPoints(nextPoints);
+		const updated: UserRankingRecord = {
+			...user,
+			totalPoints,
+			updatedAt: new Date().toISOString()
+		};
+
+		this.users = this.users.map((entry) => (entry.userId === user.userId ? updated : entry));
+
+		const currentProgress = resolveProgress(totalPoints, ordered);
+		const rankChanged = didRankChange(previousProgress, currentProgress);
+		const tierAdvanced = didTierAdvance(previousProgress, currentProgress, ordered);
+		const context = this.buildEventContext(
+			updated,
+			amount,
+			source,
+			previousProgress,
+			currentProgress
+		);
+
+		if (amount !== 0) {
+			this.emit('points-earned', context);
+		}
+
+		if (rankChanged) {
+			this.emit('rank-changed', context);
+		}
+
+		if (tierAdvanced) {
+			this.emit('tier-advanced', context);
+		}
+
+		return {
+			user: updated,
+			amount,
+			previousPoints,
+			previousProgress,
+			currentProgress,
+			rankChanged,
+			tierAdvanced
+		};
+	}
+
+	async addPoints(input: {
+		userId: string;
+		username: string;
+		platform: RankingsPlatform;
+		amount: number;
+		source: string;
+	}): Promise<PointsMutationResult> {
+		const user = this.upsertUser(input);
+		const result = this.applyPointsMutation(
+			user,
+			user.totalPoints + clampPoints(input.amount),
+			clampPoints(input.amount),
+			input.source
+		);
+		await this.persistUsers();
+
+		return result;
+	}
+
+	async setPoints(input: {
+		userId: string;
+		username: string;
+		platform: RankingsPlatform;
+		amount: number;
+		source: string;
+	}): Promise<PointsMutationResult> {
+		const user = this.upsertUser(input);
+		const amount = clampPoints(input.amount) - user.totalPoints;
+		const result = this.applyPointsMutation(user, clampPoints(input.amount), amount, input.source);
+		await this.persistUsers();
+
+		return result;
+	}
+
+	async removePoints(input: {
+		userId: string;
+		username: string;
+		platform: RankingsPlatform;
+		amount: number;
+		source: string;
+	}): Promise<PointsMutationResult> {
+		const user = this.upsertUser(input);
+		const removed = clampPoints(input.amount);
+		const result = this.applyPointsMutation(
+			user,
+			Math.max(0, user.totalPoints - removed),
+			-removed,
+			input.source
+		);
+		await this.persistUsers();
+
+		return result;
+	}
+
+	async addWatchTime(input: {
+		userId: string;
+		username: string;
+		platform: RankingsPlatform;
+		seconds: number;
+	}): Promise<void> {
+		const user = this.upsertUser(input);
+		const watchTimeSeconds = user.watchTimeSeconds + Math.max(0, Math.floor(input.seconds));
+		const updated: UserRankingRecord = {
+			...user,
+			watchTimeSeconds,
+			updatedAt: new Date().toISOString()
+		};
+
+		this.users = this.users.map((entry) => (entry.userId === user.userId ? updated : entry));
+		await this.persistUsers();
+	}
+
+	async createTier(input: Omit<TierRecord, 'id' | 'sortOrder'> & { sortOrder?: number }): Promise<TierRecord> {
+		const tier: TierRecord = {
+			id: crypto.randomUUID(),
+			name: input.name.trim(),
+			sortOrder: input.sortOrder ?? this.tiers.length,
+			icon: input.icon
+		};
+		this.tiers = [...this.tiers, tier].sort((left, right) => left.sortOrder - right.sortOrder);
+		await this.persistTiersAndRanks();
+
+		return tier;
+	}
+
+	async updateTier(id: string, input: Partial<Omit<TierRecord, 'id'>>): Promise<TierRecord> {
+		const existing = this.tiers.find((tier) => tier.id === id);
+
+		if (!existing) {
+			throw new Error(`Tier "${id}" not found`);
+		}
+
+		const updated: TierRecord = {
+			...existing,
+			...input,
+			name: input.name?.trim() ?? existing.name
+		};
+		this.tiers = this.tiers
+			.map((tier) => (tier.id === id ? updated : tier))
+			.sort((left, right) => left.sortOrder - right.sortOrder);
+		await this.persistTiersAndRanks();
+
+		return updated;
+	}
+
+	async deleteTier(id: string): Promise<void> {
+		if (this.ranks.some((rank) => rank.tierId === id)) {
+			throw new Error('Remove ranks from this tier before deleting it.');
+		}
+
+		this.tiers = this.tiers.filter((tier) => tier.id !== id);
+		await this.persistTiersAndRanks();
+	}
+
+	async createRank(
+		input: Omit<RankRecord, 'id' | 'sortOrder'> & { sortOrder?: number }
+	): Promise<RankRecord> {
+		const rank: RankRecord = {
+			id: crypto.randomUUID(),
+			tierId: input.tierId,
+			name: input.name.trim(),
+			pointsRequired: clampPoints(input.pointsRequired),
+			sortOrder: input.sortOrder ?? this.ranks.filter((entry) => entry.tierId === input.tierId).length,
+			icon: input.icon,
+			color: input.color
+		};
+		this.ranks = [...this.ranks, rank];
+		await this.persistTiersAndRanks();
+
+		return rank;
+	}
+
+	async updateRank(id: string, input: Partial<Omit<RankRecord, 'id'>>): Promise<RankRecord> {
+		const existing = this.ranks.find((rank) => rank.id === id);
+
+		if (!existing) {
+			throw new Error(`Rank "${id}" not found`);
+		}
+
+		const updated: RankRecord = {
+			...existing,
+			...input,
+			name: input.name?.trim() ?? existing.name,
+			pointsRequired:
+				input.pointsRequired != null ? clampPoints(input.pointsRequired) : existing.pointsRequired
+		};
+		this.ranks = this.ranks.map((rank) => (rank.id === id ? updated : rank));
+		await this.persistTiersAndRanks();
+
+		return updated;
+	}
+
+	async deleteRank(id: string): Promise<void> {
+		this.ranks = this.ranks.filter((rank) => rank.id !== id);
+		await this.persistTiersAndRanks();
+	}
+}

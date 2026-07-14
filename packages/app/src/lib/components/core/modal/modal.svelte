@@ -23,6 +23,7 @@
 	const EXIT_ANIMATION_MS = 250;
 
 	const SIZE_WIDTH: Record<NonNullable<Modal['size']>, string> = {
+		xs: '22rem',
 		sm: '28rem',
 		md: '42rem',
 		lg: '48rem',

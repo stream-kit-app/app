@@ -21,7 +21,7 @@ app.createModal({
   description: t('Optional subtitle'),
   content: MyForm,
   props: { /* forwarded to MyForm */ },
-  size: 'md' // 'sm' | 'md' | 'lg' | 'full'
+  size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'full'
 }).open();
 ```
 

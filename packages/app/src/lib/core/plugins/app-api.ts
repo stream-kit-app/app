@@ -3,6 +3,7 @@ import type { HandlerTriggerContext } from '../action/handler-context';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
 import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
+import type { NewActionRecord } from '../action/stored-action';
 import { createFilesystemApi } from '../filesystem/create-api';
 import { isTcpPortReachable } from '../network/tcp-port';
 import { getVideoFileDurationMs } from '../media/file-duration';
@@ -254,7 +255,21 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			hasEnabledProcessTrigger: () => app.actions.hasEnabledProcessTrigger(),
 			runById: (id: number, context: HandlerTriggerContext) => app.actions.runById(id, context),
 			findHandler: (id: string) => app.actions.actions.find(id),
-			getHandlers: () => app.actions.actions.items
+			getHandlers: () => app.actions.actions.items,
+			create: (input: NewActionRecord, options?: { ownerPluginKey?: string }) =>
+				app.actions.createFromRecord(input, {
+					ownerPluginKey: resolveOwnerPluginKey(scope, options)
+				}),
+			update: (
+				id: number,
+				input: Omit<NewActionRecord, 'id'>,
+				options?: { ownerPluginKey?: string }
+			) =>
+				app.actions.updateFromRecord(id, input, {
+					ownerPluginKey: resolveOwnerPluginKey(scope, options)
+				}),
+			deleteByOwner: (ownerPluginKey: string) => app.actions.deleteByOwner(ownerPluginKey),
+			getSnapshot: () => app.actions.getSnapshot()
 		},
 		commands: createCommandsApi(app, scope),
 		oauth: {

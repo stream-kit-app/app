@@ -1,0 +1,75 @@
+---
+title: Rankings
+description: Viewer rankings with tiers, points, watch-time rewards, and leaderboard commands.
+---
+
+# Rankings
+
+The Rankings plugin tracks **viewer points**, **tiers**, and **ranks** for your community. Points can come from built-in Twitch watch time or from Actions you enable.
+
+## Requirements
+
+- [Core](/docs/plugins/core) — action handlers and triggers
+- [Bot](/docs/plugins/bot) — default chat commands (`!rank`, `!points`, `!top`)
+- [Twitch](/docs/plugins/twitch) — watch-time tracking and default Twitch actions
+
+## Pages
+
+Open **Rankings** in the sidebar:
+
+| Page | Description |
+| --- | --- |
+| **Overview** | Stats, watch-time status, top viewers, tier distribution |
+| **Tiers & Ranks** | Create tiers and rank milestones (global point thresholds) |
+| **Leaderboard** | Search viewers and adjust points manually |
+
+## Progression
+
+- Viewers earn **total points** that never reset when changing tiers.
+- Each **rank** is a milestone at a required point total.
+- **Tiers** group ranks; when a viewer reaches the highest rank in a tier and earns the next milestone, they advance into the next tier automatically.
+- Rank and tier changes emit **Rankings** triggers you can use in Actions.
+
+## Watch time
+
+When **Watch time rewards** is enabled (plugin settings), the plugin tracks active Twitch chatters (join/part) and awards points on a configurable interval.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| Watch time rewards | on | Enable automatic watch-time points |
+| Points per minute | `1` | Points earned per full minute watched |
+| Award interval (seconds) | `60` | How often active chatters are evaluated |
+| Leaderboard size | `10` | Default size for leaderboard commands |
+
+## Default commands (disabled)
+
+Seeded under the **rankings** command group — enable them on **Bot → Commands**:
+
+| Command | Triggers | Description |
+| --- | --- | --- |
+| Rank | `!rank` | Current rank, tier, and points |
+| Points | `!points` | Total points |
+| Leaderboard | `!top`, `!leaderboard` | Top viewers |
+
+## Default actions (disabled)
+
+Seeded under the **rankings** action group — enable them on **Actions**:
+
+| Action | Trigger | Effect |
+| --- | --- | --- |
+| Points on follow | Twitch → New Follower | +25 points |
+| Points on sub | Twitch → New Subscription | +100 points |
+| Points on cheer | Twitch → Cheer | +1 point (adjust amount in handler) |
+| Points on raid | Twitch → Incoming Raid | +50 points to raider |
+
+## Triggers and handlers
+
+Under **Rankings** in the action editor:
+
+**Triggers:** Points earned, Rank changed, Tier advanced
+
+**Handlers:** Add points, Set points, Remove points, Send rank message, Send leaderboard message
+
+## Dashboard widget
+
+Add the **Rankings** widget from the dashboard to see viewer count, total points, and the top five leaderboard at a glance.

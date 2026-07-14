@@ -244,8 +244,28 @@ Users place widget instances on the dashboard from the app UI. Layout (order and
 const handler = app.actions.findHandler('send-message');
 const handlers = app.actions.getHandlers();
 
-const modal = app.modal.get('edit-item') ?? app.modal.create({ ... });
+const modal =
+  app.modal.get('edit-item') ??
+  app.modal.create({
+    id: 'edit-item',
+    title: app.i18n.t('Edit item'),
+    content: EditItemModal,
+    props: { itemId: 'abc' },
+    size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'full'
+  });
+
+modal.open();
 ```
+
+Side panels slide in from the right. Pass `size` to control width:
+
+| Size | Width | Typical use |
+|------|-------|-------------|
+| `xs` | 22rem | Compact forms (e.g. rename, single field) |
+| `sm` | 28rem | Short forms |
+| `md` | 42rem | Default; most edit dialogs |
+| `lg` | 48rem | Complex forms with many fields |
+| `full` | 50% | Large editors |
 
 ### Toolbar (`app.toolbar`)
 
@@ -365,6 +385,46 @@ onEnable: async ({ app, pluginKey }) => {
 When called from lifecycle hooks (`onEnable`, `onReady`, etc.), `ownerPluginKey` is set automatically from `pluginKey` in the context. Commands owned by a plugin are removed when that plugin is **uninstalled** (not when disabled).
 
 Use stable ids (for example `` `${pluginKey}:ping` ``) so re-enabling a plugin can call `update` instead of creating duplicates. Handler definitions must be registered before creating commands — register handlers on the plugin manifest and create commands in `onEnable` or `onReady`.
+
+### Owned actions
+
+Plugins can seed default user actions the same way as commands. Actions created from lifecycle hooks get `ownerPluginKey` automatically from `pluginKey`.
+
+```ts
+onEnable: async ({ app, pluginKey }) => {
+  await app.actions.create({
+    name: 'Points on follow',
+    group: pluginKey,
+    enabled: false,
+    triggers: [
+      {
+        id: crypto.randomUUID(),
+        triggerTypeId: 'twitch:twitch:channel:new-follower',
+        conditions: { kind: 'group', id: crypto.randomUUID(), children: [] }
+      }
+    ],
+    handlers: [
+      {
+        id: crypto.randomUUID(),
+        handlerTypeId: 'rankings:rankings:add-points',
+        fields: [
+          { key: 'amount', value: 25 },
+          { key: 'source', value: 'follow' }
+        ]
+      }
+    ]
+  });
+};
+```
+
+| Method | Description |
+| --- | --- |
+| `getSnapshot()` | Read all configured actions |
+| `create(input)` | Create a new action record |
+| `update(id, input)` | Update an existing action by database id |
+| `deleteByOwner(pluginKey)` | Delete all actions owned by a plugin |
+
+Owned actions are removed when the plugin is **uninstalled** (not when disabled). Use `group: pluginKey` so seeded actions are easy to find in the Actions UI.
 
 ### Plugin settings store from a customView
 

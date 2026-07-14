@@ -11,11 +11,23 @@
 	let { component, props = {} }: Props = $props();
 
 	let target = $state<HTMLDivElement | undefined>();
+	let hostProps = $state<Record<string, unknown>>({});
+
+	$effect(() => {
+		const nextProps = props;
+
+		for (const key of Object.keys(hostProps)) {
+			if (!(key in nextProps)) {
+				delete hostProps[key];
+			}
+		}
+
+		Object.assign(hostProps, nextProps);
+	});
 
 	$effect(() => {
 		const element = target;
 		const view = component;
-		const viewProps = props;
 
 		if (!element || !view) {
 			return;
@@ -31,7 +43,7 @@
 
 			mounted = mount(view, {
 				target: element,
-				props: viewProps
+				props: hostProps
 			});
 		});
 

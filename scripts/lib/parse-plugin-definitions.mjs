@@ -343,16 +343,43 @@ function splitTopLevelObjects(source) {
 
 /**
  * @param {string} content
+ * @param {string | undefined} factoryName
  */
-export function parseDefinitionProps(content) {
-	const nameMatch = content.match(/name:\s*['"]([^'"]+)['"]/);
+function extractExportFunctionBody(content, factoryName) {
+	if (!factoryName) {
+		return content;
+	}
+
+	const fnPattern = new RegExp(`export\\s+function\\s+${factoryName}\\s*\\(`);
+	const match = fnPattern.exec(content);
+
+	if (!match) {
+		return content;
+	}
+
+	const openBrace = content.indexOf('{', match.index);
+
+	if (openBrace === -1) {
+		return content;
+	}
+
+	return extractBalancedBraces(content, openBrace).content;
+}
+
+/**
+ * @param {string} content
+ * @param {string | undefined} [factoryName]
+ */
+export function parseDefinitionProps(content, factoryName) {
+	const scopedContent = extractExportFunctionBody(content, factoryName);
+	const nameMatch = scopedContent.match(/name:\s*['"]([^'"]+)['"]/);
 	/** @type {{ name: string, type: string, required?: boolean, description?: string, placeholder?: string }[]} */
 	const fields = [];
 
-	const fieldsIndex = content.indexOf('fields:');
+	const fieldsIndex = scopedContent.indexOf('fields:');
 	if (fieldsIndex !== -1) {
-		const bracketStart = content.indexOf('[', fieldsIndex);
-		const fieldsBlock = extractBalanced(content, bracketStart);
+		const bracketStart = scopedContent.indexOf('[', fieldsIndex);
+		const fieldsBlock = extractBalanced(scopedContent, bracketStart);
 
 		for (const block of splitTopLevelObjects(fieldsBlock)) {
 			const type = block.match(/type:\s*['"]([^'"]+)['"]/)?.[1];
@@ -369,7 +396,7 @@ export function parseDefinitionProps(content) {
 
 	/** @type {{ name: string, fnName: string, key: string }[]} */
 	const conditions = [];
-	const conditionsIndex = content.indexOf('conditions:');
+	const conditionsIndex = scopedContent.indexOf('conditions:');
 	if (conditionsIndex !== -1) {
 		const bracketStart = content.indexOf('[', conditionsIndex);
 		if (bracketStart !== -1) {
