@@ -26,7 +26,7 @@ import type { ModalProps } from '../modal/modal.svelte';
 import type { OAuthStartOptions } from '../oauth/oauth';
 import type { ToastCreateProps } from '../toast/toast.svelte';
 import type { ToastItem } from '../toast/toast-item.svelte';
-import type { CommandRecord } from '$lib/types/command-types';
+import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
 import type { PluginMigration } from '$db/plugin-migrations';
 import type { DirEntry, FileInfo, UnwatchFn } from '../filesystem/types';
 import type { FileHandle } from '../filesystem/file-handle';
@@ -650,6 +650,38 @@ export interface PluginAppCommandsApi {
 	 * ```
 	 */
 	findByTrigger(trigger: string): CommandRecord | undefined;
+
+	/**
+	 * Create a chat command record.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.commands.create({
+	 *   name: 'Ping',
+	 *   commandNames: ['ping'],
+	 *   handlers: [{ id: crypto.randomUUID(), handlerTypeId: 'core:core:chat:send-message', fields: [] }]
+	 * });
+	 * ```
+	 */
+	create(
+		input: NewCommandRecord,
+		options?: { ownerPluginKey?: string }
+	): Promise<CommandRecord>;
+
+	/**
+	 * Update an existing chat command by id.
+	 */
+	update(
+		id: string,
+		input: Omit<NewCommandRecord, 'id'>,
+		options?: { ownerPluginKey?: string }
+	): Promise<CommandRecord>;
+
+	/** Delete a chat command by id. Returns `false` when the command does not exist. */
+	delete(id: string): Promise<boolean>;
+
+	/** Delete all commands owned by a plugin. Returns the number of deleted commands. */
+	deleteByOwner(ownerPluginKey: string): Promise<number>;
 }
 
 /**

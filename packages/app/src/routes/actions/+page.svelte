@@ -182,18 +182,21 @@
 							{
 								id: 'edit-selected',
 								label: t('Edit selected'),
+								icon: 'ri:edit-2-line',
 								disabled: selection.selectedIds.size === 0,
 								onClick: openGlobalBulkEdit
 							},
 							{
 								id: 'enable-selected',
 								label: t('Enable selected'),
+								icon: 'ri:checkbox-circle-line',
 								disabled: selection.selectedIds.size === 0,
 								onClick: () => void enableSelected()
 							},
 							{
 								id: 'disable-selected',
 								label: t('Disable selected'),
+								icon: 'ri:indeterminate-circle-line',
 								disabled: selection.selectedIds.size === 0,
 								onClick: () => void disableSelected()
 							},
@@ -208,6 +211,7 @@
 							{
 								id: 'clear-selection',
 								label: t('Clear selection'),
+								icon: 'ri:close-line',
 								disabled: selection.selectedIds.size === 0,
 								onClick: selection.clearSelection
 							}

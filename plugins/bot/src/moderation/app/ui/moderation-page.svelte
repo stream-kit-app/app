@@ -85,6 +85,7 @@
 							{
 								id: 'clear-selection',
 								label: t('Clear selection'),
+								icon: 'ri:close-line',
 								disabled: selectedIds.size === 0,
 								onClick: clearSelection
 							}

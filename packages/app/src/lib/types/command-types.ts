@@ -21,6 +21,7 @@ export type CommandRecord = {
 	cooldownGlobalMs: number | null;
 	cooldownUserMs: number | null;
 	enabled: boolean;
+	ownerPluginKey?: string;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -38,8 +39,9 @@ export type NewCommandRecord = {
 	cooldownGlobalMs?: number | null;
 	cooldownUserMs?: number | null;
 	enabled?: boolean;
-	createdAt: Date;
-	updatedAt: Date;
+	ownerPluginKey?: string;
+	createdAt?: Date;
+	updatedAt?: Date;
 };
 
 export type CommandLayoutUpdate = {

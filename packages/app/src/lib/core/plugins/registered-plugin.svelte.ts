@@ -137,7 +137,8 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 	createContext(app: App): PluginSettingsContext {
 		return {
-			app: createPluginAppApi(app),
+			pluginKey: this.key,
+			app: createPluginAppApi(app, { pluginKey: this.key }),
 			store: this.storeFacade,
 			settings: this.storeFacade,
 			getValue: (key) => getSettingsFieldValue(this.fields, key)

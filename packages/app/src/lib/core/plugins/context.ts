@@ -7,14 +7,19 @@ import type { PluginStore } from './store';
  *
  * @example
  * ```ts
- * onSave: async ({ app, store, getValue }) => {
- *   const url = getValue('url');
- *   await store.set('lastSavedUrl', url);
- *   app.toast.create({ title: 'Saved', variant: 'success' });
+ * onEnable: async ({ app, pluginKey }) => {
+ *   await app.commands.create({
+ *     name: 'Ping',
+ *     commandNames: ['ping'],
+ *     handlers: []
+ *   });
  * }
  * ```
  */
 export type PluginSettingsContext = {
+	/** Manifest key for the plugin receiving this context. */
+	pluginKey: string;
+
 	/** App APIs available to plugin authors (toast, fs, other plugins, etc.). */
 	app: PluginAppApi;
 

@@ -732,6 +732,38 @@ interface PluginAppCommandsApi {
 	 * \`\`\`
 	 */
 	findByTrigger(trigger: string): CommandRecord | undefined;
+
+	/**
+	 * Create a chat command record.
+	 *
+	 * @example
+	 * \`\`\`ts
+	 * await app.commands.create({
+	 *   name: 'Ping',
+	 *   commandNames: ['ping'],
+	 *   handlers: [{ id: crypto.randomUUID(), handlerTypeId: 'core:core:chat:send-message', fields: [] }]
+	 * });
+	 * \`\`\`
+	 */
+	create(
+		input: NewCommandRecord,
+		options?: { ownerPluginKey?: string }
+	): Promise<CommandRecord>;
+
+	/**
+	 * Update an existing chat command by id.
+	 */
+	update(
+		id: string,
+		input: Omit<NewCommandRecord, 'id'>,
+		options?: { ownerPluginKey?: string }
+	): Promise<CommandRecord>;
+
+	/** Delete a chat command by id. Returns \`false\` when the command does not exist. */
+	delete(id: string): Promise<boolean>;
+
+	/** Delete all commands owned by a plugin. Returns the number of deleted commands. */
+	deleteByOwner(ownerPluginKey: string): Promise<number>;
 }
 
 /**

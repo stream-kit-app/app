@@ -281,6 +281,8 @@ app.toolbar.set({
 
 Call `app.toolbar.reset()` is handled automatically on navigation; update the toolbar from a `$effect` when selection or counts change.
 
+Bulk `actions` render as compact link-style controls. Use `variant: 'destructive'` for delete actions (red text, no fill). `primaryActions` render as filled buttons and are visually separated from bulk actions.
+
 ### Global hotkeys (`app.hotkeys`)
 
 Register system-wide keyboard shortcuts (desktop only, via Tauri global-shortcut):
@@ -319,6 +321,50 @@ const unsubscribe = app.actionQueues.on('job_started', (context) => {
 Events: `paused`, `resumed`, `idle`, `job_enqueued`, `job_started`, `job_completed`.
 
 Read `app.actionQueues.definitions` for the list of configured queues.
+
+### Chat commands (`app.commands`)
+
+Requires the [Bot](/docs/plugins/bot) plugin. Create, update, and delete chat command records from lifecycle hooks or handlers:
+
+```ts
+onEnable: async ({ app, pluginKey }) => {
+  const id = `${pluginKey}:ping`;
+  const payload = {
+    name: 'Ping',
+    commandNames: ['ping'],
+    group: pluginKey,
+    handlers: [
+      {
+        id: crypto.randomUUID(),
+        handlerTypeId: 'core:core:chat:send-message',
+        fields: [{ key: 'message', value: 'Pong!' }]
+      }
+    ]
+  };
+
+  const exists = app.commands.getSnapshot().some((command) => command.id === id);
+
+  if (exists) {
+    await app.commands.update(id, payload);
+  } else {
+    await app.commands.create({ ...payload, id });
+  }
+};
+```
+
+| Method | Description |
+| --- | --- |
+| `getSnapshot()` | Read all configured commands |
+| `findByTrigger(trigger)` | Find a command by trigger string (e.g. `!hello`) |
+| `runById(id, context)` | Execute a command's handler chain |
+| `create(input)` | Create a new command record |
+| `update(id, input)` | Update an existing command by id |
+| `delete(id)` | Delete a command by id |
+| `deleteByOwner(pluginKey)` | Delete all commands owned by a plugin |
+
+When called from lifecycle hooks (`onEnable`, `onReady`, etc.), `ownerPluginKey` is set automatically from `pluginKey` in the context. Commands owned by a plugin are removed when that plugin is **uninstalled** (not when disabled).
+
+Use stable ids (for example `` `${pluginKey}:ping` ``) so re-enabling a plugin can call `update` instead of creating duplicates. Handler definitions must be registered before creating commands — register handlers on the plugin manifest and create commands in `onEnable` or `onReady`.
 
 ### Plugin settings store from a customView
 

@@ -46,6 +46,7 @@ export type CommandProps = {
 	cooldownGlobalMs?: number | null;
 	cooldownUserMs?: number | null;
 	enabled?: boolean;
+	ownerPluginKey?: string;
 	createdAt?: Date;
 	updatedAt?: Date;
 };
@@ -64,6 +65,7 @@ export class Command {
 	cooldownGlobalMs: number | null = $state(null);
 	cooldownUserMs: number | null = $state(null);
 	enabled: boolean = $state(true);
+	ownerPluginKey?: string;
 	createdAt?: Date;
 	updatedAt?: Date;
 
@@ -82,6 +84,7 @@ export class Command {
 		this.cooldownGlobalMs = props.cooldownGlobalMs ?? null;
 		this.cooldownUserMs = props.cooldownUserMs ?? null;
 		this.enabled = props.enabled ?? true;
+		this.ownerPluginKey = props.ownerPluginKey;
 		this.createdAt = props.createdAt;
 		this.updatedAt = props.updatedAt;
 	}
@@ -150,6 +153,7 @@ export class Command {
 			cooldownGlobalMs: record.cooldownGlobalMs,
 			cooldownUserMs: record.cooldownUserMs,
 			enabled: record.enabled,
+			ownerPluginKey: record.ownerPluginKey,
 			createdAt: record.createdAt,
 			updatedAt: record.updatedAt
 		});
@@ -185,6 +189,7 @@ export class Command {
 			cooldownGlobalMs: this.cooldownGlobalMs,
 			cooldownUserMs: this.cooldownUserMs,
 			enabled: this.enabled,
+			...(this.ownerPluginKey ? { ownerPluginKey: this.ownerPluginKey } : {}),
 			createdAt: this.createdAt ?? now,
 			updatedAt: this.updatedAt ?? now
 		};

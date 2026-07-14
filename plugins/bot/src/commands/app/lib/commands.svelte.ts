@@ -1,7 +1,13 @@
 import type { HandlerTriggerContext, PluginAppApi, PluginStore } from '@stream-kit/plugin';
-import type { CommandLayoutUpdate, CommandRecord } from './stored-command';
+import type { CommandLayoutUpdate, CommandRecord, NewCommandRecord } from './stored-command';
 
 import { loadCommands, saveCommands } from '../../../lib/commands-store';
+import { getOwnedCommandIds } from '../../lib/owned-command-ids';
+import {
+	mergeCommandRecord,
+	toCommandRecordInput
+} from '../../lib/command-record-input';
+import { validateCommandRecord } from '../../lib/validate-command-record';
 
 import {
 	applyLayoutUpdates,
@@ -14,6 +20,10 @@ import {
 import { Command } from './command.svelte';
 
 export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
+
+export type CommandRecordOptions = {
+	ownerPluginKey?: string;
+};
 
 export class Commands {
 	items: Command[] = $state.raw([]);
@@ -116,6 +126,100 @@ export class Commands {
 
 	async delete(id: string): Promise<void> {
 		await this.deleteBulk([id]);
+	}
+
+	async deleteById(id: string): Promise<boolean> {
+		const exists = this.items.some((command) => command.id === id);
+
+		if (!exists) {
+			return false;
+		}
+
+		await this.deleteBulkSilent([id]);
+		return true;
+	}
+
+	async deleteByOwner(ownerPluginKey: string): Promise<number> {
+		const ids = getOwnedCommandIds(this.items, ownerPluginKey);
+
+		if (ids.length === 0) {
+			return 0;
+		}
+
+		await this.deleteBulkSilent(ids);
+		return ids.length;
+	}
+
+	private async deleteBulkSilent(ids: string[]): Promise<void> {
+		const toDelete = this.items.filter(
+			(command) => command.id != null && ids.includes(command.id)
+		);
+
+		if (toDelete.length === 0) {
+			return;
+		}
+
+		for (const command of toDelete) {
+			command.close();
+		}
+
+		const deletedIds = new Set(toDelete.map((command) => command.id));
+		this.items = this.items.filter((item) => item.id == null || !deletedIds.has(item.id));
+		await this.persist();
+	}
+
+	async createFromRecord(
+		input: NewCommandRecord,
+		options?: CommandRecordOptions
+	): Promise<CommandRecord> {
+		const { app } = this.requireContext();
+		const id = input.id ?? crypto.randomUUID();
+
+		if (this.items.some((command) => command.id === id)) {
+			throw new Error(`Command with id "${id}" already exists`);
+		}
+
+		validateCommandRecord(input, app);
+
+		const record = toCommandRecordInput({ ...input, id }, options);
+		const command = Command.fromRecord(record, app);
+
+		await this.upsert(command);
+
+		return command.toRecord();
+	}
+
+	async updateFromRecord(
+		id: string,
+		input: Omit<NewCommandRecord, 'id'>,
+		options?: CommandRecordOptions
+	): Promise<CommandRecord> {
+		const { app } = this.requireContext();
+		const existing = this.items.find((command) => command.id === id);
+
+		if (!existing) {
+			throw new Error(`Command with id "${id}" not found`);
+		}
+
+		const merged = mergeCommandRecord(existing.toRecord(), input, options);
+
+		validateCommandRecord(
+			{
+				name: merged.name,
+				commandNames: merged.commandNames,
+				handlers: merged.handlers,
+				sources: merged.sources,
+				cooldownGlobalMs: merged.cooldownGlobalMs,
+				cooldownUserMs: merged.cooldownUserMs
+			},
+			app
+		);
+
+		const command = Command.fromRecord(merged, app);
+
+		await this.upsert(command);
+
+		return command.toRecord();
 	}
 
 	async deleteBulk(ids: string[]): Promise<void> {

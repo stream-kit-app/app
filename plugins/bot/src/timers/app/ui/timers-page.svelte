@@ -118,12 +118,14 @@
 							{
 								id: 'enable-selected',
 								label: t('Enable selected'),
+								icon: 'ri:checkbox-circle-line',
 								disabled: selectedIds.size === 0,
 								onClick: () => void timers?.setEnabledBulk([...selectedIds], true)
 							},
 							{
 								id: 'disable-selected',
 								label: t('Disable selected'),
+								icon: 'ri:indeterminate-circle-line',
 								disabled: selectedIds.size === 0,
 								onClick: () => void timers?.setEnabledBulk([...selectedIds], false)
 							},
@@ -138,6 +140,7 @@
 							{
 								id: 'clear-selection',
 								label: t('Clear selection'),
+								icon: 'ri:close-line',
 								disabled: selectedIds.size === 0,
 								onClick: clearSelection
 							}

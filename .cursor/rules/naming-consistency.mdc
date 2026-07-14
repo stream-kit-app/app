@@ -1,0 +1,35 @@
+---
+description: Match naming and API patterns already used in this codebase before introducing new ones
+alwaysApply: true
+---
+
+# Naming consistency
+
+Before adding new API methods, types, or services, search the codebase for similar functionality and reuse its naming.
+
+## CRUD naming
+
+Use `create` / `update` / `delete` for public programmatic APIs unless the domain already uses a different verb:
+
+| Pattern | Example |
+|---------|---------|
+| `create(input)` | `ActionQueues.create`, `OverlayService.create` |
+| `update(id, input)` | `ActionQueues.update` |
+| `delete(id)` | `ActionQueues.delete`, `CollectionStore.delete` |
+
+Do **not** expose `upsert` or `save` on public `PluginAppApi` surfaces. Those names are fine for internal UI entities (`Command.save()`) or internal service persistence (`Commands.upsert()`).
+
+Domain-specific verbs are OK when the codebase already uses them — e.g. collections `set` for key-value writes.
+
+## Workflow
+
+1. Search `packages/app/src/lib/core/` and relevant plugin services for similar features.
+2. Match method names, argument order, and return types to the closest existing service.
+3. Prefer throwing `Error` for programmatic APIs; reserve toasts for UI flows.
+
+## References
+
+- Action queues: `packages/app/src/lib/core/action-queue/action-queues.svelte.ts`
+- Collections: `plugins/core/src/lib/collections/collection-store.ts`
+- Overlays: `packages/app/src/lib/core/overlay/overlay-service.svelte.ts`
+- Plugin app API types: `packages/app/src/lib/core/plugins/plugin-app-api.types.ts`

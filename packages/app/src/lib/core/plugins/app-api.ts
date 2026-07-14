@@ -2,7 +2,7 @@ import type { HandlerDefinitionProps } from '../action/handler';
 import type { HandlerTriggerContext } from '../action/handler-context';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
-import type { CommandRecord } from '$lib/types/command-types';
+import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
 import { createFilesystemApi } from '../filesystem/create-api';
 import { isTcpPortReachable } from '../network/tcp-port';
 import { getVideoFileDurationMs } from '../media/file-duration';
@@ -26,6 +26,17 @@ export type BotPluginApi = {
 		getSnapshot: () => CommandRecord[];
 		runById: (id: string, context: HandlerTriggerContext) => boolean;
 		findByTrigger: (trigger: string) => CommandRecord | undefined;
+		create: (
+			input: NewCommandRecord,
+			options?: { ownerPluginKey?: string }
+		) => Promise<CommandRecord>;
+		update: (
+			id: string,
+			input: Omit<NewCommandRecord, 'id'>,
+			options?: { ownerPluginKey?: string }
+		) => Promise<CommandRecord>;
+		delete: (id: string) => Promise<boolean>;
+		deleteByOwner: (ownerPluginKey: string) => Promise<number>;
 	};
 };
 
@@ -37,18 +48,81 @@ export type PluginDefinitionCollections = {
 	handlers?: HandlerDefinitionProps[];
 };
 
+export type PluginAppScope = {
+	pluginKey?: string;
+};
+
 type BotCommandsService = {
 	registerRuntime: (factory: CommandRuntimeFactory) => void;
 	getSnapshot: () => CommandRecord[];
 	runById: (id: string, context: HandlerTriggerContext) => boolean;
 	findByTrigger: (trigger: string) => { toRecord: () => CommandRecord } | undefined;
+	createFromRecord: (
+		input: NewCommandRecord,
+		options?: { ownerPluginKey?: string }
+	) => Promise<CommandRecord>;
+	updateFromRecord: (
+		id: string,
+		input: Omit<NewCommandRecord, 'id'>,
+		options?: { ownerPluginKey?: string }
+	) => Promise<CommandRecord>;
+	deleteById: (id: string) => Promise<boolean>;
+	deleteByOwner: (ownerPluginKey: string) => Promise<number>;
 };
 
 function getCommandsApi(app: App): BotCommandsService | undefined {
 	return app.plugins.tryGet<{ commands?: BotCommandsService }>('bot')?.commands;
 }
 
-export function createPluginAppApi(app: App): PluginAppApi {
+function requireCommandsApi(app: App): BotCommandsService {
+	const commands = getCommandsApi(app);
+
+	if (!commands) {
+		throw new Error('Bot plugin is not loaded');
+	}
+
+	return commands;
+}
+
+function resolveOwnerPluginKey(
+	scope: PluginAppScope | undefined,
+	options?: { ownerPluginKey?: string }
+): string | undefined {
+	return options?.ownerPluginKey ?? scope?.pluginKey;
+}
+
+function createCommandsApi(app: App, scope?: PluginAppScope) {
+	return {
+		registerRuntime: (factory: CommandRuntimeFactory) => {
+			getCommandsApi(app)?.registerRuntime(factory);
+		},
+		getSnapshot: () => getCommandsApi(app)?.getSnapshot() ?? [],
+		runById: (id: string, context: HandlerTriggerContext) =>
+			getCommandsApi(app)?.runById(id, context) ?? false,
+		findByTrigger: (trigger: string) => {
+			const command = getCommandsApi(app)?.findByTrigger(trigger);
+
+			return command?.toRecord();
+		},
+		create: (input: NewCommandRecord, options?: { ownerPluginKey?: string }) =>
+			requireCommandsApi(app).createFromRecord(input, {
+				ownerPluginKey: resolveOwnerPluginKey(scope, options)
+			}),
+		update: (
+			id: string,
+			input: Omit<NewCommandRecord, 'id'>,
+			options?: { ownerPluginKey?: string }
+		) =>
+			requireCommandsApi(app).updateFromRecord(id, input, {
+				ownerPluginKey: resolveOwnerPluginKey(scope, options)
+			}),
+		delete: (id: string) => requireCommandsApi(app).deleteById(id),
+		deleteByOwner: (ownerPluginKey: string) =>
+			requireCommandsApi(app).deleteByOwner(ownerPluginKey)
+	};
+}
+
+export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppApi {
 	return {
 		plugins: {
 			get: app.plugins.get.bind(app.plugins),
@@ -182,19 +256,7 @@ export function createPluginAppApi(app: App): PluginAppApi {
 			findHandler: (id: string) => app.actions.actions.find(id),
 			getHandlers: () => app.actions.actions.items
 		},
-		commands: {
-			registerRuntime: (factory: CommandRuntimeFactory) => {
-				getCommandsApi(app)?.registerRuntime(factory);
-			},
-			getSnapshot: () => getCommandsApi(app)?.getSnapshot() ?? [],
-			runById: (id: string, context: HandlerTriggerContext) =>
-				getCommandsApi(app)?.runById(id, context) ?? false,
-			findByTrigger: (trigger: string) => {
-				const command = getCommandsApi(app)?.findByTrigger(trigger);
-
-				return command?.toRecord();
-			}
-		},
+		commands: createCommandsApi(app, scope),
 		oauth: {
 			start: app.oauth.start.bind(app.oauth),
 			onUrl: app.oauth.onUrl.bind(app.oauth),

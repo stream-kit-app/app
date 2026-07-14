@@ -7,6 +7,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { translate } from '$lib/i18n';
 
 import { registerOverlayDefinitions } from '../overlay/register-overlay-definitions';
+import { getPluginAppApi } from './app-api';
 import { stopPluginDevWatcher } from './plugin-dev-watcher';
 import { getPluginHostUrl } from './plugin-host-url';
 import {
@@ -215,6 +216,10 @@ export async function uninstallInstalledPlugin(app: App, key: string): Promise<v
 	}
 
 	plugin.removeDefinitions(app);
+
+	await getPluginAppApi(app)
+		.commands.deleteByOwner(key)
+		.catch(() => 0);
 
 	await stopPluginDevWatcher(key);
 	await app.settings.clearPluginDevMode(key);
