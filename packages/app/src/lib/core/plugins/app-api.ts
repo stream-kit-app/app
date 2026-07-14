@@ -91,6 +91,10 @@ export function createPluginAppApi(app: App): PluginAppApi {
 			add: app.menu.addPlugin.bind(app.menu),
 			remove: app.menu.remove.bind(app.menu)
 		},
+		toolbar: {
+			set: app.toolbar.set.bind(app.toolbar),
+			reset: app.toolbar.reset.bind(app.toolbar)
+		},
 		fs: createFilesystemApi(app.fs),
 		audio: {
 			play: app.audio.play.bind(app.audio),

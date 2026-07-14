@@ -44,6 +44,12 @@ import type {
 	ActionQueueStats
 } from '../action-queue/types';
 import type { HotkeyEventContext } from '../hotkeys';
+import type {
+	ToolbarConfig,
+	ToolbarAction,
+	ToolbarMetaItem,
+	ToolbarSelectAll
+} from '../toolbar';
 
 /** Opaque Drizzle client returned by {@link PluginAppDbApi.getClient}. */
 export type PluginDbClient = unknown;
@@ -679,6 +685,22 @@ export interface PluginAppOAuthApi {
 }
 
 /**
+ * Toolbar below the app header (meta badges, primary actions, bulk selection).
+ */
+export interface PluginAppToolbarApi {
+	set(config: ToolbarConfig): void;
+
+	reset(): void;
+}
+
+export type {
+	ToolbarConfig,
+	ToolbarAction,
+	ToolbarMetaItem,
+	ToolbarSelectAll
+};
+
+/**
  * Open URLs in the system default browser.
  */
 export interface PluginAppOpenerApi {
@@ -711,6 +733,9 @@ export interface PluginAppApi {
 
 	/** Register sidebar menu items at runtime. */
 	menu: PluginAppMenuApi;
+
+	/** Configure the toolbar below the app header. */
+	toolbar: PluginAppToolbarApi;
 
 	/** Read and write files through the app filesystem abstraction. */
 	fs: PluginAppFsApi;

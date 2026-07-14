@@ -1,17 +1,17 @@
-import { $n as e, Dt as t, Hr as n, On as r, Qn as i, Qr as a, Qt as o, Vr as s, Wn as c, Zn as l, Zr as u, cn as d, dt as f, hn as p, jt as m, ln as h, ni as g, on as _, pr as v, pt as y, un as b } from "../../chunks/client-xxWnFgeR.js";
+import { $n as e, Dt as t, Hr as n, On as r, Qn as i, Qr as a, Qt as o, Vr as s, Wn as c, Zn as l, Zr as u, a as d, cn as f, dt as p, hn as m, jt as h, ln as g, ni as _, on as v, pr as y, pt as b, un as x } from "../../chunks/client-xxWnFgeR.js";
 import "../../chunks/disclose-version-YhYaTdgb.js";
-import { t as x } from "../../chunks/utils-DJt177zd.js";
-import { t as S } from "../../chunks/alert-Xl0et5iT.js";
-import { t as C } from "../../chunks/badge-DWgt6sX1.js";
-import { t as w } from "../../chunks/container-CXvttRa1.js";
-import { t as T } from "../../chunks/heading-DkoXAyj9.js";
-import { t as E } from "../../chunks/button-C7Vln2y_.js";
+import { t as S } from "../../chunks/utils-DJt177zd.js";
+import { t as C } from "../../chunks/alert-Xl0et5iT.js";
+import { t as w } from "../../chunks/badge-DWgt6sX1.js";
+import { t as T } from "../../chunks/container-CXvttRa1.js";
+import { t as E } from "../../chunks/heading-DkoXAyj9.js";
+import { t as D } from "../../chunks/button-C7Vln2y_.js";
 //#region ../ui/src/lib/blocks/alert/alert-block.svelte
-function D(e, t) {
+function O(e, t) {
 	n(t, !0);
 	{
-		let n = v(() => t.block.variant ?? "default");
-		S(e, {
+		let n = y(() => t.block.variant ?? "default");
+		C(e, {
 			get variant() {
 				return r(n);
 			},
@@ -27,18 +27,18 @@ function D(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/blocks/badge/badge-block.svelte
-function O(e, t) {
+function k(e, t) {
 	n(t, !0);
 	{
-		let n = v(() => t.block.variant ?? "default");
-		C(e, {
+		let n = y(() => t.block.variant ?? "default");
+		w(e, {
 			get variant() {
 				return r(n);
 			},
 			children: (e, n) => {
 				u();
-				var r = p();
-				c(() => _(r, t.block.label)), d(e, r);
+				var r = m();
+				c(() => v(r, t.block.label)), f(e, r);
 			},
 			$$slots: { default: !0 }
 		});
@@ -47,13 +47,13 @@ function O(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/blocks/button/button-block.svelte
-var k = b("<div><!></div>");
-function A(e, t) {
+var A = x("<div><!></div>");
+function j(e, t) {
 	n(t, !0);
-	var i = k(), o = l(i);
+	var i = A(), o = l(i);
 	{
-		let e = v(() => t.block.variant ?? "outline");
-		E(o, {
+		let e = y(() => t.block.variant ?? "outline");
+		D(o, {
 			get variant() {
 				return r(e);
 			},
@@ -62,84 +62,84 @@ function A(e, t) {
 			},
 			children: (e, n) => {
 				u();
-				var r = p();
-				c(() => _(r, t.block.label)), d(e, r);
+				var r = m();
+				c(() => v(r, t.block.label)), f(e, r);
 			},
 			$$slots: { default: !0 }
 		});
 	}
-	a(i), d(e, i), s();
+	a(i), f(e, i), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/card/card-block.svelte
-var j = b("<p class=\"text-sm text-dark-100\"> </p>"), M = b("<header class=\"mb-4 flex flex-col gap-1\"><!> <!></header>"), N = b("<section class=\"rounded-lg border border-dark-600 bg-dark-800 p-5\"><!> <div class=\"flex flex-col gap-4\"></div></section>");
-function P(f, g) {
-	n(g, !0);
-	var v = N(), y = l(v), b = (t) => {
-		var n = M(), r = l(n), i = (e) => {
-			T(e, {
+var M = x("<p class=\"text-sm text-dark-100\"> </p>"), N = x("<header class=\"mb-4 flex flex-col gap-1\"><!> <!></header>"), P = x("<section class=\"rounded-lg border border-dark-600 bg-dark-800 p-5\"><!> <div class=\"flex flex-col gap-4\"></div></section>");
+function F(d, p) {
+	n(p, !0);
+	var _ = P(), y = l(_), b = (t) => {
+		var n = N(), r = l(n), i = (e) => {
+			E(e, {
 				level: "3",
 				children: (e, t) => {
 					u();
-					var n = p();
-					c(() => _(n, g.block.title)), d(e, n);
+					var n = m();
+					c(() => v(n, p.block.title)), f(e, n);
 				},
 				$$slots: { default: !0 }
 			});
 		};
-		m(r, (e) => {
-			g.block.title && e(i);
+		h(r, (e) => {
+			p.block.title && e(i);
 		});
 		var o = e(r, 2), s = (e) => {
-			var t = j(), n = l(t, !0);
-			a(t), c(() => _(n, g.block.description)), d(e, t);
+			var t = M(), n = l(t, !0);
+			a(t), c(() => v(n, p.block.description)), f(e, t);
 		};
-		m(o, (e) => {
-			g.block.description && e(s);
-		}), a(n), d(t, n);
+		h(o, (e) => {
+			p.block.description && e(s);
+		}), a(n), f(t, n);
 	};
-	m(y, (e) => {
-		(g.block.title || g.block.description) && e(b);
+	h(y, (e) => {
+		(p.block.title || p.block.description) && e(b);
 	});
 	var x = e(y, 2);
-	t(x, 23, () => g.block.blocks, (e, t) => `card-${t}`, (e, t) => {
-		var n = h();
-		o(i(n), () => g.renderBlock, () => r(t)), d(e, n);
-	}), a(x), a(v), d(f, v), s();
+	t(x, 23, () => p.block.blocks, (e, t) => `card-${t}`, (e, t) => {
+		var n = g();
+		o(i(n), () => p.renderBlock, () => r(t)), f(e, n);
+	}), a(x), a(_), f(d, _), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/form/form-block.svelte
-function F(e, t) {
-	var n = h(), r = i(n), a = (e) => {
-		var n = h();
-		o(i(n), () => t.renderForm, () => t.block), d(e, n);
+function I(e, t) {
+	var n = g(), r = i(n), a = (e) => {
+		var n = g();
+		o(i(n), () => t.renderForm, () => t.block), f(e, n);
 	};
-	m(r, (e) => {
+	h(r, (e) => {
 		t.renderForm && e(a);
-	}), d(e, n);
+	}), f(e, n);
 }
 //#endregion
 //#region ../ui/src/lib/blocks/grid/grid-block.svelte
-var I = b("<div></div>");
-function L(e, r) {
+var L = x("<div></div>");
+function R(e, r) {
 	n(r, !0);
-	var l = I();
+	var l = L();
 	t(l, 20, () => r.block.blocks, (e) => e, (e, t) => {
-		var n = h();
-		o(i(n), () => r.renderBlock, () => t), d(e, n);
-	}), a(l), c((e) => f(l, 1, e), [() => y(x({
+		var n = g();
+		o(i(n), () => r.renderBlock, () => t), f(e, n);
+	}), a(l), c((e) => p(l, 1, e), [() => b(S({
 		"grid gap-4": r.block.columns === 1,
 		"grid gap-4 md:grid-cols-2": r.block.columns === 2,
 		"grid gap-4 md:grid-cols-3": r.block.columns === 3
-	}))]), d(e, l), s();
+	}))]), f(e, l), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/heading/heading-block.svelte
-function R(e, t) {
+function z(e, t) {
 	n(t, !0);
 	{
-		let n = v(() => t.block.level ?? 2);
-		T(e, {
+		let n = y(() => t.block.level ?? 2);
+		E(e, {
 			get level() {
 				return r(n);
 			},
@@ -148,8 +148,8 @@ function R(e, t) {
 			},
 			children: (e, n) => {
 				u();
-				var r = p();
-				c(() => _(r, t.block.title)), d(e, r);
+				var r = m();
+				c(() => v(r, t.block.title)), f(e, r);
 			},
 			$$slots: { default: !0 }
 		});
@@ -158,29 +158,29 @@ function R(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/blocks/stack/stack-block.svelte
-var z = b("<div class=\"flex flex-col gap-4\"></div>");
-function B(e, r) {
+var B = x("<div class=\"flex flex-col gap-4\"></div>");
+function V(e, r) {
 	n(r, !0);
-	var c = z();
+	var c = B();
 	t(c, 20, () => r.block.blocks, (e) => e, (e, t) => {
-		var n = h();
-		o(i(n), () => r.renderBlock, () => t), d(e, n);
-	}), a(c), d(e, c), s();
+		var n = g();
+		o(i(n), () => r.renderBlock, () => t), f(e, n);
+	}), a(c), f(e, c), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/text/text-block.svelte
-var V = b("<p class=\"max-w-3xl text-sm leading-6 text-dark-100\"> </p>");
-function H(e, t) {
+var H = x("<p class=\"max-w-3xl text-sm leading-6 text-dark-100\"> </p>");
+function U(e, t) {
 	n(t, !0);
-	var r = V(), i = l(r, !0);
-	a(r), c(() => _(i, t.block.text)), d(e, r), s();
+	var r = H(), i = l(r, !0);
+	a(r), c(() => v(i, t.block.text)), f(e, r), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/page-block.svelte
-function U(e, t) {
+function W(e, t) {
 	n(t, !0);
-	let r = (e, n = g) => {
-		U(e, {
+	let r = (e, n = _) => {
+		W(e, {
 			get block() {
 				return n();
 			},
@@ -189,24 +189,24 @@ function U(e, t) {
 			}
 		});
 	};
-	var a = h(), o = i(a), c = (e) => {
-		R(e, { get block() {
+	var a = g(), o = i(a), c = (e) => {
+		z(e, { get block() {
 			return t.block;
 		} });
 	}, l = (e) => {
-		H(e, { get block() {
+		U(e, { get block() {
 			return t.block;
 		} });
 	}, u = (e) => {
-		D(e, { get block() {
-			return t.block;
-		} });
-	}, f = (e) => {
 		O(e, { get block() {
 			return t.block;
 		} });
+	}, d = (e) => {
+		k(e, { get block() {
+			return t.block;
+		} });
 	}, p = (e) => {
-		P(e, {
+		F(e, {
 			get block() {
 				return t.block;
 			},
@@ -214,8 +214,8 @@ function U(e, t) {
 				return r;
 			}
 		});
-	}, _ = (e) => {
-		B(e, {
+	}, m = (e) => {
+		V(e, {
 			get block() {
 				return t.block;
 			},
@@ -224,7 +224,7 @@ function U(e, t) {
 			}
 		});
 	}, v = (e) => {
-		L(e, {
+		R(e, {
 			get block() {
 				return t.block;
 			},
@@ -233,11 +233,11 @@ function U(e, t) {
 			}
 		});
 	}, y = (e) => {
-		A(e, { get block() {
+		j(e, { get block() {
 			return t.block;
 		} });
 	}, b = (e) => {
-		F(e, {
+		I(e, {
 			get block() {
 				return t.block;
 			},
@@ -246,45 +246,46 @@ function U(e, t) {
 			}
 		});
 	};
-	m(o, (e) => {
-		t.block.type === "heading" ? e(c) : t.block.type === "text" ? e(l, 1) : t.block.type === "alert" ? e(u, 2) : t.block.type === "badge" ? e(f, 3) : t.block.type === "card" ? e(p, 4) : t.block.type === "stack" ? e(_, 5) : t.block.type === "grid" ? e(v, 6) : t.block.type === "button" ? e(y, 7) : t.block.type === "form" && e(b, 8);
-	}), d(e, a), s();
+	h(o, (e) => {
+		t.block.type === "heading" ? e(c) : t.block.type === "text" ? e(l, 1) : t.block.type === "alert" ? e(u, 2) : t.block.type === "badge" ? e(d, 3) : t.block.type === "card" ? e(p, 4) : t.block.type === "stack" ? e(m, 5) : t.block.type === "grid" ? e(v, 6) : t.block.type === "button" ? e(y, 7) : t.block.type === "form" && e(b, 8);
+	}), f(e, a), s();
 }
 //#endregion
 //#region ../ui/src/lib/blocks/page-blocks.svelte
-var W = b("<p class=\"text-dark-100\"> </p>"), G = b("<header class=\"flex flex-col gap-2\"><!></header>"), K = b("<div class=\"flex max-w-5xl flex-col gap-6\"><!> <div class=\"flex flex-col gap-5\"></div></div>");
-function q(n, r) {
-	w(n, {
+var G = x("<p class=\"text-dark-100\"> </p>"), K = x("<header class=\"flex flex-col gap-2\"><!></header>"), q = x("<div class=\"flex max-w-5xl flex-col gap-6\"><!> <div class=\"flex flex-col gap-5\"></div></div>");
+function J(n, r) {
+	let i = d(r, "showTitle", 3, !0);
+	T(n, {
 		class: "px-6 py-6",
-		children: (n, i) => {
-			var o = K(), s = l(o), f = (e) => {
-				var t = G(), n = l(t), i = (e) => {
-					T(e, {
+		children: (n, o) => {
+			var s = q(), d = l(s), p = (e) => {
+				var t = K(), n = l(t), i = (e) => {
+					E(e, {
 						level: "1",
 						get subTitle() {
 							return r.description;
 						},
 						children: (e, t) => {
 							u();
-							var n = p();
-							c(() => _(n, r.title)), d(e, n);
+							var n = m();
+							c(() => v(n, r.title)), f(e, n);
 						},
 						$$slots: { default: !0 }
 					});
 				}, o = (e) => {
-					var t = W(), n = l(t, !0);
-					a(t), c(() => _(n, r.description)), d(e, t);
+					var t = G(), n = l(t, !0);
+					a(t), c(() => v(n, r.description)), f(e, t);
 				};
-				m(n, (e) => {
+				h(n, (e) => {
 					r.title ? e(i) : r.description && e(o, 1);
-				}), a(t), d(e, t);
+				}), a(t), f(e, t);
 			};
-			m(s, (e) => {
-				(r.title || r.description) && e(f);
+			h(d, (e) => {
+				i() && (r.title || r.description) && e(p);
 			});
-			var h = e(s, 2);
-			t(h, 20, () => r.blocks, (e) => e, (e, t) => {
-				U(e, {
+			var g = e(d, 2);
+			t(g, 20, () => r.blocks, (e) => e, (e, t) => {
+				W(e, {
 					get block() {
 						return t;
 					},
@@ -292,10 +293,10 @@ function q(n, r) {
 						return r.renderForm;
 					}
 				});
-			}), a(h), a(o), d(n, o);
+			}), a(g), a(s), f(n, s);
 		},
 		$$slots: { default: !0 }
 	});
 }
 //#endregion
-export { U as PageBlockRenderer, q as PageBlocks };
+export { W as PageBlockRenderer, J as PageBlocks };

@@ -7,7 +7,6 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 	import { InputText } from '@stream-kit/ui/input';
 
@@ -69,6 +68,13 @@
 		actionPresets.filter((entry) => entry.status === 'installable')
 	);
 	const hasRecommendedActions = $derived(actionPresets.length > 0);
+
+	$effect(() => {
+		app.pageHeader.set({
+			title: overlay?.name ?? t('Configure overlay'),
+			segments: [t('Overlays')]
+		});
+	});
 
 	$effect(() => {
 		const id = overlayId;
@@ -288,20 +294,15 @@
 					>
 						<Icon icon={getOverlayFrameworkIcon(framework)} class="size-5" />
 					</div>
-					<div>
-						<Heading level="1">{overlay.name}</Heading>
-						<div class="mt-1 flex flex-wrap items-center gap-1.5">
-							<Badge variant="secondary" size="sm">{overlay.template}</Badge>
-							{#if isBuilt}
-								<Badge variant="success" size="sm">{t('Ready')}</Badge>
-							{:else}
-								<Badge variant="warning" size="sm">{t('Not built')}</Badge>
-							{/if}
-						</div>
+					<div class="flex flex-wrap items-center gap-1.5">
+						<Badge variant="secondary" size="sm">{overlay.template}</Badge>
+						{#if isBuilt}
+							<Badge variant="success" size="sm">{t('Ready')}</Badge>
+						{:else}
+							<Badge variant="warning" size="sm">{t('Not built')}</Badge>
+						{/if}
 					</div>
 				</div>
-			{:else}
-				<Heading level="1">{t('Configure overlay')}</Heading>
 			{/if}
 		</div>
 

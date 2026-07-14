@@ -247,6 +247,40 @@ const handlers = app.actions.getHandlers();
 const modal = app.modal.get('edit-item') ?? app.modal.create({ ... });
 ```
 
+### Toolbar (`app.toolbar`)
+
+Register meta badges, primary actions, and bulk-selection controls in the global toolbar below the page header:
+
+```ts
+app.toolbar.set({
+  primaryActions: [
+    {
+      id: 'add',
+      label: app.i18n.t('Add item'),
+      icon: 'ri:add-fill',
+      onClick: () => openCreateModal()
+    }
+  ],
+  selectAll: {
+    label: app.i18n.t('Select all'),
+    checked: allSelected,
+    onChange: (checked) => selectAll(checked)
+  },
+  actions: [
+    {
+      id: 'delete',
+      label: app.i18n.t('Delete selected'),
+      variant: 'destructive',
+      icon: 'ri:delete-bin-line',
+      disabled: selectedIds.size === 0,
+      onClick: () => void deleteSelected()
+    }
+  ]
+});
+```
+
+Call `app.toolbar.reset()` is handled automatically on navigation; update the toolbar from a `$effect` when selection or counts change.
+
 ### Global hotkeys (`app.hotkeys`)
 
 Register system-wide keyboard shortcuts (desktop only, via Tauri global-shortcut):

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Container, Heading } from '@stream-kit/ui';
+	import { Container } from '@stream-kit/ui';
 
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
@@ -16,6 +16,14 @@
 	const { t } = useI18n();
 
 	const entry = $derived(app.pluginMenuPages.resolve(pluginKey, itemKey, childKey));
+
+	$effect(() => {
+		if (entry) {
+			return;
+		}
+
+		app.pageHeader.set({ title: t('Plugin page not found'), segments: [] });
+	});
 </script>
 
 {#if entry}
@@ -23,7 +31,6 @@
 {:else}
 	<Container class="px-6 py-6">
 		<div class="rounded-lg border border-dark-600 p-6 text-dark-100">
-			<Heading level="1" class="mb-2">{t('Plugin page not found')}</Heading>
 			<p>{t('This plugin page is unavailable or the plugin is disabled.')}</p>
 		</div>
 	</Container>

@@ -3,7 +3,6 @@
 	import DashboardGrid from '$lib/components/core/dashboard/dashboard-grid.svelte';
 	import DashboardToolbar from '$lib/components/core/dashboard/dashboard-toolbar.svelte';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
@@ -23,16 +22,26 @@
 			})
 			.open();
 	}
+
+	$effect(() => {
+		app.toolbar.set({
+			primaryComponents: [
+				{
+					id: 'dashboard-toolbar',
+					component: DashboardToolbar,
+					props: {
+						editMode,
+						onEditModeChange: (value: boolean) => {
+							editMode = value;
+						},
+						onAddWidget: openAddWidgetModal
+					}
+				}
+			]
+		});
+	});
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-		<Heading level="1" subTitle={t('Your streaming automation at a glance')}>
-			{t('Dashboard')}
-		</Heading>
-
-		<DashboardToolbar bind:editMode onAddWidget={openAddWidgetModal} />
-	</div>
-
 	<DashboardGrid {editMode} onAddWidget={openAddWidgetModal} />
 </Container>

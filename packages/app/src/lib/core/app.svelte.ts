@@ -16,6 +16,8 @@ import { Filesystem } from './filesystem';
 import { AppLifecycle } from './lifecycle';
 import { Menu } from './menu';
 import { Modal } from './modal';
+import { PageHeader } from './page-header';
+import { Toolbar } from './toolbar';
 import { OAuth } from './oauth';
 import { Opener } from './opener';
 import { OverlayService } from './overlay/overlay-service.svelte';
@@ -47,6 +49,8 @@ export class App extends Bootable {
 	public overlay = new OverlayService();
 
 	public modals = new SvelteMap<string, Modal>();
+	public pageHeader = new PageHeader();
+	public toolbar = new Toolbar();
 	public confirm = new Confirm();
 	public toast = new Toast();
 

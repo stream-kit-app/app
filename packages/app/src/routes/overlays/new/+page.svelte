@@ -7,7 +7,6 @@
 
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { InputText } from '@stream-kit/ui/input';
 
 	import { app } from '$lib/core';
@@ -46,23 +45,15 @@
 
 <Container class="px-6 py-6" size="md">
 	<div class="flex flex-col gap-6">
-		<div class="flex flex-col gap-3">
-			<Button
-				class="w-fit"
-				size="sm"
-				variant="ghost"
-				icon="ri:arrow-left-line"
-				onclick={() => goto('/overlays')}
-			>
-				{t('Back to overlays')}
-			</Button>
-			<Heading
-				level="1"
-				subTitle={t('Create an OBS browser source overlay from a framework starter.')}
-			>
-				{t('New overlay')}
-			</Heading>
-		</div>
+		<Button
+			class="w-fit"
+			size="sm"
+			variant="ghost"
+			icon="ri:arrow-left-line"
+			onclick={() => goto('/overlays')}
+		>
+			{t('Back to overlays')}
+		</Button>
 
 		<section class="grid gap-6 rounded-xl border border-dark-600 bg-dark-800 p-6">
 			<InputText

@@ -12,14 +12,15 @@
 		description?: string;
 		blocks: PageBlockDefinition[];
 		renderForm?: Snippet<[PageFormBlock]>;
+		showTitle?: boolean;
 	};
 
-	let { title, description, blocks, renderForm }: Props = $props();
+	let { title, description, blocks, renderForm, showTitle = true }: Props = $props();
 </script>
 
 <Container class="px-6 py-6">
 	<div class="flex max-w-5xl flex-col gap-6">
-		{#if title || description}
+		{#if showTitle && (title || description)}
 			<header class="flex flex-col gap-2">
 				{#if title}
 					<Heading level="1" subTitle={description}>{title}</Heading>

@@ -15,6 +15,8 @@
 	import { BootScreen } from '$lib/components/core/boot';
 	import { ConfirmDialog } from '$lib/components/core/confirm';
 	import { Modal } from '$lib/components/core/modal';
+	import { AppPageHeader } from '$lib/components/core/page-header';
+	import { AppToolbar } from '$lib/components/core/toolbar';
 	import { Toast } from '$lib/components/core/toast';
 	import { app, bootApp } from '$lib/core';
 	import {
@@ -72,6 +74,9 @@
 	});
 
 	beforeNavigate(() => {
+		app.pageHeader.reset();
+		app.toolbar.reset();
+
 		for (const [, modal] of app.modals) {
 			modal.close();
 		}
@@ -95,15 +100,13 @@
 
 {#if isAppReady}
 	<div
-		class="relative isolate h-screen w-screen overflow-hidden"
+		class="relative isolate h-screen w-screen overflow-hidden bg-background"
 		in:fade={{ duration: dev ? 0 : 300 }}
 	>
-		<div class="boot-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true"></div>
-
 		<TooltipProvider>
-			<div class="flex h-full w-full items-stretch p-4">
+			<div class="flex h-full w-full overflow-hidden">
 				<aside
-					class="flex h-full w-64 flex-col rounded-xl border border-dark-600 bg-dark-800 shadow-sm"
+					class="flex h-full w-64 shrink-0 flex-col border-r border-dark-600 bg-dark-800"
 				>
 					<section class="mt-4 mb-4 p-2.5">
 						<Logo />
@@ -116,21 +119,26 @@
 						/>
 					</section>
 				</aside>
-				<main class="flex min-h-0 flex-1 flex-col">
-					<ScrollArea
-						orientation="vertical"
-						class="h-full min-h-0 overflow-hidden"
-						viewportClasses="h-full"
-					>
-						{@render children()}
-					</ScrollArea>
-				</main>
+				<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+					<AppPageHeader />
+					<AppToolbar />
+					<div class="flex min-h-0 flex-1 overflow-hidden">
+						<main class="flex min-h-0 min-w-0 flex-1 flex-col">
+							<ScrollArea
+								orientation="vertical"
+								class="h-full min-h-0 overflow-hidden"
+								viewportClasses="h-full"
+							>
+								{@render children()}
+							</ScrollArea>
+						</main>
+						{#each app.modals.entries() as [id, modal] (id)}
+							<Modal {modal} onClosed={() => app.removeModal(id)} />
+						{/each}
+					</div>
+				</div>
 			</div>
 		</TooltipProvider>
-
-		{#each app.modals.entries() as [id, modal] (id)}
-			<Modal {modal} onClosed={() => app.removeModal(id)} />
-		{/each}
 
 		<ConfirmDialog confirm={app.confirm} />
 		<Toast toast={app.toast} />

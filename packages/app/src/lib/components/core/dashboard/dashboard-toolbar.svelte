@@ -12,7 +12,7 @@
 		onAddWidget?: () => void;
 	};
 
-	let { editMode = $bindable(false), onAddWidget }: Props = $props();
+	let { editMode = $bindable(false), onEditModeChange, onAddWidget }: Props = $props();
 
 	const { t } = useI18n();
 </script>
@@ -32,7 +32,10 @@
 					: 'text-dark-300 hover:text-dark-100'
 			)}
 			aria-pressed={!editMode}
-			onclick={() => (editMode = false)}
+			onclick={() => {
+				editMode = false;
+				onEditModeChange?.(false);
+			}}
 		>
 			<Icon icon="ri:layout-grid-line" class="size-4" aria-hidden="true" />
 			{t('View')}
@@ -46,7 +49,10 @@
 					: 'text-dark-300 hover:text-dark-100'
 			)}
 			aria-pressed={editMode}
-			onclick={() => (editMode = true)}
+			onclick={() => {
+				editMode = true;
+				onEditModeChange?.(true);
+			}}
 		>
 			<Icon icon="ri:edit-2-line" class="size-4" aria-hidden="true" />
 			{t('Customize')}

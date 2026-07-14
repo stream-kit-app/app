@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
 
-	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
-	import { InputCheckbox } from '@stream-kit/ui/input';
 
 	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
@@ -13,7 +10,7 @@
 	import { tryGetTimersService } from '../lib/get-timers';
 	import TimerCard from './timer-card.svelte';
 
-	let { app, title, description }: PluginCustomViewProps = $props();
+	let { app, title: _title, description: _description }: PluginCustomViewProps = $props();
 	const t = $derived(app.i18n.t);
 
 	const timers = $derived(tryGetTimersService());
@@ -26,7 +23,6 @@
 		selectableTimers.length > 0 &&
 			selectableTimers.every((timer) => selectedIds.has(timer.id!))
 	);
-	const hasSelection = $derived(selectedIds.size > 0);
 
 	function setSelected(id: string, selected: boolean): void {
 		if (selected) selectedIds.add(id);
@@ -80,64 +76,79 @@
 		selectedIds.clear();
 		anchorId = null;
 	}
+
+	async function deleteSelected(): Promise<void> {
+		const confirmed = await app.confirm.ask({
+			title: t('Delete selected timers?'),
+			description: t(
+				'Are you sure you want to delete {count} timers? This cannot be undone.',
+				{ count: selectedIds.size }
+			),
+			confirmLabel: t('Delete')
+		});
+
+		if (confirmed && timers) {
+			await timers.deleteBulk([...selectedIds]);
+			clearSelection();
+		}
+	}
+
+	$effect(() => {
+		app.toolbar.set({
+			primaryActions: [
+				{
+					id: 'add-timer',
+					label: t('Add Timer'),
+					icon: 'ri:add-fill',
+					variant: 'outline',
+					onClick: () => Timer.createDraft().open()
+				}
+			],
+			selectAll:
+				selectableTimers.length > 0
+					? {
+							label: t('Select all'),
+							checked: allSelected,
+							onChange: selectAll
+						}
+					: null,
+			actions:
+				selectableTimers.length > 0
+					? [
+							{
+								id: 'enable-selected',
+								label: t('Enable selected'),
+								disabled: selectedIds.size === 0,
+								onClick: () => void timers?.setEnabledBulk([...selectedIds], true)
+							},
+							{
+								id: 'disable-selected',
+								label: t('Disable selected'),
+								disabled: selectedIds.size === 0,
+								onClick: () => void timers?.setEnabledBulk([...selectedIds], false)
+							},
+							{
+								id: 'delete-selected',
+								label: t('Delete selected'),
+								variant: 'destructive',
+								icon: 'ri:delete-bin-line',
+								disabled: selectedIds.size === 0,
+								onClick: () => void deleteSelected()
+							},
+							{
+								id: 'clear-selection',
+								label: t('Clear selection'),
+								disabled: selectedIds.size === 0,
+								onClick: clearSelection
+							}
+						]
+					: []
+		});
+	});
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<header class="flex justify-between gap-4">
-		<Heading level="1" subTitle={description ?? t('Schedule automatic chat messages')}>
-			{title ?? t('Timers')}
-		</Heading>
-		<Button variant="outline" icon="ri:add-fill" size="lg" onclick={() => Timer.createDraft().open()}>
-			{t('Add Timer')}
-		</Button>
-	</header>
-
-	{#if selectableTimers.length > 0}
-		<div class="mt-6 flex flex-wrap items-center gap-4">
-			<InputCheckbox inline label={t('Select all')} bind:checked={() => allSelected, selectAll} />
-			{#if hasSelection}
-				<span class="text-sm text-dark-300">{t('{count} selected', { count: selectedIds.size })}</span>
-				<Button
-					size="sm"
-					variant="outline"
-					onclick={() => void timers?.setEnabledBulk([...selectedIds], true)}
-				>
-					{t('Enable selected')}
-				</Button>
-				<Button
-					size="sm"
-					variant="outline"
-					onclick={() => void timers?.setEnabledBulk([...selectedIds], false)}
-				>
-					{t('Disable selected')}
-				</Button>
-				<Button
-					size="sm"
-					variant="destructive"
-					icon="ri:delete-bin-line"
-					onclick={async () => {
-						const confirmed = await app.confirm.ask({
-							title: t('Delete selected timers?'),
-							description: t(
-								'Are you sure you want to delete {count} timers? This cannot be undone.',
-								{ count: selectedIds.size }
-							),
-							confirmLabel: t('Delete')
-						});
-						if (confirmed && timers) {
-							await timers.deleteBulk([...selectedIds]);
-							clearSelection();
-						}
-					}}
-				>
-					{t('Delete selected')}
-				</Button>
-				<Button size="sm" variant="ghost" onclick={clearSelection}>{t('Clear selection')}</Button>
-			{/if}
-		</div>
-	{/if}
-
-	<div class="mt-8 flex flex-col gap-2">
+	<div class="flex flex-col gap-2">
 		{#if !timers || timers.items.length === 0}
 			<BotEmptyState
 				icon="ri:timer-line"

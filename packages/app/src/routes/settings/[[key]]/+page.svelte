@@ -2,7 +2,6 @@
 	import type { SupportedLocale } from '$lib/i18n';
 
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { SettingsFieldGroup } from '$lib/components/core/settings';
 	import { app } from '$lib/core';
 	import { saveLocale } from '$lib/core/locale/store';
@@ -128,10 +127,8 @@
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<Heading level="1">{t('Settings')}</Heading>
-
 	<SettingsFieldGroup
-		class="mt-6 max-w-xl"
+		class="max-w-xl"
 		context={settingsContext}
 		items={appearanceFields}
 		getField={(key) => getField(key)}

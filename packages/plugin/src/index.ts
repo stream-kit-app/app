@@ -49,6 +49,12 @@ export type {
 } from '../../app/src/lib/core/settings';
 export type { ModalProps } from '../../app/src/lib/core/modal/modal.svelte';
 export type {
+	ToolbarConfig,
+	ToolbarAction,
+	ToolbarMetaItem,
+	ToolbarSelectAll
+} from '../../app/src/lib/core/toolbar';
+export type {
 	Plugin,
 	PluginAppApi,
 	PluginCustomViewProps,

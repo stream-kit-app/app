@@ -13,8 +13,6 @@
 
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
-	import { InputCheckbox } from '@stream-kit/ui/input';
 
 	import {
 		collapsedGroups,
@@ -33,7 +31,6 @@
 		getGroupOrder
 	} from '$lib/core/action/action-layout';
 	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
 
 	const { t } = useI18n();
 	const sensors = [KeyboardSensor, PointerSensor];
@@ -145,106 +142,82 @@
 	function openGlobalBulkEdit(): void {
 		openBulkEdit([...selection.selectedIds]);
 	}
+
+	$effect(() => {
+		app.toolbar.set({
+			meta:
+				totalCount > 0
+					? [
+							{
+								icon: 'ri:flashlight-line',
+								label: t('{count} actions', { count: totalCount })
+							},
+							{
+								icon: 'ri:folder-3-line',
+								label: t('{count} groups', { count: groupCount })
+							}
+						]
+					: [],
+			primaryActions: [
+				{
+					id: 'add-action',
+					label: t('Add Action'),
+					icon: 'ri:add-fill',
+					onClick: () => {
+						void Action.createDraft().open();
+					}
+				}
+			],
+			selectAll:
+				selectableActions.length > 0
+					? {
+							label: t('Select all'),
+							checked: selection.allSelected,
+							onChange: selection.selectAll
+						}
+					: null,
+			actions:
+				selectableActions.length > 0
+					? [
+							{
+								id: 'edit-selected',
+								label: t('Edit selected'),
+								disabled: selection.selectedIds.size === 0,
+								onClick: openGlobalBulkEdit
+							},
+							{
+								id: 'enable-selected',
+								label: t('Enable selected'),
+								disabled: selection.selectedIds.size === 0,
+								onClick: () => void enableSelected()
+							},
+							{
+								id: 'disable-selected',
+								label: t('Disable selected'),
+								disabled: selection.selectedIds.size === 0,
+								onClick: () => void disableSelected()
+							},
+							{
+								id: 'delete-selected',
+								label: t('Delete selected'),
+								variant: 'destructive',
+								icon: 'ri:delete-bin-line',
+								disabled: selection.selectedIds.size === 0,
+								onClick: () => void deleteSelected()
+							},
+							{
+								id: 'clear-selection',
+								label: t('Clear selection'),
+								disabled: selection.selectedIds.size === 0,
+								onClick: selection.clearSelection
+							}
+						]
+					: []
+		});
+	});
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<header class="flex flex-wrap items-start justify-between gap-4">
-		<div class="flex flex-col gap-3">
-			<Heading level="1" subTitle={t('Manage your actions')}>{t('Actions')}</Heading>
-			{#if totalCount > 0}
-				<div class="flex flex-wrap items-center gap-2 text-xs font-medium text-dark-200">
-					<span
-						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
-					>
-						<Icon
-							icon="ri:flashlight-line"
-							class="size-3.5 text-primary"
-							aria-hidden="true"
-						/>
-						{t('{count} actions', { count: totalCount })}
-					</span>
-					<span
-						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700 bg-dark-800 px-2.5 py-1"
-					>
-						<Icon
-							icon="ri:folder-3-line"
-							class="size-3.5 text-dark-400"
-							aria-hidden="true"
-						/>
-						{t('{count} groups', { count: groupCount })}
-					</span>
-				</div>
-			{/if}
-		</div>
-		<Button icon="ri:add-fill" size="lg" onclick={() => Action.createDraft().open()}>
-			{t('Add Action')}
-		</Button>
-	</header>
-
-	{#if selectableActions.length > 0}
-		<div
-			class="sticky top-4 z-10 mt-6 flex h-12 items-center justify-between gap-3 rounded-xl border border-dark-700 bg-dark-800 px-3 shadow-lg shadow-dark-950/40"
-		>
-			<InputCheckbox
-				inline
-				label={t('Select all')}
-				bind:checked={() => selection.allSelected, selection.selectAll}
-			/>
-			<div
-				class={cn(
-					'flex items-center gap-2 transition-opacity',
-					!selection.hasSelection && 'pointer-events-none invisible'
-				)}
-				aria-hidden={!selection.hasSelection}
-			>
-				<span class="mr-1 text-sm text-dark-300">
-					{t('{count} selected', { count: selection.selectedIds.size })}
-				</span>
-				<Button
-					size="sm"
-					variant="outline"
-					tabindex={selection.hasSelection ? undefined : -1}
-					onclick={openGlobalBulkEdit}
-				>
-					{t('Edit selected')}
-				</Button>
-				<Button
-					size="sm"
-					variant="outline"
-					tabindex={selection.hasSelection ? undefined : -1}
-					onclick={() => void enableSelected()}
-				>
-					{t('Enable selected')}
-				</Button>
-				<Button
-					size="sm"
-					variant="outline"
-					tabindex={selection.hasSelection ? undefined : -1}
-					onclick={() => void disableSelected()}
-				>
-					{t('Disable selected')}
-				</Button>
-				<Button
-					size="sm"
-					variant="destructive"
-					icon="ri:delete-bin-line"
-					tabindex={selection.hasSelection ? undefined : -1}
-					onclick={() => void deleteSelected()}
-				>
-					{t('Delete selected')}
-				</Button>
-				<Button
-					size="sm"
-					variant="ghost"
-					tabindex={selection.hasSelection ? undefined : -1}
-					onclick={selection.clearSelection}
-				>
-					{t('Clear selection')}
-				</Button>
-			</div>
-		</div>
-	{/if}
-
 	<DragDropProvider
 		{sensors}
 		onDragStart={handleDragStart}
@@ -253,7 +226,7 @@
 	>
 		{#if selectableActions.length === 0}
 			<div
-				class="relative mt-8 flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
+				class="relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
 			>
 				<div class="boot-ambient pointer-events-none opacity-30"></div>
 				<div
@@ -277,7 +250,7 @@
 			</div>
 		{/if}
 
-		<div class="mt-8 grid gap-4">
+		<div class="grid gap-4">
 			{#each groupOrder as groupId, groupIndex (groupId)}
 				{@const groupActions = layout[groupId] ?? []}
 				{@const groupActionIds = groupActions.map((item) => item.id)}

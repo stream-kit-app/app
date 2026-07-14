@@ -2,7 +2,6 @@
 	import type { CorePluginApi } from '@stream-kit/plugin';
 
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { LogViewer } from '@stream-kit/ui/log-viewer';
 
 	import { app } from '$lib/core';
@@ -38,8 +37,6 @@
 </script>
 
 <Container class="p-6">
-	<Heading level={1} class="mb-6">{t('Logs')}</Heading>
-
 	<LogViewer
 		{entries}
 		title={t('Action logs')}

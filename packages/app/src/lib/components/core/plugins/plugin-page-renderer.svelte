@@ -55,6 +55,7 @@
 		title={entry.page.title}
 		description={entry.page.description}
 		blocks={entry.page.blocks}
+		showTitle={false}
 		{renderForm}
 	/>
 {/if}

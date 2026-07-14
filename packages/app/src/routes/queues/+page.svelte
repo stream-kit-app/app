@@ -6,7 +6,6 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 
 	import QueueActionEntries from '$lib/components/core/queue/queue-action-entries.svelte';
 	import QueueEditDialog from '$lib/components/core/queue/queue-edit-dialog.svelte';
@@ -67,18 +66,22 @@
 			});
 		}
 	}
+
+	$effect(() => {
+		app.toolbar.set({
+			primaryActions: [
+				{
+					id: 'add-queue',
+					label: t('Add Queue'),
+					icon: 'ri:add-fill',
+					onClick: openCreate
+				}
+			]
+		});
+	});
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<header class="flex flex-wrap items-start justify-between gap-4">
-		<Heading level="1" subTitle={t('Run actions in order with named queues')}>
-			{t('Queues')}
-		</Heading>
-		<Button icon="ri:add-fill" size="lg" onclick={openCreate}>
-			{t('Add Queue')}
-		</Button>
-	</header>
-
 	{#if queues.length === 0}
 		<div
 			class="relative mt-8 flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
