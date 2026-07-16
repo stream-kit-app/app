@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/script-api",
-	"version": "0.1.0-alpha.0",
+	"version": "0.1.0-alpha.1",
 	"description": "Ambient TypeScript definitions for Stream Kit action scripts",
 	"type": "module",
 	"license": "MIT",

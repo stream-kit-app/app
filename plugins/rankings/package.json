@@ -1,12 +1,16 @@
 {
 	"name": "@stream-kit/plugin-rankings",
-	"version": "0.1.0-alpha.1",
+	"version": "0.1.0-alpha.2",
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE",
 	"exports": {
 		".": "./src/index.ts"
 	},
-	"files": ["src", "dist", "manifest.json"],
+	"files": [
+		"src",
+		"dist",
+		"manifest.json"
+	],
 	"scripts": {
 		"build": "vite build --config vite.build.config.js",
 		"package": "node ../../scripts/package-plugin.mjs",
