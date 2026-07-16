@@ -1,13 +1,13 @@
 <script lang="ts">
+	import type { PluginCustomViewProps } from '@stream-kit/plugin';
+
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
-	import type { PluginCustomViewProps } from '@stream-kit/plugin';
-
-	import BotEmptyState from '../../../ui/bot-empty-state.svelte';
-	import { Timer } from '../lib/timer.svelte';
 	import { tryGetTimersService } from '../lib/get-timers';
+	import { Timer } from '../lib/timer.svelte';
 	import TimerCard from './timer-card.svelte';
 
 	let { app, title: _title, description: _description }: PluginCustomViewProps = $props();
@@ -20,9 +20,9 @@
 	const selectableTimers = $derived((timers?.items ?? []).filter((timer) => timer.id != null));
 	const orderedSelectableIds = $derived(selectableTimers.map((timer) => timer.id!));
 	const allSelected = $derived(
-		selectableTimers.length > 0 &&
-			selectableTimers.every((timer) => selectedIds.has(timer.id!))
+		selectableTimers.length > 0 && selectableTimers.every((timer) => selectedIds.has(timer.id!))
 	);
+	const totalCount = $derived(selectableTimers.length);
 
 	function setSelected(id: string, selected: boolean): void {
 		if (selected) selectedIds.add(id);
@@ -95,12 +95,20 @@
 
 	$effect(() => {
 		app.toolbar.set({
+			meta:
+				totalCount > 0
+					? [
+							{
+								icon: 'ri:timer-line',
+								label: t('{count} timers', { count: totalCount })
+							}
+						]
+					: [],
 			primaryActions: [
 				{
 					id: 'add-timer',
 					label: t('Add Timer'),
 					icon: 'ri:add-fill',
-					variant: 'outline',
 					onClick: () => Timer.createDraft().open()
 				}
 			],
@@ -150,27 +158,31 @@
 	});
 </script>
 
-<Container class="px-6 py-6" size="md">
-	<div class="flex flex-col gap-2">
-		{#if !timers || timers.items.length === 0}
-			<BotEmptyState
-				icon="ri:timer-line"
-				title={t('No timers yet')}
-				description={t('Create your first timer to send automatic chat messages.')}
-				actionLabel={t('Add Timer')}
-				onAction={() => Timer.createDraft().open()}
-			/>
-		{:else}
+{#if !timers || timers.items.length === 0}
+	<EmptyState
+		icon="ri:timer-line"
+		title={t('No timers yet')}
+		description={t('Create your first timer to send automatic chat messages.')}
+		actionLabel={t('Add Timer')}
+		onAction={() => Timer.createDraft().open()}
+	/>
+{:else}
+	<Container class="px-6 py-6" size="md">
+		<div class="grid gap-3">
 			{#each timers.items as timer (timer.id)}
 				{#if timer.id != null}
-					<TimerCard
-						{timer}
-						selected={selectedIds.has(timer.id)}
-						onSelectedChange={(value, shiftKey) =>
-							handleSelectedChange(timer.id!, value, shiftKey)}
-					/>
+					<div
+						class="border-border-dark-600 rounded-xl border bg-dark-800 px-4 py-2 transition-colors hover:bg-dark-700"
+					>
+						<TimerCard
+							{timer}
+							selected={selectedIds.has(timer.id)}
+							onSelectedChange={(value, shiftKey) =>
+								handleSelectedChange(timer.id!, value, shiftKey)}
+						/>
+					</div>
 				{/if}
 			{/each}
-		{/if}
-	</div>
-</Container>
+		</div>
+	</Container>
+{/if}

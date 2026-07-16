@@ -14,7 +14,7 @@
 
 	const { t } = useI18n();
 
-	const options: PluginWidgetColumns[] = [1, 2, 3, 4];
+	const options: PluginWidgetColumns[] = [1, 2, 3, 4, 5, 6];
 </script>
 
 <div

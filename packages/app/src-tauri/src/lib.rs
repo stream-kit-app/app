@@ -1,4 +1,5 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod api_server;
 mod audio;
 mod dev;
 mod editor;
@@ -107,6 +108,11 @@ pub fn run() {
             overlay_server::commands::overlay_sync_all_configs,
             overlay_server::commands::overlay_broadcast_settings,
             overlay_server::commands::overlay_get_overlays_dir,
+            api_server::commands::api_server_start,
+            api_server::commands::api_server_stop,
+            api_server::commands::api_server_status,
+            api_server::commands::api_server_send,
+            api_server::commands::api_server_broadcast,
             scripts::script_get_project_dir,
             scripts::script_get_scripts_dir,
             editor::resolve_editor_commands
@@ -122,6 +128,7 @@ pub fn run() {
             )));
             app.manage(process_watcher::ProcessWatcherState::new());
             app.manage(overlay_server::OverlayServerState::new());
+            app.manage(api_server::ApiServerState::new());
 
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window("main") {

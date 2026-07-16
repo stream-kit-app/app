@@ -1,0 +1,153 @@
+---
+title: WebSocket API Server
+description: Connect remote clients to Stream Kit over a local WebSocket API — actions, commands, variables, collections, queues, overlays, and plugin extensions.
+---
+
+# WebSocket API Server
+
+Stream Kit can host an inbound **WebSocket API server** for remote control and integrations. This is separate from the [WebSocket plugin](/docs/plugins/websocket), which opens **outbound** connections to external servers.
+
+Configure the server under **Settings → API Server**.
+
+## Settings
+
+| Setting | Description |
+| --- | --- |
+| Enable | Start the server when Stream Kit boots |
+| Port | Default `7892` (overlays use `7891`) |
+| Bind address | `127.0.0.1` (localhost) or `0.0.0.0` (LAN) |
+| Access token | Required. Generated on first enable; regenerate anytime |
+
+Connect with the token in the query string:
+
+```
+ws://127.0.0.1:7892/ws?token=YOUR_TOKEN
+```
+
+Or send an auth frame as the first message:
+
+```json
+{ "type": "auth", "token": "YOUR_TOKEN" }
+```
+
+Invalid or missing auth closes the socket (policy violation).
+
+## Protocol
+
+All frames are JSON text messages.
+
+### Request
+
+```json
+{ "id": "1", "type": "request", "method": "actions.getSnapshot", "params": {} }
+```
+
+### Response
+
+```json
+{ "id": "1", "type": "response", "ok": true, "result": {} }
+```
+
+```json
+{
+  "id": "1",
+  "type": "response",
+  "ok": false,
+  "error": { "code": "not_found", "message": "Unknown method: …" }
+}
+```
+
+### Events
+
+Clients receive events only after calling `server.subscribe`:
+
+```json
+{
+  "id": "2",
+  "type": "request",
+  "method": "server.subscribe",
+  "params": { "events": ["actions.*", "queues.*", "collections.*"] }
+}
+```
+
+Event frame:
+
+```json
+{ "type": "event", "event": "actions.executed", "payload": {} }
+```
+
+Patterns support a trailing `.*` glob (for example `plugin:rankings.*`).
+
+## Built-in methods
+
+| Namespace | Methods |
+| --- | --- |
+| `server` | `hello`, `subscribe`, `unsubscribe`, `listMethods` |
+| `actions` | `getSnapshot`, `create`, `update`, `delete`, `runById` |
+| `commands` | `getSnapshot`, `create`, `update`, `delete`, `runById`, `findByTrigger` |
+| `variables` | `get`, `set`, `listKeys` |
+| `collections` | `list`, `listEntries`, `get`, `create`, `set`, `update`, `deleteKey`, `clear`, `delete` |
+| `queues` | `list`, `pause`, `resume`, `stats` |
+| `overlays` | `list`, `broadcast` |
+
+Commands require the Bot plugin. Variables and collections require Core.
+
+### Example: run an action
+
+```json
+{
+  "id": "3",
+  "type": "request",
+  "method": "actions.runById",
+  "params": {
+    "id": 42,
+    "trigger": "api-server",
+    "data": { "user": "viewer" }
+  }
+}
+```
+
+## Plugin extension
+
+Plugins register methods and emit events through `app.api`. Names are prefixed with `plugin:<pluginKey>:`:
+
+```ts
+import type { Plugin } from '@stream-kit/plugin';
+
+const plugin: Plugin = (app) => {
+	app.api.registerMethod('getLeaderboard', async () => {
+		return [{ name: 'Alice', points: 10 }];
+	});
+
+	return {
+		name: 'Rankings',
+		onEnable: () => {
+			// later:
+			void app.api.emit('pointsEarned', { user: 'Alice', points: 5 });
+			// → event plugin:rankings:pointsEarned
+		},
+		onDisable: () => {
+			app.api.unregisterMethods();
+		}
+	};
+};
+
+export default plugin;
+```
+
+Remote clients call `plugin:rankings:getLeaderboard` and subscribe to `plugin:rankings.*`.
+
+The host also clears plugin methods when a plugin is disabled or uninstalled.
+
+## Security notes
+
+- A token is always required.
+- Prefer **localhost** bind unless a companion app on another machine needs access.
+- LAN bind (`0.0.0.0`) exposes the API on your network — treat the token like a password.
+- TLS (`wss`) is not included in v1.
+
+## Related
+
+- [Plugin Authoring API](/docs/developers/plugin-api)
+- [WebSocket plugin](/docs/plugins/websocket) (outbound client)
+- [Overlays](/docs/guide/overlays) (separate local server on port `7891`)

@@ -1,11 +1,6 @@
-import type { Component } from 'svelte';
-
 import type { HandlerDefinitionProps } from '../action/handler';
 import type { TriggerDefinitionProps } from '../action/trigger';
-import type {
-	SettingsFieldDefinition,
-	SettingsFieldSectionDefinition
-} from '../settings';
+import type { SettingsFieldDefinition, SettingsFieldSectionDefinition } from '../settings';
 import type { PluginAppApi } from './app-api';
 import type { PluginSettingsContext } from './context';
 import type {
@@ -17,6 +12,7 @@ import type {
 	PageFormItem,
 	PageFormSection
 } from '@stream-kit/ui/blocks/types';
+import type { Component } from 'svelte';
 
 export type PluginPublicApi = unknown;
 
@@ -37,9 +33,7 @@ export type PluginPublicApi = unknown;
  * export default plugin;
  * ```
  */
-export type Plugin = (
-	app: PluginAppApi
-) => PluginRegistration | Promise<PluginRegistration>;
+export type Plugin = (app: PluginAppApi) => PluginRegistration | Promise<PluginRegistration>;
 
 export type PluginPageBlock = PageBlock;
 export type PluginPageDefinition = PageDefinition;
@@ -73,7 +67,7 @@ export type PluginCustomViewProps = {
 	description?: string;
 };
 
-export type PluginWidgetColumns = 1 | 2 | 3 | 4;
+export type PluginWidgetColumns = 1 | 2 | 3 | 4 | 5 | 6;
 
 /** Props passed to dashboard widget Svelte components. */
 export type PluginWidgetProps = {
@@ -91,7 +85,7 @@ export type PluginWidgetDefinition = {
 	description?: string;
 	/** Remix icon name (for example `ri:plug-line`). */
 	icon?: string;
-	/** Grid column span on the dashboard (1–4). */
+	/** Grid column span on the dashboard (1–6). */
 	columns?: PluginWidgetColumns;
 	/** Svelte component name registered in the plugin bundle. */
 	view: string;

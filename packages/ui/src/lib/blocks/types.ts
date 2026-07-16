@@ -120,7 +120,13 @@ export type PageFormBlock = {
 	successMessage?: string;
 };
 
-export type PageCustomView = 'commands' | 'connections' | 'overview' | 'timers' | 'moderation';
+export type PageCustomView =
+	| 'commands'
+	| 'connections'
+	| 'overview'
+	| 'timers'
+	| 'moderation'
+	| 'roles';
 
 export type PageBlocksDefinition = {
 	title?: string;

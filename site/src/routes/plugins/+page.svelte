@@ -9,6 +9,8 @@
 
 	let { data }: { data: PageData } = $props();
 	let plugins = $derived(data.plugins ?? []);
+
+	const year = new Date().getFullYear();
 </script>
 
 <svelte:head>
@@ -55,65 +57,100 @@
 			</div>
 		{/if}
 
-		{#if plugins.length === 0}
-			<div
-				class="rounded-2xl border border-dark-600 bg-dark-900/70 px-8 py-16 text-center sm:px-12"
-			>
+		<div class="rounded-2xl border border-dark-600 bg-dark-900/70 p-6 sm:p-10">
+			{#if plugins.length === 0}
 				<div
-					class="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary"
+					class="relative flex flex-col items-center gap-4 overflow-hidden rounded-xl border border-dashed border-dark-600 bg-dark-900/50 px-6 py-16 text-center"
 				>
-					<Icon icon="mdi:puzzle-outline" class="size-6" />
-				</div>
-				<h2 class="font-outfit text-xl font-semibold">No plugins published yet</h2>
-				<p class="mt-2 text-sm text-muted-foreground">
-					Check back soon — official plugin releases will appear here.
-				</p>
-			</div>
-		{:else}
-			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-				{#each plugins as plugin (plugin.key)}
-					<article
-						class="flex min-h-52 flex-col gap-4 rounded-xl border border-dark-600 bg-dark-800/60 p-6 transition-colors hover:border-primary-400/40 hover:bg-dark-800"
+					<div
+						class="relative flex size-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary"
 					>
-						<div class="flex items-start gap-3">
-							<div
-								class="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary"
-							>
-								<Icon icon={plugin.icon} class="size-5" />
-							</div>
-							<div class="min-w-0 flex-1">
-								<div class="flex flex-wrap items-center gap-2">
-									<h2 class="font-outfit text-lg font-semibold">{plugin.name}</h2>
-									<Badge variant="default">v{plugin.version}</Badge>
+						<Icon icon="mdi:puzzle-outline" class="size-7" aria-hidden="true" />
+					</div>
+					<div class="relative flex flex-col gap-1.5">
+						<h2 class="font-outfit text-xl font-semibold">No plugins published yet</h2>
+						<p class="text-sm text-muted-foreground">
+							Check back soon — official plugin releases will appear here.
+						</p>
+					</div>
+				</div>
+			{:else}
+				<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{#each plugins as plugin (plugin.key)}
+						<article
+							class="group flex h-full flex-col overflow-hidden rounded-xl border border-dark-600 bg-dark-800/60 transition-colors hover:border-primary-400/40 hover:bg-dark-800"
+						>
+							<div class="flex items-start gap-3 p-5 pb-4">
+								<div
+									class="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary"
+								>
+									<Icon icon={plugin.icon} class="size-5" />
 								</div>
-								{#if plugin.description}
-									<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-										{plugin.description}
-									</p>
+								<div class="min-w-0 flex-1">
+									<div class="flex flex-wrap items-center gap-2">
+										<h2 class="font-outfit text-lg font-semibold">
+											{plugin.name}
+										</h2>
+										<Badge variant="default" size="sm">v{plugin.version}</Badge>
+									</div>
+									{#if plugin.description}
+										<p
+											class="mt-2 text-sm leading-relaxed text-muted-foreground"
+										>
+											{plugin.description}
+										</p>
+									{/if}
+								</div>
+							</div>
+
+							{#if plugin.streamKitVersion}
+								<div
+									class="border-t border-dark-700/80 bg-dark-900/50 px-5 py-3 text-xs text-muted-foreground"
+								>
+									Requires Stream Kit {plugin.streamKitVersion}
+								</div>
+							{/if}
+
+							<div
+								class="mt-auto flex flex-wrap items-center gap-2 border-t border-dark-700 p-3"
+							>
+								{#if plugin.downloadUrl}
+									<Button
+										href={plugin.downloadUrl}
+										icon="mdi:download"
+										size="sm"
+										variant="outline"
+									>
+										Download
+									</Button>
 								{/if}
 							</div>
-						</div>
-
-						<div class="mt-auto flex flex-col gap-3">
-							{#if plugin.streamKitVersion}
-								<p class="text-xs text-muted-foreground">
-									Requires Stream Kit {plugin.streamKitVersion}
-								</p>
-							{/if}
-
-							{#if plugin.downloadUrl}
-								<Button
-									href={plugin.downloadUrl}
-									icon="mdi:download"
-									class="w-full"
-								>
-									Download
-								</Button>
-							{/if}
-						</div>
-					</article>
-				{/each}
-			</div>
-		{/if}
+						</article>
+					{/each}
+				</div>
+			{/if}
+		</div>
 	</Container>
 </section>
+
+<footer class="border-t border-dark-700">
+	<Container center size="lg" class="py-10">
+		<div class="flex flex-col items-center justify-between gap-6 sm:flex-row">
+			<p class="text-sm text-muted-foreground">© {year} Stream Kit. All rights reserved.</p>
+			<nav class="flex gap-6 text-sm">
+				<a href="/" class="cursor-pointer text-muted-foreground hover:text-foreground"
+					>Home</a
+				>
+				<a href="/docs" class="cursor-pointer text-muted-foreground hover:text-foreground"
+					>Docs</a
+				>
+				<a
+					href="/contact"
+					class="cursor-pointer text-muted-foreground hover:text-foreground"
+				>
+					Contact
+				</a>
+			</nav>
+		</div>
+	</Container>
+</footer>

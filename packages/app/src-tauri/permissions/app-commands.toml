@@ -37,6 +37,11 @@ commands.allow = [
 	"overlay_sync_all_configs",
 	"overlay_broadcast_settings",
 	"overlay_get_overlays_dir",
+	"api_server_start",
+	"api_server_stop",
+	"api_server_status",
+	"api_server_send",
+	"api_server_broadcast",
 	"script_get_project_dir",
 	"script_get_scripts_dir",
 	"resolve_editor_commands"

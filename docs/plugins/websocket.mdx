@@ -7,6 +7,8 @@ description: Connect to WebSocket servers and trigger actions on messages and co
 
 The WebSocket plugin maintains **outbound connections** to WebSocket servers and fires actions when messages arrive or connection state changes.
 
+For an **inbound** remote-control API (clients connect *to* Stream Kit), see the [WebSocket API Server](/docs/developers/api-server).
+
 ## Connections
 
 Configure connections under **Plugins → WebSocket**. Each connection has a name, URL, auto-connect, and reconnect settings (max attempts and delay). Turn on **Auto-connect** to connect when the plugin enables, or use **Connect** from the list. The plugin reconnects as needed.

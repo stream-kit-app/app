@@ -12,6 +12,7 @@
     "triggers/youtube",
     "triggers/overlay",
     "---Handlers---",
+    "handlers/bot",
     "handlers/core",
     "handlers/obs",
     "handlers/rankings",

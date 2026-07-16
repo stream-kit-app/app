@@ -8,12 +8,12 @@
 		KeyboardSensor,
 		PointerSensor
 	} from '@dnd-kit-svelte/svelte';
-	import Icon from '@iconify/svelte';
 	import { open } from '@tauri-apps/plugin-dialog';
 	import { watch } from 'runed';
 
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import {
 		collapsedGroups,
@@ -291,115 +291,99 @@
 	});
 </script>
 
-<Container class="px-6 py-6" size="md">
-	<DragDropProvider
-		{sensors}
-		onDragStart={handleDragStart}
-		onDragOver={handleDragOver}
-		onDragEnd={handleDragEnd}
+{#if selectableActions.length === 0}
+	<EmptyState
+		icon="ri:flashlight-line"
+		title={t('No actions yet')}
+		description={t('Create your first action to automate tasks.')}
 	>
-		{#if selectableActions.length === 0}
-			<div
-				class="relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
-			>
-				<div class="boot-ambient pointer-events-none opacity-30"></div>
-				<div
-					class="relative flex size-16 items-center justify-center rounded-2xl bg-dark-800 text-primary"
-				>
-					<Icon icon="ri:flashlight-line" class="size-7" aria-hidden="true" />
-				</div>
-				<div class="relative flex flex-col gap-1.5">
-					<p class="text-lg font-semibold text-dark-50">{t('No actions yet')}</p>
-					<p class="text-sm text-dark-300">
-						{t('Create your first action to automate tasks.')}
-					</p>
-				</div>
-				<div class="relative flex flex-wrap items-center justify-center gap-2">
-					<Button
-						class="relative"
-						variant="outline"
-						icon="ri:upload-2-line"
-						disabled={isImporting}
-						isLoading={isImporting}
-						onclick={() => void importActions()}
+		<Button
+			class="relative"
+			variant="outline"
+			icon="ri:upload-2-line"
+			disabled={isImporting}
+			isLoading={isImporting}
+			onclick={() => void importActions()}
+		>
+			{isImporting ? t('Importing...') : t('Import')}
+		</Button>
+		<Button class="relative" icon="ri:add-fill" onclick={() => Action.createDraft().open()}>
+			{t('Add Action')}
+		</Button>
+	</EmptyState>
+{:else}
+	<Container class="px-6 py-6" size="md">
+		<DragDropProvider
+			{sensors}
+			onDragStart={handleDragStart}
+			onDragOver={handleDragOver}
+			onDragEnd={handleDragEnd}
+		>
+			<div class="grid gap-3">
+				{#each groupOrder as groupId, groupIndex (groupId)}
+					{@const groupActions = layout[groupId] ?? []}
+					{@const groupActionIds = groupActions.map((item) => item.id)}
+					<ActionGroupSection
+						{groupId}
+						index={groupIndex}
+						count={groupActions.length}
+						groupActionIds={groupActionIds}
+						{selection}
+						collapsed={collapsedGroups.current[groupId] ?? false}
+						onCollapsedChange={(value) => setActionGroupCollapsed(groupId, value)}
 					>
-						{isImporting ? t('Importing...') : t('Import')}
-					</Button>
-					<Button
-						class="relative"
-						icon="ri:add-fill"
-						onclick={() => Action.createDraft().open()}
-					>
-						{t('Add Action')}
-					</Button>
-				</div>
+						{#snippet children()}
+							{#each groupActions as item, actionIndex (item.id)}
+								<ActionSortableItem
+									action={item.action}
+									{groupId}
+									index={actionIndex}
+									selected={selection.selectedIds.has(item.id)}
+									onSelectedChange={(value, shiftKey) =>
+										selection.handleSelectedChange(item.id, value, shiftKey)}
+								/>
+							{/each}
+						{/snippet}
+					</ActionGroupSection>
+				{/each}
 			</div>
-		{/if}
 
-		<div class="grid gap-3">
-			{#each groupOrder as groupId, groupIndex (groupId)}
-				{@const groupActions = layout[groupId] ?? []}
-				{@const groupActionIds = groupActions.map((item) => item.id)}
-				<ActionGroupSection
-					{groupId}
-					index={groupIndex}
-					count={groupActions.length}
-					groupActionIds={groupActionIds}
-					{selection}
-					collapsed={collapsedGroups.current[groupId] ?? false}
-					onCollapsedChange={(value) => setActionGroupCollapsed(groupId, value)}
-				>
-					{#snippet children()}
-						{#each groupActions as item, actionIndex (item.id)}
+			<DragOverlay>
+				{#snippet children(source)}
+					{#if source.data.group}
+						{@const item = layout[source.data.group as string]?.find(
+							(entry) => entry.id === source.id
+						)}
+						{#if item}
 							<ActionSortableItem
 								action={item.action}
-								{groupId}
-								index={actionIndex}
-								selected={selection.selectedIds.has(item.id)}
-								onSelectedChange={(value, shiftKey) =>
-									selection.handleSelectedChange(item.id, value, shiftKey)}
+								groupId={source.data.group as string}
+								index={0}
+								isOverlay
 							/>
-						{/each}
-					{/snippet}
-				</ActionGroupSection>
-			{/each}
-		</div>
-
-		<DragOverlay>
-			{#snippet children(source)}
-				{#if source.data.group}
-					{@const item = layout[source.data.group as string]?.find(
-						(entry) => entry.id === source.id
-					)}
-					{#if item}
-						<ActionSortableItem
-							action={item.action}
-							groupId={source.data.group as string}
-							index={0}
-							isOverlay
-						/>
+						{/if}
+					{:else}
+						{@const groupItems = layout[source.id as string]}
+						{#if groupItems}
+							<ActionGroupSection groupId={source.id as string} index={0} isOverlay>
+								{#snippet children()}
+									{#each groupItems as item, actionIndex (item.id)}
+										<ActionSortableItem
+											action={item.action}
+											groupId={source.id as string}
+											index={actionIndex}
+											isOverlay
+										/>
+									{/each}
+								{/snippet}
+							</ActionGroupSection>
+						{/if}
 					{/if}
-				{:else}
-					{@const groupItems = layout[source.id as string]}
-					{#if groupItems}
-						<ActionGroupSection groupId={source.id as string} index={0} isOverlay>
-							{#snippet children()}
-								{#each groupItems as item, actionIndex (item.id)}
-									<ActionSortableItem
-										action={item.action}
-										groupId={source.id as string}
-										index={actionIndex}
-										isOverlay
-									/>
-								{/each}
-							{/snippet}
-						</ActionGroupSection>
-					{/if}
-				{/if}
-			{/snippet}
-		</DragOverlay>
-	</DragDropProvider>
-</Container>
+				{/snippet}
+			</DragOverlay>
+		</DragDropProvider>
+	</Container>
+{/if}
 
 <ActionBulkEditDialog
 	bind:open={bulkEditOpen}

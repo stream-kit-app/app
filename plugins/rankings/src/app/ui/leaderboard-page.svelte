@@ -7,13 +7,13 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText } from '@stream-kit/ui/input';
 
 	import { formatWatchTime } from '../../lib/extract-user';
 	import { orderRanks, resolveProgress, sortUsersByPoints } from '../../lib/ranking-engine';
 	import { tryGetRankingsService } from '../lib/get-rankings';
 	import { RankedUser } from '../lib/ranked-user.svelte';
-	import RankingsEmptyState from './rankings-empty-state.svelte';
 
 	let { app, title: _title, description: _description }: PluginCustomViewProps = $props();
 
@@ -132,9 +132,19 @@
 	}
 </script>
 
-<Container class="px-6 py-6" size="md">
-	{#if rankings}
-		<div class="flex flex-col gap-4">
+{#if !rankings}
+	<Container class="px-6 py-6" size="md">
+		<p class="text-sm text-dark-300">{t('Rankings plugin unavailable.')}</p>
+	</Container>
+{:else if leaderboard.length === 0}
+	<EmptyState
+		icon="ri:trophy-line"
+		title={t('No users ranked yet.')}
+		description={t('Users will appear here as they earn points.')}
+	/>
+{:else}
+	<div class="flex min-h-full flex-1 flex-col">
+		<Container class="shrink-0 px-6 pt-6" size="md">
 			<InputText
 				label={t('Search')}
 				value={search}
@@ -144,16 +154,15 @@
 					search = (event.currentTarget as HTMLInputElement).value;
 				}}
 			/>
-
-			{#if filtered.length === 0}
-				<RankingsEmptyState
-					icon="ri:trophy-line"
-					title={search.trim() ? t('No users found.') : t('No users ranked yet.')}
-					description={search.trim()
-						? t('Try a different search term.')
-						: t('Users will appear here as they earn points.')}
-				/>
-			{:else}
+		</Container>
+		{#if filtered.length === 0}
+			<EmptyState
+				icon="ri:trophy-line"
+				title={t('No users found.')}
+				description={t('Try a different search term.')}
+			/>
+		{:else}
+			<Container class="px-6 py-6" size="md">
 				<ul class="flex flex-col gap-2">
 					{#each filtered as user, index (user.userId)}
 						{@const progress = resolveProgress(user.totalPoints, ordered)}
@@ -232,9 +241,7 @@
 						</li>
 					{/each}
 				</ul>
-			{/if}
-		</div>
-	{:else}
-		<p class="text-sm text-dark-300">{t('Rankings plugin unavailable.')}</p>
-	{/if}
-</Container>
+			</Container>
+		{/if}
+	</div>
+{/if}

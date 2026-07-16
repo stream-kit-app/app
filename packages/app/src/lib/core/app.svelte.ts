@@ -20,6 +20,7 @@ import { PageHeader } from './page-header';
 import { Toolbar } from './toolbar';
 import { OAuth } from './oauth';
 import { Opener } from './opener';
+import { ApiServerService } from './api-server';
 import { OverlayService } from './overlay/overlay-service.svelte';
 import { Plugins } from './plugins';
 import { createPluginAppApi } from './plugins/app-api';
@@ -47,6 +48,7 @@ export class App extends Bootable {
 	public hotkeys = new HotkeyManager();
 	public localTts = new LocalTts();
 	public overlay = new OverlayService();
+	public apiServer = new ApiServerService();
 
 	public modals = new SvelteMap<string, Modal>();
 	public pageHeader = new PageHeader();

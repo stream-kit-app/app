@@ -80,6 +80,22 @@ export class Timer {
 		return new Timer();
 	}
 
+	static createFrom(source: Timer): Timer {
+		const app = getTimersService().requireApp();
+		const sourceName = source.name.trim() || app.i18n.translate('Untitled timer');
+
+		return new Timer({
+			name: app.i18n.translate('Copy of {name}', { name: sourceName }),
+			handlers: source.handlers.map((handler) => ActionHandler.clone(handler)),
+			intervalMinSec: source.intervalMinSec,
+			intervalMaxSec: source.intervalMaxSec,
+			minChatLines: source.minChatLines,
+			enabled: source.enabled,
+			platforms: [...source.platforms],
+			onlineOnly: source.onlineOnly
+		});
+	}
+
 	private static handlersFromStored(
 		stored: StoredActionHandler[],
 		app: PluginAppApi

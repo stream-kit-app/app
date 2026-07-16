@@ -48,9 +48,30 @@ export async function executeCommand(
 		return;
 	}
 
-	if (!hasPermission(command.permissions, context.role)) {
+	const botApi = app.plugins.tryGet<{
+		roles: {
+			isMember: (
+				roleId: string,
+				identity: { userId?: string; username?: string; platform?: string }
+			) => boolean;
+		};
+	}>('bot');
+
+	if (
+		!hasPermission(command.permissions, context.role, {
+			isInCustomRole: (roleId) =>
+				botApi?.roles.isMember(roleId, {
+					userId: context.userId.startsWith('twitch:') || context.userId.startsWith('youtube:')
+						? context.userId
+						: `${source === 'youtube' ? 'youtube' : 'twitch'}:${context.userId}`,
+					username: context.user,
+					platform: source === 'youtube' ? 'youtube' : 'twitch'
+				}) ?? false
+		})
+	) {
 		return;
 	}
+
 
 	const cooldownBlock = getCooldownBlock(
 		cooldownState,

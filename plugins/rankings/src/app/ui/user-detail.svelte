@@ -3,7 +3,7 @@
 	import type { RankedUser } from '../lib/ranked-user.svelte';
 
 	import { Badge } from '@stream-kit/ui/badge';
-	import { ScrollArea } from '@stream-kit/ui/scroll-area';
+	import { DataTable } from '@stream-kit/ui/data-table';
 
 	import { formatWatchTime } from '../../lib/extract-user';
 	import { orderRanks, resolveProgress } from '../../lib/ranking-engine';
@@ -49,7 +49,39 @@
 
 		return String(entry.amount);
 	}
+
+	function changeClass(entry: PointHistoryEntry): string {
+		if (entry.kind === 'set') {
+			return 'text-dark-100';
+		}
+
+		if (entry.amount > 0) {
+			return 'text-success';
+		}
+
+		if (entry.amount < 0) {
+			return 'text-destructive';
+		}
+
+		return 'text-dark-100';
+	}
 </script>
+
+{#snippet whenCell(entry: PointHistoryEntry)}
+	<span class="tabular-nums text-dark-300">{formatWhen(entry)}</span>
+{/snippet}
+
+{#snippet sourceCell(entry: PointHistoryEntry)}
+	<span class="text-dark-200">{formatSourceLabel(entry.source)}</span>
+{/snippet}
+
+{#snippet changeCell(entry: PointHistoryEntry)}
+	<span class="tabular-nums font-medium {changeClass(entry)}">{formatChange(entry)}</span>
+{/snippet}
+
+{#snippet totalCell(entry: PointHistoryEntry)}
+	<span class="tabular-nums text-dark-200">{entry.balanceAfter}</span>
+{/snippet}
 
 {#if user && progress}
 	<div class="flex flex-col gap-4">
@@ -94,44 +126,18 @@
 			/>
 		</div>
 
-		<section class="overflow-hidden rounded-xl border border-dark-600 bg-dark-800">
-			<div class="border-b border-dark-700/80 px-4 py-3">
-				<h3 class="text-base font-semibold text-dark-50">{t('Point history')}</h3>
-			</div>
-
-			{#if history.length > 0}
-				<div class="bg-dark-900/50">
-					<ScrollArea class="max-h-96">
-						<table class="min-w-full text-sm">
-							<thead
-								class="sticky top-0 border-b border-dark-600 bg-dark-900 text-left text-dark-300"
-							>
-								<tr>
-									<th class="px-4 py-2 font-medium">{t('When')}</th>
-									<th class="px-4 py-2 font-medium">{t('Source')}</th>
-									<th class="px-4 py-2 font-medium">{t('Change')}</th>
-									<th class="px-4 py-2 font-medium">{t('Total after')}</th>
-								</tr>
-							</thead>
-							<tbody class="divide-y divide-dark-600">
-								{#each history as entry (entry.id)}
-									<tr>
-										<td class="px-4 py-2 text-dark-300">{formatWhen(entry)}</td>
-										<td class="px-4 py-2 text-dark-200">{formatSourceLabel(entry.source)}</td>
-										<td class="px-4 py-2 text-dark-100">{formatChange(entry)}</td>
-										<td class="px-4 py-2 text-dark-200">{entry.balanceAfter}</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</ScrollArea>
-				</div>
-			{:else}
-				<p class="bg-dark-900/50 px-4 py-8 text-center text-sm text-dark-400">
-					{t('No point history yet.')}
-				</p>
-			{/if}
-		</section>
+		<DataTable
+			data={history}
+			getRowKey={(entry) => entry.id}
+			title={t('Point history')}
+			empty={t('No point history yet.')}
+			columns={[
+				{ id: 'when', header: t('When'), cell: whenCell },
+				{ id: 'source', header: t('Source'), cell: sourceCell },
+				{ id: 'change', header: t('Change'), align: 'right', cell: changeCell },
+				{ id: 'total', header: t('Total after'), align: 'right', cell: totalCell }
+			]}
+		/>
 	</div>
 {:else}
 	<p class="text-sm text-dark-300">{t('User not found.')}</p>

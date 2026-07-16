@@ -1,0 +1,66 @@
+---
+description: Prefer runed watch over $effect when tracking reactive values
+globs:
+  - packages/app/**/*.svelte
+  - packages/app/**/*.svelte.ts
+  - packages/ui/**/*.svelte
+  - packages/ui/**/*.svelte.ts
+  - plugins/**/*.svelte
+  - plugins/**/*.svelte.ts
+alwaysApply: false
+---
+
+# Prefer `watch` over `$effect` for value tracking
+
+When you need to **react to reactive value changes** (sync local state, rebuild derived layout, reset form fields when a prop changes), use `watch` from `runed` — not `$effect`.
+
+`$effect` is an escape hatch for cases that are not “sources → callback on change” (e.g. one-off setup with a custom teardown that `watch` does not model cleanly). Prefer `$derived` / `$derived.by` for computed values with no side effects.
+
+## Pattern
+
+```ts
+import { watch } from 'runed';
+
+// ❌ BAD — tracking values with $effect
+$effect(() => {
+	if (open) {
+		name = queue?.name ?? '';
+	}
+});
+
+// ✅ GOOD — explicit sources + effect callback
+watch(
+	() => open,
+	(isOpen) => {
+		if (isOpen) {
+			name = queue?.name ?? '';
+		}
+	}
+);
+```
+
+Multiple sources: return an array or object from the getter (same pattern as existing `watch` call sites in the app).
+
+```ts
+watch(
+	() => [open, queue?.id] as const,
+	([isOpen]) => {
+		if (isOpen) {
+			name = queue?.name ?? '';
+		}
+	}
+);
+```
+
+## Rules of thumb
+
+| Need | Use |
+| --- | --- |
+| Side effect when value(s) change | `watch` from `runed` |
+| Pure computed value | `$derived` / `$derived.by` |
+| Debounced / throttled value | `Debounced` / `Throttled` from `runed` |
+| Truly custom effect lifecycle | `$effect` (rare) |
+
+Do not read reactive state inside an `$effect` just to mirror or sync it — that is what `watch` is for.
+
+See also `svelte-5.mdc` (runed utilities) and `reactive-state.mdc` (domain state in `.svelte.ts`).

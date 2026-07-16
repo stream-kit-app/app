@@ -20,7 +20,14 @@ export type NavItemChild = {
 	onClick?: () => void;
 };
 
-export type NavItem = {
+export type NavSectionLabel = {
+	kind: 'label';
+	path: string;
+	title: string;
+};
+
+export type NavItemLink = {
+	kind?: 'item';
 	path: string;
 	title?: string;
 	icon: string;
@@ -29,3 +36,5 @@ export type NavItem = {
 	isDisabled?: boolean | (() => boolean);
 	onClick?: () => void;
 };
+
+export type NavItem = NavSectionLabel | NavItemLink;

@@ -1,16 +1,20 @@
 <script lang="ts">
+	import type {
+		DashboardWidgetDefinition,
+		DashboardWidgetInstance
+	} from '$lib/core/dashboard/types';
 	import type { PluginWidgetColumns } from '$lib/core/plugins/types';
-	import type { DashboardWidgetDefinition, DashboardWidgetInstance } from '$lib/core/dashboard/types';
 
 	import Icon from '@iconify/svelte';
 
-	import { Button } from '@stream-kit/ui/button';
 	import { Alert } from '@stream-kit/ui/alert';
+	import { Button } from '@stream-kit/ui/button';
+
+	import { useI18n } from '$lib/i18n';
+	import { cn } from '$lib/utils';
 
 	import DashboardColumnPicker from './dashboard-column-picker.svelte';
 	import DashboardWidgetHost from './dashboard-widget-host.svelte';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
 
 	type Props = {
 		instance: DashboardWidgetInstance;
@@ -49,12 +53,14 @@
 		1: 'col-span-1',
 		2: 'col-span-2',
 		3: 'col-span-3',
-		4: 'col-span-4'
+		4: 'col-span-4',
+		5: 'col-span-5',
+		6: 'col-span-6'
 	};
 
 	const shellClass = $derived(
 		cn(
-			'group/card relative flex min-w-0 flex-col overflow-hidden @container/widget',
+			'group/card @container/widget relative flex min-w-0 flex-col overflow-hidden',
 			columnSpanClass[instance.columns],
 			'rounded-xl border border-dark-600 bg-dark-800 transition-colors hover:border-dark-500',
 			isOverlay && 'shadow-lg',

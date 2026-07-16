@@ -233,6 +233,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 			this.hasReadied = false;
 		}
 
+		app.apiServer.unregisterMethodsByOwner(this.key);
 		this.removeDefinitions(app);
 	}
 
@@ -342,6 +343,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 			app.overlay.notifyDependenciesChanged();
 		} else {
 			await this.onDisable?.(this.createContext(app));
+			app.apiServer.unregisterMethodsByOwner(this.key);
 			this.unregisterDefinitions(app);
 			// Allow onEnable/onReady to run again the next time the plugin is enabled.
 			this.hasBooted = false;

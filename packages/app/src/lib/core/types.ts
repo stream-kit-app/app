@@ -1,4 +1,5 @@
-export type { MenuItem, MenuItemChild } from './menu/types';
+export type { MenuItem, MenuItemChild, MenuItemLink, MenuSectionLabel } from './menu/types';
+export { isMenuItemLink, isMenuSectionLabel } from './menu/types';
 export type {
 	SettingsContext,
 	SettingsVisibilityContext,

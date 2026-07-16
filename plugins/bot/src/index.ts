@@ -4,10 +4,17 @@ import type { Component } from 'svelte';
 import { Commands } from './commands/app/lib/commands.svelte';
 import CommandsPage from './commands/app/ui/commands-page.svelte';
 import { createChatRuntime } from './lib/chat-runtime';
-import { botSettings, commands, moderation, timers } from './lib/instances';
+import { botSettings, commands, moderation, roles, timers } from './lib/instances';
 import { TimerScheduler } from './lib/timer-scheduler';
 import { ModerationRules } from './moderation/app/lib/moderation-rules.svelte';
 import ModerationPage from './moderation/app/ui/moderation-page.svelte';
+import { Roles } from './roles/app/lib/roles.svelte';
+import RolesPage from './roles/app/ui/roles-page.svelte';
+import {
+	createAddUserToRoleHandler,
+	createRemoveUserFromRoleHandler,
+	createUserInRoleHandler
+} from './roles/handler/roles';
 import { BotSettings } from './settings/bot-settings';
 import { Timers } from './timers/app/lib/timers.svelte';
 import TimersPage from './timers/app/ui/timers-page.svelte';
@@ -18,6 +25,7 @@ import { createModerationRuleTrigger } from './trigger/moderation-rule';
 
 export type { BotPluginRegistrationApi } from './lib/plugin-api';
 export { Commands } from './commands/app/lib/commands.svelte';
+export { Roles } from './roles/app/lib/roles.svelte';
 export { Timers } from './timers/app/lib/timers.svelte';
 export { ModerationRules } from './moderation/app/lib/moderation-rules.svelte';
 export { BotSettings } from './settings/bot-settings';
@@ -46,15 +54,23 @@ const moderationPageDef = {
 	description: 'Automatic chat moderation rules.'
 } satisfies PluginPageDefinition;
 
+const rolesPageDef = {
+	customView: 'roles',
+	title: 'Roles',
+	description: 'Custom user roles for command permissions.'
+} as unknown as PluginPageDefinition;
+
 export function botPlugin(
 	commandsService: Commands,
 	timersService: Timers,
 	moderationService: ModerationRules,
+	rolesService: Roles,
 	settings: BotSettings,
 	overviewPageComponent: Component = OverviewPage,
 	commandsPageComponent: Component = CommandsPage,
 	timersPageComponent: Component = TimersPage,
-	moderationPageComponent: Component = ModerationPage
+	moderationPageComponent: Component = ModerationPage,
+	rolesPageComponent: Component = RolesPage
 ): Plugin {
 	let timerScheduler: TimerScheduler | undefined;
 
@@ -94,7 +110,7 @@ export function botPlugin(
 
 	return (app) => ({
 		name: 'Bot',
-		description: 'Chat bot with commands, timers, and moderation.',
+		description: 'Chat bot with commands, timers, moderation, and custom roles.',
 		icon: 'at-icons:bot',
 		dependencies: [],
 		triggers: [
@@ -103,6 +119,16 @@ export function botPlugin(
 				children: [
 					createModerationRuleTrigger(app, moderationService),
 					createChatMessageTrigger(app)
+				]
+			}
+		],
+		handlers: [
+			{
+				name: 'Roles',
+				children: [
+					createAddUserToRoleHandler(app, rolesService),
+					createRemoveUserFromRoleHandler(app, rolesService),
+					createUserInRoleHandler(app, rolesService)
 				]
 			}
 		],
@@ -116,6 +142,7 @@ export function botPlugin(
 			commands: commandsService,
 			timers: timersService,
 			moderation: moderationService,
+			roles: rolesService,
 			settings
 		},
 		customViews: {
@@ -123,6 +150,7 @@ export function botPlugin(
 			commands: commandsPageComponent,
 			timers: timersPageComponent,
 			moderation: moderationPageComponent,
+			roles: rolesPageComponent,
 			'commands-widget': CommandsWidget
 		},
 		widgets: [
@@ -154,6 +182,10 @@ export function botPlugin(
 					{
 						title: 'Moderation',
 						page: moderationPageDef
+					},
+					{
+						title: 'Roles',
+						page: rolesPageDef
 					}
 				]
 			}
@@ -162,11 +194,13 @@ export function botPlugin(
 			commandsService.bind(store, pluginApp);
 			timersService.bind(store, pluginApp);
 			moderationService.bind(store, pluginApp);
+			rolesService.bind(store, pluginApp);
 			await settings.load(store);
 			await Promise.all([
 				commandsService.load(),
 				timersService.load(),
-				moderationService.load()
+				moderationService.load(),
+				rolesService.load()
 			]);
 		},
 		onEnable: async (context) => {
@@ -174,7 +208,8 @@ export function botPlugin(
 			await Promise.all([
 				commandsService.load(),
 				timersService.load(),
-				moderationService.load()
+				moderationService.load(),
+				rolesService.load()
 			]);
 			activateRuntime(context.app);
 		},
@@ -195,4 +230,4 @@ export function botPlugin(
 	});
 }
 
-export default botPlugin(commands, timers, moderation, botSettings);
+export default botPlugin(commands, timers, moderation, roles, botSettings);

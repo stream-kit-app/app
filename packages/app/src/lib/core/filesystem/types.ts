@@ -31,6 +31,13 @@ export type FileSystemSelectOptions = {
 	filters?: FileSystemFilter[];
 };
 
+/** Options for {@link PluginAppFsApi.save}. */
+export type FileSystemSaveOptions = {
+	/** Suggested file name or absolute path. */
+	defaultPath?: string;
+	/** Optional extension filters. */
+	filters?: FileSystemFilter[];
+};
 /** Options for {@link PluginAppFsApi.create}. */
 export type CreateOptions = {
 	/** Base directory for the relative path. */

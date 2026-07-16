@@ -269,6 +269,7 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 				app.actions.updateFromRecord(id, input, {
 					ownerPluginKey: resolveOwnerPluginKey(scope, options)
 				}),
+			delete: (id: number) => app.actions.delete(id),
 			deleteByOwner: (ownerPluginKey: string) => app.actions.deleteByOwner(ownerPluginKey),
 			getSnapshot: () => app.actions.getSnapshot()
 		},
@@ -292,8 +293,40 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			broadcast: (overlayId: string, event: string, payload?: unknown) =>
 				app.overlay.broadcast(overlayId, event, payload)
 		},
+		api: createApiServerApi(app, scope),
 		withResourceLock
 	} satisfies PluginAppApi;
+}
+
+function createApiServerApi(app: App, scope?: PluginAppScope) {
+	function prefix(name: string): string {
+		const trimmed = name.trim();
+		if (!scope?.pluginKey) {
+			return trimmed;
+		}
+
+		const pluginPrefix = `plugin:${scope.pluginKey}:`;
+		if (trimmed.startsWith(pluginPrefix) || trimmed.startsWith('plugin:')) {
+			return trimmed;
+		}
+
+		return `${pluginPrefix}${trimmed}`;
+	}
+
+	return {
+		registerMethod: (
+			name: string,
+			handler: (params: unknown) => unknown | Promise<unknown>
+		) => {
+			app.apiServer.registerMethod(prefix(name), handler, scope?.pluginKey);
+		},
+		emit: (event: string, payload?: unknown) => app.apiServer.emit(prefix(event), payload),
+		unregisterMethods: () => {
+			if (scope?.pluginKey) {
+				app.apiServer.unregisterMethodsByOwner(scope.pluginKey);
+			}
+		}
+	};
 }
 
 let pluginAppInstance: PluginAppApi | undefined;

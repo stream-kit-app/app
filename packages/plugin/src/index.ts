@@ -37,7 +37,13 @@ export type {
 	HandlerExecuteFn,
 	HandlerNext
 } from '../../app/src/lib/core/action/handler/types';
-export type { MenuItem, MenuItemChild } from '../../app/src/lib/core/menu/types';
+export type {
+	MenuItem,
+	MenuItemChild,
+	MenuItemLink,
+	MenuSectionLabel
+} from '../../app/src/lib/core/menu/types';
+export { isMenuItemLink, isMenuSectionLabel } from '../../app/src/lib/core/menu/types';
 export type {
 	SettingsButtonVariant,
 	SettingsContext,
@@ -87,6 +93,7 @@ export type {
 	ExistsOptions,
 	FileInfo,
 	FileSystemFilter,
+	FileSystemSaveOptions,
 	FileSystemSelectOptions,
 	MkdirOptions,
 	OpenOptions,

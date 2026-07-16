@@ -2,6 +2,7 @@ import InputCheckbox from './input-checkbox.svelte';
 import InputCode from './input-code.svelte';
 import InputColor from './input-color.svelte';
 import InputCronExpression from './input-cron-expression.svelte';
+import InputFile from './input-file.svelte';
 import InputFilePath from './input-file-path.svelte';
 import InputHotkey from './input-hotkey.svelte';
 import InputKeyValueList from './input-key-value-list.svelte';
@@ -23,6 +24,7 @@ export {
 	InputCode,
 	InputColor,
 	InputCronExpression,
+	InputFile,
 	InputFilePath,
 	InputHotkey,
 	InputKeyValueList,

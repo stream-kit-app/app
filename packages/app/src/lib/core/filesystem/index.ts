@@ -8,6 +8,7 @@ export type {
 	ExistsOptions,
 	FileInfo,
 	FileSystemFilter,
+	FileSystemSaveOptions,
 	FileSystemSelectOptions,
 	MkdirOptions,
 	OpenOptions,

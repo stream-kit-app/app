@@ -16,8 +16,8 @@
 	import { ConfirmDialog } from '$lib/components/core/confirm';
 	import { Modal } from '$lib/components/core/modal';
 	import { AppPageHeader } from '$lib/components/core/page-header';
-	import { AppToolbar } from '$lib/components/core/toolbar';
 	import { Toast } from '$lib/components/core/toast';
+	import { AppToolbar } from '$lib/components/core/toolbar';
 	import { app, bootApp } from '$lib/core';
 	import {
 		centerBootWindow,
@@ -103,13 +103,11 @@
 	>
 		<TooltipProvider>
 			<div class="flex h-full w-full overflow-hidden">
-				<aside
-					class="flex h-full w-64 shrink-0 flex-col border-r border-dark-600 bg-dark-800"
-				>
-					<section class="mt-4 mb-4 shrink-0 p-2.5">
+				<aside class="flex h-full w-64 shrink-0 flex-col border-r border-dark-600 py-4">
+					<section class="flex h-14 shrink-0 items-center px-4">
 						<Logo />
 					</section>
-					<section class="flex min-h-0 flex-1 flex-col p-2.5">
+					<section class="flex min-h-0 flex-1 flex-col px-2.5 py-2">
 						<ScrollArea
 							orientation="vertical"
 							class="h-full min-h-0 overflow-hidden"
@@ -130,7 +128,7 @@
 						<ScrollArea
 							orientation="vertical"
 							class="h-full min-h-0 overflow-hidden"
-							viewportClasses="h-full"
+							viewportClasses="h-full [&>*]:min-h-full"
 						>
 							{@render children()}
 						</ScrollArea>

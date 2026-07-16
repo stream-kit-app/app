@@ -113,7 +113,7 @@ type DirEntry = { name: string; isDirectory: boolean; isFile: boolean; isSymlink
 type FileInfo = { isFile: boolean; isDirectory: boolean; isSymlink: boolean; size: number; mtime: Date | null; atime: Date | null; birthtime: Date | null; readonly: boolean; fileAttributes: number | null; dev: number | null; ino: number | null; mode: number | null; nlink: number | null; uid: number | null; gid: number | null; rdev: number | null; blksize: number | null; blocks: number | null };
 type FileHandle = { read(buffer: Uint8Array): Promise<number | null>; seek(offset: number, whence: SeekMode): Promise<number>; stat(): Promise<FileInfo>; truncate(len?: number): Promise<void>; write(data: Uint8Array): Promise<number>; close(): Promise<void> };
 type MenuItemChild = { path: string; title?: TranslationKey | string; isDisabled?: boolean | (() => boolean); onClick?: () => void };
-type MenuItem = { path: string; title?: TranslationKey | string; icon: string; children?: MenuItemChild[]; isGroupOnly?: boolean; isDisabled?: boolean | (() => boolean); onClick?: () => void; fromPlugin?: boolean };
+type MenuItemLink = { kind?: 'item'; path: string; title?: TranslationKey | string; icon: string; children?: MenuItemChild[]; isGroupOnly?: boolean; isDisabled?: boolean | (() => boolean); onClick?: () => void; fromPlugin?: boolean };
 type Modal = { id: string; title: string; size: "sm" | "md" | "lg" | "full"; description?: string; content: unknown; props: Record<string, unknown>; contentHost: "app" | "plugin"; onClose?: () => void; isOpen: boolean; open(): void; close(): void };
 type ModalProps = { id: string; title: string; description?: string; size?: "sm" | "md" | "lg" | "full"; content: unknown; props?: Record<string, unknown>; contentHost?: "app" | "plugin"; onClose?: () => void };
 type OAuthStartOptions = { ports?: number[]; response?: unknown };
@@ -318,7 +318,7 @@ interface PluginAppMenuApi {
 	 * });
 	 * \`\`\`
 	 */
-	add(item: MenuItem): MenuItem;
+	add(item: MenuItemLink): MenuItemLink;
 
 	/**
 	 * Remove a menu item by path.
@@ -345,9 +345,21 @@ interface PluginAppFsApi {
 	 */
 	select(options: FileSystemSelectOptions): Promise<string | null>;
 
+	/**
+	 * Open a native save dialog and return the chosen path, or \`null\` if cancelled.
+	 *
+	 * @example
+	 * \`\`\`ts
+	 * const path = await app.fs.save({
+	 *   defaultPath: 'commands.json',
+	 *   filters: [{ name: 'JSON', extensions: ['json'] }]
+	 * });
+	 * \`\`\`
+	 */
+	save(options?: FileSystemSaveOptions): Promise<string | null>;
+
 	/** Join path segments using the platform separator. */
 	join(...paths: string[]): Promise<string>;
-
 	/**
 	 * Create a file and return a handle for reading or writing.
 	 *
@@ -729,11 +741,42 @@ interface PluginAppActionsApi {
 		options?: { ownerPluginKey?: string }
 	): Promise<ActionRecord>;
 
+	/** Delete an action by database id. */
+	delete(id: number): Promise<void>;
+
 	/** Delete all actions owned by a plugin. */
 	deleteByOwner(ownerPluginKey: string): Promise<number>;
 
 	/** Return all configured actions as records. */
 	getSnapshot(): ActionRecord[];
+}
+
+/**
+ * Inbound WebSocket API server — plugins register methods and emit events for remote clients.
+ */
+interface PluginAppApiServerApi {
+	/**
+	 * Register a request method. When called from a plugin scope, the name is prefixed with
+	 * \`plugin:<pluginKey>:\`.
+	 *
+	 * @example
+	 * \`\`\`ts
+	 * app.api.registerMethod('getLeaderboard', async () => rankings.getLeaderboard());
+	 * // → plugin:rankings:getLeaderboard
+	 * \`\`\`
+	 */
+	registerMethod(
+		name: string,
+		handler: (params: unknown) => unknown | Promise<unknown>
+	): void;
+
+	/**
+	 * Emit an event to subscribed WebSocket clients. Prefixed with \`plugin:<pluginKey>:\` in plugin scope.
+	 */
+	emit(event: string, payload?: unknown): Promise<void>;
+
+	/** Remove all methods registered by the current plugin. */
+	unregisterMethods(): void;
 }
 
 /**
@@ -953,6 +996,9 @@ interface PluginAppApi {
 
 	/** Send events to browser-source overlays. */
 	overlay: PluginAppOverlayApi;
+
+	/** Extend the inbound WebSocket API server with plugin methods and events. */
+	api: PluginAppApiServerApi;
 
 	/**
 	 * Serialize work that touches the same shared resource across concurrent action runs.

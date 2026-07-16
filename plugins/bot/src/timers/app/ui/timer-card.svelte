@@ -1,14 +1,17 @@
 <script lang="ts">
-	import type { Timer } from '../lib/timer.svelte';
-
 	import Icon from '@iconify/svelte';
 
-	import { tooltip } from '@stream-kit/ui/attachments';
+	import { tooltip, tooltipSnippet } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Button } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { getTimersService } from '../lib/get-timers';
 	import { cn } from '@stream-kit/plugin/utils';
+
+	import { Timer } from '../lib/timer.svelte';
+	import { getTimersService } from '../lib/get-timers';
+
+	type Definition = { id: string; name: string; isAvailable: boolean };
 
 	type Props = {
 		timer: Timer;
@@ -20,71 +23,141 @@
 	const t = getTimersService().requireApp().i18n.t;
 	let shiftKey = false;
 
+	const isUnavailable = $derived(timer.hasUnavailableDefinitions);
+	const handlersUnavailable = $derived(
+		timer.handlers.some((handler) => !handler.definition.isAvailable)
+	);
 	const intervalLabel = $derived(`${timer.intervalMinSec}s – ${timer.intervalMaxSec}s`);
+
+	function handleClone(event: MouseEvent): void {
+		event.stopPropagation();
+		Timer.createFrom(timer).open();
+	}
 </script>
 
+{#snippet definitionList({ title, definitions }: { title: string; definitions: Definition[] })}
+	<div class="flex flex-col gap-1.5">
+		<span class="text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
+			{title} · {definitions.length}
+		</span>
+		<ul class="flex flex-col gap-1">
+			{#each definitions as { id, name, isAvailable } (id)}
+				<li class="flex items-center gap-2">
+					<span
+						class={cn(
+							'size-1.5 shrink-0 rounded-full',
+							isAvailable ? 'bg-dark-400' : 'bg-destructive-400'
+						)}
+					></span>
+					<span class={cn(!isAvailable && 'text-destructive-200')}>{name}</span>
+					{#if !isAvailable}
+						<span
+							class="rounded bg-destructive-800 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-destructive-200 uppercase"
+						>
+							{t('Unavailable')}
+						</span>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	</div>
+{/snippet}
+
 <div
-	class={cn(
-		'grid grid-cols-[1fr_auto_auto_auto] items-center rounded-xl border transition-colors',
-		timer.hasUnavailableDefinitions
-			? 'border-destructive-500 bg-destructive-800 hover:bg-destructive-600'
-			: 'border-border-dark-600 bg-dark-800 hover:bg-dark-700',
-		!timer.enabled && 'opacity-60'
-	)}
+	class={cn('group/card flex min-w-0 flex-1 items-center gap-3 transition-colors', {
+		'bg-destructive-950/40': isUnavailable,
+		'opacity-60': !timer.enabled
+	})}
 >
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div
+		class={cn(
+			'shrink-0 transition-opacity',
+			!selected && 'opacity-0 group-hover/card:opacity-100 focus-within:opacity-100'
+		)}
+		onclick={(event) => event.stopPropagation()}
+		onmousedown={(event) => {
+			shiftKey = event.shiftKey;
+		}}
+	>
+		<InputCheckbox
+			inline
+			aria-label={t('Select {name}', {
+				name: timer.name.trim() || t('this timer')
+			})}
+			bind:checked={() => selected, (value) => onSelectedChange?.(value, shiftKey)}
+		/>
+	</div>
+
+	<div
+		class={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', {
+			'bg-destructive-900 text-destructive-200': isUnavailable,
+			'bg-dark-700 text-dark-400': !timer.enabled && !isUnavailable,
+			'bg-dark-700 text-primary': timer.enabled && !isUnavailable
+		})}
+		aria-hidden="true"
+	>
+		<Icon icon="ri:timer-line" class="size-5" />
+	</div>
+
 	<button
 		type="button"
-		class="group col-span-4 grid cursor-pointer grid-cols-subgrid items-center px-3 py-2 text-left transition-colors"
+		class="flex min-w-0 flex-1 cursor-pointer flex-col gap-1 text-left"
 		onclick={() => timer.open()}
 	>
-		<div class="flex min-w-0 items-center gap-4">
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<div
-				class="shrink-0"
-				onclick={(event) => event.stopPropagation()}
-				onmousedown={(event) => {
-					shiftKey = event.shiftKey;
-				}}
-			>
-				<InputCheckbox
-					inline
-					aria-label={t('Select {name}', { name: timer.name.trim() || t('this timer') })}
-					bind:checked={() => selected, (value) => onSelectedChange?.(value, shiftKey)}
-				/>
-			</div>
-			<div class="min-w-0">
-				<p class={cn('truncate font-medium', !timer.enabled && 'text-dark-400')}>
-					{timer.name.trim()}
-				</p>
-				<p class="truncate text-sm text-dark-300">
-					{t('every {interval}', { interval: intervalLabel })}
-				</p>
-			</div>
-		</div>
-
 		<span
 			class={cn(
-				'me-2 text-sm',
-				timer.hasUnavailableDefinitions ? 'text-destructive-50' : 'text-dark-300'
-			)}
-			{@attach tooltip(() =>
-				timer.handlers.map((handler) => `- ${handler.definition.name}`).join('<br />')
+				'truncate text-base font-semibold',
+				!timer.enabled ? 'text-dark-300' : 'text-dark-50'
 			)}
 		>
-			{t('handlers ({count})', { count: timer.handlers.length })}
+			{timer.name.trim() || t('Untitled timer')}
 		</span>
-
-		<div class="flex flex-wrap justify-end gap-1">
+		<span class="flex flex-wrap items-center gap-1.5">
+			<Badge size="sm" variant="secondary">
+				<Icon icon="ri:timer-line" />
+				{t('every {interval}', { interval: intervalLabel })}
+			</Badge>
+			<Badge
+				size="sm"
+				variant={handlersUnavailable ? 'destructive' : 'ghost'}
+				{@attach tooltip(() =>
+					tooltipSnippet(definitionList, {
+						title: t('Handlers'),
+						definitions: timer.handlers.map((handler) => ({
+							id: handler.id,
+							name: handler.definition.name,
+							isAvailable: handler.definition.isAvailable
+						}))
+					})
+				)}
+			>
+				<Icon icon="ri:list-check" />
+				{t('handlers ({count})', { count: timer.handlers.length })}
+			</Badge>
 			{#each timer.platforms as platform (platform)}
-				<Badge variant="secondary">{platform}</Badge>
+				<Badge size="sm" variant="secondary">{platform}</Badge>
 			{/each}
-		</div>
+		</span>
+	</button>
 
+	<div class="flex shrink-0 items-center gap-1">
+		{#if timer.id != null}
+			<Button
+				variant="outline"
+				size="icon"
+				icon="clarity:clone-line"
+				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
+				aria-label={t('Clone timer')}
+				onclick={handleClone}
+				{@attach tooltip(() => t('Clone timer'))}
+			/>
+		{/if}
 		<Icon
 			icon="ri:arrow-right-s-line"
-			class="size-5 shrink-0 justify-self-end text-dark-400 transition-colors group-hover:text-dark-200"
+			class="size-5 shrink-0 text-dark-500 transition-[color,transform] group-hover/card:translate-x-0.5 group-hover/card:text-dark-300"
 			aria-hidden="true"
 		/>
-	</button>
+	</div>
 </div>

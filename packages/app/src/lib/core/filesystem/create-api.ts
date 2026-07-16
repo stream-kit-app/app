@@ -3,6 +3,7 @@ import type { Filesystem } from './filesystem';
 export function createFilesystemApi(fs: Filesystem) {
 	return {
 		select: fs.select.bind(fs),
+		save: fs.save.bind(fs),
 		join: fs.join.bind(fs),
 		create: fs.create.bind(fs),
 		open: fs.open.bind(fs),

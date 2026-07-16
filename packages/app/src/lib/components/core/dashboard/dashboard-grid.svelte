@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { DndDragEvent } from '$lib/components/core/action/dnd-events';
+	import type { DndWidgetItem } from '$lib/core/dashboard/dashboard-layout';
 	import type { PluginWidgetColumns } from '$lib/core/plugins/types';
 
 	import {
@@ -11,8 +13,7 @@
 
 	import { Alert } from '@stream-kit/ui/alert';
 
-	import { applyDndMove, type DndDragEvent } from '$lib/components/core/action/dnd-events';
-	import DashboardEmptyState from '$lib/components/core/dashboard/dashboard-empty-state.svelte';
+	import { applyDndMove } from '$lib/components/core/action/dnd-events';
 	import DashboardWidgetCard from '$lib/components/core/dashboard/dashboard-widget-card.svelte';
 	import DashboardWidgetItem from '$lib/components/core/dashboard/dashboard-widget-item.svelte';
 	import { app } from '$lib/core';
@@ -20,19 +21,17 @@
 		buildLayoutUpdates,
 		compareLayoutUpdates,
 		instancesFromDndItems,
-		toDndWidgetItems,
-		type DndWidgetItem
+		toDndWidgetItems
 	} from '$lib/core/dashboard/dashboard-layout';
 	import { useI18n } from '$lib/i18n';
 
 	type Props = {
 		editMode?: boolean;
-		onAddWidget?: () => void;
 	};
 
 	const SORTABLE_TYPE = 'dashboard-widget';
 
-	let { editMode = false, onAddWidget }: Props = $props();
+	let { editMode = false }: Props = $props();
 
 	const { t } = useI18n();
 
@@ -126,28 +125,31 @@
 		class="mb-4"
 		icon="ri:sparkling-2-line"
 		description={t(
-			'Drag widgets to reorder. Pick a width from 1 to 4 columns, or remove widgets you no longer need.'
+			'Drag widgets to reorder. Pick a width from 1 to 6 columns, or remove widgets you no longer need.'
 		)}
 	/>
 {/if}
 
 <div class="relative">
 	{#if editMode}
-		<div class="boot-grid pointer-events-none absolute inset-0 rounded-xl opacity-30" aria-hidden="true"></div>
+		<div
+			class="boot-grid pointer-events-none absolute inset-0 rounded-xl opacity-30"
+			aria-hidden="true"
+		></div>
 	{/if}
 
-	{#if list.length === 0}
-		<DashboardEmptyState {editMode} {onAddWidget} />
-	{:else if editMode}
+	{#if editMode}
 		<DragDropProvider
 			{sensors}
 			onDragStart={handleDragStart}
 			onDragOver={handleDragOver}
 			onDragEnd={() => void handleDragEnd()}
 		>
-			<div class="relative grid grid-cols-4 gap-5">
+			<div class="relative grid grid-cols-6 gap-5">
 				{#each list as entry, index (entry.id)}
-					{@const definition = app.dashboard.resolveDefinition(entry.instance.definitionId)}
+					{@const definition = app.dashboard.resolveDefinition(
+						entry.instance.definitionId
+					)}
 					{@const unavailable =
 						definition != null && !app.dashboard.isDefinitionAvailable(definition, app)}
 					<DashboardWidgetItem
@@ -158,7 +160,8 @@
 						{unavailable}
 						sortableType={SORTABLE_TYPE}
 						onRemove={() => void handleRemove(entry.instance.id)}
-						onColumnsChange={(columns) => void handleColumnsChange(entry.instance.id, columns)}
+						onColumnsChange={(columns) =>
+							void handleColumnsChange(entry.instance.id, columns)}
 					/>
 				{/each}
 			</div>
@@ -167,7 +170,9 @@
 				{#snippet children(source)}
 					{@const entry = list.find((item) => item.id === source.id)}
 					{#if entry}
-						{@const definition = app.dashboard.resolveDefinition(entry.instance.definitionId)}
+						{@const definition = app.dashboard.resolveDefinition(
+							entry.instance.definitionId
+						)}
 						<DashboardWidgetCard
 							instance={entry.instance}
 							{definition}
@@ -179,17 +184,12 @@
 			</DragOverlay>
 		</DragDropProvider>
 	{:else}
-		<div class="grid grid-cols-4 gap-5">
+		<div class="grid grid-cols-6 gap-5">
 			{#each sortedInstances as instance (instance.id)}
 				{@const definition = app.dashboard.resolveDefinition(instance.definitionId)}
 				{@const unavailable =
 					definition != null && !app.dashboard.isDefinitionAvailable(definition, app)}
-				<DashboardWidgetCard
-					instance={instance}
-					{definition}
-					{unavailable}
-					editMode={false}
-				/>
+				<DashboardWidgetCard {instance} {definition} {unavailable} editMode={false} />
 			{/each}
 		</div>
 	{/if}

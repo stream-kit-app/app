@@ -9,13 +9,13 @@
 		KeyboardSensor,
 		PointerSensor
 	} from '@dnd-kit-svelte/svelte';
-	import Icon from '@iconify/svelte';
 	import { watch } from 'runed';
 
 	import ActionGroupSection from '@stream-kit/plugin/action-ui/action-group-section.svelte';
 	import { applyDndMove } from '@stream-kit/plugin/action-ui/dnd-events';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
 
@@ -38,6 +38,7 @@
 	let layout = $state<DndCommandLayout>({});
 	let groupOrder = $state<string[]>([]);
 	let isDragging = $state(false);
+	let isImporting = $state(false);
 
 	watch(
 		() =>
@@ -67,8 +68,10 @@
 	const selectableCommands = $derived(
 		(commands?.items ?? []).filter((command) => command.id != null)
 	);
+	const exportableCommands = $derived(commands?.getExportableCommands() ?? []);
 	const totalCount = $derived(selectableCommands.length);
 	const groupCount = $derived(groupOrder.length);
+	const hasSelection = $derived(selection.selectedIds.size > 0);
 
 	function handleDragStart(): void {
 		isDragging = true;
@@ -178,10 +181,88 @@
 		openBulkEdit([...selection.selectedIds]);
 	}
 
+	async function exportCommands(): Promise<void> {
+		if (!commands) {
+			return;
+		}
+
+		const toExport = hasSelection
+			? exportableCommands.filter(
+					(command) => command.id != null && selection.selectedIds.has(command.id)
+				)
+			: exportableCommands;
+
+		await commands.exportToJson(toExport);
+	}
+
+	async function importCommands(): Promise<void> {
+		if (!commands || !pluginApp || isImporting) {
+			return;
+		}
+
+		const picked = await pluginApp.fs.select({
+			type: 'file',
+			filters: [{ name: t('Commands JSON'), extensions: ['json'] }]
+		});
+
+		if (!picked) {
+			return;
+		}
+
+		isImporting = true;
+
+		try {
+			await commands.importFromJsonPath(picked);
+			layout = buildDndLayout(commands.items);
+			groupOrder = getGroupOrder(layout);
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : t('Unknown import error.');
+
+			pluginApp.toast.create({
+				title: t('Commands could not be imported'),
+				description: message,
+				variant: 'error'
+			});
+		} finally {
+			isImporting = false;
+		}
+	}
+
 	$effect(() => {
 		if (!pluginApp) {
 			return;
 		}
+
+		const primaryActions = [
+			{
+				id: 'import-commands',
+				label: t('Import'),
+				icon: 'ri:upload-2-line',
+				variant: 'outline' as const,
+				disabled: isImporting,
+				onClick: () => void importCommands()
+			},
+			...(exportableCommands.length > 0
+				? [
+						{
+							id: 'export-commands',
+							label: hasSelection ? t('Export selected') : t('Export all'),
+							icon: 'ri:download-2-line',
+							variant: 'outline' as const,
+							onClick: () => void exportCommands()
+						}
+					]
+				: []),
+			{
+				id: 'add-command',
+				label: t('Add Command'),
+				icon: 'ri:add-fill',
+				onClick: () => {
+					void Command.createDraft().open();
+				}
+			}
+		];
 
 		pluginApp.toolbar.set({
 			meta:
@@ -197,17 +278,7 @@
 							}
 						]
 					: [],
-			primaryActions: [
-				{
-					id: 'add-command',
-					label: t('Add Command'),
-					icon: 'ri:add-fill',
-					variant: 'outline',
-					onClick: () => {
-						void Command.createDraft().open();
-					}
-				}
-			],
+			primaryActions,
 			selectAll:
 				selectableCommands.length > 0
 					? {
@@ -261,101 +332,97 @@
 	});
 </script>
 
-<Container class="px-6 py-6" size="md">
-	<DragDropProvider
-		{sensors}
-		onDragStart={handleDragStart}
-		onDragOver={handleDragOver}
-		onDragEnd={handleDragEnd}
+{#if selectableCommands.length === 0}
+	<EmptyState
+		icon="ri:terminal-box-line"
+		title={t('No commands yet')}
+		description={t('Create your first command to respond in chat.')}
 	>
-		{#if selectableCommands.length === 0}
-			<div
-				class="relative mt-8 flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
-			>
-				<div class="boot-ambient pointer-events-none opacity-30"></div>
-				<div
-					class="relative flex size-16 items-center justify-center rounded-2xl bg-dark-800 text-primary"
-				>
-					<Icon icon="ri:terminal-box-line" class="size-7" aria-hidden="true" />
-				</div>
-				<div class="relative flex flex-col gap-1.5">
-					<p class="text-lg font-semibold text-dark-50">{t('No commands yet')}</p>
-					<p class="text-sm text-dark-300">
-						{t('Create your first command to respond in chat.')}
-					</p>
-				</div>
-				<Button
-					class="relative"
-					icon="ri:add-fill"
-					onclick={() => Command.createDraft().open()}
-				>
-					{t('Add Command')}
-				</Button>
+		<Button
+			class="relative"
+			variant="outline"
+			icon="ri:upload-2-line"
+			disabled={isImporting}
+			isLoading={isImporting}
+			onclick={() => void importCommands()}
+		>
+			{isImporting ? t('Importing...') : t('Import')}
+		</Button>
+		<Button class="relative" icon="ri:add-fill" onclick={() => Command.createDraft().open()}>
+			{t('Add Command')}
+		</Button>
+	</EmptyState>
+{:else}
+	<Container class="px-6 py-6" size="md">
+		<DragDropProvider
+			{sensors}
+			onDragStart={handleDragStart}
+			onDragOver={handleDragOver}
+			onDragEnd={handleDragEnd}
+		>
+			<div class="grid gap-3">
+				{#each groupOrder as groupId, groupIndex (groupId)}
+					{@const groupCommands = layout[groupId] ?? []}
+					{@const groupCommandIds = groupCommands.map((item) => item.id)}
+					<ActionGroupSection
+						{t}
+						{groupId}
+						index={groupIndex}
+						count={groupCommands.length}
+						groupActionIds={groupCommandIds}
+						{selection}
+						collapsed={collapsedGroups.current[groupId] ?? false}
+						onCollapsedChange={(value) => setCommandGroupCollapsed(groupId, value)}
+					>
+						{#snippet children()}
+							{#each groupCommands as item, commandIndex (item.id)}
+								<CommandSortableItem
+									command={item.command}
+									{groupId}
+									index={commandIndex}
+									selected={selection.selectedIds.has(item.id)}
+									onSelectedChange={(value, shiftKey) =>
+										selection.handleSelectedChange(item.id, value, shiftKey)}
+								/>
+							{/each}
+						{/snippet}
+					</ActionGroupSection>
+				{/each}
 			</div>
-		{/if}
 
-		<div class="grid gap-3">
-			{#each groupOrder as groupId, groupIndex (groupId)}
-				{@const groupCommands = layout[groupId] ?? []}
-				{@const groupCommandIds = groupCommands.map((item) => item.id)}
-				<ActionGroupSection
-					{t}
-					{groupId}
-					index={groupIndex}
-					count={groupCommands.length}
-					groupActionIds={groupCommandIds}
-					{selection}
-					collapsed={collapsedGroups.current[groupId] ?? false}
-					onCollapsedChange={(value) => setCommandGroupCollapsed(groupId, value)}
-				>
-					{#snippet children()}
-						{#each groupCommands as item, commandIndex (item.id)}
+			<DragOverlay>
+				{#snippet children(source)}
+					{#if source.data.group}
+						{@const item = layout[source.data.group as string]?.find(
+							(entry) => entry.id === source.id
+						)}
+						{#if item}
 							<CommandSortableItem
 								command={item.command}
-								{groupId}
-								index={commandIndex}
-								selected={selection.selectedIds.has(item.id)}
-								onSelectedChange={(value, shiftKey) =>
-									selection.handleSelectedChange(item.id, value, shiftKey)}
+								groupId={source.data.group as string}
+								index={0}
+								isOverlay
 							/>
-						{/each}
-					{/snippet}
-				</ActionGroupSection>
-			{/each}
-		</div>
-
-		<DragOverlay>
-			{#snippet children(source)}
-				{#if source.data.group}
-					{@const item = layout[source.data.group as string]?.find(
-						(entry) => entry.id === source.id
-					)}
-					{#if item}
-						<CommandSortableItem
-							command={item.command}
-							groupId={source.data.group as string}
-							index={0}
-							isOverlay
-						/>
+						{/if}
+					{:else}
+						{@const groupItems = layout[source.id as string]}
+						{#if groupItems}
+							<ActionGroupSection {t} groupId={source.id as string} index={0} isOverlay>
+								{#snippet children()}
+									{#each groupItems as item, commandIndex (item.id)}
+										<CommandSortableItem
+											command={item.command}
+											groupId={source.id as string}
+											index={commandIndex}
+											isOverlay
+										/>
+									{/each}
+								{/snippet}
+							</ActionGroupSection>
+						{/if}
 					{/if}
-				{:else}
-					{@const groupItems = layout[source.id as string]}
-					{#if groupItems}
-						<ActionGroupSection {t} groupId={source.id as string} index={0} isOverlay>
-							{#snippet children()}
-								{#each groupItems as item, commandIndex (item.id)}
-									<CommandSortableItem
-										command={item.command}
-										groupId={source.id as string}
-										index={commandIndex}
-										isOverlay
-									/>
-								{/each}
-							{/snippet}
-						</ActionGroupSection>
-					{/if}
-				{/if}
-			{/snippet}
-		</DragOverlay>
-	</DragDropProvider>
-</Container>
+				{/snippet}
+			</DragOverlay>
+		</DragDropProvider>
+	</Container>
+{/if}

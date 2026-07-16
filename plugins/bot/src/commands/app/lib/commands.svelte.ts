@@ -10,6 +10,7 @@ import {
 } from '../../lib/command-record-input';
 import { validateCommandRecord } from '../../lib/validate-command-record';
 
+import { buildCommandsExport, isExportableCommand } from './command-export';
 import {
 	applyLayoutUpdates,
 	buildDndLayout,
@@ -18,6 +19,7 @@ import {
 	getGroupOrder,
 	normalizeCommandGroup
 } from './command-layout';
+import { exportedCommandToNewRecord, parseCommandsExport } from './command-import';
 import { Command } from './command.svelte';
 
 export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
@@ -319,6 +321,63 @@ export class Commands {
 		return this.items
 			.filter((command): command is Command & { id: string } => command.id != null)
 			.map((command) => command.toRecord());
+	}
+
+	getExportableCommands(): Command[] {
+		return this.items.filter(isExportableCommand);
+	}
+
+	async exportToJson(commands: Command[]): Promise<void> {
+		const { app } = this.requireContext();
+		const payload = buildCommandsExport(commands);
+
+		if (payload.commands.length === 0) {
+			app.toast.create({
+				title: app.i18n.translate('Nothing to export'),
+				description: app.i18n.translate('Select one or more commands to export.'),
+				variant: 'warning'
+			});
+			return;
+		}
+
+		const path = await app.fs.save({
+			defaultPath: 'commands.json',
+			filters: [{ name: app.i18n.translate('Commands JSON'), extensions: ['json'] }]
+		});
+
+		if (!path) {
+			return;
+		}
+
+		await app.fs.writeTextFile(path, JSON.stringify(payload, null, 2));
+
+		app.toast.create({
+			title: app.i18n.translate('Commands exported'),
+			description: app.i18n.translate('{count} commands exported.', {
+				count: payload.commands.length
+			}),
+			variant: 'success'
+		});
+	}
+
+	async importFromJsonPath(path: string): Promise<number> {
+		const { app } = this.requireContext();
+		const raw = await app.fs.readTextFile(path);
+		const payload = parseCommandsExport(raw);
+		let imported = 0;
+
+		for (const command of payload.commands) {
+			await this.createFromRecord(exportedCommandToNewRecord(command));
+			imported += 1;
+		}
+
+		app.toast.create({
+			title: app.i18n.translate('Commands imported'),
+			description: app.i18n.translate('{count} commands imported.', { count: imported }),
+			variant: 'success'
+		});
+
+		return imported;
 	}
 
 	findByTrigger(trigger: string): Command | undefined {

@@ -13,7 +13,7 @@ Use Svelte 5 runes and modern patterns. Validate with the Svelte MCP `svelte-aut
 - Props: `$props()` with typed `Props`; use `$bindable()` for two-way bindings
 - State: `$state()` for reactive values; `$state.raw()` for large objects/arrays that are reassigned, not mutated
 - Derived: `$derived` / `$derived.by` — prefer over `$effect` for computed values
-- Effects: `$effect` only as an escape hatch; avoid updating state inside effects
+- Effects: prefer `watch` from `runed` when tracking values (see `watch-over-effect.mdc`); `$effect` only as an escape hatch; avoid updating state inside effects
 - Events: `onclick`, `onchange`, etc. — not `on:click`
 - Composition: `{#snippet}` / `{@render}` for flexible child content
 

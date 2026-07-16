@@ -9,6 +9,8 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
+	import RankIcon from './rank-icon.svelte';
+
 	type Props = {
 		rank: RankRecord;
 		pointsLabel: string;
@@ -18,6 +20,7 @@
 		selected?: boolean;
 		onSelectedChange?: (selected: boolean, shiftKey: boolean) => void;
 		onDelete: () => void;
+		onOpen?: () => void;
 	};
 
 	let {
@@ -28,7 +31,8 @@
 		deleteLabel,
 		selected = false,
 		onSelectedChange,
-		onDelete
+		onDelete,
+		onOpen
 	}: Props = $props();
 
 	let shiftKey = false;
@@ -57,26 +61,27 @@
 			/>
 		</div>
 
-		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
-			aria-hidden="true"
+		<button
+			type="button"
+			class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+			onclick={() => onOpen?.()}
 		>
-			<Icon icon="ri:award-line" class="size-5" />
-		</div>
+			<RankIcon icon={rank.icon} />
 
-		<div class="flex min-w-0 flex-1 flex-col gap-1">
-			<span class="truncate text-base font-semibold text-dark-50">{rank.name}</span>
-			<span class="flex flex-wrap items-center gap-1.5">
-				<Badge size="sm" variant="secondary">
-					{rank.pointsRequired}
-					{pointsLabel}
-				</Badge>
-				<Badge size="sm" variant="outline">
-					<Icon icon="ri:user-line" />
-					{usersLabel}
-				</Badge>
-			</span>
-		</div>
+			<div class="flex min-w-0 flex-1 flex-col gap-1">
+				<span class="truncate text-base font-semibold text-dark-50">{rank.name}</span>
+				<span class="flex flex-wrap items-center gap-1.5">
+					<Badge size="sm" variant="secondary">
+						{rank.pointsRequired}
+						{pointsLabel}
+					</Badge>
+					<Badge size="sm" variant="outline">
+						<Icon icon="ri:user-line" />
+						{usersLabel}
+					</Badge>
+				</span>
+			</div>
+		</button>
 
 		<div class="flex shrink-0 items-center gap-1">
 			<Button
@@ -85,7 +90,10 @@
 				icon="ri:delete-bin-line"
 				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
 				aria-label={deleteLabel}
-				onclick={() => onDelete()}
+				onclick={(event) => {
+					event.stopPropagation();
+					onDelete();
+				}}
 				{@attach tooltip(() => deleteLabel)}
 			/>
 		</div>

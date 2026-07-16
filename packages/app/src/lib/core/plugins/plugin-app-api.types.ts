@@ -7,6 +7,7 @@ import type {
 	CreateOptions,
 	DebouncedWatchOptions,
 	ExistsOptions,
+	FileSystemSaveOptions,
 	FileSystemSelectOptions,
 	MkdirOptions,
 	OpenOptions,
@@ -20,7 +21,7 @@ import type {
 	WatchOptions,
 	WriteFileOptions
 } from '../filesystem/types';
-import type { MenuItem } from '../menu/types';
+import type { MenuItemLink } from '../menu/types';
 import type { Modal } from '../modal/modal.svelte';
 import type { ModalProps } from '../modal/modal.svelte';
 import type { OAuthStartOptions } from '../oauth/oauth';
@@ -232,7 +233,7 @@ export interface PluginAppMenuApi {
 	 * });
 	 * ```
 	 */
-	add(item: MenuItem): MenuItem;
+	add(item: MenuItemLink): MenuItemLink;
 
 	/**
 	 * Remove a menu item by path.
@@ -259,9 +260,21 @@ export interface PluginAppFsApi {
 	 */
 	select(options: FileSystemSelectOptions): Promise<string | null>;
 
+	/**
+	 * Open a native save dialog and return the chosen path, or `null` if cancelled.
+	 *
+	 * @example
+	 * ```ts
+	 * const path = await app.fs.save({
+	 *   defaultPath: 'commands.json',
+	 *   filters: [{ name: 'JSON', extensions: ['json'] }]
+	 * });
+	 * ```
+	 */
+	save(options?: FileSystemSaveOptions): Promise<string | null>;
+
 	/** Join path segments using the platform separator. */
 	join(...paths: string[]): Promise<string>;
-
 	/**
 	 * Create a file and return a handle for reading or writing.
 	 *
@@ -643,11 +656,42 @@ export interface PluginAppActionsApi {
 		options?: { ownerPluginKey?: string }
 	): Promise<ActionRecord>;
 
+	/** Delete an action by database id. */
+	delete(id: number): Promise<void>;
+
 	/** Delete all actions owned by a plugin. */
 	deleteByOwner(ownerPluginKey: string): Promise<number>;
 
 	/** Return all configured actions as records. */
 	getSnapshot(): ActionRecord[];
+}
+
+/**
+ * Inbound WebSocket API server — plugins register methods and emit events for remote clients.
+ */
+export interface PluginAppApiServerApi {
+	/**
+	 * Register a request method. When called from a plugin scope, the name is prefixed with
+	 * `plugin:<pluginKey>:`.
+	 *
+	 * @example
+	 * ```ts
+	 * app.api.registerMethod('getLeaderboard', async () => rankings.getLeaderboard());
+	 * // → plugin:rankings:getLeaderboard
+	 * ```
+	 */
+	registerMethod(
+		name: string,
+		handler: (params: unknown) => unknown | Promise<unknown>
+	): void;
+
+	/**
+	 * Emit an event to subscribed WebSocket clients. Prefixed with `plugin:<pluginKey>:` in plugin scope.
+	 */
+	emit(event: string, payload?: unknown): Promise<void>;
+
+	/** Remove all methods registered by the current plugin. */
+	unregisterMethods(): void;
 }
 
 /**
@@ -874,6 +918,9 @@ export interface PluginAppApi {
 
 	/** Send events to browser-source overlays. */
 	overlay: PluginAppOverlayApi;
+
+	/** Extend the inbound WebSocket API server with plugin methods and events. */
+	api: PluginAppApiServerApi;
 
 	/**
 	 * Serialize work that touches the same shared resource across concurrent action runs.

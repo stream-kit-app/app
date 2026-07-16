@@ -64,6 +64,22 @@ export class ModRule {
 		return new ModRule();
 	}
 
+	static createFrom(source: ModRule): ModRule {
+		const app = getModerationService().requireApp();
+		const sourceName = source.name.trim() || app.i18n.translate('Untitled rule');
+		const parameters = structuredClone(source.parameters);
+		normalizeConditionGroupOperators(parameters.conditions);
+
+		return new ModRule({
+			name: app.i18n.translate('Copy of {name}', { name: sourceName }),
+			enabled: source.enabled,
+			action: source.action,
+			parameters,
+			platforms: [...source.platforms],
+			priority: source.priority
+		});
+	}
+
 	static fromRecord(record: ModRuleRecord): ModRule {
 		const parameters = record.parameters?.conditions
 			? { ...record.parameters, conditions: structuredClone(record.parameters.conditions) }

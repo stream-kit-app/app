@@ -1,8 +1,7 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
-
 	import { Alert } from '@stream-kit/ui/alert';
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import {
 		PluginCard,
@@ -59,42 +58,30 @@
 	});
 </script>
 
-<Container class="px-6 py-6" size="md">
-	{#if pluginUpdates.availableCount > 0}
-		<Alert
-			variant="warning"
-			class="mb-6"
-			title={t('Updates available')}
-			description={t('{count} plugin update(s) available.', {
-				count: pluginUpdates.availableCount
-			})}
-		/>
-	{/if}
-
-	{#if app.plugins.items.length === 0}
-		<div
-			class="relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
-		>
-			<div
-				class="relative flex size-16 items-center justify-center rounded-2xl bg-dark-800 text-primary"
-			>
-				<Icon icon="ri:plug-line" class="size-7" aria-hidden="true" />
-			</div>
-			<div class="relative flex flex-col gap-1.5">
-				<p class="text-lg font-semibold text-dark-50">{t('No plugins yet')}</p>
-				<p class="text-sm text-dark-300">
-					{t('Install a plugin zip to extend Stream Kit with integrations and features.')}
-				</p>
-			</div>
-			<div class="relative flex flex-wrap items-center justify-center gap-2">
-				<PluginInstallButton />
-			</div>
-		</div>
-	{:else}
+{#if app.plugins.items.length === 0}
+	<EmptyState
+		icon="ri:plug-line"
+		title={t('No plugins yet')}
+		description={t('Install a plugin zip to extend Stream Kit with integrations and features.')}
+	>
+		<PluginInstallButton />
+	</EmptyState>
+{:else}
+	<Container class="px-6 py-6" size="md">
+		{#if pluginUpdates.availableCount > 0}
+			<Alert
+				variant="warning"
+				class="mb-6"
+				title={t('Updates available')}
+				description={t('{count} plugin update(s) available.', {
+					count: pluginUpdates.availableCount
+				})}
+			/>
+		{/if}
 		<div class="grid gap-5 md:grid-cols-2">
 			{#each app.plugins.items as plugin (plugin.key)}
 				<PluginCard {plugin} />
 			{/each}
 		</div>
-	{/if}
-</Container>
+	</Container>
+{/if}

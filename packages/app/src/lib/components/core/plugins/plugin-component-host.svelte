@@ -59,4 +59,4 @@
 	});
 </script>
 
-<div bind:this={target}></div>
+<div bind:this={target} class="flex min-h-full flex-col"></div>

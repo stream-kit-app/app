@@ -24,7 +24,8 @@
 
 	let { command, selected = false, onSelectedChange, isOverlay = false }: Props = $props();
 
-	const t = getCommandsService().requireApp().i18n.t;
+	const app = getCommandsService().requireApp();
+	const t = app.i18n.t;
 	let shiftKey = false;
 
 	const isUnavailable = $derived(command.hasUnavailableDefinitions);
@@ -95,8 +96,20 @@
 				return t('VIP');
 			case 'subscriber':
 				return t('Subscriber');
-			default:
+			default: {
+				if (role.startsWith('role:') || role.startsWith('group:')) {
+					const roleId = role.startsWith('role:')
+						? role.slice('role:'.length)
+						: role.slice('group:'.length);
+					const customRole = app.plugins.tryGet<{
+						roles: { roles: Array<{ id: string; name: string }> };
+					}>('bot')?.roles.roles.find((entry) => entry.id === roleId);
+
+					return customRole ? t('Role: {name}', { name: customRole.name }) : t('Role');
+				}
+
 				return role;
+			}
 		}
 	}
 

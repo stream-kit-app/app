@@ -56,6 +56,11 @@
 			"svelte": "./src/lib/components/container/index.ts",
 			"import": "./src/lib/components/container/index.ts"
 		},
+		"./data-table": {
+			"types": "./src/lib/components/data-table/index.ts",
+			"svelte": "./src/lib/components/data-table/index.ts",
+			"import": "./src/lib/components/data-table/index.ts"
+		},
 		"./command": {
 			"types": "./src/lib/components/command/index.ts",
 			"svelte": "./src/lib/components/command/index.ts",
@@ -70,6 +75,11 @@
 			"types": "./src/lib/components/dropdown/index.ts",
 			"svelte": "./src/lib/components/dropdown/index.ts",
 			"import": "./src/lib/components/dropdown/index.ts"
+		},
+		"./empty-state": {
+			"types": "./src/lib/components/empty-state/index.ts",
+			"svelte": "./src/lib/components/empty-state/index.ts",
+			"import": "./src/lib/components/empty-state/index.ts"
 		},
 		"./heading": {
 			"types": "./src/lib/components/heading/index.ts",

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
 	import { goto } from '$app/navigation';
 
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import { OverlayCard, OverlayInstallButton } from '$lib/components/core/overlay';
 	import { app } from '$lib/core';
@@ -34,34 +34,23 @@
 	});
 </script>
 
-<Container class="px-6 py-6" size="md">
-	{#if app.overlay.items.length === 0}
-		<div
-			class="relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-dashed border-dark-600 bg-dark-900 px-6 py-16 text-center"
-		>
-			<div
-				class="relative flex size-16 items-center justify-center rounded-2xl bg-dark-800 text-primary"
-			>
-				<Icon icon="ri:layout-masonry-line" class="size-7" aria-hidden="true" />
-			</div>
-			<div class="relative flex flex-col gap-1.5">
-				<p class="text-lg font-semibold text-dark-50">{t('No overlays yet')}</p>
-				<p class="text-sm text-dark-300">
-					{t('Create one to get a browser source URL for OBS.')}
-				</p>
-			</div>
-			<div class="relative flex flex-wrap items-center justify-center gap-2">
-				<OverlayInstallButton />
-				<Button class="relative" icon="ri:add-line" onclick={() => goto('/overlays/new')}>
-					{t('New overlay')}
-				</Button>
-			</div>
-		</div>
-	{:else}
+{#if app.overlay.items.length === 0}
+	<EmptyState
+		icon="ri:layout-masonry-line"
+		title={t('No overlays yet')}
+		description={t('Create one to get a browser source URL for OBS.')}
+	>
+		<OverlayInstallButton />
+		<Button class="relative" icon="ri:add-line" onclick={() => goto('/overlays/new')}>
+			{t('New overlay')}
+		</Button>
+	</EmptyState>
+{:else}
+	<Container class="px-6 py-6" size="md">
 		<div class="grid gap-5 md:grid-cols-2">
 			{#each app.overlay.items as overlay (overlay.id)}
 				<OverlayCard {overlay} />
 			{/each}
 		</div>
-	{/if}
-</Container>
+	</Container>
+{/if}

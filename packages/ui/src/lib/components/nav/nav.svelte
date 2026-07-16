@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { NavItem, NavItemChild } from '../../types';
+	import type { NavItem, NavItemChild, NavItemLink } from '../../types';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
@@ -30,11 +30,11 @@
 		return '';
 	}
 
-	function hasActiveChild(item: NavItem): boolean {
+	function hasActiveChild(item: NavItemLink): boolean {
 		return item.children?.some((child) => child.path === activePath) ?? false;
 	}
 
-	function isExpanded(item: NavItem): boolean {
+	function isExpanded(item: NavItemLink): boolean {
 		return expandedPaths.has(item.path) || hasActiveChild(item);
 	}
 
@@ -49,9 +49,9 @@
 
 {#snippet label(item: NavActionItem, showIcon = false)}
 	{#if showIcon && item.icon}
-		<Icon icon={item.icon} width={22} />
+		<Icon icon={item.icon} width={18} class="shrink-0 text-current" />
 	{/if}
-	{getTitle(item)}
+	<span class="truncate">{getTitle(item)}</span>
 {/snippet}
 
 {#snippet navAction(item: NavActionItem, className?: string, showIcon = false)}
@@ -60,7 +60,8 @@
 			type="button"
 			onclick={item.onClick}
 			class={cn(
-				'flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-600',
+				'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-sm font-medium text-dark-200',
+				'hover:bg-dark-900 hover:text-dark-100',
 				className
 			)}
 		>
@@ -73,48 +74,62 @@
 	{/if}
 {/snippet}
 
-{#snippet parentToggle(item: NavItem)}
+{#snippet parentToggle(item: NavItemLink)}
 	<button
 		type="button"
 		onclick={() => toggleExpanded(item.path)}
 		aria-expanded={isExpanded(item)}
 		class={cn(
-			'flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-2 text-left font-medium hover:bg-dark-700',
-			hasActiveChild(item) && 'bg-dark-600'
+			'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-sm font-medium text-dark-200',
+			'hover:bg-dark-900 hover:text-dark-100',
+			hasActiveChild(item) && 'bg-dark-800 text-foreground'
 		)}
 	>
 		{@render label(item, true)}
 		<Icon
 			icon="gg:chevron-down"
-			class={cn('ms-auto transition-transform', isExpanded(item) && 'rotate-180')}
+			class={cn('ms-auto shrink-0 transition-transform', isExpanded(item) && 'rotate-180')}
 		/>
 	</button>
 {/snippet}
 
 {#snippet childItem(child: NavItemChild)}
 	<li>
-		{@render navAction(child, 'ps-14 font-normal hover:bg-dark-700 data-[active=true]:bg-dark-700')}
+		{@render navAction(child, 'ps-10 font-normal')}
 	</li>
 {/snippet}
 
-{#snippet navItem(item: NavItem)}
-	<div class="flex flex-col gap-1">
-		{#if item.children?.length}
-			{@render parentToggle(item)}
-			{#if isExpanded(item)}
-				<ul class="mt-1 flex flex-col gap-1">
-					{#each item.children as child (child.path)}
-						{@render childItem(child)}
-					{/each}
-				</ul>
-			{/if}
-		{:else}
-			{@render navAction(item, undefined, true)}
-		{/if}
+{#snippet sectionLabel(item: NavItem)}
+	<div
+		class="px-3 pt-3 pb-1 text-xs font-extrabold tracking-wide text-dark-400 uppercase"
+		role="presentation"
+	>
+		{getTitle(item)}
 	</div>
 {/snippet}
 
-<nav {...props} class={cn('flex flex-col gap-1', props.class)}>
+{#snippet navItem(item: NavItem)}
+	{#if item.kind === 'label'}
+		{@render sectionLabel(item)}
+	{:else}
+		<div class="flex flex-col gap-0.5">
+			{#if item.children?.length}
+				{@render parentToggle(item)}
+				{#if isExpanded(item)}
+					<ul class="mt-0.5 flex flex-col gap-0.5">
+						{#each item.children as child (child.path)}
+							{@render childItem(child)}
+						{/each}
+					</ul>
+				{/if}
+			{:else}
+				{@render navAction(item, undefined, true)}
+			{/if}
+		</div>
+	{/if}
+{/snippet}
+
+<nav {...props} class={cn('flex flex-col gap-0.5', props.class)}>
 	{#if children}
 		{@render children({ items })}
 	{:else}

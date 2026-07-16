@@ -14,15 +14,16 @@
 	import { applyDndMove } from '@stream-kit/plugin/action-ui/dnd-events';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
 
 	import { buildTierOrder, compareTierOrders } from '../lib/tier-layout';
+	import { Rank } from '../lib/rank.svelte';
 	import { Tier } from '../lib/tier.svelte';
 	import { tryGetRankingsService } from '../lib/get-rankings';
 	import { countUsersByRank, orderRanks } from '../../lib/ranking-engine';
 	import RankCard from './rank-card.svelte';
-	import RankingsEmptyState from './rankings-empty-state.svelte';
 	import TierAddRankRow from './tier-add-rank-row.svelte';
 	import { collapsedGroups, setTierGroupCollapsed } from './tier-group-collapse.svelte';
 
@@ -101,6 +102,10 @@
 		}
 
 		Tier.fromRecord(tier).open();
+	}
+
+	function openEditRankModal(rank: (typeof ranks)[number]) {
+		Rank.fromRecord(rank).open();
 	}
 
 	function handleDragStart(): void {
@@ -298,25 +303,26 @@
 	});
 </script>
 
-<Container class="px-6 py-6" size="md">
-	{#if rankings}
+{#if !rankings}
+	<Container class="px-6 py-6" size="md">
+		<p class="text-sm text-dark-300">{t('Rankings plugin unavailable.')}</p>
+	</Container>
+{:else if tiers.length === 0}
+	<EmptyState
+		icon="ri:medal-line"
+		title={t('No tiers yet')}
+		description={t('Create your first tier to start defining ranks.')}
+		actionLabel={t('Add tier')}
+		onAction={openAddTierModal}
+	/>
+{:else}
+	<Container class="px-6 py-6" size="md">
 		<DragDropProvider
 			{sensors}
 			onDragStart={handleDragStart}
 			onDragOver={handleDragOver}
 			onDragEnd={handleDragEnd}
 		>
-			{#if tiers.length === 0}
-				<RankingsEmptyState
-					class="mt-8"
-					icon="ri:medal-line"
-					title={t('No tiers yet')}
-					description={t('Create your first tier to start defining ranks.')}
-					actionLabel={t('Add tier')}
-					onAction={openAddTierModal}
-				/>
-			{/if}
-
 			<div class="grid gap-3">
 				{#each tierOrder as tierId, tierIndex (tierId)}
 					{@const tier = tierById.get(tierId)}
@@ -360,6 +366,7 @@
 										onSelectedChange={(value, shiftKey) =>
 											selection.handleSelectedChange(rank.id, value, shiftKey)}
 										onDelete={() => void deleteRank(rank.id, rank.name)}
+										onOpen={() => openEditRankModal(rank)}
 									/>
 								{:else}
 									<p class="px-2 py-3 text-sm text-dark-400">
@@ -374,7 +381,8 @@
 									pointsPlaceholder={t('Points')}
 									addLabel={t('Add rank')}
 									onNameInput={(value) => setRankDraft(tierId, { name: value })}
-									onPointsInput={(value) => setRankDraft(tierId, { pointsRequired: value })}
+									onPointsInput={(value) =>
+										setRankDraft(tierId, { pointsRequired: value })}
 									onAdd={() => void createRank(tierId)}
 								/>
 							{/snippet}
@@ -414,7 +422,5 @@
 				{/snippet}
 			</DragOverlay>
 		</DragDropProvider>
-	{:else}
-		<p class="text-sm text-dark-300">{t('Rankings plugin unavailable.')}</p>
-	{/if}
-</Container>
+	</Container>
+{/if}

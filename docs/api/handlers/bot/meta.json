@@ -1,0 +1,9 @@
+{
+  "title": "Bot",
+  "pages": [
+    "index",
+    "add-user-to-role",
+    "remove-user-from-role",
+    "user-in-role"
+  ]
+}

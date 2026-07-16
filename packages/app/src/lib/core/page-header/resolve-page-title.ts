@@ -1,4 +1,5 @@
-import type { MenuItem } from '../menu/types';
+import type { MenuItem, MenuItemLink } from '../menu/types';
+import { isMenuItemLink } from '../menu/types';
 import type { PluginMenuPageEntry } from '../plugins/plugin-menu-pages.svelte';
 
 import { translate } from '$lib/i18n';
@@ -12,11 +13,15 @@ function translateTitle(title: string): string {
 	return translate(title as Parameters<typeof translate>[0]);
 }
 
+function menuLinks(items: MenuItem[]): MenuItemLink[] {
+	return items.filter(isMenuItemLink);
+}
+
 function findMenuChild(
 	items: MenuItem[],
 	pathname: string
-): { parent: MenuItem; childTitle: string } | undefined {
-	for (const item of items) {
+): { parent: MenuItemLink; childTitle: string } | undefined {
+	for (const item of menuLinks(items)) {
 		const child = item.children?.find((entry) => entry.path === pathname);
 
 		if (child?.title) {
@@ -27,8 +32,8 @@ function findMenuChild(
 	return undefined;
 }
 
-function findMenuItem(items: MenuItem[], pathname: string): MenuItem | undefined {
-	return items.find((item) => item.path === pathname);
+function findMenuItem(items: MenuItem[], pathname: string): MenuItemLink | undefined {
+	return menuLinks(items).find((item) => item.path === pathname);
 }
 
 function findPluginPageEntry(
@@ -38,11 +43,8 @@ function findPluginPageEntry(
 	return entries.find((entry) => entry.path === pathname);
 }
 
-function findPluginParentTitle(
-	items: MenuItem[],
-	pathname: string
-): string | undefined {
-	for (const item of items) {
+function findPluginParentTitle(items: MenuItem[], pathname: string): string | undefined {
+	for (const item of menuLinks(items)) {
 		const child = item.children?.find((entry) => entry.path === pathname);
 
 		if (child && item.title) {
@@ -103,7 +105,7 @@ export function resolvePageTitle(
 		};
 	}
 
-	const prefixItem = [...menuItems]
+	const prefixItem = [...menuLinks(menuItems)]
 		.filter((item) => item.path !== '/' && pathname.startsWith(`${item.path}/`))
 		.sort((a, b) => b.path.length - a.path.length)[0];
 

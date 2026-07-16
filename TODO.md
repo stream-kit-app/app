@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: juli 2026  
+> Versie 0.1.0 — laatst bijgewerkt: 16 juli 2026  
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -10,7 +10,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Actiesysteem (trigger → conditie → handler)
 - [x] Twitch plugin (brede EventSub + chat coverage)
 - [x] OBS WebSocket plugin (scenes, sources, stream/record, hotkeys)
-- [x] Bot plugin — commands, timers, moderation, built-in commands, overview settings (voorheen Commands plugin)
+- [x] Bot plugin — commands, timers, moderation, custom roles, built-in commands, overview settings (voorheen Commands plugin)
 - [x] TTS (Piper lokaal, StreamElements-token, ElevenLabs)
 - [x] WebSocket plugin (custom integraties)
 - [x] Core handlers (audio, TypeScript scripts, externe programma's, process watcher)
@@ -23,16 +23,17 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Plugin updates (manifest URL, check/install, startup check)
 - [x] Dashboard (`/`) — stat cards, verbindingen, pluginstatus, running-actions widget
 - [x] i18n (NL + EN)
+- [x] Inbound WebSocket API server (remote control; plugin-extensible via `app.api`)
 
 ---
 
 ## P0 — Productbasis (nodig voor elke richting)
 
 - [~] Dashboard uitbreiden — basis + running-actions klaar; recente events-widget nog open
-- [x] Bot plugin — commands, timers, moderation, built-in commands, overview settings
+- [x] Bot plugin — commands, timers, moderation, custom roles, built-in commands, overview settings
 - [~] Publieke installer + release-kanaal — alpha CI/builds (Windows); stabiel kanaal voor alle platformen nog open
 - [~] Documentatie uitbreiden — plugins (incl. OBS, rankings, overlay) + guide grotendeels klaar; onboarding/starter-templates nog open
-- [~] Import/export — acties JSON import/export klaar; commands backup/restore nog open
+- [x] Import/export — acties + commands JSON import/export klaar
 - [ ] Stabiliseren van API's en database-schema's (richting v1.0)
 
 ---
@@ -46,7 +47,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [ ] Sub-actions / herbruikbare actiegroepen
 - [x] Actie-queues (algemene handler-queue)
 - [ ] Quote-systeem
-- [ ] Credits / rollen-systeem
+- [x] Custom roles — Bot plugin Roles + command permissions (`role:<id>`); sessie-credits via collections/actions
 - [~] Timers & geplande triggers — Core Cron/Scheduled + Bot interval timers; geavanceerde planning nog open
 
 ### Platform-uitbreiding
@@ -96,6 +97,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 ### Hosting & ecosysteem
 
 - [ ] Optionele cloud-hosted overlays (SE-achtige URL)
+- [ ] Cloud file uploads — `InputFile` (`@stream-kit/ui`) ondersteunt nu lokale browse; later uploads naar cloud storage (rank/tier icons, media, etc.)
 - [ ] Widget marketplace / community templates
 - [ ] Volledige StreamElements API-koppeling (niet alleen TTS)
 
@@ -105,7 +107,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 - [ ] Community plugin marketplace
 - [ ] Action templates & delen
-- [ ] Remote control / companion app
+- [~] Remote control / companion app — inbound WebSocket API server (actions/commands/vars/collections/queues/overlays + plugin `app.api`); dedicated companion app nog open
 - [ ] Speaker.bot / Meld Studio integratie
 - [~] Betere test/simulate-modus — Test-knop per actie (dummy trigger data) + overlay runTest; volledige keten-simulator nog open
 - [ ] Merch/store-koppelingen

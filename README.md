@@ -52,7 +52,7 @@ Stream Kit is built around plugins. Each plugin can register triggers, handlers,
 | Plugin                          | Status         | Description                                                                                  |
 | ------------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
 | [**Handlers**](plugins/core/) | In development | Audio playback and custom script handlers                                                    |
-| [**Bot**](plugins/bot/) | In development | Chat bot: commands, timers, moderation, built-in commands |
+| [**Bot**](plugins/bot/) | In development | Chat bot: commands, timers, moderation, custom roles, built-in commands |
 | [**Twitch**](plugins/twitch/)   | In development | OAuth, EventSub, chat, moderation, polls, predictions, raids, subs, channel points, and more |
 | [**YouTube**](plugins/youtube/) | In development | Live chat, memberships, super chats/stickers, moderation, and stream status                  |
 | [**TTS**](plugins/tts/)         | In development | Text-to-speech via StreamElements or ElevenLabs                                              |
@@ -66,7 +66,7 @@ You can also install **external plugins** as `.zip` files from the Plugins page.
 
 ### Bot & commands
 
-Chat bot features are managed by the **Bot** plugin (`@stream-kit/plugin-bot`): custom commands, timers, moderation, and built-in system commands. Open **Bot** in the sidebar (Overview, Commands, Timers, Moderation).
+Chat bot features are managed by the **Bot** plugin (`@stream-kit/plugin-bot`): custom commands, timers, moderation, custom roles, and built-in system commands. Open **Bot** in the sidebar (Overview, Commands, Timers, Moderation, Roles).
 
 Use **Actions** for event-driven automation (triggers, conditions, handlers). Use **Bot → Commands** for chat-triggered shortcuts with their own handler lists.
 

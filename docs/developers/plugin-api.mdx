@@ -114,7 +114,7 @@ await app.fs.writeTextFile('logs/events.log', line, {
 });
 ```
 
-`app.fs` also supports directory listing, file handles (`open` / `create`), copying, renaming, watching, and native file/folder pickers via `app.fs.select`.
+`app.fs` also supports directory listing, file handles (`open` / `create`), copying, renaming, watching, native file/folder pickers via `app.fs.select`, and save dialogs via `app.fs.save`.
 
 See [Plugin getting started](/docs/developers/plugin-getting-started#filesystem-appfs) for common `BaseDirectory` values and zip plugin constraints.
 
@@ -218,7 +218,7 @@ const plugin: Plugin = (app) => ({
       title: 'My Widget',
       description: 'Optional subtitle in the add-widget dialog',
       icon: 'ri:layout-grid-line',
-      columns: 2, // default width: 1 | 2 | 3 | 4
+      columns: 2, // default width: 1 | 2 | 3 | 4 | 5 | 6
       view: 'my-widget'
     }
   ]
@@ -341,6 +341,18 @@ const unsubscribe = app.actionQueues.on('job_started', (context) => {
 Events: `paused`, `resumed`, `idle`, `job_enqueued`, `job_started`, `job_completed`.
 
 Read `app.actionQueues.definitions` for the list of configured queues.
+
+### WebSocket API server (`app.api`)
+
+Extend the inbound [WebSocket API Server](/docs/developers/api-server) with plugin methods and events. Method and event names are prefixed with `plugin:<pluginKey>:`:
+
+```ts
+app.api.registerMethod('getLeaderboard', async () => rankings.getTop(10));
+await app.api.emit('pointsEarned', { user: 'Alice', points: 5 });
+app.api.unregisterMethods(); // onDisable / host also clears on disable
+```
+
+Remote clients call `plugin:your-key:getLeaderboard` and can subscribe to `plugin:your-key.*`.
 
 ### Chat commands (`app.commands`)
 

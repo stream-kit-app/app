@@ -1,11 +1,11 @@
 ---
 title: Bot
-description: Chat commands, timers, auto-moderation, and built-in system commands for Twitch and YouTube.
+description: Chat commands, timers, auto-moderation, custom roles, and built-in system commands for Twitch and YouTube.
 ---
 
 # Bot
 
-The Bot plugin adds **chat commands**, **timers**, and **auto-moderation** for Twitch and/or YouTube.
+The Bot plugin adds **chat commands**, **timers**, **auto-moderation**, and **custom roles** for Twitch and/or YouTube.
 
 ## Requirements
 
@@ -26,6 +26,7 @@ Open **Bot** in the sidebar:
 | **Commands** | Custom chat commands with handler chains |
 | **Timers** | Scheduled actions on an interval |
 | **Moderation** | Custom auto-mod rules |
+| **Roles** | Custom user roles for command permissions |
 
 Plugins can also register commands programmatically via `app.commands.create()` — see [Plugin API — Chat commands](/docs/developers/plugin-api#chat-commands).
 
@@ -63,6 +64,8 @@ YouTube live chat always sends messages as the connected channel. There is no se
 ## Commands
 
 Custom commands work like **Actions** handler chains: aliases, permissions, cooldowns, platform sources, and a top-to-bottom handler chain.
+
+**Allowed roles** include platform roles (Everyone, Mod, Broadcaster, VIP, Subscriber) and custom roles from **Bot → Roles**.
 
 Chat messages matching `{prefix}{command}` are processed after moderation and before built-in commands.
 
@@ -106,6 +109,14 @@ The **Commands** page works like **Actions**: commands are grouped, reorderable,
 - **Drag and drop** — reorder commands within a group, move them between groups, or reorder groups
 - **Collapse** — collapse groups to focus on one section; state is remembered across sessions
 - **Clone** — duplicate a command (including handlers) from the command card
+- **Export / Import** — share commands as a JSON file
+
+### Export and import
+
+Use **Export all** (or **Export selected** when commands are selected) to download a JSON file of your commands. **Import** always creates new commands — existing ones are never replaced.
+
+- Plugin-owned commands (for example seeded by Rankings) are not included in exports.
+- Handlers from plugins that are not installed still import, but show as unavailable until those plugins are available.
 
 ## Timers
 
@@ -127,6 +138,20 @@ Moderators, broadcasters, and owners are exempt by default.
 | **Chat message** | Fires when a custom condition tree matches |
 
 Browse IDs: [Bot triggers](/docs/api/triggers/bot).
+
+## Roles
+
+Custom roles are lists of users you can use as command **permissions** (permission value `role:<id>`). Manage them under **Bot → Roles**, or with handlers in Actions:
+
+| Handler | Description |
+| --- | --- |
+| **Add user to role** | Add a user by username or from trigger data |
+| **Remove user from role** | Remove a user from a role |
+| **User in role** | Write whether the user is a member into an action variable |
+
+These are separate from **command layout groups** on the Commands page (those only organize the UI).
+
+Browse IDs: [Bot handlers](/docs/api/handlers/bot).
 
 ## Related
 

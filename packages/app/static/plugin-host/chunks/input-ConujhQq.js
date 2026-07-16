@@ -4523,7 +4523,7 @@ function co(i, a) {
 						children: (e, i) => {
 							var o = ro(), c = h(o);
 							n(c, () => yt, (e, t) => {
-								t(e, { class: "data-nested:hidden z-60 bg-black/60" });
+								t(e, { class: "z-60 bg-black/60 backdrop-blur-sm" });
 							});
 							var u = t(c, 2);
 							{
@@ -5093,9 +5093,94 @@ function Eo(n, r) {
 }
 ne(["click"]);
 //#endregion
+//#region ../ui/src/lib/components/input/input-file.svelte
+var Do = J("<div class=\"flex items-center gap-3\"><!></div>"), Oo = J("<div class=\"grid gap-2\"><!> <div class=\"flex items-end gap-2\"><div class=\"min-w-0 flex-1\"><!></div> <!> <!></div></div>");
+function ko(e, n) {
+	c(n, !0);
+	let r = O(n, "value", 3, ""), i = O(n, "browseLabel", 3, "Browse"), a = O(n, "clearLabel", 3, "Clear"), o = O(n, "emptyLabel", 3, "No file selected"), s = M(!1);
+	async function l() {
+		if (!p(s)) {
+			G(s, !0);
+			try {
+				let e = await n.onBrowse();
+				if (!e) return;
+				n.onValueChange?.(e);
+			} finally {
+				G(s, !1);
+			}
+		}
+	}
+	var u = Oo(), d = T(u), f = (e) => {
+		var t = Do();
+		_(T(t), () => n.preview), g(t), j(e, t);
+	};
+	F(d, (e) => {
+		n.preview && e(f);
+	});
+	var m = t(d, 2), h = T(m), v = T(h);
+	{
+		let e = K(() => n.placeholder ?? o());
+		Eo(v, {
+			get label() {
+				return n.label;
+			},
+			get placeholder() {
+				return p(e);
+			},
+			get required() {
+				return n.required;
+			},
+			get error() {
+				return n.error;
+			},
+			readonly: !0,
+			get value() {
+				return r();
+			}
+		});
+	}
+	g(h);
+	var y = t(h, 2);
+	At(y, {
+		type: "button",
+		variant: "outline",
+		onclick: () => void l(),
+		get disabled() {
+			return p(s);
+		},
+		get isLoading() {
+			return p(s);
+		},
+		icon: "ri:upload-2-line",
+		children: (e, t) => {
+			E();
+			var n = P();
+			x(() => W(n, i())), j(e, n);
+		},
+		$$slots: { default: !0 }
+	});
+	var S = t(y, 2), C = (e) => {
+		At(e, {
+			type: "button",
+			variant: "ghost",
+			onclick: () => n.onClear(),
+			icon: "ri:close-line",
+			children: (e, t) => {
+				E();
+				var n = P();
+				x(() => W(n, a())), j(e, n);
+			},
+			$$slots: { default: !0 }
+		});
+	};
+	F(S, (e) => {
+		n.onClear && r() && e(C);
+	}), g(m), g(u), j(e, u), b();
+}
+//#endregion
 //#region ../ui/src/lib/components/input/input-file-path.svelte
-var Do = J("<div class=\"grid gap-2\"><div class=\"flex items-end gap-2\"><div class=\"min-w-0 flex-1\"><!></div> <!></div></div>");
-function Oo(e, n) {
+var Ao = J("<div class=\"grid gap-2\"><div class=\"flex items-end gap-2\"><div class=\"min-w-0 flex-1\"><!></div> <!></div></div>");
+function jo(e, n) {
 	c(n, !0);
 	let r = O(n, "value", 3, ""), i = O(n, "browseLabel", 3, "Browse"), a = O(n, "emptyFileLabel", 3, "No file selected"), o = O(n, "emptyFolderLabel", 3, "No folder selected"), s = M(!1);
 	async function l() {
@@ -5110,7 +5195,7 @@ function Oo(e, n) {
 			}
 		}
 	}
-	var u = Do(), d = T(u), f = T(d), m = T(f);
+	var u = Ao(), d = T(u), f = T(d), m = T(f);
 	{
 		let e = K(() => n.placeholder ?? (n.mode === "folder" ? o() : a()));
 		Eo(m, {
@@ -5153,8 +5238,8 @@ function Oo(e, n) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-hotkey.svelte
-var ko = J("<p> </p>"), Ao = J("<div class=\"grid w-full min-w-0 gap-2\"><!> <button type=\"button\"><!> <span><!></span></button> <!></div>");
-function jo(n, r) {
+var Mo = J("<p> </p>"), No = J("<div class=\"grid w-full min-w-0 gap-2\"><!> <button type=\"button\"><!> <span><!></span></button> <!></div>");
+function Po(n, r) {
 	c(r, !0);
 	let i = O(r, "placeholder", 3, "Click and press keys…");
 	O(r, "required", 3, !1);
@@ -5208,7 +5293,7 @@ function jo(n, r) {
 	}, S = () => {
 		v();
 	};
-	var C = Ao(), w = T(C), D = (e) => {
+	var C = No(), w = T(C), D = (e) => {
 		Tr(e, {
 			get for() {
 				return l;
@@ -5243,7 +5328,7 @@ function jo(n, r) {
 		p(u) ? e(z) : p(h) ? e(B, 1) : e(V, -1);
 	}), g(L), g(k);
 	var H = t(k, 2), U = (e) => {
-		var t = ko(), n = T(t, !0);
+		var t = Mo(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, r.error);
 		}), j(e, t);
@@ -5257,8 +5342,8 @@ function jo(n, r) {
 ne(["click", "keydown"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-key-value-list.svelte
-var Mo = J("<div class=\"grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-2\"><!> <!> <!></div>"), No = J("<p class=\"text-sm text-destructive-50\"> </p>"), Po = J("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
-function Fo(n, i) {
+var Fo = J("<div class=\"grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-2\"><!> <!> <!></div>"), Io = J("<p class=\"text-sm text-destructive-50\"> </p>"), Lo = J("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
+function Ro(n, i) {
 	c(i, !0);
 	let a = O(i, "entries", 31, () => H([])), o = O(i, "keyPlaceholder", 3, "KEY"), s = O(i, "valuePlaceholder", 3, "value"), l = O(i, "id", 19, Fe), d = O(i, "addLabel", 3, "Add"), f = O(i, "removeLabel", 3, "Remove"), m = M(H([]));
 	function h(e) {
@@ -5297,7 +5382,7 @@ function Fo(n, i) {
 		}));
 		e.length === t.length && e.every((e, n) => e.key === t[n]?.key && e.value === t[n]?.value) || G(m, h(e), !0);
 	});
-	var C = Po(), w = T(C), D = (e) => {
+	var C = Lo(), w = T(C), D = (e) => {
 		{
 			let t = K(() => `${l()}-label`);
 			Tr(e, {
@@ -5318,7 +5403,7 @@ function Fo(n, i) {
 	});
 	var k = t(w, 2), A = T(k);
 	r(A, 17, () => p(m), (e) => e.id, (e, n) => {
-		var r = Mo(), i = T(r);
+		var r = Fo(), i = T(r);
 		{
 			let e = K(() => `${l()}-${p(n).id}-key`);
 			Eo(i, {
@@ -5381,7 +5466,7 @@ function Fo(n, i) {
 		$$slots: { default: !0 }
 	}), g(k);
 	var I = t(k, 2), L = (e) => {
-		var t = No(), n = T(t, !0);
+		var t = Io(), n = T(t, !0);
 		g(t), x(() => W(n, i.error)), j(e, t);
 	};
 	F(I, (e) => {
@@ -5392,8 +5477,8 @@ function Fo(n, i) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-one-of.svelte
-var Io = J("<span aria-hidden=\"true\">*</span>"), Lo = J(" <!>", 1), Ro = J("<button type=\"button\" role=\"tab\"> </button>"), zo = J("<p> </p>"), Bo = J("<div><!> <div role=\"tablist\"></div> <div class=\"min-w-0\" role=\"tabpanel\"><!></div> <!></div>");
-function Vo(n, i) {
+var zo = J("<span aria-hidden=\"true\">*</span>"), Bo = J(" <!>", 1), Vo = J("<button type=\"button\" role=\"tab\"> </button>"), Ho = J("<p> </p>"), Uo = J("<div><!> <div role=\"tablist\"></div> <div class=\"min-w-0\" role=\"tabpanel\"><!></div> <!></div>");
+function Wo(n, i) {
 	c(i, !0);
 	let a = O(i, "value", 31, () => H({
 		variant: "",
@@ -5414,12 +5499,12 @@ function Vo(n, i) {
 			}
 		});
 	}
-	var u = Bo(), d = T(u), f = (e) => {
+	var u = Uo(), d = T(u), f = (e) => {
 		Tr(e, {
 			children: (e, n) => {
 				E();
-				var r = Lo(), a = h(r), o = t(a), s = (e) => {
-					var t = Io();
+				var r = Bo(), a = h(r), o = t(a), s = (e) => {
+					var t = zo();
 					x(() => N(t, 1, q(xr))), j(e, t);
 				};
 				F(o, (e) => {
@@ -5434,10 +5519,10 @@ function Vo(n, i) {
 	});
 	var m = t(d, 2);
 	r(m, 21, () => i.variants, (e) => e.id, (t, n) => {
-		var r = Ro(), i = T(r, !0);
+		var r = Vo(), i = T(r, !0);
 		g(r), x((t) => {
 			e(r, "id", `tab-${p(n).id}`), e(r, "aria-selected", p(o) === p(n).id), e(r, "aria-controls", `panel-${p(n).id}`), N(r, 1, t), W(i, p(n).label);
-		}, [() => q(Q("rounded-lg px-3 py-1.5 text-sm font-medium transition-colors", p(o) === p(n).id ? "bg-dark-600 text-dark-50" : "text-dark-200 hover:bg-dark-800 hover:text-dark-50"))]), Y("click", r, () => s(p(n).id)), j(t, r);
+		}, [() => q(Q("cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors", p(o) === p(n).id ? "bg-dark-600 text-dark-50" : "text-dark-200 hover:bg-dark-800 hover:text-dark-50"))]), Y("click", r, () => s(p(n).id)), j(t, r);
 	}), g(m);
 	var v = t(m, 2);
 	_(T(v), () => i.panel, () => ({
@@ -5446,7 +5531,7 @@ function Vo(n, i) {
 		setValue: (e) => l(p(o), e)
 	})), g(v);
 	var y = t(v, 2), S = (e) => {
-		var t = zo(), n = T(t, !0);
+		var t = Ho(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, i.error);
 		}), j(e, t);
@@ -5460,7 +5545,7 @@ function Vo(n, i) {
 ne(["click"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-select-text.svelte
-var Ho = new Set([
+var Go = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -5476,13 +5561,13 @@ var Ho = new Set([
 	"contentProps",
 	"error",
 	"value"
-]), Uo = J("<!> <!>", 1), Wo = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Go = J(" <!>", 1), Ko = J("<!> <!> <!>", 1), qo = J("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Jo = J("<ul class=\"absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Yo = J("<p> </p>"), Xo = J("<div><!> <div><!> <div class=\"relative min-w-0 flex-1\"><input/> <!></div></div> <!></div>");
-function Zo(o, s) {
+]), Ko = J("<!> <!>", 1), qo = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Jo = J(" <!>", 1), Yo = J("<!> <!> <!>", 1), Xo = J("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Zo = J("<ul class=\"absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Qo = J("<p> </p>"), $o = J("<div><!> <div><!> <div class=\"relative min-w-0 flex-1\"><input/> <!></div></div> <!></div>");
+function es(o, s) {
 	c(s, !0);
 	let l = O(s, "variables", 19, () => []), u = O(s, "id", 19, Fe), d = O(s, "value", 31, () => H({
 		type: "",
 		value: ""
-	})), f = U(s, Ho), m = K(() => s.selectPlaceholder ?? "Select"), _ = K(() => s.loadingPlaceholder ?? "Loading..."), v = Ya(() => s.items), y = M(null), S = M(!1), C = M(""), D = M(0), k = K(() => {
+	})), f = U(s, Go), m = K(() => s.selectPlaceholder ?? "Select"), _ = K(() => s.loadingPlaceholder ?? "Loading..."), v = Ya(() => s.items), y = M(null), S = M(!1), C = M(""), D = M(0), k = K(() => {
 		if (!p(C)) return l();
 		let e = p(C).toLowerCase();
 		return l().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -5542,7 +5627,7 @@ function Zo(o, s) {
 			G(S, !1);
 		}, 120);
 	};
-	var J = Xo(), te = T(J), ne = (e) => {
+	var J = $o(), te = T(J), ne = (e) => {
 		Tr(e, {
 			get for() {
 				return u();
@@ -5572,7 +5657,7 @@ function Zo(o, s) {
 				d(d().type = e, !0);
 			},
 			children: (e, i) => {
-				var a = Uo(), o = h(a);
+				var a = Ko(), o = h(a);
 				{
 					let e = K(() => Q("flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-xl border border-r-0 outline-none", fr, Sr, He.md, gr(s.error), s.selectClass));
 					n(o, () => Qn, (r, i) => {
@@ -5581,7 +5666,7 @@ function Zo(o, s) {
 								return p(e);
 							},
 							children: (e, r) => {
-								var i = Uo(), a = h(i);
+								var i = Ko(), a = h(i);
 								{
 									let e = K(() => v.loading ? p(_) : p(m));
 									n(a, () => Yn, (t, n) => {
@@ -5617,7 +5702,7 @@ function Zo(o, s) {
 											return p(i);
 										},
 										children: (e, i) => {
-											var a = Ko(), o = h(a);
+											var a = Yo(), o = h(a);
 											n(o, () => zn, (e, t) => {
 												t(e, {
 													class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -5632,7 +5717,7 @@ function Zo(o, s) {
 												i(e, {
 													children: (e, i) => {
 														var a = L(), o = h(a), s = (e) => {
-															var t = Wo(), n = T(t, !0);
+															var t = qo(), n = T(t, !0);
 															g(t), x(() => W(n, p(_))), j(e, t);
 														}, c = (e) => {
 															var i = L();
@@ -5643,7 +5728,7 @@ function Zo(o, s) {
 																	let e = (e, n) => {
 																		let r = () => n?.().selected;
 																		E();
-																		var i = Go(), o = h(i), s = t(o), c = (e) => {
+																		var i = Jo(), o = h(i), s = t(o), c = (e) => {
 																			Z(e, {
 																				icon: "ri:check-line",
 																				class: "size-5 text-primary"
@@ -5718,9 +5803,9 @@ function Zo(o, s) {
 		...f
 	}), [() => Q("min-w-0 w-full truncate rounded-r-xl border outline-none", fr, Sr, He.md, gr(s.error))], void 0, void 0, void 0, !0), i(ae, (e) => G(y, e), () => p(y));
 	var oe = t(ae, 2), se = (n) => {
-		var i = Jo();
+		var i = Zo();
 		r(i, 23, () => p(k), (e) => e.key, (n, r, i) => {
-			var a = qo(), o = T(a), s = T(o), c = T(s, !0);
+			var a = Xo(), o = T(a), s = T(o), c = T(s, !0);
 			g(s);
 			var l = t(s, 2), u = T(l, !0);
 			g(l), g(o), g(a), x((t) => {
@@ -5734,7 +5819,7 @@ function Zo(o, s) {
 		p(S) && p(k).length > 0 && e(se);
 	}), g(X), g(re);
 	var ce = t(re, 2), le = (e) => {
-		var t = Yo(), n = T(t, !0);
+		var t = Qo(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, s.error);
 		}), j(e, t);
@@ -5748,12 +5833,12 @@ function Zo(o, s) {
 ne(["mousedown"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-slider.svelte
-var Qo = J("<div class=\"flex items-center justify-between gap-4\"><!> <span class=\"text-sm text-dark-100\"> </span></div>"), $o = J("<p> </p>"), es = J("<div><!> <input type=\"range\"/> <!></div>");
-function ts(n, r) {
+var ts = J("<div class=\"flex items-center justify-between gap-4\"><!> <span class=\"text-sm text-dark-100\"> </span></div>"), ns = J("<p> </p>"), rs = J("<div><!> <input type=\"range\"/> <!></div>");
+function is(n, r) {
 	c(r, !0);
 	let i = O(r, "id", 19, Fe), o = O(r, "min", 3, 0), s = O(r, "max", 3, 100), l = O(r, "step", 3, 1), u = O(r, "value", 15, 0), d = O(r, "unit", 3, "%");
-	var f = es(), p = T(f), h = (e) => {
-		var n = Qo(), a = T(n);
+	var f = rs(), p = T(f), h = (e) => {
+		var n = ts(), a = T(n);
 		Tr(a, {
 			get for() {
 				return i();
@@ -5774,7 +5859,7 @@ function ts(n, r) {
 	var _ = t(p, 2);
 	m(_);
 	var v = t(_, 2), y = (e) => {
-		var t = $o(), n = T(t, !0);
+		var t = ns(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, r.error);
 		}), j(e, t);
@@ -5788,11 +5873,11 @@ function ts(n, r) {
 ne(["input"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-switch.svelte
-var ns = J("<p> </p>"), rs = J("<div><div class=\"flex items-center gap-3\"><!> <!></div> <!></div>");
-function is(e, r) {
+var as = J("<p> </p>"), os = J("<div><div class=\"flex items-center gap-3\"><!> <!></div> <!></div>");
+function ss(e, r) {
 	c(r, !0);
 	let i = O(r, "checked", 15, !1), a = O(r, "id", 19, Fe);
-	var o = rs(), s = T(o), l = T(s);
+	var o = os(), s = T(o), l = T(s);
 	{
 		let e = K(() => r.label ? `${a()}-label` : void 0), t = K(() => r.error ? !0 : void 0), o = K(() => Q("inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors outline-none", "data-[state=checked]:bg-primary/15", r.error ? "data-[state=unchecked]:bg-destructive/30" : "data-[state=unchecked]:bg-dark-600", Cr, "disabled:cursor-not-allowed disabled:opacity-50"));
 		n(l, () => cr, (r, s) => {
@@ -5852,7 +5937,7 @@ function is(e, r) {
 		r.label && e(d);
 	}), g(s);
 	var f = t(s, 2), m = (e) => {
-		var t = ns(), n = T(t, !0);
+		var t = as(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, r.error);
 		}), j(e, t);
@@ -5863,8 +5948,8 @@ function is(e, r) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-list.svelte
-var as = J("<div class=\"flex items-center gap-2\"><!> <!></div>"), os = J("<p class=\"text-sm text-destructive-50\"> </p>"), ss = J("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
-function cs(n, i) {
+var cs = J("<div class=\"flex items-center gap-2\"><!> <!></div>"), ls = J("<p class=\"text-sm text-destructive-50\"> </p>"), us = J("<div role=\"group\"><!> <div class=\"grid gap-2\"><!> <!></div> <!></div>");
+function ds(n, i) {
 	c(i, !0);
 	let a = O(i, "values", 31, () => H([])), o = O(i, "id", 19, Fe), s = O(i, "addLabel", 3, "Add"), l = O(i, "removeLabel", 3, "Remove"), d = M(H([]));
 	function f(e) {
@@ -5895,7 +5980,7 @@ function cs(n, i) {
 		let e = a(), t = p(d).map((e) => e.value);
 		e.length === t.length && e.every((e, n) => e === t[n]) || G(d, f(e), !0);
 	});
-	var y = ss(), S = T(y), C = (e) => {
+	var y = us(), S = T(y), C = (e) => {
 		{
 			let t = K(() => `${o()}-label`);
 			Tr(e, {
@@ -5916,7 +6001,7 @@ function cs(n, i) {
 	});
 	var w = t(S, 2), D = T(w);
 	r(D, 17, () => p(d), (e) => e.id, (e, n) => {
-		var r = as(), a = T(r);
+		var r = cs(), a = T(r);
 		{
 			let e = K(() => `${o()}-${p(n).id}`);
 			Eo(a, {
@@ -5963,7 +6048,7 @@ function cs(n, i) {
 		$$slots: { default: !0 }
 	}), g(w);
 	var k = t(w, 2), A = (e) => {
-		var t = os(), n = T(t, !0);
+		var t = ls(), n = T(t, !0);
 		g(t), x(() => W(n, i.error)), j(e, t);
 	};
 	F(k, (e) => {
@@ -5974,7 +6059,7 @@ function cs(n, i) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/use-dropdown-scroll.svelte.ts
-var ls = class {
+var fs = class {
 	#e = M(0);
 	get scrollTop() {
 		return p(this.#e);
@@ -6005,12 +6090,12 @@ var ls = class {
 		let n = e.findIndex((e) => e.value === t);
 		n >= 0 && this.scrollToIndex(n);
 	}
-}, us = J("<div class=\"relative w-full\"><div class=\"absolute inset-x-0 top-0\"></div></div>");
-function ds(e, t) {
+}, ps = J("<div class=\"relative w-full\"><div class=\"absolute inset-x-0 top-0\"></div></div>");
+function ms(e, t) {
 	c(t, !0);
 	let n = O(t, "viewportHeight", 3, 200), i = K(() => Qa(t.items.length)), a = K(() => p(i) ? Za(t.items, t.scrollTop, n()) : null), o = K(() => p(i) && p(a) ? p(a).items : t.items);
 	var s = L(), l = h(s), u = (e) => {
-		var n = us();
+		var n = ps();
 		let i;
 		var s = T(n);
 		let c;
@@ -6033,14 +6118,14 @@ function ds(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-select.svelte
-var fs = (e, r = V) => {
+var hs = (e, r = V) => {
 	let i = K(() => r().value), a = K(() => r().label), o = K(() => r().disabled);
 	var s = L(), c = h(s);
 	{
 		let e = (e, n) => {
 			let r = () => n?.().selected;
 			E();
-			var i = ms(), o = h(i), s = t(o), c = (e) => {
+			var i = _s(), o = h(i), s = t(o), c = (e) => {
 				Z(e, {
 					icon: "ri:check-line",
 					class: "size-5 text-primary"
@@ -6070,7 +6155,7 @@ var fs = (e, r = V) => {
 		});
 	}
 	j(e, s);
-}, ps = new Set([
+}, gs = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -6088,10 +6173,10 @@ var fs = (e, r = V) => {
 	"contentProps",
 	"error",
 	"value"
-]), ms = J(" <!>", 1), hs = J("<span>*</span>"), gs = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), _s = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"></div>"), vs = J("<!> <!> <!>", 1), ys = J("<div><div class=\"min-w-0 flex-1\"><!></div> <button type=\"button\" aria-haspopup=\"listbox\"><!></button></div> <!>", 1), bs = J("<p> </p>"), xs = J("<div><!> <!> <!></div>");
-function Ss(r, i) {
+]), _s = J(" <!>", 1), vs = J("<span>*</span>"), ys = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), bs = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"></div>"), xs = J("<!> <!> <!>", 1), Ss = J("<div><div class=\"min-w-0 flex-1\"><!></div> <button type=\"button\" aria-haspopup=\"listbox\"><!></button></div> <!>", 1), Cs = J("<p> </p>"), ws = J("<div><!> <!> <!></div>");
+function Ts(r, i) {
 	c(i, !0);
-	let a = O(i, "allowCustomValue", 3, !0), s = O(i, "id", 19, Fe), l = O(i, "value", 15, ""), u = U(i, ps), f = K(() => i.placeholder), m = K(() => i.loadingPlaceholder ?? "Loading..."), _ = K(() => i.selectAriaLabel ?? "Select value"), v = M(!1), y = M(""), S = M(!1), C = new ls(), w = Ya(() => i.items, () => i.reloadKey?.()), D = new Ua(() => p(y), 100), k = K(() => new Map(w.items.map((e) => [e.value, e]))), A = K(() => p(k).get(l())), P = K(() => p(A)?.value ?? ""), I = K(() => {
+	let a = O(i, "allowCustomValue", 3, !0), s = O(i, "id", 19, Fe), l = O(i, "value", 15, ""), u = U(i, gs), f = K(() => i.placeholder), m = K(() => i.loadingPlaceholder ?? "Loading..."), _ = K(() => i.selectAriaLabel ?? "Select value"), v = M(!1), y = M(""), S = M(!1), C = new fs(), w = Ya(() => i.items, () => i.reloadKey?.()), D = new Ua(() => p(y), 100), k = K(() => new Map(w.items.map((e) => [e.value, e]))), A = K(() => p(k).get(l())), P = K(() => p(A)?.value ?? ""), I = K(() => {
 		if (w.loading) return [];
 		if (!p(S)) return w.items;
 		let e = D.current.trim();
@@ -6137,15 +6222,15 @@ function Ss(r, i) {
 		onfocus: H,
 		onblur: J
 	}));
-	var ie = xs(), X = T(ie), ae = (e) => {
+	var ie = ws(), X = T(ie), ae = (e) => {
 		Tr(e, {
 			get for() {
 				return s();
 			},
 			children: (e, n) => {
 				E();
-				var r = ms(), a = h(r), o = t(a), s = (e) => {
-					var t = hs();
+				var r = _s(), a = h(r), o = t(a), s = (e) => {
+					var t = vs();
 					x(() => N(t, 1, q(xr))), j(e, t);
 				};
 				F(o, (e) => {
@@ -6187,7 +6272,7 @@ function Ss(r, i) {
 					G(v, e, !0);
 				},
 				children: (r, a) => {
-					var o = ys(), s = h(o), c = T(s);
+					var o = Ss(), s = h(o), c = T(s);
 					n(T(c), () => yn, (e, t) => {
 						t(e, ee(() => p(re)));
 					}), g(c);
@@ -6210,7 +6295,7 @@ function Ss(r, i) {
 												return p(r);
 											},
 											children: (e, r) => {
-												var i = vs(), a = h(i);
+												var i = xs(), a = h(i);
 												n(a, () => zn, (e, t) => {
 													t(e, {
 														class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -6234,10 +6319,10 @@ function Ss(r, i) {
 														},
 														children: (e, t) => {
 															var n = L(), r = h(n), i = (e) => {
-																var t = gs(), n = T(t, !0);
+																var t = ys(), n = T(t, !0);
 																g(t), x(() => W(n, p(m))), j(e, t);
 															}, a = (e) => {
-																ds(e, {
+																ms(e, {
 																	get items() {
 																		return p(I);
 																	},
@@ -6245,11 +6330,11 @@ function Ss(r, i) {
 																		return C.scrollTop;
 																	},
 																	get item() {
-																		return fs;
+																		return hs;
 																	}
 																});
 															}, o = (e) => {
-																var t = _s();
+																var t = bs();
 																t.textContent = "No matches found", j(e, t);
 															};
 															F(r, (e) => {
@@ -6285,7 +6370,7 @@ function Ss(r, i) {
 		});
 	}
 	var se = t(oe, 2), ce = (e) => {
-		var t = bs(), n = T(t, !0);
+		var t = Cs(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, i.error);
 		}), j(e, t);
@@ -6297,7 +6382,7 @@ function Ss(r, i) {
 ne(["click"]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-select-text.svelte
-var Cs = new Set([
+var Es = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -6316,14 +6401,14 @@ var Cs = new Set([
 	"error",
 	"suffix",
 	"value"
-]), ws = J("<!> <!>", 1), Ts = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), Es = J(" <!>", 1), Ds = J("<!> <!> <!>", 1), Os = J("<div aria-hidden=\"true\">—</div>"), ks = J("<input/>"), As = J("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), js = J("<ul class=\"absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Ms = J("<div class=\"flex shrink-0 items-center self-center\"><!></div>"), Ns = J("<p> </p>"), Ps = J("<div><!> <div class=\"flex items-center gap-3\"><div><input/> <!> <!> <!></div> <!></div> <!></div>");
-function Fs(o, s) {
+]), Ds = J("<!> <!>", 1), Os = J("<div class=\"px-3 py-1.5 text-sm text-dark-300\"> </div>"), ks = J(" <!>", 1), As = J("<!> <!> <!>", 1), js = J("<div aria-hidden=\"true\">—</div>"), Ms = J("<input/>"), Ns = J("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Ps = J("<ul class=\"absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Fs = J("<div class=\"flex shrink-0 items-center self-center\"><!></div>"), Is = J("<p> </p>"), Ls = J("<div><!> <div class=\"flex items-center gap-3\"><div><input/> <!> <!> <!></div> <!></div> <!></div>");
+function Rs(o, s) {
 	c(s, !0);
 	let l = O(s, "variables", 19, () => []), u = O(s, "valuelessOperators", 19, () => []), d = O(s, "id", 19, Fe), f = O(s, "value", 31, () => H({
 		path: "",
 		type: "equals",
 		value: ""
-	})), v = U(s, Cs), y = K(() => s.selectPlaceholder ?? "Select"), S = K(() => s.loadingPlaceholder ?? "Loading..."), D = Ya(() => s.items), k = M(null), I = M(null), R = M("path"), z = M(!1), B = M(""), V = M(0), J = K(() => {
+	})), v = U(s, Es), y = K(() => s.selectPlaceholder ?? "Select"), S = K(() => s.loadingPlaceholder ?? "Loading..."), D = Ya(() => s.items), k = M(null), I = M(null), R = M("path"), z = M(!1), B = M(""), V = M(0), J = K(() => {
 		if (!p(B)) return l();
 		let e = p(B).toLowerCase();
 		return l().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -6409,7 +6494,7 @@ function Fs(o, s) {
 		se && clearTimeout(se);
 	});
 	let ce = oe("path"), le = oe("value"), ue = K(() => gr(s.error)), $ = K(() => u().includes(f().type));
-	var de = Ps(), fe = T(de), pe = (e) => {
+	var de = Ls(), fe = T(de), pe = (e) => {
 		Tr(e, {
 			get for() {
 				return d();
@@ -6457,7 +6542,7 @@ function Fs(o, s) {
 				f(f().type = e, !0);
 			},
 			children: (e, i) => {
-				var a = ws(), o = h(a);
+				var a = Ds(), o = h(a);
 				{
 					let e = K(() => Q("flex shrink-0 cursor-pointer items-center justify-between gap-2 border border-x-0 outline-none", fr, Sr, He.md, p(ue), s.selectClass ?? "w-32"));
 					n(o, () => Qn, (r, i) => {
@@ -6466,7 +6551,7 @@ function Fs(o, s) {
 								return p(e);
 							},
 							children: (e, r) => {
-								var i = ws(), a = h(i);
+								var i = Ds(), a = h(i);
 								{
 									let e = K(() => D.loading ? p(S) : p(y));
 									n(a, () => Yn, (t, n) => {
@@ -6502,7 +6587,7 @@ function Fs(o, s) {
 											return p(i);
 										},
 										children: (e, i) => {
-											var a = Ds(), o = h(a);
+											var a = As(), o = h(a);
 											n(o, () => zn, (e, t) => {
 												t(e, {
 													class: "flex w-full items-center justify-center py-1 text-dark-300",
@@ -6517,7 +6602,7 @@ function Fs(o, s) {
 												i(e, {
 													children: (e, i) => {
 														var a = L(), o = h(a), s = (e) => {
-															var t = Ts(), n = T(t, !0);
+															var t = Os(), n = T(t, !0);
 															g(t), x(() => W(n, p(S))), j(e, t);
 														}, c = (e) => {
 															var i = L();
@@ -6528,7 +6613,7 @@ function Fs(o, s) {
 																	let e = (e, n) => {
 																		let r = () => n?.().selected;
 																		E();
-																		var i = Es(), o = h(i), s = t(o), c = (e) => {
+																		var i = ks(), o = h(i), s = t(o), c = (e) => {
 																			Z(e, {
 																				icon: "ri:check-line",
 																				class: "size-5 text-primary"
@@ -6590,10 +6675,10 @@ function Fs(o, s) {
 		});
 	});
 	var ve = t(_e, 2), ye = (e) => {
-		var t = Os();
+		var t = js();
 		x((e) => N(t, 1, e), [() => q(Q("flex min-w-0 items-center rounded-r-xl border border-l-0 px-3 text-dark-500 select-none", fr, He.md, p(ue)))]), j(e, t);
 	}, be = (t) => {
-		var n = ks();
+		var n = Ms();
 		m(n), i(n, (e) => G(I, e), () => p(I)), x((t) => {
 			e(n, "placeholder", s.valuePlaceholder), N(n, 1, t), e(n, "aria-invalid", s.error ? !0 : void 0), e(n, "role", l().length > 0 ? "combobox" : void 0), e(n, "aria-autocomplete", l().length > 0 ? "list" : void 0), e(n, "aria-expanded", l().length > 0 ? p(z) && p(R) === "value" && p(J).length > 0 : void 0), e(n, "aria-controls", l().length > 0 ? `${d()}-listbox` : void 0), e(n, "aria-activedescendant", p(z) && p(R) === "value" && p(J).length > 0 ? `${d()}-option-${p(V)}` : void 0);
 		}, [() => q(Q("min-w-0 flex-1 truncate rounded-r-xl border outline-none", fr, Sr, He.md, p(ue)))]), Y("input", n, function(...e) {
@@ -6612,9 +6697,9 @@ function Fs(o, s) {
 		p($) ? e(ye) : e(be, -1);
 	});
 	var xe = t(ve, 2), Se = (n) => {
-		var i = js();
+		var i = Ps();
 		r(i, 23, () => p(J), (e) => e.key, (n, r, i) => {
-			var a = As(), o = T(a), s = T(o), c = T(s, !0);
+			var a = Ns(), o = T(a), s = T(o), c = T(s, !0);
 			g(s);
 			var l = t(s, 2), u = T(l, !0);
 			g(l), g(o), g(a), x((t) => {
@@ -6628,14 +6713,14 @@ function Fs(o, s) {
 		p(z) && p(J).length > 0 && e(Se);
 	}), g(he);
 	var Ce = t(he, 2), we = (e) => {
-		var t = Ms();
+		var t = Fs();
 		_(T(t), () => s.suffix), g(t), j(e, t);
 	};
 	F(Ce, (e) => {
 		s.suffix && e(we);
 	}), g(me);
 	var Te = t(me, 2), Ee = (e) => {
-		var t = Ns(), n = T(t, !0);
+		var t = Is(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, s.error);
 		}), j(e, t);
@@ -6654,7 +6739,7 @@ ne([
 ]);
 //#endregion
 //#region ../ui/src/lib/components/input/input-text-variables.svelte
-var Is = new Set([
+var zs = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -6666,10 +6751,10 @@ var Is = new Set([
 	"id",
 	"placeholder",
 	"class"
-]), Ls = J("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Rs = J("<ul class=\"absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), zs = J("<p> </p>"), Bs = J("<div><!> <div><input/> <!></div> <!></div>");
-function Vs(n, o) {
+]), Bs = J("<li role=\"presentation\"><button type=\"button\" role=\"option\"><span> </span> <span class=\"text-dark-300\"> </span></button></li>"), Vs = J("<ul class=\"absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md\" role=\"listbox\"></ul>"), Hs = J("<p> </p>"), Us = J("<div><!> <div><input/> <!></div> <!></div>");
+function Ws(n, o) {
 	c(o, !0);
-	let s = O(o, "variables", 19, () => []), l = O(o, "value", 15, ""), u = O(o, "id", 19, Fe), d = U(o, Is), f = M(null), m = M(!1), h = M(""), _ = M(0), v = K(() => {
+	let s = O(o, "variables", 19, () => []), l = O(o, "value", 15, ""), u = O(o, "id", 19, Fe), d = U(o, zs), f = M(null), m = M(!1), h = M(""), _ = M(0), v = K(() => {
 		if (!p(h)) return s();
 		let e = p(h).toLowerCase();
 		return s().filter((t) => t.key.toLowerCase().includes(e) || t.label.toLowerCase().includes(e));
@@ -6729,7 +6814,7 @@ function Vs(n, o) {
 	C(() => {
 		I && clearTimeout(I);
 	});
-	var R = Bs(), z = T(R), B = (e) => {
+	var R = Us(), z = T(R), B = (e) => {
 		Tr(e, {
 			get for() {
 				return u();
@@ -6764,9 +6849,9 @@ function Vs(n, o) {
 		...d
 	}), [() => Q("min-w-0 w-full truncate rounded-xl border outline-none", fr, Sr, He.md, gr(o.error))], void 0, void 0, void 0, !0), i(H, (e) => G(f, e), () => p(f));
 	var ee = t(H, 2), J = (n) => {
-		var i = Rs();
+		var i = Vs();
 		r(i, 23, () => p(v), (e) => e.key, (n, r, i) => {
-			var a = Ls(), o = T(a), s = T(o), c = T(s, !0);
+			var a = Bs(), o = T(a), s = T(o), c = T(s, !0);
 			g(s);
 			var l = t(s, 2), d = T(l, !0);
 			g(l), g(o), g(a), x((t) => {
@@ -6780,7 +6865,7 @@ function Vs(n, o) {
 		p(m) && p(v).length > 0 && e(J);
 	}), g(V);
 	var te = t(V, 2), ne = (e) => {
-		var t = zs(), n = T(t, !0);
+		var t = Hs(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, o.error);
 		}), j(e, t);
@@ -6793,4 +6878,4 @@ function Vs(n, o) {
 }
 ne(["mousedown"]);
 //#endregion
-export { oi as _, is as a, Tr as b, Vo as c, Oo as d, Eo as f, ka as g, Ya as h, cs as i, Fo as l, co as m, Fs as n, ts as o, bo as p, Ss as r, Zo as s, Vs as t, jo as u, $r as v, kr as y };
+export { ka as _, ss as a, kr as b, Wo as c, jo as d, ko as f, Ya as g, co as h, ds as i, Ro as l, bo as m, Rs as n, is as o, Eo as p, Ts as r, es as s, Ws as t, Po as u, oi as v, Tr as x, $r as y };

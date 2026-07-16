@@ -5,6 +5,7 @@
 	import Icon from '@iconify/svelte';
 	import { invoke } from '@tauri-apps/api/core';
 
+	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { InputSwitch } from '@stream-kit/ui/input';
@@ -51,6 +52,17 @@
 	const hasDependencyIssues = $derived(hasMissingDependencies || hasDisabledDependencies);
 	const showDevMode = $derived(app.settings.developerMode && plugin.source === 'installed');
 	const isDevMode = $derived(app.settings.isPluginDevMode(plugin.key));
+	const showFooter = $derived(
+		Boolean(pendingUpdate) || plugin.hasSettings || plugin.source === 'installed'
+	);
+
+	function dependencyBadgeVariant(dependency: string): 'success' | 'destructive' {
+		if (missingDependencies.includes(dependency) || disabledDependencies.includes(dependency)) {
+			return 'destructive';
+		}
+
+		return 'success';
+	}
 
 	$effect(() => {
 		const api = plugin.api as { subscribe?: (listener: () => void) => () => void } | undefined;
@@ -186,17 +198,23 @@
 	<div class="flex items-start gap-3 p-4 pb-3">
 		<div
 			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+			aria-hidden="true"
 		>
 			<Icon icon={plugin.icon ?? 'ri:plug-line'} class="size-5" />
 		</div>
 		<div class="min-w-0 flex-1 space-y-2">
+			<h2 class="min-w-0 truncate text-base font-semibold text-dark-50">{plugin.name}</h2>
 			<div class="flex flex-wrap items-center gap-1.5">
-				<h2 class="min-w-0 flex-1 text-base font-semibold text-dark-50">{plugin.name}</h2>
 				{#if plugin.version}
 					<Badge variant="default" size="sm">v{plugin.version}</Badge>
 				{/if}
 				{#if pendingUpdate}
 					<Badge variant="warning" size="sm">v{pendingUpdate.availableVersion}</Badge>
+				{/if}
+				{#if plugin.source === 'installed'}
+					<Badge variant="secondary" size="sm">{t('Installed')}</Badge>
+				{:else}
+					<Badge variant="ghost" size="sm">{t('Built-in')}</Badge>
 				{/if}
 				{#if hasDependencyIssues}
 					<Badge variant="destructive" size="sm">
@@ -206,7 +224,7 @@
 				{/if}
 			</div>
 			{#if plugin.description}
-				<p class="text-sm text-dark-100">{plugin.description}</p>
+				<p class="line-clamp-2 text-sm text-dark-300">{plugin.description}</p>
 			{/if}
 		</div>
 		<InputSwitch
@@ -216,63 +234,85 @@
 	</div>
 
 	<div class="border-t border-dark-700/80 bg-dark-900/50 px-4 py-3">
-		<div class="flex flex-col gap-2 text-sm">
-			{#if showDevMode}
-				<div class="flex items-center justify-between gap-3">
-					<div class="flex flex-col gap-0.5">
-						<span class="text-dark-100">{t('Dev mode')}</span>
-						<span class="text-xs text-dark-300">
-							{t('Watch plugin entry and reload on change')}
-						</span>
-					</div>
-					<InputSwitch
-						class="shrink-0"
-						bind:checked={() => isDevMode, (value) => void setPluginDevModeEnabled(value)}
+		<p class="mb-2 text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
+			{t('Status')}
+		</p>
+		<div class="flex flex-wrap items-center gap-1.5">
+			<Badge variant={isConfigured ? 'success' : 'default'} size="sm">
+				{isConfigured ? t('Configured') : t('Not configured')}
+			</Badge>
+			{#each plugin.dependencies as dependency (dependency)}
+				<Badge variant={dependencyBadgeVariant(dependency)} size="sm">
+					{dependency}
+				</Badge>
+			{/each}
+		</div>
+		{#if hasMissingDependencies}
+			<p class="mt-2 text-xs text-red-400">
+				{t('Missing plugins')}: {missingDependencies.join(', ')}
+			</p>
+		{/if}
+		{#if hasDisabledDependencies}
+			<p class="mt-2 text-xs text-amber-400">
+				{t('Disabled plugins')}: {disabledDependencies.join(', ')}
+			</p>
+		{/if}
+		{#if showDevMode}
+			<div class="mt-3 flex items-center justify-between gap-3">
+				<div class="flex min-w-0 flex-col gap-0.5">
+					<span class="text-sm text-dark-100">{t('Dev mode')}</span>
+					<span class="text-xs text-dark-300">
+						{t('Watch plugin entry and reload on change')}
+					</span>
+				</div>
+				<InputSwitch
+					class="shrink-0"
+					bind:checked={() => isDevMode, (value) => void setPluginDevModeEnabled(value)}
+				/>
+			</div>
+		{/if}
+	</div>
+
+	{#if showFooter}
+		<div class="mt-auto flex items-center gap-2 border-t border-dark-700 p-3">
+			{#if pendingUpdate}
+				<Button
+					size="sm"
+					variant="default"
+					class="min-w-0 flex-1"
+					icon="ri:refresh-line"
+					onclick={updatePlugin}
+					disabled={isUpdating}
+					isLoading={isUpdating}
+				>
+					<span class="truncate">
+						{isUpdating ? t('Updating...') : t('Update plugin')}
+					</span>
+				</Button>
+			{/if}
+			{#if plugin.hasSettings}
+				<Button
+					size="sm"
+					variant={pendingUpdate ? 'outline' : 'default'}
+					class="min-w-0 flex-1"
+					icon="ri:settings-3-line"
+					onclick={openSettings}
+				>
+					<span class="truncate">{t('Configure')}</span>
+				</Button>
+			{/if}
+			{#if plugin.source === 'installed'}
+				<div class="flex shrink-0 items-center gap-1">
+					<Button
+						variant="destructive"
+						size="icon-sm"
+						icon="ri:delete-bin-line"
+						aria-label={t('Remove')}
+						onclick={() => void uninstallPlugin()}
+						{@attach tooltip(() => t('Remove'))}
 					/>
 				</div>
 			{/if}
-			<div class="flex items-center justify-between gap-3">
-				<span class="text-dark-100">{t('Configured')}</span>
-				<Badge variant={isConfigured ? 'success' : 'default'} size="sm">
-					{isConfigured ? t('Yes') : t('No')}
-				</Badge>
-			</div>
-			{#if plugin.dependencies.length > 0}
-				<div class="flex items-start justify-between gap-3">
-					<span class="shrink-0 text-dark-100">{t('Depends on')}</span>
-					<div class="flex flex-wrap justify-end gap-1.5">
-						{#each plugin.dependencies as dependency (dependency)}
-							<Badge variant={hasDependencyIssues ? 'destructive' : 'success'} size="sm">
-								{dependency}
-							</Badge>
-						{/each}
-					</div>
-				</div>
-			{/if}
 		</div>
-	</div>
-
-	<div class="mt-auto flex flex-wrap items-center gap-2 border-t border-dark-700 p-3">
-		{#if pendingUpdate}
-			<Button
-				size="sm"
-				icon="ri:refresh-line"
-				onclick={updatePlugin}
-				disabled={isUpdating}
-				isLoading={isUpdating}
-			>
-				{isUpdating ? t('Updating...') : t('Update plugin')}
-			</Button>
-		{/if}
-		{#if plugin.hasSettings}
-			<Button size="sm" variant="outline" icon="ri:settings-3-line" onclick={openSettings}>
-				{t('Configure')}
-			</Button>
-		{/if}
-		{#if plugin.source === 'installed'}
-			<Button size="sm" variant="destructive" icon="ri:delete-bin-line" onclick={uninstallPlugin}>
-				{t('Remove')}
-			</Button>
-		{/if}
-	</div>
+	{/if}
 </article>

@@ -89,7 +89,7 @@
 				aria-selected={activeVariantId === variant.id}
 				aria-controls={`panel-${variant.id}`}
 				class={cn(
-					'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+					'cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
 					activeVariantId === variant.id
 						? 'bg-dark-600 text-dark-50'
 						: 'text-dark-200 hover:bg-dark-800 hover:text-dark-50'

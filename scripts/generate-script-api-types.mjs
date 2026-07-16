@@ -344,8 +344,8 @@ const PLUGIN_APP_API_STUBS = [
 		'{ path: string; title?: TranslationKey | string; isDisabled?: boolean | (() => boolean); onClick?: () => void }'
 	],
 	[
-		'MenuItem',
-		'{ path: string; title?: TranslationKey | string; icon: string; children?: MenuItemChild[]; isGroupOnly?: boolean; isDisabled?: boolean | (() => boolean); onClick?: () => void; fromPlugin?: boolean }'
+		'MenuItemLink',
+		'{ kind?: \'item\'; path: string; title?: TranslationKey | string; icon: string; children?: MenuItemChild[]; isGroupOnly?: boolean; isDisabled?: boolean | (() => boolean); onClick?: () => void; fromPlugin?: boolean }'
 	],
 	[
 		'Modal',

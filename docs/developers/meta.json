@@ -3,6 +3,7 @@
   "pages": [
     "plugin-getting-started",
     "plugin-api",
+    "api-server",
     "overlay-authoring",
     "installing-plugins"
   ]

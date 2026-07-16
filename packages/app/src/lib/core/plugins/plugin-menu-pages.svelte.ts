@@ -1,4 +1,4 @@
-import type { MenuItem } from '../menu/types';
+import type { MenuItemLink } from '../menu/types';
 import type { RegisteredPlugin } from './registered-plugin.svelte';
 import type {
 	PluginMenuItemChildDefinition,
@@ -19,8 +19,8 @@ export type PluginMenuPageEntry = {
 export class PluginMenuPages {
 	entries = $state.raw<PluginMenuPageEntry[]>([]);
 
-	register(plugin: RegisteredPlugin, definitions: PluginMenuItemDefinition[]): MenuItem[] {
-		const menuItems: MenuItem[] = [];
+	register(plugin: RegisteredPlugin, definitions: PluginMenuItemDefinition[]): MenuItemLink[] {
+		const menuItems: MenuItemLink[] = [];
 		const entries: PluginMenuPageEntry[] = [];
 		const itemKeys = new Set<string>();
 

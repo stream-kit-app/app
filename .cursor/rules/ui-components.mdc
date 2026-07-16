@@ -19,10 +19,12 @@ Before building custom markup for common UI patterns, check whether `@stream-kit
 | `@stream-kit/ui/badge` | Status labels and counts |
 | `@stream-kit/ui/button` | Actions and icon buttons |
 | `@stream-kit/ui/container` | Page width constraints |
+| `@stream-kit/ui/data-table` | Presentational data tables (columns, sticky header, scroll, empty state) |
 | `@stream-kit/ui/dialog` | Low-level dialog primitives (prefer `app.createModal` in the app layer) |
 | `@stream-kit/ui/dropdown` | Menus and action lists |
+| `@stream-kit/ui/empty-state` | Full-area list empty states (icon, title, description, CTA) |
 | `@stream-kit/ui/heading` | Section titles |
-| `@stream-kit/ui/input` | Text, select, checkbox, switch, slider inputs |
+| `@stream-kit/ui/input` | Text, select, checkbox, switch, slider, file, one-of inputs |
 | `@stream-kit/ui/popover` | Anchored popovers |
 | `@stream-kit/ui/scroll-area` | Scrollable regions |
 | `@stream-kit/ui/toggle-group` | Mutually exclusive option toggles (choose A/B, view/edit) |
@@ -55,7 +57,7 @@ See also `@stream-kit/ui/blocks` for declarative page blocks (settings, alerts, 
 
 - **Modals** → `app.createModal` (see `modals.mdc`), not `@stream-kit/ui/dialog` directly.
 - **Confirmations** → `app.confirm.ask()`, not a custom dialog.
-- **Domain-specific layouts** (dashboard grid, stat cards, empty states) may stay custom when no UI component fits.
+- **Domain-specific layouts** (dashboard grid, stat cards) may stay custom when no UI component fits.
 
 ## When adding new UI
 

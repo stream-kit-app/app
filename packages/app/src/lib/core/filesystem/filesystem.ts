@@ -18,11 +18,12 @@ import type {
 	WatchEvent,
 	WatchOptions,
 	WriteFileOptions,
+	FileSystemSaveOptions,
 	FileSystemSelectOptions
 } from './types';
 
 import { join } from '@tauri-apps/api/path';
-import { open as openDialog } from '@tauri-apps/plugin-dialog';
+import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog';
 import {
 	copyFile,
 	create,
@@ -56,6 +57,19 @@ export class Filesystem {
 		});
 
 		if (!selected || Array.isArray(selected)) {
+			return null;
+		}
+
+		return selected;
+	}
+
+	async save(options: FileSystemSaveOptions = {}): Promise<string | null> {
+		const selected = await saveDialog({
+			defaultPath: options.defaultPath,
+			filters: options.filters
+		});
+
+		if (!selected) {
 			return null;
 		}
 

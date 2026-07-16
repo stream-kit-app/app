@@ -42,6 +42,7 @@ async function runBoot(): Promise<void> {
 	await app.actionQueues.load();
 	await app.actions.load();
 	await app.plugins.ready(app);
+	await app.apiServer.init(app);
 	app.lifecycle.emitStarted();
 	await app.settings.load();
 

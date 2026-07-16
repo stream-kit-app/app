@@ -28,17 +28,30 @@
 
 	const t = app.i18n.t;
 
-	const roleItems = [
-		{ value: 'everyone', label: t('Everyone') },
+	const roleItems = $derived.by(() => {
+		const base = [
+			{ value: 'everyone', label: t('Everyone') },
+			{ value: 'mod', label: t('Mod') },
+			{ value: 'broadcaster', label: t('Broadcaster') },
+			{ value: 'vip', label: t('VIP') },
+			{ value: 'subscriber', label: t('Subscriber') }
+		];
+		const customRoles =
+			app.plugins.tryGet<{
+				roles: { roles: Array<{ id: string; name: string }> };
+			}>('bot')?.roles.roles ?? [];
 
-		{ value: 'mod', label: t('Mod') },
-
-		{ value: 'broadcaster', label: t('Broadcaster') },
-
-		{ value: 'vip', label: t('VIP') },
-
-		{ value: 'subscriber', label: t('Subscriber') }
-	];
+		return [
+			...base,
+			...customRoles
+				.slice()
+				.sort((left, right) => left.name.localeCompare(right.name))
+				.map((customRole) => ({
+					value: `role:${customRole.id}`,
+					label: t('Role: {name}', { name: customRole.name })
+				}))
+		];
+	});
 
 	const globalVariables = $derived(getGlobalVariables(app));
 
