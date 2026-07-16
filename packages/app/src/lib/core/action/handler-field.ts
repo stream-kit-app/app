@@ -156,7 +156,8 @@ function initInnerHandlerFieldValue(
 		definition.type === 'select-file-or-folder' ||
 		definition.type === 'code' ||
 		definition.type === 'json' ||
-		definition.type === 'hotkey'
+		definition.type === 'hotkey' ||
+		definition.type === 'color'
 	) {
 		return '';
 	}
@@ -340,7 +341,8 @@ export function isHandlerFieldValueEmpty(
 		definition.type === 'select-file-or-folder' ||
 		definition.type === 'code' ||
 		definition.type === 'json' ||
-		definition.type === 'hotkey'
+		definition.type === 'hotkey' ||
+		definition.type === 'color'
 	) {
 		return !String(value ?? '').trim();
 	}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { OverlayFrameworkId } from '$lib/core/overlay';
+	import type { OverlayFrameworkId, OverlayWidgetId } from '$lib/core/overlay';
 
 	import Icon from '@iconify/svelte';
 
@@ -8,17 +8,59 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { InputText } from '@stream-kit/ui/input';
+	import { ToggleGroup } from '@stream-kit/ui/toggle-group';
 
 	import { app } from '$lib/core';
-	import { getOverlayFrameworkIcon, OVERLAY_FRAMEWORKS } from '$lib/core/overlay';
+	import {
+		getOverlayFrameworkIcon,
+		OVERLAY_FRAMEWORKS,
+		OVERLAY_WIDGET_TEMPLATES
+	} from '$lib/core/overlay';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	const { t } = useI18n();
 
-	let name = $state('My Overlay');
+	type CreateMode = 'choose' | 'build';
+
+	let name = $state('Alerts');
+	let mode = $state<CreateMode>('choose');
+	let widgetTemplate = $state<OverlayWidgetId>('alerts');
 	let framework = $state<OverlayFrameworkId>('svelte');
 	let isCreating = $state(false);
+
+	const modeItems = $derived([
+		{
+			value: 'choose' as const,
+			label: t('Choose an overlay'),
+			icon: 'ri:layout-grid-line'
+		},
+		{
+			value: 'build' as const,
+			label: t('Build an overlay'),
+			icon: 'ri:code-s-slash-line'
+		}
+	]);
+
+	function selectMode(next: CreateMode): void {
+		mode = next;
+
+		if (next === 'choose') {
+			const selected = OVERLAY_WIDGET_TEMPLATES.find((item) => item.id === widgetTemplate);
+			name = selected?.defaultName ?? 'Alerts';
+			return;
+		}
+
+		if (name === 'Alerts' || OVERLAY_WIDGET_TEMPLATES.some((item) => item.defaultName === name)) {
+			name = 'My Overlay';
+		}
+	}
+
+	function selectWidget(id: OverlayWidgetId): void {
+		widgetTemplate = id;
+		const selected = OVERLAY_WIDGET_TEMPLATES.find((item) => item.id === id);
+		name = selected?.defaultName ?? name;
+	}
 
 	async function createOverlay(): Promise<void> {
 		const trimmed = name.trim();
@@ -30,12 +72,26 @@
 		isCreating = true;
 
 		try {
-			await app.overlay.create({ name: trimmed, framework });
-			app.toast.create({
-				title: t('Overlay created'),
-				description: t('Open the project in your editor and follow the README to install, build, and connect to Stream Kit.'),
-				variant: 'success'
-			});
+			if (mode === 'choose') {
+				await app.overlay.create({ name: trimmed, widgetTemplate });
+				app.toast.create({
+					title: t('Overlay created'),
+					description: t(
+						'Your overlay is ready for OBS. Copy the browser source URL and install recommended actions from the configure page.'
+					),
+					variant: 'success'
+				});
+			} else {
+				await app.overlay.create({ name: trimmed, framework });
+				app.toast.create({
+					title: t('Overlay created'),
+					description: t(
+						'Open the project in your editor and follow the README to install, build, and connect to Stream Kit.'
+					),
+					variant: 'success'
+				});
+			}
+
 			await goto('/overlays');
 		} finally {
 			isCreating = false;
@@ -56,6 +112,13 @@
 		</Button>
 
 		<section class="grid gap-6 rounded-xl border border-dark-600 bg-dark-800 p-6">
+			<ToggleGroup
+				value={mode}
+				ariaLabel={t('Overlay create mode')}
+				items={modeItems}
+				onValueChange={selectMode}
+			/>
+
 			<InputText
 				label={t('Name')}
 				value={name}
@@ -66,48 +129,99 @@
 				}}
 			/>
 
-			<div class="grid gap-3">
-				<p class="text-sm font-semibold text-dark-50">{t('Framework')}</p>
-				<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-					{#each OVERLAY_FRAMEWORKS as item (item.id)}
-						{@const isSelected = framework === item.id}
-						<button
-							type="button"
-							aria-pressed={isSelected}
-							class={cn(
-								'group flex flex-col gap-3 rounded-xl border p-4 text-left transition-colors',
-								isSelected
-									? 'border-primary bg-primary/10 ring-1 ring-primary/40'
-									: 'border-dark-600 bg-dark-900/40 hover:border-dark-500 hover:bg-dark-700/40'
-							)}
-							onclick={() => (framework = item.id)}
-						>
-							<div class="flex items-center justify-between gap-2">
-								<div
-									class={cn(
-										'flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
-										isSelected
-											? 'bg-primary/20 text-primary'
-											: 'bg-dark-700 text-dark-100 group-hover:text-primary'
-									)}
-								>
-									<Icon icon={getOverlayFrameworkIcon(item.id)} class="size-5" />
+			{#if mode === 'choose'}
+				<div class="grid gap-3">
+					<p class="text-sm font-semibold text-dark-50">{t('Overlay')}</p>
+					<p class="text-sm text-dark-200">
+						{t('Pick a ready-made widget with configurable options. No build step required.')}
+					</p>
+					<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+						{#each OVERLAY_WIDGET_TEMPLATES as item (item.id)}
+							{@const isSelected = widgetTemplate === item.id}
+							<button
+								type="button"
+								aria-pressed={isSelected}
+								class={cn(
+									'group flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left transition-colors',
+									isSelected
+										? 'border-primary bg-primary/10 ring-1 ring-primary/40'
+										: 'border-dark-600 bg-dark-900/40 hover:border-dark-500 hover:bg-dark-700/40'
+								)}
+								onclick={() => selectWidget(item.id)}
+							>
+								<div class="flex items-center justify-between gap-2">
+									<div
+										class={cn(
+											'flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
+											isSelected
+												? 'bg-primary/20 text-primary'
+												: 'bg-dark-700 text-dark-100 group-hover:text-primary'
+										)}
+									>
+										<Icon icon={item.icon} class="size-5" />
+									</div>
+									{#if isSelected}
+										<Icon
+											icon="ri:checkbox-circle-fill"
+											class="size-5 text-primary"
+										/>
+									{/if}
 								</div>
-								{#if isSelected}
-									<Icon
-										icon="ri:checkbox-circle-fill"
-										class="size-5 text-primary"
-									/>
-								{/if}
-							</div>
-							<div>
-								<p class="font-semibold text-white">{item.name}</p>
-								<p class="mt-1 text-xs text-dark-200">{item.description}</p>
-							</div>
-						</button>
-					{/each}
+								<div>
+									<p class="font-semibold text-white">{t(item.name)}</p>
+									<p class="mt-1 text-xs text-dark-200">{t(item.description)}</p>
+								</div>
+							</button>
+						{/each}
+					</div>
 				</div>
-			</div>
+			{:else}
+				<div class="grid gap-3">
+					<p class="text-sm font-semibold text-dark-50">{t('Framework')}</p>
+					<p class="text-sm text-dark-200">
+						{t('Start from a framework scaffold and customize the project yourself.')}
+					</p>
+					<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+						{#each OVERLAY_FRAMEWORKS as item (item.id)}
+							{@const isSelected = framework === item.id}
+							<button
+								type="button"
+								aria-pressed={isSelected}
+								class={cn(
+									'group flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left transition-colors',
+									isSelected
+										? 'border-primary bg-primary/10 ring-1 ring-primary/40'
+										: 'border-dark-600 bg-dark-900/40 hover:border-dark-500 hover:bg-dark-700/40'
+								)}
+								onclick={() => (framework = item.id)}
+							>
+								<div class="flex items-center justify-between gap-2">
+									<div
+										class={cn(
+											'flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
+											isSelected
+												? 'bg-primary/20 text-primary'
+												: 'bg-dark-700 text-dark-100 group-hover:text-primary'
+										)}
+									>
+										<Icon icon={getOverlayFrameworkIcon(item.id)} class="size-5" />
+									</div>
+									{#if isSelected}
+										<Icon
+											icon="ri:checkbox-circle-fill"
+											class="size-5 text-primary"
+										/>
+									{/if}
+								</div>
+								<div>
+									<p class="font-semibold text-white">{item.name}</p>
+									<p class="mt-1 text-xs text-dark-200">{item.description}</p>
+								</div>
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/if}
 
 			<div class="flex flex-wrap items-center justify-end gap-2 border-t border-dark-700 pt-5">
 				<Button variant="outline" onclick={() => goto('/overlays')}>

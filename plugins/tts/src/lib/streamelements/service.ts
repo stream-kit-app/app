@@ -2,6 +2,7 @@ import type { StreamElementsVoice } from './types';
 import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
 import { TtsPlayer } from '../player';
+import { TTS_SESSION_IDS } from '../session-ids';
 import { fetchStreamElementsSpeech, fetchStreamElementsVoices } from './api';
 
 const VOICE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -19,7 +20,10 @@ export class StreamElementsService {
 
 	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
 		this.store = store;
-		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume));
+		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume, { sessionId: TTS_SESSION_IDS.streamelements }), {
+			sessionId: TTS_SESSION_IDS.streamelements,
+			stopPlayback: (sessionId) => app.audio.stop(sessionId)
+		});
 		await this.syncFromStore();
 	}
 
@@ -107,8 +111,18 @@ export class StreamElementsService {
 			throw new Error('StreamElements is not configured');
 		}
 
+		const generation = this.player.getSpeakGeneration();
 		const blob = await fetchStreamElementsSpeech(this.apiKey, voiceId, text);
-		this.player.enqueue(blob, volume ?? this.volume);
+
+		if (generation !== this.player.getSpeakGeneration()) {
+			return;
+		}
+
+		await this.player.enqueue(blob, volume ?? this.volume);
+	}
+
+	skip(): void {
+		this.player.skip();
 	}
 
 	private invalidateVoiceCache(): void {

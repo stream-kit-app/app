@@ -10,7 +10,7 @@ export const MAIN_WINDOW_SIZE = {
 	height: 800
 } as const;
 
-export const MAIN_WINDOW_CORNER_RADIUS_PX = 8;
+export const MAIN_WINDOW_CORNER_RADIUS_PX = 6;
 
 export function usesBootWindowPresentation(): boolean {
 	return isTauri() && !dev;

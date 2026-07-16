@@ -9,6 +9,7 @@
 		PointerSensor
 	} from '@dnd-kit-svelte/svelte';
 	import Icon from '@iconify/svelte';
+	import { open } from '@tauri-apps/plugin-dialog';
 	import { watch } from 'runed';
 
 	import { Button } from '@stream-kit/ui/button';
@@ -42,6 +43,7 @@
 	let isDragging = $state(false);
 	let bulkEditOpen = $state(false);
 	let bulkEditIds = $state<number[]>([]);
+	let isImporting = $state(false);
 
 	watch(
 		() =>
@@ -69,8 +71,10 @@
 	const selection = createSelectableList(() => orderedSelectableIds);
 
 	const selectableActions = $derived(app.actions.items.filter((action) => action.id != null));
+	const exportableActions = $derived(app.actions.getExportableActions());
 	const totalCount = $derived(selectableActions.length);
 	const groupCount = $derived(groupOrder.length);
+	const hasSelection = $derived(selection.selectedIds.size > 0);
 
 	function handleDragStart(): void {
 		isDragging = true;
@@ -143,7 +147,82 @@
 		openBulkEdit([...selection.selectedIds]);
 	}
 
+	async function exportActions(): Promise<void> {
+		const toExport = hasSelection
+			? exportableActions.filter(
+					(action) => action.id != null && selection.selectedIds.has(action.id)
+				)
+			: exportableActions;
+
+		await app.actions.exportToJson(toExport);
+	}
+
+	async function importActions(): Promise<void> {
+		if (isImporting) {
+			return;
+		}
+
+		const picked = await open({
+			multiple: false,
+			directory: false,
+			filters: [{ name: t('Actions JSON'), extensions: ['json'] }]
+		});
+
+		if (!picked || Array.isArray(picked)) {
+			return;
+		}
+
+		isImporting = true;
+
+		try {
+			await app.actions.importFromJsonPath(picked);
+			layout = buildDndLayout(app.actions.items);
+			groupOrder = getGroupOrder(layout);
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : t('Unknown import error.');
+
+			app.toast.create({
+				title: t('Actions could not be imported'),
+				description: message,
+				variant: 'error'
+			});
+		} finally {
+			isImporting = false;
+		}
+	}
+
 	$effect(() => {
+		const primaryActions = [
+			{
+				id: 'import-actions',
+				label: t('Import'),
+				icon: 'ri:upload-2-line',
+				variant: 'outline' as const,
+				disabled: isImporting,
+				onClick: () => void importActions()
+			},
+			...(exportableActions.length > 0
+				? [
+						{
+							id: 'export-actions',
+							label: hasSelection ? t('Export selected') : t('Export all'),
+							icon: 'ri:download-2-line',
+							variant: 'outline' as const,
+							onClick: () => void exportActions()
+						}
+					]
+				: []),
+			{
+				id: 'add-action',
+				label: t('Add Action'),
+				icon: 'ri:add-fill',
+				onClick: () => {
+					void Action.createDraft().open();
+				}
+			}
+		];
+
 		app.toolbar.set({
 			meta:
 				totalCount > 0
@@ -158,16 +237,7 @@
 							}
 						]
 					: [],
-			primaryActions: [
-				{
-					id: 'add-action',
-					label: t('Add Action'),
-					icon: 'ri:add-fill',
-					onClick: () => {
-						void Action.createDraft().open();
-					}
-				}
-			],
+			primaryActions,
 			selectAll:
 				selectableActions.length > 0
 					? {
@@ -244,17 +314,29 @@
 						{t('Create your first action to automate tasks.')}
 					</p>
 				</div>
-				<Button
-					class="relative"
-					icon="ri:add-fill"
-					onclick={() => Action.createDraft().open()}
-				>
-					{t('Add Action')}
-				</Button>
+				<div class="relative flex flex-wrap items-center justify-center gap-2">
+					<Button
+						class="relative"
+						variant="outline"
+						icon="ri:upload-2-line"
+						disabled={isImporting}
+						isLoading={isImporting}
+						onclick={() => void importActions()}
+					>
+						{isImporting ? t('Importing...') : t('Import')}
+					</Button>
+					<Button
+						class="relative"
+						icon="ri:add-fill"
+						onclick={() => Action.createDraft().open()}
+					>
+						{t('Add Action')}
+					</Button>
+				</div>
 			</div>
 		{/if}
 
-		<div class="grid gap-4">
+		<div class="grid gap-3">
 			{#each groupOrder as groupId, groupIndex (groupId)}
 				{@const groupActions = layout[groupId] ?? []}
 				{@const groupActionIds = groupActions.map((item) => item.id)}
@@ -268,18 +350,16 @@
 					onCollapsedChange={(value) => setActionGroupCollapsed(groupId, value)}
 				>
 					{#snippet children()}
-						<div class="flex flex-col gap-2">
-							{#each groupActions as item, actionIndex (item.id)}
-								<ActionSortableItem
-									action={item.action}
-									{groupId}
-									index={actionIndex}
-									selected={selection.selectedIds.has(item.id)}
-									onSelectedChange={(value, shiftKey) =>
-										selection.handleSelectedChange(item.id, value, shiftKey)}
-								/>
-							{/each}
-						</div>
+						{#each groupActions as item, actionIndex (item.id)}
+							<ActionSortableItem
+								action={item.action}
+								{groupId}
+								index={actionIndex}
+								selected={selection.selectedIds.has(item.id)}
+								onSelectedChange={(value, shiftKey) =>
+									selection.handleSelectedChange(item.id, value, shiftKey)}
+							/>
+						{/each}
 					{/snippet}
 				</ActionGroupSection>
 			{/each}
@@ -304,16 +384,14 @@
 					{#if groupItems}
 						<ActionGroupSection groupId={source.id as string} index={0} isOverlay>
 							{#snippet children()}
-								<div class="flex flex-col gap-2">
-									{#each groupItems as item, actionIndex (item.id)}
-										<ActionSortableItem
-											action={item.action}
-											groupId={source.id as string}
-											index={actionIndex}
-											isOverlay
-										/>
-									{/each}
-								</div>
+								{#each groupItems as item, actionIndex (item.id)}
+									<ActionSortableItem
+										action={item.action}
+										groupId={source.id as string}
+										index={actionIndex}
+										isOverlay
+									/>
+								{/each}
 							{/snippet}
 						</ActionGroupSection>
 					{/if}

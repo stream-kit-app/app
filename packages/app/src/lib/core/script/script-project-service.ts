@@ -2,9 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 import type { PluginAppApi } from '@stream-kit/plugin';
 
-import { indexDts, pluginAppApiDts, triggerDataDts } from '@stream-kit/script-api/runtime';
-
-import { buildScriptExtraLibs } from './build-script-extra-libs';
+import { buildScriptProjectTypeFiles } from './build-script-extra-libs';
 import { openProjectInEditor } from '../opener/open-in-editor';
 import { getApp } from '../registry';
 import { BaseDirectory } from '../filesystem/base-directory';
@@ -12,6 +10,10 @@ import type { UnwatchFn } from '../filesystem/types';
 
 const HANDLER_FILE = 'handler.ts';
 const POLL_INTERVAL_MS = 1_000;
+
+function stripEditorReferenceDirectives(source: string): string {
+	return source.replace(/^\/\/\/ <reference path="[^"]+" \/>\r?\n/gm, '');
+}
 
 const PACKAGE_JSON = {
 	name: 'stream-kit-action-script',
@@ -82,12 +84,14 @@ async function ensureParentDirs(relativePath: string): Promise<void> {
 async function writeProjectFiles(options: ScriptProjectSyncOptions): Promise<void> {
 	const { handlerId, source, actionTriggers = [] } = options;
 	const fs = getFilesystem();
-	const extraLibs = buildScriptExtraLibs({ source, actionTriggers });
-	const indexContent =
-		extraLibs.find((lib) => lib.filePath?.endsWith('/index.d.ts'))?.content ?? indexDts;
+	const triggerIds = actionTriggers.map((trigger) => trigger.id);
+	const projectTypes = buildScriptProjectTypeFiles(triggerIds);
 
 	const files: Array<{ path: string; contents: string }> = [
-		{ path: projectRelativePath(handlerId, HANDLER_FILE), contents: source },
+		{
+			path: projectRelativePath(handlerId, HANDLER_FILE),
+			contents: stripEditorReferenceDirectives(source)
+		},
 		{
 			path: projectRelativePath(handlerId, 'package.json'),
 			contents: JSON.stringify(PACKAGE_JSON, null, 2)
@@ -102,21 +106,28 @@ async function writeProjectFiles(options: ScriptProjectSyncOptions): Promise<voi
 		},
 		{
 			path: projectRelativePath(handlerId, 'node_modules/@stream-kit/script-api/index.d.ts'),
-			contents: indexContent
+			contents: projectTypes.indexDts
 		},
 		{
 			path: projectRelativePath(
 				handlerId,
 				'node_modules/@stream-kit/script-api/plugin-app-api.d.ts'
 			),
-			contents: pluginAppApiDts
+			contents: projectTypes.pluginAppApiDts
 		},
 		{
 			path: projectRelativePath(
 				handlerId,
 				'node_modules/@stream-kit/script-api/trigger-data.d.ts'
 			),
-			contents: triggerDataDts
+			contents: projectTypes.triggerDataDts
+		},
+		{
+			path: projectRelativePath(
+				handlerId,
+				'node_modules/@stream-kit/script-api/handler-context.d.ts'
+			),
+			contents: projectTypes.handlerContextDts
 		}
 	];
 

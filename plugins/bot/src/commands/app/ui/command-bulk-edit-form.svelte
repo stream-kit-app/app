@@ -52,7 +52,7 @@
 		<InputTextSelect
 			label={t('Group')}
 			placeholder={t('Select or enter a group')}
-			items={() => commands.getGroups()}
+			items={() => commands.getGroupSelectItems()}
 			bind:value={groupValue}
 			disabled={!changeGroup}
 		/>

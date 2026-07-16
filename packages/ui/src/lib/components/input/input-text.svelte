@@ -7,9 +7,19 @@
 
 	import { cn } from '../../utils';
 	import {
+		inputFieldAdornmentBorder,
+		inputFieldBorder,
+		inputFieldDisabled,
+		inputFieldErrorMessage,
+		inputFieldFocusRing,
+		inputFieldGroup,
+		inputFieldSurface
+	} from './input-field-classes';
+	import {
 		inputAdornmentSizeClasses,
 		inputIconSizeClasses,
-		inputSizeClasses
+		inputPaddingClasses,
+		inputShellSizeClasses
 	} from './input-size-classes';
 	import Label from './label.svelte';
 
@@ -39,6 +49,7 @@
 		readonly,
 		value,
 		tabindex,
+		class: className,
 		...props
 	}: Props = $props();
 
@@ -50,8 +61,6 @@
 	const hasRightAdornment = $derived(Boolean(appendIcon) || isPasswordField || copyable);
 	const inputReadonly = $derived(copyable ? (readonly ?? true) : readonly);
 	const isCopyableReadonly = $derived(copyable && inputReadonly);
-
-	const sizeClasses = inputSizeClasses;
 
 	async function copyValue(): Promise<void> {
 		await navigator.clipboard.writeText(String(value ?? ''));
@@ -67,22 +76,24 @@
 	}
 </script>
 
-<div class={cn('relative grid w-full min-w-0 gap-2')}>
+<div class={cn('relative grid w-full min-w-0 gap-2', className)}>
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
 	<div
 		class={cn(
-			'relative flex w-full min-w-0 items-center rounded-xl',
-			!isCopyableReadonly && 'has-focus:ring-2 has-focus:ring-primary',
-			error && !isCopyableReadonly && 'has-focus:ring-red-500',
-			props.class
+			'relative flex w-full min-w-0 items-stretch rounded-xl',
+			inputFieldGroup,
+			inputShellSizeClasses[size],
+			!isCopyableReadonly && inputFieldFocusRing(error)
 		)}
 	>
 		{#if prependIcon}
 			<span
 				class={cn(
-					'grid h-full place-items-center rounded-l-xl border border-dark-500 bg-dark-700 text-dark-50',
+					'grid h-full place-items-center rounded-l-xl border text-dark-50 transition-colors',
+					inputFieldAdornmentBorder(error),
+					inputFieldSurface,
 					inputAdornmentSizeClasses[size]
 				)}
 			>
@@ -91,10 +102,17 @@
 		{/if}
 		<input
 			{id}
+			aria-invalid={error ? true : undefined}
+			{value}
+			readonly={inputReadonly}
+			tabindex={isCopyableReadonly ? -1 : tabindex}
+			{...props}
 			class={cn(
-				'min-w-0 w-full truncate border bg-dark-700 text-dark-50 outline-none',
-				sizeClasses[size],
-				error ? 'border-red-500' : 'border-dark-500',
+				'box-border h-full min-h-0 min-w-0 w-full appearance-none truncate border outline-none transition-colors',
+				inputFieldSurface,
+				inputFieldDisabled,
+				inputPaddingClasses[size],
+				inputFieldBorder(error),
 				{
 					'rounded-l-none rounded-r-xl border-l-0': prependIcon && !hasRightAdornment,
 					'rounded-l-none border-l-0': prependIcon && hasRightAdornment,
@@ -102,21 +120,16 @@
 					'rounded-xl': !prependIcon && !hasRightAdornment
 				}
 			)}
-			aria-invalid={error ? true : undefined}
-			{value}
-			readonly={inputReadonly}
-			tabindex={isCopyableReadonly ? -1 : tabindex}
-			{...props}
 			type={isPasswordField ? (showPassword ? 'text' : 'password') : props.type}
 		/>
 		{#if appendIcon}
 			<span
 				class={cn(
-					'grid h-full place-items-center text-dark-50',
+					'grid h-full place-items-center text-dark-50 transition-colors',
 					inputAdornmentSizeClasses[size],
 					isPasswordField || copyable
-						? 'border-y border-r-0 border-l border-dark-500'
-						: 'rounded-r-xl border border-l-0 border-dark-500'
+						? cn('border-y border-r-0 border-l', inputFieldAdornmentBorder(error))
+						: cn('rounded-r-xl border border-l-0', inputFieldAdornmentBorder(error))
 				)}
 			>
 				<Icon icon={appendIcon} class={inputIconSizeClasses[size]} />
@@ -126,7 +139,9 @@
 			<button
 				type="button"
 				class={cn(
-					'grid h-full place-items-center rounded-r-xl border border-dark-500 border-l-dark-600 bg-dark-700 transition-colors',
+					'grid h-full place-items-center rounded-r-xl border transition-colors',
+					inputFieldAdornmentBorder(error),
+					inputFieldSurface,
 					copied ? 'text-success' : 'text-dark-50',
 					inputAdornmentSizeClasses[size]
 				)}
@@ -143,7 +158,9 @@
 			<button
 				type="button"
 				class={cn(
-					'grid h-full place-items-center rounded-r-xl border border-dark-500 border-l-dark-600 bg-dark-700 text-dark-50',
+					'grid h-full place-items-center rounded-r-xl border text-dark-50 transition-colors',
+					inputFieldAdornmentBorder(error),
+					inputFieldSurface,
 					inputAdornmentSizeClasses[size]
 				)}
 				aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -158,6 +175,6 @@
 		{/if}
 	</div>
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

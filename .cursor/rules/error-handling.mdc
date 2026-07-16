@@ -1,0 +1,36 @@
+---
+description: Toast vs throw, and handler next() chain contract
+alwaysApply: true
+---
+
+# Error handling
+
+## Programmatic APIs vs UI
+
+| Surface | Failure style |
+| --- | --- |
+| Service / `PluginAppApi` methods (`ActionQueues`, `OverlayService`, loaders) | **Throw** `Error` (often via `translate(...)`) |
+| User-facing UI and plugin runtime failures | **`app.toast.create({ title, description, variant })`** |
+
+Do not toast from deep service methods that callers expect to `try/catch`. Do not throw for expected soft failures in UI flows (missing OBS connection, empty form) — toast instead.
+
+## Handler `next()` contract
+
+From `run-handler-chain.ts`:
+
+- **Not calling `next()`** stops the chain intentionally (validation failed, early return).
+- **Calling `next()`** continues to the next handler.
+- **Throwing** is an unexpected failure: logged with `console.error`, then the chain **continues**. Prefer soft-fail + toast over throw inside `execute`.
+
+```ts
+execute: (_action, handler, context, next) => {
+	const message = resolveFieldText(handler.fields, 'message', context);
+	if (typeof message !== 'string' || !message.trim()) {
+		return; // stop chain — intentional
+	}
+	// work…
+	next(); // continue
+}
+```
+
+For non-fatal validation (e.g. OBS disconnected), toast and usually still call `next()` so later handlers run — match nearby handlers in the same plugin.

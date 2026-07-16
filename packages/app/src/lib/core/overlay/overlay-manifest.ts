@@ -77,6 +77,16 @@ export type OverlaySettingsFieldJson =
 			min: number;
 			max: number;
 			step?: number;
+			/** Unit shown next to the value (e.g. `%`, `px`). Empty string for no unit. Defaults to `%`. */
+			unit?: string;
+	  }
+	| {
+			type: 'color';
+			key: string;
+			name: string;
+			placeholder?: string;
+			defaultValue?: SettingsFieldValue;
+			required?: boolean;
 	  };
 
 export type OverlaySettingsSectionJson = {
@@ -103,7 +113,7 @@ export type OverlayManifest = {
 
 export const OVERLAY_SETTINGS_EVENT = 'overlay:settings';
 
-const SUPPORTED_FIELD_TYPES = new Set(['text', 'switch', 'checkbox', 'select', 'slider']);
+const SUPPORTED_FIELD_TYPES = new Set(['text', 'switch', 'checkbox', 'select', 'slider', 'color']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -179,9 +189,16 @@ function parseSettingsField(value: unknown, path: string): OverlaySettingsFieldJ
 				type: 'slider',
 				min,
 				max,
-				step: value.step === undefined ? undefined : Number(value.step)
+				step: value.step === undefined ? undefined : Number(value.step),
+				unit: typeof value.unit === 'string' ? value.unit : undefined
 			};
 		}
+		case 'color':
+			return {
+				...base,
+				type: 'color',
+				placeholder: typeof value.placeholder === 'string' ? value.placeholder : undefined
+			};
 		default:
 			throw new Error(`Unsupported settings field type at ${path}: ${type}`);
 	}

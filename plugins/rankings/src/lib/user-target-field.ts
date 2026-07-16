@@ -3,7 +3,13 @@ import type { HandlerFieldDefinition, HandlerFieldInstance } from '@stream-kit/p
 
 import type { RankingsService } from '../app/lib/rankings.svelte';
 import { contextToVariables } from './get-field-value';
-import { extractPlatform, resolveUserIdentity } from './extract-user';
+import {
+	extractPlatform,
+	formatPlatformUserId,
+	localIdFromUserId,
+	parsePlatformFromUserId,
+	resolveUserIdentity
+} from './extract-user';
 import type { RankingsPlatform } from './types';
 
 export type ResolvedUserTarget = {
@@ -97,14 +103,23 @@ function resolveUserFromText(
 		};
 	}
 
+	if (trimmed.includes(':')) {
+		const platform = parsePlatformFromUserId(trimmed);
+
+		return {
+			userId: trimmed,
+			username: localIdFromUserId(trimmed),
+			platform
+		};
+	}
+
 	const platform = extractPlatform(context);
 
-	return resolveUserIdentity({
-		...(typeof context === 'object' && context != null ? context : {}),
-		user: trimmed,
+	return {
+		userId: formatPlatformUserId(platform, trimmed.toLowerCase()),
 		username: trimmed,
 		platform
-	});
+	};
 }
 
 export function resolveUserTarget(

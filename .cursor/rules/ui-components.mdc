@@ -25,6 +25,7 @@ Before building custom markup for common UI patterns, check whether `@stream-kit
 | `@stream-kit/ui/input` | Text, select, checkbox, switch, slider inputs |
 | `@stream-kit/ui/popover` | Anchored popovers |
 | `@stream-kit/ui/scroll-area` | Scrollable regions |
+| `@stream-kit/ui/toggle-group` | Mutually exclusive option toggles (choose A/B, view/edit) |
 | `@stream-kit/ui/tooltip` | Hover/focus hints |
 
 See also `@stream-kit/ui/blocks` for declarative page blocks (settings, alerts, etc.).

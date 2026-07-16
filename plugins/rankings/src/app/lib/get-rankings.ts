@@ -6,5 +6,5 @@ export function getRankingsService(): RankingsService {
 }
 
 export function tryGetRankingsService(): RankingsService | undefined {
-	return rankings;
+	return rankings.isReady ? rankings : undefined;
 }

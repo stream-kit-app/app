@@ -13,6 +13,14 @@
 	import type { SelectItemsSource } from '../../types';
 	import { cn } from '../../utils';
 
+	import {
+		inputFieldBorder,
+		inputFieldDisabled,
+		inputFieldErrorMessage,
+		inputFieldFocusRing,
+		inputFieldGroup,
+		inputFieldSurface
+	} from './input-field-classes';
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
@@ -188,16 +196,19 @@
 	{/if}
 	<div
 		class={cn(
-			'flex w-full min-w-0 items-stretch rounded-xl has-focus:ring-2 has-focus:ring-primary',
-			error && 'has-focus:ring-red-500'
+			'flex w-full min-w-0 items-stretch rounded-xl',
+			inputFieldGroup,
+			inputFieldFocusRing(error)
 		)}
 	>
 		<Select.Root type="single" items={resolvedItems.items} bind:value={value.type}>
 			<Select.Trigger
 				class={cn(
-					'flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-xl border border-r-0 bg-dark-700 text-dark-50 outline-none',
+					'flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-xl border border-r-0 outline-none',
+					inputFieldSurface,
+					inputFieldDisabled,
 					inputSizeClasses.md,
-					error ? 'border-red-500' : 'border-dark-500',
+					inputFieldBorder(error),
 					selectClass
 				)}
 			>
@@ -212,7 +223,7 @@
 					{...contentProps}
 					sideOffset={contentProps?.sideOffset ?? 4}
 					class={cn(
-						'z-50 max-h-(--bits-select-content-available-height) min-w-(--bits-select-anchor-width)',
+						'z-[100] max-h-(--bits-select-content-available-height) min-w-(--bits-select-anchor-width)',
 						'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 						contentProps?.class
 					)}
@@ -261,9 +272,11 @@
 				{placeholder}
 				bind:value={value.value}
 				class={cn(
-					'min-w-0 w-full truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+					'min-w-0 w-full truncate rounded-r-xl border outline-none',
+					inputFieldSurface,
+					inputFieldDisabled,
 					inputSizeClasses.md,
-					error ? 'border-red-500' : 'border-dark-500'
+					inputFieldBorder(error)
 				)}
 				aria-invalid={error ? true : undefined}
 				oninput={variables.length > 0 ? handleInput : undefined}
@@ -276,7 +289,7 @@
 
 			{#if showSuggestions && filteredVariables.length > 0}
 				<ul
-					class="absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
+					class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
 					role="listbox"
 				>
 					{#each filteredVariables as variable, index (variable.key)}
@@ -305,6 +318,6 @@
 	</div>
 
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

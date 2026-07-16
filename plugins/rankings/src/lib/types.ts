@@ -26,6 +26,19 @@ export type UserRankingRecord = {
 	updatedAt: string;
 };
 
+export type PointHistoryKind = 'add' | 'remove' | 'set' | 'watch-time';
+
+export type PointHistoryEntry = {
+	id: string;
+	userId: string;
+	amount: number;
+	balanceAfter: number;
+	source: string;
+	kind: PointHistoryKind;
+	createdAt: string;
+	updatedAt?: string;
+};
+
 export type RankingsSettings = {
 	watchTimeEnabled: boolean;
 	pointsPerMinute: number;
@@ -79,11 +92,13 @@ export const DEFAULT_RANKS: RankRecord[] = [
 export const PLUGIN_GROUP = 'rankings';
 
 export const HANDLER_IDS = {
+	getUserRank: 'rankings:rankings:get-user-rank',
 	addPoints: 'rankings:rankings:add-points',
 	setPoints: 'rankings:rankings:set-points',
 	removePoints: 'rankings:rankings:remove-points',
 	sendRankMessage: 'rankings:rankings:send-rank-message',
-	sendLeaderboardMessage: 'rankings:rankings:send-leaderboard-message'
+	sendLeaderboardMessage: 'rankings:rankings:send-leaderboard-message',
+	sendLeaderboardToOverlay: 'rankings:rankings:send-leaderboard-to-overlay'
 } as const;
 
 export const TRIGGER_IDS = {

@@ -7,6 +7,7 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { Heading } from '@stream-kit/ui/heading';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 	import { InputText } from '@stream-kit/ui/input';
 
@@ -357,15 +358,17 @@
 		{/if}
 
 		<div class="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-			<section class="flex min-h-[28rem] flex-col overflow-hidden rounded-xl border border-dark-600 bg-dark-900">
-				<div class="flex items-center justify-between border-b border-dark-700 px-4 py-3">
+			<section
+				class="sticky top-4 flex h-[28rem] max-h-[70vh] flex-col self-start overflow-hidden rounded-xl border border-dark-600 bg-dark-900 lg:h-[min(36rem,70vh)]"
+			>
+				<div class="flex shrink-0 items-center justify-between border-b border-dark-700 px-4 py-3">
 					<p class="text-sm font-medium text-dark-100">{t('Preview')}</p>
 					{#if !isBuilt}
 						<Badge variant="warning" size="sm">{t('Not built')}</Badge>
 					{/if}
 				</div>
 
-				<div class="relative min-h-0 flex-1 bg-[#0f0f12]">
+				<div class="relative min-h-0 flex-1 overflow-hidden bg-[#0f0f12]">
 					{#if isBuilt}
 						{#key previewKey}
 							<iframe

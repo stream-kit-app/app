@@ -4,11 +4,11 @@
 
 	import Icon from '@iconify/svelte';
 
+	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 
 	import { getConnectionsService } from '../lib/get-connections';
-	import { cn } from '@stream-kit/plugin/utils';
 
 	type Props = {
 		connection: Connection;
@@ -52,87 +52,81 @@
 				return 'secondary' as const;
 		}
 	});
+
+	const connectLabel = $derived(status === 'connected' ? t('Disconnect') : t('Connect'));
+	const logsLabel = t('View logs');
 </script>
 
 <div
-	class={cn(
-		'border-border-dark-600 grid grid-cols-[1fr_auto_auto_auto] items-center rounded-xl border bg-dark-800 transition-colors hover:bg-dark-700'
-	)}
+	class="grid grid-cols-[1fr_auto] items-center rounded-xl border border-dark-600 bg-dark-800 transition-colors hover:bg-dark-700"
 >
 	<button
 		type="button"
-		class="group col-span-4 grid cursor-pointer grid-cols-subgrid items-center px-6 py-4 text-left transition-colors"
+		class="group flex min-w-0 cursor-pointer items-center gap-3 px-3 py-2 text-left transition-colors"
 		onclick={() => connection.open()}
 	>
-		<div class="min-w-0">
-			<p class="truncate font-medium">{connection.name.trim()}</p>
+		<div
+			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+			aria-hidden="true"
+		>
+			<Icon icon="ri:links-line" class="size-5" />
+		</div>
+
+		<div class="min-w-0 flex-1">
+			<p class="truncate font-medium text-dark-50">{connection.name.trim()}</p>
 			<p class="truncate text-sm text-dark-300">{connection.url}</p>
-			<p class="mt-1 text-sm text-dark-400">
-				{t('Retries: {max} · Delay: {delay}s', {
-					max: connection.maxConnectRetries,
-					delay: connection.reconnectDelaySec
-				})}
-			</p>
-			{#if error}
-				<p
-					class={cn(
-						'mt-1 truncate text-sm',
-						status === 'error' ? 'text-destructive-400' : 'text-dark-300'
-					)}
-				>
-					{error}
-				</p>
+			{#if error && status === 'error'}
+				<p class="mt-0.5 truncate text-sm text-destructive-400">{error}</p>
 			{/if}
 		</div>
 
-		<div class="flex flex-wrap justify-end gap-1">
+		<div class="flex shrink-0 flex-wrap justify-end gap-1">
 			<Badge variant={statusVariant}>{statusLabel}</Badge>
 			{#if connection.autoConnect}
 				<Badge variant="outline">{t('Auto-connect')}</Badge>
 			{/if}
 		</div>
 
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<div
-			class="ms-auto flex flex-wrap justify-end gap-1"
-			onclick={(event) => event.stopPropagation()}
-		>
-			{#if connection.id}
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					onclick={() => connection.openLogs()}
-				>
-					{t('View logs')}
-				</Button>
-				{#if status === 'connected'}
-					<Button
-						type="button"
-						variant="destructive"
-						size="sm"
-						onclick={() => connections.disconnect(connection.id!)}
-					>
-						{t('Disconnect')}
-					</Button>
-				{:else}
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onclick={() => connections.connect(connection.id!)}
-					>
-						{t('Connect')}
-					</Button>
-				{/if}
-			{/if}
-		</div>
-
 		<Icon
 			icon="ri:arrow-right-s-line"
-			class="size-5 shrink-0 justify-self-end text-dark-400 transition-colors group-hover:text-dark-200"
+			class="size-5 shrink-0 text-dark-400 transition-colors group-hover:text-dark-200"
 			aria-hidden="true"
 		/>
 	</button>
+
+	{#if connection.id}
+		<div class="flex shrink-0 items-center gap-1 pe-2">
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				icon="ri:file-list-3-line"
+				aria-label={logsLabel}
+				onclick={() => connection.openLogs()}
+				{@attach tooltip(logsLabel)}
+			/>
+			{#if status === 'connected'}
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon"
+					icon="ri:link-unlink"
+					class="text-destructive-400"
+					aria-label={connectLabel}
+					onclick={() => connections.disconnect(connection.id!)}
+					{@attach tooltip(() => connectLabel)}
+				/>
+			{:else}
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon"
+					icon="ri:link"
+					aria-label={connectLabel}
+					onclick={() => connections.connect(connection.id!)}
+					{@attach tooltip(() => connectLabel)}
+				/>
+			{/if}
+		</div>
+	{/if}
 </div>

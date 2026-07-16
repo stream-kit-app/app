@@ -1,6 +1,7 @@
 import type { Filesystem } from '../filesystem';
 import type { OverlayFrameworkId } from './types';
 import type { OverlayManifest } from './overlay-manifest';
+import type { OverlayWidgetId } from './widget-templates';
 
 import { BaseDirectory } from '@tauri-apps/plugin-fs';
 
@@ -17,9 +18,11 @@ import { collectOverlayDefaultConfig, parseOverlayManifest } from './overlay-man
 import {
 	getOverlayScaffoldFile,
 	getOverlayScaffoldFiles,
-	getOverlayScaffoldMetadataPaths
+	getOverlayScaffoldMetadataPaths,
+	overlayReadme
 } from './overlay-scaffold';
 import { getOverlayFramework } from './templates';
+import { getOverlayWidgetTemplate } from './widget-templates';
 
 const OVERLAYS_ROOT = 'overlays';
 const SCAFFOLD_ALWAYS_REFRESH = new Set(['vite.config.ts']);
@@ -50,29 +53,60 @@ export async function createOverlayProject(
 	input: {
 		id: string;
 		name: string;
-		framework: OverlayFrameworkId;
+		framework?: OverlayFrameworkId;
+		widgetTemplate?: OverlayWidgetId;
 	}
 ): Promise<SaveOverlayInput> {
-	const framework = getOverlayFramework(input.framework);
+	const widget = input.widgetTemplate
+		? getOverlayWidgetTemplate(input.widgetTemplate)
+		: null;
+	const frameworkId: OverlayFrameworkId = widget ? 'vanilla' : (input.framework ?? 'svelte');
+	const framework = getOverlayFramework(frameworkId);
 	const dir = overlayDir(input.id);
 
 	await fs.mkdir(dir, { baseDir: BaseDirectory.AppData, recursive: true });
 	await fs.mkdir(`${dir}/dist`, { baseDir: BaseDirectory.AppData, recursive: true });
 
-	if (input.framework !== 'vanilla') {
+	if (frameworkId !== 'vanilla') {
 		await fs.mkdir(`${dir}/src`, { baseDir: BaseDirectory.AppData, recursive: true });
 	}
 
-	for (const file of getOverlayScaffoldFiles(input.framework, input.name, input.id)) {
-		await writeOverlayFileRaw(`${dir}/${file.path}`, file.content);
+	if (widget) {
+		const sharedFiles = getOverlayScaffoldFiles('vanilla', input.name, input.id).filter(
+			(file) =>
+				file.path !== 'dist/index.html' &&
+				file.path !== 'dist/app.js'
+		);
+
+		for (const file of sharedFiles) {
+			if (file.path === 'README.md') {
+				await writeOverlayFileRaw(
+					`${dir}/${file.path}`,
+					overlayReadme(input.name, input.id, 'vanilla')
+				);
+				continue;
+			}
+
+			await writeOverlayFileRaw(`${dir}/${file.path}`, file.content);
+		}
+
+		for (const file of widget.buildFiles(input.id)) {
+			await writeOverlayFileRaw(`${dir}/${file.path}`, file.content);
+		}
+	} else {
+		for (const file of getOverlayScaffoldFiles(frameworkId, input.name, input.id)) {
+			await writeOverlayFileRaw(`${dir}/${file.path}`, file.content);
+		}
 	}
 
-	const manifest = createOverlayManifest({
-		id: input.id,
-		name: input.name,
-		framework: input.framework,
-		expectedEvents: framework.expectedEvents
-	});
+	const manifest = widget
+		? widget.createManifest(input.id, input.name)
+		: createOverlayManifest({
+				id: input.id,
+				name: input.name,
+				framework: frameworkId,
+				expectedEvents: framework.expectedEvents
+			});
 
 	await writeOverlayFile(input.id, 'manifest.json', serializeOverlayManifest(manifest));
 
@@ -81,7 +115,7 @@ export async function createOverlayProject(
 	const record: SaveOverlayInput = {
 		id: input.id,
 		name: input.name,
-		template: input.framework,
+		template: frameworkId,
 		config: defaultConfig,
 		version: manifest.version ?? 0,
 		expectedEvents: manifest.expectedEvents,

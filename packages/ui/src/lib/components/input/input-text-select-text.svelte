@@ -13,6 +13,14 @@
 	import { onDestroy } from 'svelte';
 
 	import { cn } from '../../utils';
+	import {
+		inputFieldBorder,
+		inputFieldDisabled,
+		inputFieldErrorMessage,
+		inputFieldFocusRing,
+		inputFieldGroup,
+		inputFieldSurface
+	} from './input-field-classes';
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
@@ -231,7 +239,7 @@
 	const pathHandlers = createInputHandlers('path');
 	const valueHandlers = createInputHandlers('value');
 
-	const segmentBorder = $derived(error ? 'border-red-500' : 'border-dark-500');
+	const segmentBorder = $derived(inputFieldBorder(error));
 	const isValuelessOperator = $derived(valuelessOperators.includes(value.type));
 </script>
 
@@ -242,8 +250,9 @@
 	<div class="flex items-center gap-3">
 		<div
 			class={cn(
-				'relative grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl has-focus:ring-2 has-focus:ring-primary',
-				error && 'has-focus:ring-red-500'
+				'relative grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl',
+				inputFieldGroup,
+				inputFieldFocusRing(error)
 			)}
 		>
 		<input
@@ -252,8 +261,10 @@
 			placeholder={pathPlaceholder}
 			bind:value={value.path}
 			class={cn(
-				'min-w-0 flex-1 truncate border border-r bg-dark-700 text-dark-50 outline-none',
+				'min-w-0 flex-1 truncate border border-r outline-none',
 				'rounded-l-xl',
+				inputFieldSurface,
+				inputFieldDisabled,
 				inputSizeClasses.md,
 				segmentBorder
 			)}
@@ -279,7 +290,9 @@
 		<Select.Root type="single" items={resolvedItems.items} bind:value={value.type}>
 			<Select.Trigger
 				class={cn(
-					'flex shrink-0 cursor-pointer items-center justify-between gap-2 border border-x-0 bg-dark-700 text-dark-50 outline-none',
+					'flex shrink-0 cursor-pointer items-center justify-between gap-2 border border-x-0 outline-none',
+					inputFieldSurface,
+					inputFieldDisabled,
 					inputSizeClasses.md,
 					segmentBorder,
 					selectClass ?? 'w-32'
@@ -298,7 +311,7 @@
 					{...contentProps}
 					sideOffset={contentProps?.sideOffset ?? 4}
 					class={cn(
-						'z-50 max-h-(--bits-select-content-available-height) min-w-(--bits-select-anchor-width)',
+						'z-[100] max-h-(--bits-select-content-available-height) min-w-(--bits-select-anchor-width)',
 						'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 						contentProps?.class
 					)}
@@ -348,7 +361,8 @@
 		{#if isValuelessOperator}
 			<div
 				class={cn(
-					'flex min-w-0 items-center rounded-r-xl border border-l-0 bg-dark-700 px-3 text-dark-500 select-none',
+					'flex min-w-0 items-center rounded-r-xl border border-l-0 px-3 text-dark-500 select-none',
+					inputFieldSurface,
 					inputSizeClasses.md,
 					segmentBorder
 				)}
@@ -362,7 +376,9 @@
 				placeholder={valuePlaceholder}
 				bind:value={value.value}
 				class={cn(
-					'min-w-0 flex-1 truncate rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+					'min-w-0 flex-1 truncate rounded-r-xl border outline-none',
+					inputFieldSurface,
+					inputFieldDisabled,
 					inputSizeClasses.md,
 					segmentBorder
 				)}
@@ -389,7 +405,7 @@
 		{#if showSuggestions && filteredVariables.length > 0}
 			<ul
 				id={`${id}-listbox`}
-				class="absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
+				class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
 				role="listbox"
 			>
 				{#each filteredVariables as variable, index (variable.key)}
@@ -424,6 +440,6 @@
 	</div>
 
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

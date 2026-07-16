@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+	countUsersByRank,
 	didRankChange,
 	didTierAdvance,
 	orderRanks,
@@ -41,4 +42,49 @@ test('didTierAdvance detects moving into a new tier', () => {
 
 	assert.equal(didTierAdvance(before, after, ordered), true);
 	assert.equal(didTierAdvance(before, resolveProgress(1100, ordered), ordered), false);
+});
+
+test('countUsersByRank groups users by their current milestone', () => {
+	const counts = countUsersByRank(
+		[
+			{
+				userId: '1',
+				username: 'a',
+				platform: 'twitch',
+				totalPoints: 0,
+				watchTimeSeconds: 0,
+				updatedAt: '2026-01-01T00:00:00.000Z'
+			},
+			{
+				userId: '2',
+				username: 'b',
+				platform: 'twitch',
+				totalPoints: 150,
+				watchTimeSeconds: 0,
+				updatedAt: '2026-01-01T00:00:00.000Z'
+			},
+			{
+				userId: '3',
+				username: 'c',
+				platform: 'twitch',
+				totalPoints: 150,
+				watchTimeSeconds: 0,
+				updatedAt: '2026-01-01T00:00:00.000Z'
+			},
+			{
+				userId: '4',
+				username: 'd',
+				platform: 'twitch',
+				totalPoints: 6000,
+				watchTimeSeconds: 0,
+				updatedAt: '2026-01-01T00:00:00.000Z'
+			}
+		],
+		ordered
+	);
+
+	assert.equal(counts.get('rank-b1'), 1);
+	assert.equal(counts.get('rank-b2'), 2);
+	assert.equal(counts.get('rank-s3'), 1);
+	assert.equal(counts.get('rank-b3'), 0);
 });

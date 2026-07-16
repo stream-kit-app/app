@@ -61,7 +61,7 @@
 			class={cn(
 				'w-full rounded-lg text-dark-50 outline-none',
 				inputSizeClasses.md,
-				'focus:border-primary focus:ring-1 focus:ring-primary'
+				'focus:border-ring focus:ring-1 focus:ring-ring'
 			)}
 			oninput={handleInput}
 			onkeydown={stopSelectKeydown}

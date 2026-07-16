@@ -31,7 +31,8 @@ export function createSendRankMessageHandler(app: PluginAppApi, rankings: Rankin
 			const channel = typeof data?.channel === 'string' ? data.channel : undefined;
 			const broadcasterId =
 				typeof data?.broadcasterId === 'string' ? data.broadcasterId : undefined;
-			const template = resolveFieldText(handler.fields, 'message', context.data);
+			const templateValue = getFieldValue(handler.fields, 'message');
+			const template = typeof templateValue === 'string' ? templateValue : '';
 			const asBot = getFieldValue(handler.fields, 'as-bot') === true;
 
 			if (!identity || !template.trim()) {
@@ -39,7 +40,11 @@ export function createSendRankMessageHandler(app: PluginAppApi, rankings: Rankin
 				return;
 			}
 
-			const message = rankings.formatRankMessage(identity.userId, template.trim());
+			await rankings.canonicalizeUserIdentity(identity);
+
+			const message = rankings.formatRankMessage(identity.userId, template.trim(), {
+				username: identity.username
+			});
 			const twitch = app.plugins.tryGet<TwitchPluginApi>('twitch');
 
 			if (asBot && broadcasterId && twitch?.sendChatMessageAsBot) {
@@ -60,7 +65,7 @@ export function createLeaderboardMessageHandler(app: PluginAppApi, rankings: Ran
 			{
 				type: 'text',
 				name: 'Prefix',
-				placeholder: 'Top viewers:'
+				placeholder: 'Top users:'
 			},
 			{
 				type: 'switch',

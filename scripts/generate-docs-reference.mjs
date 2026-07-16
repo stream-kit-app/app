@@ -138,7 +138,22 @@ description: ${JSON.stringify(`${item.pluginName} ${item.kind}: ${item.id}`)}
 		body += `- [Actions guide](/docs/guide/actions)\n`;
 	}
 
-	return { slug: item.id.split(':').pop() ?? item.id, body };
+	return { slug: referenceSlug(item.id), body };
+}
+
+/**
+ * Prefer unique trailing segments of the handler/trigger id so siblings like
+ * `tts:tts:local:speak-text` and `tts:tts:elevenlabs:speak-text` do not collide.
+ * @param {string} id
+ */
+function referenceSlug(id) {
+	const parts = id.split(':').filter(Boolean);
+
+	if (parts.length <= 2) {
+		return parts.at(-1) ?? id;
+	}
+
+	return parts.slice(2).join('-');
 }
 
 /**
@@ -319,7 +334,7 @@ description: ${JSON.stringify(`All ${kind} for the ${pluginKey} plugin.`)}
 | Name | ID |
 | --- | --- |
 ${items.map((item) => {
-	const slug = item.id.split(':').pop();
+	const slug = referenceSlug(item.id);
 	return `| [${item.name}](/docs/api/${kind}/${pluginKey}/${slug}/) | \`${item.id}\` |`;
 }).join('\n')}
 `;

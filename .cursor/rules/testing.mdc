@@ -1,0 +1,37 @@
+---
+description: Use Node built-in test runner for unit tests
+globs:
+  - **/*.{test,spec}.ts
+alwaysApply: false
+---
+
+# Testing
+
+## Runner
+
+Use Node’s built-in test runner — **not** Vitest or Jest:
+
+```ts
+import assert from 'node:assert/strict';
+import test from 'node:test';
+// or: import { describe, it } from 'node:test';
+
+test('ranks users by points', () => {
+	assert.equal(rank(users)[0].id, 'alice');
+});
+```
+
+## Placement
+
+- Co-locate `*.test.ts` next to pure logic modules (engines, parsers, input normalizers).
+- Do not unit-test Svelte UI, Tauri, or full plugin boot in these files.
+
+## Scripts
+
+Wire via package.json, matching existing plugins:
+
+```json
+"test": "node --experimental-strip-types --test src/path/to/file.test.ts"
+```
+
+Prefer testing pure functions over plugin host / Tauri integration.

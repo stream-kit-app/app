@@ -1,4 +1,5 @@
 import type { HandlerTriggerContext, PluginAppApi, PluginStore } from '@stream-kit/plugin';
+import type { SelectItem } from '@stream-kit/ui/types';
 import type { CommandLayoutUpdate, CommandRecord, NewCommandRecord } from './stored-command';
 
 import { loadCommands, saveCommands } from '../../../lib/commands-store';
@@ -74,6 +75,10 @@ export class Commands {
 		return [...new Set(this.items.map((command) => command.group))].sort((left, right) =>
 			left.localeCompare(right)
 		);
+	}
+
+	getGroupSelectItems(): SelectItem[] {
+		return this.getGroups().map((group) => ({ value: group, label: group }));
 	}
 
 	async moveToGroup(

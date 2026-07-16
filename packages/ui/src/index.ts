@@ -11,4 +11,5 @@ export * from './lib/components/input';
 export * from './lib/components/logo';
 export * as Nav from './lib/components/nav';
 export * from './lib/components/scroll-area';
+export * from './lib/components/toggle-group';
 export * from './lib/components/tooltip';

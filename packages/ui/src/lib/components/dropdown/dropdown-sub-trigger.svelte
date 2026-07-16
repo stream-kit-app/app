@@ -5,15 +5,16 @@
 	import { cn } from '../../utils';
 
 	type Props = DropdownMenu.SubTriggerProps;
-	const { children, ...props }: Props = $props();
+	const { children, class: className, openDelay = 100, ...props }: Props = $props();
 </script>
 
 <DropdownMenu.SubTrigger
 	{...props}
+	{openDelay}
 	class={cn(
 		'flex cursor-pointer items-center justify-between gap-2 rounded-md px-4 py-2 outline-none hover:bg-dark-700',
 		'data-[state=open]:bg-dark-700',
-		props.class
+		className
 	)}
 >
 	{@render children?.()}

@@ -400,7 +400,27 @@ const PLUGIN_APP_API_STUBS = [
 		'ActionQueueStats',
 		'{ pending: number; active: number; paused: boolean; pendingActions: QueuedActionEntry[]; activeActions: QueuedActionEntry[] }'
 	],
-	['HotkeyEventContext', '{ shortcut: string; modifiers: string[]; key: string }']
+	['HotkeyEventContext', '{ shortcut: string; modifiers: string[]; key: string }'],
+	[
+		'ToolbarMetaItem',
+		'{ icon?: string; label: string }'
+	],
+	[
+		'ToolbarAction',
+		"{ id: string; label: string; icon?: string; variant?: 'default' | 'outline' | 'destructive' | 'ghost'; size?: 'default' | 'sm' | 'lg' | 'xs'; disabled?: boolean; onClick: () => void | Promise<void> }"
+	],
+	[
+		'ToolbarComponent',
+		'{ id: string; component: unknown; props?: Record<string, unknown> }'
+	],
+	[
+		'ToolbarSelectAll',
+		'{ label: string; checked: boolean; onChange: (checked: boolean) => void }'
+	],
+	[
+		'ToolbarConfig',
+		'{ meta?: ToolbarMetaItem[]; primaryActions?: ToolbarAction[]; primaryComponents?: ToolbarComponent[]; selectAll?: ToolbarSelectAll | null; actions?: ToolbarAction[] }'
+	]
 ];
 
 function collectDeclaredTypeNames(content) {
@@ -419,7 +439,11 @@ function buildPluginAppApiDts() {
 	const withoutImports = stripImports(content);
 	// Drop `export` so all declarations become global ambient types, matching the
 	// unqualified `PluginAppApi` reference used from index.d.ts.
-	const ambient = withoutImports.replace(/^export\s+/gm, '');
+	const ambient = withoutImports
+		.replace(/^export\s+/gm, '')
+		// Drop `type { Foo, Bar }` re-export blocks — they become invalid ambient
+		// syntax after `export` is stripped, and the types are provided as stubs.
+		.replace(/^type\s*\{[\s\S]*?\};\s*\n*/gm, '');
 	const declaredNames = collectDeclaredTypeNames(ambient);
 
 	const stubs = PLUGIN_APP_API_STUBS.filter(([name]) => !declaredNames.has(name))

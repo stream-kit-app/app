@@ -368,6 +368,11 @@ var D = class n {
 		onOpenAutoFocus: this.onOpenAutoFocus,
 		onCloseAutoFocus: this.onCloseAutoFocus
 	};
-}, A = E();
+}, A = Symbol.for("stream-kit.ui.tooltip.tether");
+function j() {
+	let e = globalThis;
+	return e[A] || (e[A] = E()), e[A];
+}
+var M = j();
 //#endregion
-export { O as i, k as n, D as r, A as t };
+export { O as i, k as n, D as r, M as t };

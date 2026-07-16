@@ -10,7 +10,7 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCode } from '@stream-kit/ui/input';
 
-	import { buildScriptExtraLibs } from '$lib/core/script/build-script-extra-libs';
+	import { buildScriptExtraLibs, buildScriptHandlerUri } from '$lib/core/script/build-script-extra-libs';
 	import {
 		openScriptProjectInEditor,
 		syncScriptProjectToDisk,
@@ -79,7 +79,8 @@
 		action?.triggers.map((trigger) => ({ id: trigger.definition.id })) ?? []
 	);
 
-	const extraLibs = $derived(buildScriptExtraLibs({ actionTriggers }));
+	const extraLibs = $derived(buildScriptExtraLibs({ actionTriggers, handlerId }));
+	const modelUri = $derived(buildScriptHandlerUri(handlerId));
 
 	async function openInEditor(): Promise<void> {
 		openingEditor = true;
@@ -201,6 +202,7 @@
 	{oninput}
 	{language}
 	{extraLibs}
+	{modelUri}
 	variables={contextVariables}
 	variablesTitle={t('Variables')}
 	variablesAriaLabel={t('Insert variable')}

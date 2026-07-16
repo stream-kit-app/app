@@ -173,7 +173,8 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 		fs: createFilesystemApi(app.fs),
 		audio: {
 			play: app.audio.play.bind(app.audio),
-			playFile: app.audio.playFile.bind(app.audio)
+			playFile: app.audio.playFile.bind(app.audio),
+			stop: app.audio.stop.bind(app.audio)
 		},
 		media: {
 			getFileDurationMs: getVideoFileDurationMs
@@ -279,6 +280,17 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 		},
 		opener: {
 			openUrl: app.opener.openUrl.bind(app.opener)
+		},
+		overlay: {
+			get items() {
+				return app.overlay.items.map((overlay) => ({
+					id: overlay.id,
+					name: overlay.name,
+					expectedEvents: overlay.expectedEvents ?? []
+				}));
+			},
+			broadcast: (overlayId: string, event: string, payload?: unknown) =>
+				app.overlay.broadcast(overlayId, event, payload)
 		},
 		withResourceLock
 	} satisfies PluginAppApi;

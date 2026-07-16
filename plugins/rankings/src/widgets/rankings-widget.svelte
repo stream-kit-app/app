@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { RankingsPluginApi } from '../lib/plugin-api';
 	import type { PluginWidgetProps } from '@stream-kit/plugin';
 
+	import { tryGetRankingsService } from '../app/lib/get-rankings';
 	import { orderRanks, resolveProgress } from '../lib/ranking-engine';
 
 	const LEADERBOARD_PATH = '/plugins/rankings/rankings/leaderboard';
@@ -9,18 +9,16 @@
 	let { app }: PluginWidgetProps = $props();
 
 	const t = $derived(app.i18n.t);
-	const plugin = $derived(app.plugins.tryGet<RankingsPluginApi>('rankings'));
-	const stats = $derived(plugin?.rankings.getStats());
-	const ordered = $derived(
-		plugin?.rankings ? orderRanks(plugin.rankings.tiers, plugin.rankings.ranks) : []
-	);
+	const rankings = $derived(tryGetRankingsService());
+	const stats = $derived(rankings?.getStats());
+	const ordered = $derived(rankings ? orderRanks(rankings.tiers, rankings.ranks) : []);
 </script>
 
-{#if plugin && stats}
+{#if rankings && stats}
 	<a href={LEADERBOARD_PATH} class="block space-y-4 text-sm transition hover:opacity-90">
 		<div class="grid grid-cols-2 gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Viewers')}</p>
+				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Users')}</p>
 				<p class="text-2xl font-semibold text-dark-50">{stats.totalUsers}</p>
 			</div>
 			<div>

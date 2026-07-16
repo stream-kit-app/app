@@ -1,0 +1,33 @@
+---
+description: Dependency boundaries between ui, plugin, core, app, and plugins
+globs:
+  - packages/ui/**/*
+  - packages/plugin/**/*
+  - packages/core/**/*
+  - plugins/**/*
+alwaysApply: false
+---
+
+# Package boundaries
+
+## `@stream-kit/ui`
+
+App-agnostic Svelte primitives. **Do not** import from `packages/app`, `$lib`, SvelteKit routes, app stores, app i18n, or Tauri. Keep exports theme-token based; the app supplies Tailwind tokens.
+
+## Plugins
+
+| Import from | For |
+| --- | --- |
+| `@stream-kit/plugin` | Types (`Plugin`, `PluginAppApi`, `HandlerDefinitionProps`, …) — prefer `import type` |
+| `@stream-kit/core` | Runtime helpers (`getFieldValue` patterns, interpolate, conditions) |
+| `@stream-kit/ui/<subpath>` | Shared UI components |
+
+Do not import other first-party plugin packages as hard dependencies for cross-plugin features — use `app.plugins.get` / `tryGet` helpers.
+
+## First-party `$lib` alias
+
+Vite may resolve `$lib` → `packages/app/src/lib` for monorepo plugins (`create-vite-build-config.js`). Treat that as **monorepo-only**. Prefer `@stream-kit/ui` or plugin-local code for anything that should stay portable; don’t grow new `$lib` couplings for shared UI.
+
+## App
+
+Do not import plugin packages into `packages/app` source. Plugins load at runtime via the plugin host / manifests.

@@ -167,7 +167,7 @@ export async function seedRankingsDefaults(
 			enabled: false,
 			handlers: [
 				createHandler(HANDLER_IDS.sendLeaderboardMessage, [
-					{ key: 'prefix', value: 'Top viewers:' },
+					{ key: 'prefix', value: 'Top users:' },
 					{ key: 'as-bot', value: true }
 				])
 			],

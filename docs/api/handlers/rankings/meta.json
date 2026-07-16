@@ -2,10 +2,12 @@
   "title": "Rankings",
   "pages": [
     "index",
+    "get-user-rank",
     "add-points",
     "set-points",
     "remove-points",
     "send-rank-message",
-    "send-leaderboard-message"
+    "send-leaderboard-message",
+    "send-leaderboard-to-overlay"
   ]
 }

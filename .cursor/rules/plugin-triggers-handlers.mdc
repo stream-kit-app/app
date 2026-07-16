@@ -1,0 +1,48 @@
+---
+description: Conventions for plugin trigger and handler definitions
+globs:
+  - plugins/**/src/handler/**/*
+  - plugins/**/src/trigger/**/*
+  - packages/app/src/lib/core/overlay/handlers/**/*
+  - packages/app/src/lib/core/overlay/triggers/**/*
+alwaysApply: false
+---
+
+# Plugin triggers & handlers
+
+## Shape
+
+Export factories that take `app: PluginAppApi` (and optional services) and return an object that `satisfies HandlerDefinitionProps` / `TriggerDefinitionProps`:
+
+```ts
+export const createSendMessageHandler = (app: PluginAppApi) => {
+	return {
+		name: 'Send Message',
+		fields: [/* … */],
+		execute: (_action, handler, context, next) => {
+			// …
+			next();
+		}
+	} satisfies HandlerDefinitionProps;
+};
+```
+
+## Folder layout
+
+Mirror the definition tree: `handler/<category>/…`, `trigger/<category>/…`. Register under nested `{ name, children }` groups in the plugin `index.ts` (see Twitch/OBS).
+
+## Fields
+
+- Field keys are slugified from `name` (`'As bot'` → `'as-bot'`).
+- Read values via the plugin’s `getFieldValue` / `resolveFieldText` helpers — not by scanning raw field arrays.
+- Call `configureFieldValueResolver(app)` early in plugin boot when the plugin has handlers/triggers.
+
+## Triggers
+
+- Pair `activate` / `deactivate` with subscription dispose helpers (`setTriggerSubscription` / `disposeTriggerSubscription`).
+- Prefer shared helpers when the plugin has them: `createActivate`, `createDeactivate`, `createOnTest`, `evaluateWith`.
+- Provide `onTest` with a realistic test context when other triggers in the plugin do.
+
+## Docs
+
+After adding or changing definitions, run `pnpm generate:docs-reference` (see `docs-site-sync.mdc`).

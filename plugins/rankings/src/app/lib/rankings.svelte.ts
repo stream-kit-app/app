@@ -10,17 +10,27 @@ import {
 	sortUsersByPoints
 } from '../../lib/ranking-engine';
 import {
+	findUserByIdentity,
+	parsePlatformFromUserId,
+	shouldRebindUserId
+} from '../../lib/extract-user';
+import {
 	ensureDefaultConfig,
+	loadPointHistory,
 	loadRanks,
 	loadSettings,
 	loadTiers,
 	loadUsers,
+	savePointHistory,
 	saveRanks,
 	saveSettings,
 	saveTiers,
 	saveUsers
 } from '../../lib/rankings-store';
+import { appendPointHistoryEntry, getUserPointHistory } from '../../lib/point-history';
 import type {
+	PointHistoryEntry,
+	PointHistoryKind,
 	PointsMutationResult,
 	RankProgress,
 	RankRecord,
@@ -34,6 +44,7 @@ export class RankingsService {
 	tiers: TierRecord[] = $state([]);
 	ranks: RankRecord[] = $state([]);
 	users: UserRankingRecord[] = $state([]);
+	pointHistory: PointHistoryEntry[] = $state([]);
 	settings: RankingsSettings = $state({
 		watchTimeEnabled: true,
 		pointsPerMinute: 1,
@@ -52,6 +63,10 @@ export class RankingsService {
 
 	requireApp(): PluginAppApi {
 		return this.requireContext().app;
+	}
+
+	get isReady(): boolean {
+		return this.store != null && this.app != null;
 	}
 
 	private requireContext(): { store: PluginStore; app: PluginAppApi } {
@@ -100,17 +115,24 @@ export class RankingsService {
 		const { store } = this.requireContext();
 		await ensureDefaultConfig(store);
 
-		const [tiers, ranks, users, settings] = await Promise.all([
+		const [tiers, ranks, users, settings, pointHistory] = await Promise.all([
 			loadTiers(store),
 			loadRanks(store),
 			loadUsers(store),
-			loadSettings(store)
+			loadSettings(store),
+			loadPointHistory(store)
 		]);
 
 		this.tiers = tiers;
 		this.ranks = ranks;
 		this.users = users;
 		this.settings = settings;
+		this.pointHistory = pointHistory;
+	}
+
+	async persistPointHistory(): Promise<void> {
+		const { store } = this.requireContext();
+		await savePointHistory(store, this.pointHistory);
 	}
 
 	async persistUsers(): Promise<void> {
@@ -136,8 +158,131 @@ export class RankingsService {
 		return this.users.find((user) => user.userId === userId);
 	}
 
+	resolveUser(input: {
+		userId: string;
+		username?: string;
+		platform?: RankingsPlatform;
+	}): UserRankingRecord | undefined {
+		return findUserByIdentity(this.users, input);
+	}
+
+	async canonicalizeUserIdentity(input: {
+		userId: string;
+		username: string;
+		platform: RankingsPlatform;
+	}): Promise<void> {
+		const match = this.resolveUser(input);
+
+		if (!match || !shouldRebindUserId(match, input)) {
+			return;
+		}
+
+		this.rebindUserId(match.userId, input);
+		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
+	}
+
+	private rebindUserId(
+		previousId: string,
+		input: { userId: string; username: string; platform: RankingsPlatform }
+	): UserRankingRecord {
+		const existing = this.getUser(previousId);
+
+		if (!existing) {
+			throw new Error(`User "${previousId}" not found`);
+		}
+
+		if (previousId === input.userId) {
+			return existing;
+		}
+
+		const conflict = this.getUser(input.userId);
+		const now = new Date().toISOString();
+
+		if (conflict) {
+			const merged: UserRankingRecord = {
+				...conflict,
+				username: input.username,
+				platform: input.platform === 'unknown' ? conflict.platform : input.platform,
+				totalPoints: conflict.totalPoints + existing.totalPoints,
+				watchTimeSeconds: conflict.watchTimeSeconds + existing.watchTimeSeconds,
+				updatedAt: now
+			};
+
+			this.users = this.users
+				.filter((user) => user.userId !== previousId)
+				.map((user) => (user.userId === input.userId ? merged : user));
+			this.pointHistory = this.pointHistory.map((entry) =>
+				entry.userId === previousId ? { ...entry, userId: input.userId } : entry
+			);
+
+			return merged;
+		}
+
+		const updated: UserRankingRecord = {
+			...existing,
+			userId: input.userId,
+			username: input.username,
+			platform: input.platform,
+			updatedAt: now
+		};
+
+		this.users = this.users.map((user) => (user.userId === previousId ? updated : user));
+		this.pointHistory = this.pointHistory.map((entry) =>
+			entry.userId === previousId ? { ...entry, userId: input.userId } : entry
+		);
+
+		return updated;
+	}
+
 	getLeaderboard(limit = this.settings.leaderboardSize): UserRankingRecord[] {
 		return sortUsersByPoints(this.users).slice(0, limit);
+	}
+
+	getUserLeaderboardPosition(userId: string): number | null {
+		const sorted = sortUsersByPoints(this.users);
+		const index = sorted.findIndex((user) => user.userId === userId);
+
+		return index === -1 ? null : index + 1;
+	}
+
+	getUserHistory(userId: string): PointHistoryEntry[] {
+		return getUserPointHistory(this.pointHistory, userId);
+	}
+
+	private resolveHistoryKind(source: string, amount: number, explicitKind?: PointHistoryKind): PointHistoryKind {
+		if (explicitKind) {
+			return explicitKind;
+		}
+
+		if (source === 'watch-time') {
+			return 'watch-time';
+		}
+
+		if (amount < 0) {
+			return 'remove';
+		}
+
+		return 'add';
+	}
+
+	private appendHistoryEntry(input: {
+		userId: string;
+		amount: number;
+		balanceAfter: number;
+		source: string;
+		kind?: PointHistoryKind;
+	}): void {
+		if (input.amount === 0) {
+			return;
+		}
+
+		this.pointHistory = appendPointHistoryEntry(this.pointHistory, {
+			userId: input.userId,
+			amount: input.amount,
+			balanceAfter: input.balanceAfter,
+			source: input.source,
+			kind: this.resolveHistoryKind(input.source, input.amount, input.kind)
+		});
 	}
 
 	getStats(): RankingsStats {
@@ -160,12 +305,21 @@ export class RankingsService {
 		};
 	}
 
-	formatRankMessage(userId: string, template: string): string {
-		const user = this.getUser(userId);
+	formatRankMessage(
+		userId: string,
+		template: string,
+		fallback?: { username: string }
+	): string {
+		const user = this.resolveUser({
+			userId,
+			username: fallback?.username,
+			platform: parsePlatformFromUserId(userId)
+		});
 		const progress = this.getProgressForPoints(user?.totalPoints ?? 0);
+		const username = user?.username ?? fallback?.username ?? 'Unknown';
 
 		return template
-			.replaceAll('{username}', user?.username ?? 'Unknown')
+			.replaceAll('{username}', username)
 			.replaceAll('{points}', String(user?.totalPoints ?? 0))
 			.replaceAll('{rank}', progress.rank?.name ?? 'None')
 			.replaceAll('{tier}', progress.tier?.name ?? 'None')
@@ -190,22 +344,49 @@ export class RankingsService {
 			.join(' | ');
 	}
 
+	private findExistingUser(input: {
+		userId: string;
+		username: string;
+		platform: RankingsPlatform;
+	}): UserRankingRecord | undefined {
+		const direct = this.getUser(input.userId);
+
+		if (direct) {
+			return direct;
+		}
+
+		const match = this.resolveUser(input);
+
+		if (!match) {
+			return undefined;
+		}
+
+		if (shouldRebindUserId(match, input)) {
+			return this.rebindUserId(match.userId, input);
+		}
+
+		return match;
+	}
+
 	private upsertUser(input: {
 		userId: string;
 		username: string;
 		platform: RankingsPlatform;
 	}): UserRankingRecord {
-		const existing = this.getUser(input.userId);
 		const now = new Date().toISOString();
+		const existing = this.findExistingUser(input);
 
 		if (existing) {
 			const updated: UserRankingRecord = {
 				...existing,
-				username: input.username,
-				platform: input.platform,
+				userId: existing.userId,
+				username: input.username.trim() || existing.username,
+				platform: input.platform === 'unknown' ? existing.platform : input.platform,
 				updatedAt: now
 			};
-			this.users = this.users.map((user) => (user.userId === input.userId ? updated : user));
+			this.users = this.users.map((user) =>
+				user.userId === existing.userId ? updated : user
+			);
 
 			return updated;
 		}
@@ -249,7 +430,8 @@ export class RankingsService {
 		user: UserRankingRecord,
 		nextPoints: number,
 		amount: number,
-		source: string
+		source: string,
+		historyKind?: PointHistoryKind
 	): PointsMutationResult {
 		const ordered = this.getOrderedRanks();
 		const previousPoints = user.totalPoints;
@@ -263,6 +445,15 @@ export class RankingsService {
 
 		this.users = this.users.map((entry) => (entry.userId === user.userId ? updated : entry));
 
+		const kind = historyKind ?? this.resolveHistoryKind(source, amount);
+		this.appendHistoryEntry({
+			userId: updated.userId,
+			amount,
+			balanceAfter: totalPoints,
+			source,
+			kind
+		});
+
 		const currentProgress = resolveProgress(totalPoints, ordered);
 		const rankChanged = didRankChange(previousProgress, currentProgress);
 		const tierAdvanced = didTierAdvance(previousProgress, currentProgress, ordered);
@@ -274,7 +465,7 @@ export class RankingsService {
 			currentProgress
 		);
 
-		if (amount !== 0) {
+		if (amount > 0) {
 			this.emit('points-earned', context);
 		}
 
@@ -309,9 +500,10 @@ export class RankingsService {
 			user,
 			user.totalPoints + clampPoints(input.amount),
 			clampPoints(input.amount),
-			input.source
+			input.source,
+			input.source === 'watch-time' ? 'watch-time' : 'add'
 		);
-		await this.persistUsers();
+		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
 
 		return result;
 	}
@@ -325,8 +517,14 @@ export class RankingsService {
 	}): Promise<PointsMutationResult> {
 		const user = this.upsertUser(input);
 		const amount = clampPoints(input.amount) - user.totalPoints;
-		const result = this.applyPointsMutation(user, clampPoints(input.amount), amount, input.source);
-		await this.persistUsers();
+		const result = this.applyPointsMutation(
+			user,
+			clampPoints(input.amount),
+			amount,
+			input.source,
+			'set'
+		);
+		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
 
 		return result;
 	}
@@ -338,15 +536,22 @@ export class RankingsService {
 		amount: number;
 		source: string;
 	}): Promise<PointsMutationResult> {
-		const user = this.upsertUser(input);
-		const removed = clampPoints(input.amount);
+		const user = this.findExistingUser(input);
+
+		if (!user) {
+			throw new Error(`User "${input.username || input.userId}" not found in rankings`);
+		}
+
+		const requested = clampPoints(input.amount);
+		const removed = Math.min(requested, user.totalPoints);
 		const result = this.applyPointsMutation(
 			user,
-			Math.max(0, user.totalPoints - removed),
+			user.totalPoints - removed,
 			-removed,
-			input.source
+			input.source,
+			'remove'
 		);
-		await this.persistUsers();
+		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
 
 		return result;
 	}
@@ -452,5 +657,47 @@ export class RankingsService {
 	async deleteRank(id: string): Promise<void> {
 		this.ranks = this.ranks.filter((rank) => rank.id !== id);
 		await this.persistTiersAndRanks();
+	}
+
+	async deleteRankBulk(ids: string[]): Promise<void> {
+		if (ids.length === 0) {
+			return;
+		}
+
+		const idSet = new Set(ids);
+		this.ranks = this.ranks.filter((rank) => !idSet.has(rank.id));
+		await this.persistTiersAndRanks();
+	}
+
+	async applyTierOrder(orderedIds: string[]): Promise<void> {
+		if (orderedIds.length === 0) {
+			return;
+		}
+
+		const tierById = new Map(this.tiers.map((tier) => [tier.id, tier]));
+
+		for (const id of orderedIds) {
+			if (!tierById.has(id)) {
+				throw new Error(`Tier "${id}" not found`);
+			}
+		}
+
+		this.tiers = orderedIds.map((id, sortOrder) => ({
+			...tierById.get(id)!,
+			sortOrder
+		}));
+		await this.persistTiersAndRanks();
+	}
+
+	async deleteUser(userId: string): Promise<void> {
+		const existing = this.getUser(userId);
+
+		if (!existing) {
+			throw new Error(`User "${userId}" not found`);
+		}
+
+		this.users = this.users.filter((user) => user.userId !== userId);
+		this.pointHistory = this.pointHistory.filter((entry) => entry.userId !== userId);
+		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
 	}
 }

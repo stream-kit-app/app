@@ -5,6 +5,7 @@ commands.allow = [
 	"greet",
 	"play_audio",
 	"play_audio_file",
+	"stop_audio",
 	"get_media_file_duration_ms",
 	"is_tcp_port_reachable",
 	"list_local_tts_voices",
@@ -37,5 +38,6 @@ commands.allow = [
 	"overlay_broadcast_settings",
 	"overlay_get_overlays_dir",
 	"script_get_project_dir",
-	"script_get_scripts_dir"
+	"script_get_scripts_dir",
+	"resolve_editor_commands"
 ]

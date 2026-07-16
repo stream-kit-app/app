@@ -1,0 +1,79 @@
+---
+description: Check for excessive blank lines after every code edit
+alwaysApply: true
+---
+
+# Whitespace hygiene
+
+After every code edit, scan changed files for excessive vertical whitespace before finishing.
+
+## Rules
+
+- **At most one blank line** between statements, properties, imports, or JSX/Svelte blocks.
+- **No blank lines** immediately after `{`, `(`, `[`, or opening tags — or immediately before `}`, `)`, `]`, or closing tags.
+- **At most two blank lines** between top-level sections (e.g. import block → code, or logical groups in long files).
+- **Trim trailing whitespace** on edited lines.
+- **No blank lines at EOF** — files end with a single newline.
+
+## Common AI mistakes
+
+```typescript
+// ❌ BAD — double/triple blank lines between every line
+import { foo } from './foo';
+
+
+const bar = 1;
+
+
+function baz() {
+
+
+  return bar;
+
+
+}
+
+// ✅ GOOD — single blank line between logical groups only
+import { foo } from './foo';
+
+const bar = 1;
+
+function baz() {
+  return bar;
+}
+```
+
+```svelte
+<!-- ❌ BAD -->
+<script>
+
+
+  let count = $state(0);
+
+
+</script>
+
+
+<div>
+
+
+  {count}
+
+
+</div>
+
+<!-- ✅ GOOD -->
+<script>
+  let count = $state(0);
+</script>
+
+<div>
+  {count}
+</div>
+```
+
+## Workflow
+
+1. After editing, re-read the diff or changed regions.
+2. Collapse runs of 2+ consecutive blank lines down to 0–1 as appropriate.
+3. Do not reformat unrelated parts of the file — only fix whitespace in edited regions unless the whole file is clearly broken.

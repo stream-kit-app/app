@@ -1,0 +1,32 @@
+---
+description: Keep TODO.md in sync after code changes and feature work
+alwaysApply: true
+---
+
+# TODO.md sync
+
+After implementing features, finishing substantial code changes, or completing roadmap items, check whether root [`TODO.md`](TODO.md) still reflects reality — then update it in the same session.
+
+## When to check
+
+- New or completed feature, plugin, or product capability
+- Status of an existing roadmap item clearly changed (done / partial / cancelled)
+- Renames or replacements of concepts listed in TODO (e.g. Maps → Collections)
+- Work that closes or advances a checkbox under P0–P3 or “Technische schuld”
+
+Skip for tiny refactors, typo fixes, pure formatting, or changes with no product/roadmap impact.
+
+## What to update
+
+1. Flip checkboxes: `[ ]` → `[~]` / `[x]` (or reopen if something was removed).
+2. Adjust short status text next to `[~]` items so remaining gaps stay accurate.
+3. Add missing capabilities to “Huidige sterke punten” when they become real product strengths.
+4. Refresh the header date (`laatst bijgewerkt`) when you edit the file.
+5. Keep the Dutch style and legend (`[x]` klaar · `[~]` deels · `[ ]` open).
+
+## Workflow
+
+1. Skim the TODO sections that relate to the change.
+2. Verify claims against the code (don’t mark done from memory alone).
+3. Edit only the affected bullets — don’t rewrite the whole roadmap.
+4. Mention the TODO.md update briefly in the final response when you changed it.

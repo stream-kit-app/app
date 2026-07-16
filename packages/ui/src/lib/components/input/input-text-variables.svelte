@@ -11,6 +11,13 @@
 
 	import { cn } from '../../utils';
 
+	import {
+		inputFieldBorder,
+		inputFieldDisabled,
+		inputFieldErrorMessage,
+		inputFieldFocusWithinRing,
+		inputFieldSurface
+	} from './input-field-classes';
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 
@@ -173,16 +180,14 @@
 	});
 </script>
 
-<div class="relative grid w-full min-w-0 gap-2">
+<div class={cn('relative grid w-full min-w-0 gap-2', className)}>
 	{#if label}
 		<Label for={id}>{label}</Label>
 	{/if}
 	<div
 		class={cn(
 			'relative flex w-full min-w-0 items-center rounded-xl',
-			'has-focus-within:ring-2 has-focus-within:ring-primary',
-			error && 'has-focus-within:ring-red-500',
-			className
+			inputFieldFocusWithinRing(error)
 		)}
 	>
 		<input
@@ -191,9 +196,11 @@
 			{placeholder}
 			bind:value
 			class={cn(
-				'min-w-0 w-full truncate rounded-xl border bg-dark-700 text-dark-50 outline-none',
+				'min-w-0 w-full truncate rounded-xl border outline-none',
+				inputFieldSurface,
+				inputFieldDisabled,
 				inputSizeClasses.md,
-				error ? 'border-red-500' : 'border-dark-500'
+				inputFieldBorder(error)
 			)}
 			role="combobox"
 			aria-invalid={error ? true : undefined}
@@ -214,7 +221,7 @@
 		{#if showSuggestions && filteredVariables.length > 0}
 			<ul
 				id={`${id}-listbox`}
-				class="absolute top-full left-0 z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
+				class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
 				role="listbox"
 			>
 				{#each filteredVariables as variable, index (variable.key)}
@@ -243,6 +250,6 @@
 	</div>
 
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

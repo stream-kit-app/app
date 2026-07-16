@@ -1,0 +1,35 @@
+---
+description: Overlay broadcast API, reserved events, and registration boundaries
+globs:
+  - packages/app/src/lib/core/overlay/**/*
+  - plugins/**/handler/**/*overlay*
+  - plugins/**/handler/**/*Overlay*
+alwaysApply: false
+---
+
+# Overlays
+
+## Plugin → overlay communication
+
+Send events through the app overlay API — not raw WebSockets from plugins:
+
+```ts
+await app.overlay.broadcast(overlayId, eventName, payload);
+```
+
+List overlays via `app.overlay.items`. Event names should match the overlay manifest’s `expectedEvents` / `outgoingEvents` (comboboxes often load from the selected overlay).
+
+## Reserved event
+
+`overlay:settings` (`OVERLAY_SETTINGS_EVENT`) is reserved for settings sync. Do not reuse it for custom widget payloads.
+
+## Where definitions live
+
+- Core overlay handlers/triggers register in the **app** (`registerOverlayHandlers` with `idScope: 'overlay'`), not inside a plugin `index.ts`.
+- Plugin-specific overlay actions (e.g. rankings leaderboard) stay in that plugin’s `handler/` and call `app.overlay.broadcast`.
+
+## Scaffold & FS
+
+Manifest, scaffold, build, and export stay under `packages/app/src/lib/core/overlay/`. Tauri FS is allowed there; plugins still use `app.fs` / overlay APIs only.
+
+See `/docs/guide/overlays.mdx` and `/docs/developers/overlay-authoring.mdx` when behavior changes.

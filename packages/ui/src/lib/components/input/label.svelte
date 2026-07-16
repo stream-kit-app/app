@@ -6,4 +6,8 @@
 	let { children, ...props }: Label.RootProps = $props();
 </script>
 
-<Label.Root {children} {...props} class={cn('text-sm font-medium text-dark-50', props.class)} />
+<Label.Root
+	{children}
+	{...props}
+	class={cn('text-sm font-medium text-muted-foreground', props.class)}
+/>

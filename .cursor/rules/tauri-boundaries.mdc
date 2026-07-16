@@ -1,0 +1,31 @@
+---
+description: Keep Tauri in the app layer; plugins use PluginAppApi abstractions
+alwaysApply: true
+---
+
+# Tauri boundaries
+
+## Plugins
+
+**Zero** `@tauri-apps/*` imports in `plugins/**`. Use app-provided APIs instead:
+
+| Need | Use |
+| --- | --- |
+| Filesystem | `app.fs` + `BaseDirectory` from `@stream-kit/plugin` |
+| Processes | `app.process` |
+| OAuth | `app.oauth` |
+| Hotkeys | `app.hotkeys` |
+| Open URLs/files | `app.opener` |
+| Local TTS | `app.localTts` |
+
+Prefer `BaseDirectory.AppData` for plugin-owned files (e.g. Core action logs).
+
+## App layer only
+
+`invoke`, `@tauri-apps/plugin-fs`, `dialog`, `global-shortcut`, `store`, and Rust commands live under `packages/app` (typically `src/lib/core/**` and `src-tauri/**`).
+
+## New platform capability
+
+1. Add the surface to `PluginAppApi` (`plugin-app-api.types.ts`).
+2. Implement it in `app-api.ts` (Tauri wiring stays here).
+3. Call it from plugins via `app.*` — never import Tauri from plugin code.

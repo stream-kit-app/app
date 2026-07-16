@@ -22,21 +22,35 @@ export class WatchTimeTracker {
 	private unsubscribeJoinPart: (() => void) | null = null;
 	private intervalId: ReturnType<typeof setInterval> | null = null;
 	private activeViewers = new Map<string, ActiveViewer>();
+	private running = false;
 
 	constructor(
 		private readonly app: PluginAppApi,
 		private readonly rankings: RankingsService
 	) {}
 
-	start(): void {
-		this.stop();
+	start(options?: { clearViewers?: boolean }): void {
+		this.stop({ clearViewers: options?.clearViewers ?? true });
+		this.running = true;
 		this.bindJoinPart();
-		this.intervalId = setInterval(() => {
-			void this.awardIntervalPoints();
-		}, this.rankings.settings.awardIntervalSeconds * 1000);
+		this.restartInterval();
 	}
 
-	stop(): void {
+	/** Rebind listeners and refresh the interval without dropping active viewers. */
+	restart(): void {
+		if (!this.running) {
+			this.start({ clearViewers: false });
+			return;
+		}
+
+		this.unsubscribeJoinPart?.();
+		this.unsubscribeJoinPart = null;
+		this.bindJoinPart();
+		this.restartInterval();
+	}
+
+	stop(options?: { clearViewers?: boolean }): void {
+		this.running = false;
 		this.unsubscribeJoinPart?.();
 		this.unsubscribeJoinPart = null;
 
@@ -45,7 +59,22 @@ export class WatchTimeTracker {
 			this.intervalId = null;
 		}
 
-		this.activeViewers.clear();
+		if (options?.clearViewers !== false) {
+			this.activeViewers.clear();
+		}
+	}
+
+	private restartInterval(): void {
+		if (this.intervalId != null) {
+			clearInterval(this.intervalId);
+			this.intervalId = null;
+		}
+
+		const intervalMs = Math.max(1, this.rankings.settings.awardIntervalSeconds) * 1000;
+
+		this.intervalId = setInterval(() => {
+			void this.awardIntervalPoints();
+		}, intervalMs);
 	}
 
 	private getTwitch(): TwitchPluginApi | undefined {
@@ -53,10 +82,14 @@ export class WatchTimeTracker {
 	}
 
 	private bindJoinPart(): void {
+		if (this.unsubscribeJoinPart || !this.rankings.settings.watchTimeEnabled) {
+			return;
+		}
+
 		const twitch = this.getTwitch();
 		const chat = twitch?.chat;
 
-		if (!chat || !twitch?.isConnected || !this.rankings.settings.watchTimeEnabled) {
+		if (!chat || !twitch?.isConnected) {
 			return;
 		}
 
@@ -66,7 +99,9 @@ export class WatchTimeTracker {
 			this.activeViewers.set(key, {
 				username: user,
 				joinedAt: Date.now(),
-				lastAwardSlot: Math.floor(Date.now() / (this.rankings.settings.awardIntervalSeconds * 1000))
+				lastAwardSlot: Math.floor(
+					Date.now() / (this.rankings.settings.awardIntervalSeconds * 1000)
+				)
 			});
 		};
 
@@ -83,10 +118,32 @@ export class WatchTimeTracker {
 		};
 	}
 
+	private ensureJoinPartBound(): void {
+		if (!this.running || this.unsubscribeJoinPart || !this.rankings.settings.watchTimeEnabled) {
+			return;
+		}
+
+		this.bindJoinPart();
+	}
+
+	private resolveViewerUserId(username: string): string {
+		const key = username.toLowerCase();
+		const fallbackId = `twitch:${key}`;
+		const match = this.rankings.resolveUser({
+			userId: fallbackId,
+			username,
+			platform: 'twitch'
+		});
+
+		return match?.userId ?? fallbackId;
+	}
+
 	private async awardIntervalPoints(): Promise<void> {
 		if (!this.rankings.settings.watchTimeEnabled) {
 			return;
 		}
+
+		this.ensureJoinPartBound();
 
 		const twitch = this.getTwitch();
 
@@ -98,7 +155,9 @@ export class WatchTimeTracker {
 		const currentSlot = Math.floor(Date.now() / intervalMs);
 		const pointsPerInterval = Math.max(
 			0,
-			Math.floor((this.rankings.settings.pointsPerMinute * this.rankings.settings.awardIntervalSeconds) / 60)
+			Math.floor(
+				(this.rankings.settings.pointsPerMinute * this.rankings.settings.awardIntervalSeconds) / 60
+			)
 		);
 
 		if (pointsPerInterval <= 0) {
@@ -113,7 +172,7 @@ export class WatchTimeTracker {
 			viewer.lastAwardSlot = currentSlot;
 			this.activeViewers.set(key, viewer);
 
-			const userId = `twitch:${key}`;
+			const userId = this.resolveViewerUserId(viewer.username);
 
 			await this.rankings.addWatchTime({
 				userId,

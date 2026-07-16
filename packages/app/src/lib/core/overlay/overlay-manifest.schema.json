@@ -191,9 +191,29 @@
 						"type": { "const": "slider" },
 						"min": { "type": "number" },
 						"max": { "type": "number" },
-						"step": { "type": "number" }
+						"step": { "type": "number" },
+						"unit": {
+							"type": "string",
+							"description": "Unit shown next to the value (e.g. %, px, s). Empty string for no unit. Defaults to %."
+						}
 					},
 					"required": ["type", "min", "max"]
+				}
+			]
+		},
+		"colorField": {
+			"allOf": [
+				{ "$ref": "#/$defs/settingsFieldBase" },
+				{
+					"type": "object",
+					"properties": {
+						"type": { "const": "color" },
+						"placeholder": {
+							"type": "string",
+							"description": "Hint hex value shown when the field is empty."
+						}
+					},
+					"required": ["type"]
 				}
 			]
 		},
@@ -203,7 +223,8 @@
 				{ "$ref": "#/$defs/switchField" },
 				{ "$ref": "#/$defs/checkboxField" },
 				{ "$ref": "#/$defs/selectField" },
-				{ "$ref": "#/$defs/sliderField" }
+				{ "$ref": "#/$defs/sliderField" },
+				{ "$ref": "#/$defs/colorField" }
 			]
 		},
 		"settingsSection": {

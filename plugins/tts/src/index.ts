@@ -3,6 +3,7 @@ import type { Plugin } from '@stream-kit/plugin';
 import { configureFieldValueResolver } from './get-field-value';
 import { createElevenLabsSpeakHandler } from './handler/elevenlabs/speak';
 import { createLocalSpeakHandler } from './handler/local/speak';
+import { createSkipTtsHandler } from './handler/skip';
 import { createStreamElementsSpeakHandler } from './handler/streamelements/speak';
 import { elevenlabs } from './lib/elevenlabs';
 import { elevenlabsModelSelectSettingsField } from './lib/elevenlabs/models';
@@ -303,6 +304,7 @@ const plugin: Plugin = (app) => {
 			{
 				name: 'TTS',
 				children: [
+					createSkipTtsHandler(),
 					{
 						name: 'Local',
 						children: [createLocalSpeakHandler()]

@@ -2,6 +2,7 @@
 	import { Switch, useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
+	import { inputFieldErrorMessage, inputToggleFocusRing } from './input-field-classes';
 	import Label from './label.svelte';
 
 	type Props = {
@@ -32,9 +33,9 @@
 				'inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors outline-none',
 				'data-[state=checked]:bg-primary/15',
 				error
-					? 'data-[state=unchecked]:bg-red-500/30'
+					? 'data-[state=unchecked]:bg-destructive/30'
 					: 'data-[state=unchecked]:bg-dark-600',
-				'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-dark-800',
+				inputToggleFocusRing,
 				'disabled:cursor-not-allowed disabled:opacity-50'
 			)}
 		>
@@ -53,6 +54,6 @@
 		{/if}
 	</div>
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

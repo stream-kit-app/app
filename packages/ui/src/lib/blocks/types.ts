@@ -41,7 +41,15 @@ export type PageFormField =
 			items: PageSelectItem[];
 			loadingPlaceholder?: string;
 	  })
-	| (PageFieldBase & { type: 'slider'; min: number; max: number; step?: number })
+	| (PageFieldBase & {
+			type: 'slider';
+			min: number;
+			max: number;
+			step?: number;
+			/** Unit shown next to the value (e.g. `%`, `px`). Empty string for no unit. Defaults to `%`. */
+			unit?: string;
+	  })
+	| (PageFieldBase & { type: 'color' })
 	| {
 			type: 'alert';
 			name: string;

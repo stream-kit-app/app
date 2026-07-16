@@ -11,10 +11,13 @@
 		"build": "vite build --config vite.build.config.js",
 		"package": "node ../../scripts/package-plugin.mjs",
 		"check": "tsc --noEmit",
-		"test": "node --experimental-strip-types --test src/lib/ranking-engine.test.ts",
+		"test": "node --experimental-strip-types --test src/lib/ranking-engine.test.ts src/lib/point-history.test.ts src/lib/extract-user.test.ts",
 		"dev": "vite build --config vite.build.config.js --watch"
 	},
 	"dependencies": {
+		"@dnd-kit-svelte/svelte": "^0.1.6",
+		"@dnd-kit/helpers": "^0.5.0",
+		"runed": "^0.37.1",
 		"@stream-kit/core": "workspace:*"
 	},
 	"devDependencies": {

@@ -1,41 +1,55 @@
 <script lang="ts">
-	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 
 	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
 	import { Connection } from '../lib/connection.svelte';
 	import { tryGetConnectionsService } from '../lib/get-connections';
 	import ConnectionCard from './connection-card.svelte';
+	import WebsocketEmptyState from './websocket-empty-state.svelte';
 
-	let { app, title, description }: PluginCustomViewProps = $props();
+	let { app, title: _title, description: _description }: PluginCustomViewProps = $props();
 	const t = $derived(app.i18n.t);
 
 	const connections = $derived(tryGetConnectionsService());
+	const connectionCount = $derived(connections?.items.length ?? 0);
+
+	$effect(() => {
+		app.toolbar.set({
+			meta:
+				connectionCount > 0
+					? [
+							{
+								icon: 'ri:links-line',
+								label: t('{count} connections', { count: connectionCount })
+							}
+						]
+					: [],
+			primaryActions: [
+				{
+					id: 'add-connection',
+					label: t('Add Connection'),
+					icon: 'ri:add-fill',
+					variant: 'outline',
+					onClick: () => Connection.createDraft().open()
+				}
+			]
+		});
+	});
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<header class="flex justify-between gap-4">
-		<Heading
-			level="1"
-			subTitle={description ?? t('Manage saved WebSocket connections used by triggers and handlers.')}
-		>
-			{title ?? t('WebSocket Connections')}
-		</Heading>
-		<Button
-			variant="outline"
-			icon="ri:add-fill"
-			size="lg"
-			onclick={() => Connection.createDraft().open()}
-		>
-			{t('Add Connection')}
-		</Button>
-	</header>
-
-	<div class="mt-8 flex flex-col gap-2">
+	<div class="flex flex-col gap-2">
 		{#if !connections || connections.items.length === 0}
-			<p class="text-sm text-dark-300">{t('No connections saved yet.')}</p>
+			<WebsocketEmptyState
+				icon="ri:links-line"
+				title={t('No connections yet')}
+				description={t(
+					'Create a WebSocket connection to send and receive messages from your actions.'
+				)}
+				actionLabel={t('Add Connection')}
+				onAction={() => Connection.createDraft().open()}
+			/>
 		{:else}
 			{#each connections.items as connection (connection.id)}
 				<ConnectionCard {connection} {connections} />

@@ -8,11 +8,12 @@ import { i as I, n as L } from "../../chunks/use-id-C9llEPxa.js";
 import { r as R } from "../../chunks/dom-B4Rzp8oi.js";
 import { a as ee } from "../../chunks/presence-manager.svelte-BOTfPcjg.js";
 import { t as z } from "../../chunks/portal-D-OgjF3O.js";
-import { a as B, n as te, r as V, t as ne } from "../../chunks/popper-layer-force-mount-BxV85AhM.js";
-import { t as H } from "../../chunks/floating-layer-anchor-B_R8arju.js";
-import { t as U } from "../../chunks/button-C7Vln2y_.js";
+import { a as B, n as te, r as V, t as H } from "../../chunks/popper-layer-force-mount-BxV85AhM.js";
+import { t as U } from "../../chunks/floating-layer-anchor-B_R8arju.js";
+import { t as W } from "../../chunks/scroll-area-7qg9ezvn.js";
+import { t as G } from "../../chunks/button-C7Vln2y_.js";
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/menu/components/menu-sub.svelte
-function W(e, t) {
+function K(e, t) {
 	n(t, !0);
 	let r = f(t, "open", 15, !1), a = f(t, "onOpenChange", 3, R), c = f(t, "onOpenChangeComplete", 3, R);
 	N.create({
@@ -30,7 +31,7 @@ function W(e, t) {
 }
 //#endregion
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/menu/components/menu-item.svelte
-var G = new Set([
+var q = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -41,11 +42,11 @@ var G = new Set([
 	"disabled",
 	"onSelect",
 	"closeOnSelect"
-]), K = C("<div><!></div>");
-function q(e, t) {
+]), J = C("<div><!></div>");
+function Y(e, t) {
 	let c = _();
 	n(t, !0);
-	let d = f(t, "ref", 15, null), m = f(t, "id", 19, () => L(c)), b = f(t, "disabled", 3, !1), S = f(t, "onSelect", 3, R), C = f(t, "closeOnSelect", 3, !0), w = y(t, G), T = O.create({
+	let d = f(t, "ref", 15, null), m = f(t, "id", 19, () => L(c)), b = f(t, "disabled", 3, !1), S = f(t, "onSelect", 3, R), C = f(t, "closeOnSelect", 3, !0), w = y(t, q), T = O.create({
 		id: E(() => m()),
 		disabled: E(() => b()),
 		onSelect: E(() => S()),
@@ -56,7 +57,7 @@ function q(e, t) {
 		var n = g();
 		o(i(n), () => t.child, () => ({ props: r(D) })), p(e, n);
 	}, M = (e) => {
-		var n = K();
+		var n = J();
 		l(n, () => ({ ...r(D) })), o(u(n), () => t.children ?? v), a(n), p(e, n);
 	};
 	h(A, (e) => {
@@ -65,7 +66,7 @@ function q(e, t) {
 }
 //#endregion
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/menu/components/menu-sub-content.svelte
-var re = new Set([
+var ne = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -85,55 +86,55 @@ var re = new Set([
 	"side",
 	"trapFocus",
 	"style"
-]), J = C("<div><div><!></div></div>");
-function Y(e, t) {
+]), X = C("<div><div><!></div></div>");
+function Z(e, t) {
 	let c = _();
 	n(t, !0);
-	let d = f(t, "id", 19, () => L(c)), m = f(t, "ref", 15, null), b = f(t, "loop", 3, !0), C = f(t, "onInteractOutside", 3, R), w = f(t, "forceMount", 3, !1), T = f(t, "onEscapeKeydown", 3, R), O = f(t, "interactOutsideBehavior", 3, "defer-otherwise-close"), k = f(t, "escapeKeydownBehavior", 3, "defer-otherwise-close"), A = f(t, "onOpenAutoFocus", 3, R), j = f(t, "onCloseAutoFocus", 3, R), M = f(t, "onFocusOutside", 3, R), N = f(t, "side", 3, "right"), z = f(t, "trapFocus", 3, !1), V = y(t, re), H = P.create({
+	let d = f(t, "id", 19, () => L(c)), m = f(t, "ref", 15, null), b = f(t, "loop", 3, !0), C = f(t, "onInteractOutside", 3, R), w = f(t, "forceMount", 3, !1), T = f(t, "onEscapeKeydown", 3, R), O = f(t, "interactOutsideBehavior", 3, "defer-otherwise-close"), k = f(t, "escapeKeydownBehavior", 3, "defer-otherwise-close"), A = f(t, "onOpenAutoFocus", 3, R), j = f(t, "onCloseAutoFocus", 3, R), M = f(t, "onFocusOutside", 3, R), N = f(t, "side", 3, "right"), z = f(t, "trapFocus", 3, !1), V = y(t, ne), U = P.create({
 		id: E(() => d()),
 		loop: E(() => b()),
 		ref: E(() => m(), (e) => m(e)),
 		isSub: !0,
-		onCloseAutoFocus: E(() => q)
+		onCloseAutoFocus: E(() => J)
 	});
-	function U(e) {
-		let t = e.currentTarget.contains(e.target), n = D[H.parentMenu.root.opts.dir.current].includes(e.key);
-		t && n && (H.parentMenu.onClose(), H.parentMenu.triggerNode?.focus(), e.preventDefault());
+	function W(e) {
+		let t = e.currentTarget.contains(e.target), n = D[U.parentMenu.root.opts.dir.current].includes(e.key);
+		t && n && (U.parentMenu.onClose(), U.parentMenu.triggerNode?.focus(), e.preventDefault());
 	}
-	let W = x(() => H.parentMenu.root.getBitsAttr("sub-content")), G = x(() => I(V, H.props, {
+	let G = x(() => U.parentMenu.root.getBitsAttr("sub-content")), K = x(() => I(V, U.props, {
 		side: N(),
-		onkeydown: U,
-		[r(W)]: ""
+		onkeydown: W,
+		[r(G)]: ""
 	}));
-	function K(e) {
-		A()(e), !e.defaultPrevented && (e.preventDefault(), H.parentMenu.root.isUsingKeyboard && H.parentMenu.contentNode && F.dispatch(H.parentMenu.contentNode));
-	}
 	function q(e) {
+		A()(e), !e.defaultPrevented && (e.preventDefault(), U.parentMenu.root.isUsingKeyboard && U.parentMenu.contentNode && F.dispatch(U.parentMenu.contentNode));
+	}
+	function J(e) {
 		j()(e), !e.defaultPrevented && e.preventDefault();
 	}
 	function Y(e) {
-		C()(e), !e.defaultPrevented && H.parentMenu.onClose();
-	}
-	function X(e) {
-		T()(e), !e.defaultPrevented && H.parentMenu.onClose();
+		C()(e), !e.defaultPrevented && U.parentMenu.onClose();
 	}
 	function Z(e) {
-		if (M()(e), e.defaultPrevented || !ee(e.target) || e.target.id === H.parentMenu.triggerNode?.id) return;
-		if ((H.parentMenu.parentMenu?.contentNode)?.contains(e.target)) {
-			H.parentMenu.onClose(), e.preventDefault();
+		T()(e), !e.defaultPrevented && U.parentMenu.onClose();
+	}
+	function Q(e) {
+		if (M()(e), e.defaultPrevented || !ee(e.target) || e.target.id === U.parentMenu.triggerNode?.id) return;
+		if ((U.parentMenu.parentMenu?.contentNode)?.contains(e.target)) {
+			U.parentMenu.onClose(), e.preventDefault();
 			return;
 		}
-		let t = `[${H.parentMenu.root.getBitsAttr("sub-content")}]`;
+		let t = `[${U.parentMenu.root.getBitsAttr("sub-content")}]`;
 		if (e.target.closest(t)) {
 			e.preventDefault();
 			return;
 		}
-		H.parentMenu.onClose();
+		U.parentMenu.onClose();
 	}
-	var Q = g(), ie = i(Q), ae = (e) => {
-		ne(e, S(() => r(G), {
+	var $ = g(), re = i($), ie = (e) => {
+		H(e, S(() => r(K), {
 			get ref() {
-				return H.opts.ref;
+				return U.opts.ref;
 			},
 			get interactOutsideBehavior() {
 				return O();
@@ -141,13 +142,13 @@ function Y(e, t) {
 			get escapeKeydownBehavior() {
 				return k();
 			},
-			onOpenAutoFocus: K,
+			onOpenAutoFocus: q,
 			get enabled() {
-				return H.parentMenu.opts.open.current;
+				return U.parentMenu.opts.open.current;
 			},
 			onInteractOutside: Y,
-			onEscapeKeydown: X,
-			onFocusOutside: Z,
+			onEscapeKeydown: Z,
+			onFocusOutside: Q,
 			preventScroll: !1,
 			get loop() {
 				return b();
@@ -156,23 +157,23 @@ function Y(e, t) {
 				return z();
 			},
 			get shouldRender() {
-				return H.shouldRender;
+				return U.shouldRender;
 			},
 			popper: (e, n) => {
-				let s = () => n?.().props, c = () => n?.().wrapperProps, d = x(() => I(s(), r(G), { style: B("menu") }, { style: t.style }));
+				let s = () => n?.().props, c = () => n?.().wrapperProps, d = x(() => I(s(), r(K), { style: B("menu") }, { style: t.style }));
 				var f = g(), m = i(f), _ = (e) => {
 					var n = g(), a = i(n);
 					{
 						let e = x(() => ({
 							props: r(d),
 							wrapperProps: c(),
-							...H.snippetProps
+							...U.snippetProps
 						}));
 						o(a, () => t.child, () => r(e));
 					}
 					p(e, n);
 				}, y = (e) => {
-					var n = J();
+					var n = X();
 					l(n, () => ({ ...c() }));
 					var i = u(n);
 					l(i, () => ({ ...r(d) })), o(u(i), () => t.children ?? v), a(i), a(n), p(e, n);
@@ -183,10 +184,10 @@ function Y(e, t) {
 			},
 			$$slots: { popper: !0 }
 		}));
-	}, $ = (e) => {
-		te(e, S(() => r(G), {
+	}, ae = (e) => {
+		te(e, S(() => r(K), {
 			get ref() {
-				return H.opts.ref;
+				return U.opts.ref;
 			},
 			get interactOutsideBehavior() {
 				return O();
@@ -194,14 +195,14 @@ function Y(e, t) {
 			get escapeKeydownBehavior() {
 				return k();
 			},
-			onCloseAutoFocus: q,
-			onOpenAutoFocus: K,
+			onCloseAutoFocus: J,
+			onOpenAutoFocus: q,
 			get open() {
-				return H.parentMenu.opts.open.current;
+				return U.parentMenu.opts.open.current;
 			},
 			onInteractOutside: Y,
-			onEscapeKeydown: X,
-			onFocusOutside: Z,
+			onEscapeKeydown: Z,
+			onFocusOutside: Q,
 			preventScroll: !1,
 			get loop() {
 				return b();
@@ -210,23 +211,23 @@ function Y(e, t) {
 				return z();
 			},
 			get shouldRender() {
-				return H.shouldRender;
+				return U.shouldRender;
 			},
 			popper: (e, n) => {
-				let s = () => n?.().props, c = () => n?.().wrapperProps, d = x(() => I(s(), r(G), { style: B("menu") }, { style: t.style }));
+				let s = () => n?.().props, c = () => n?.().wrapperProps, d = x(() => I(s(), r(K), { style: B("menu") }, { style: t.style }));
 				var f = g(), m = i(f), _ = (e) => {
 					var n = g(), a = i(n);
 					{
 						let e = x(() => ({
 							props: r(d),
 							wrapperProps: c(),
-							...H.snippetProps
+							...U.snippetProps
 						}));
 						o(a, () => t.child, () => r(e));
 					}
 					p(e, n);
 				}, y = (e) => {
-					var n = J();
+					var n = X();
 					l(n, () => ({ ...c() }));
 					var i = u(n);
 					l(i, () => ({ ...r(d) })), o(u(i), () => t.children ?? v), a(i), a(n), p(e, n);
@@ -238,13 +239,13 @@ function Y(e, t) {
 			$$slots: { popper: !0 }
 		}));
 	};
-	h(ie, (e) => {
-		w() ? e(ae) : w() || e($, 1);
-	}), p(e, Q), s();
+	h(re, (e) => {
+		w() ? e(ie) : w() || e(ae, 1);
+	}), p(e, $), s();
 }
 //#endregion
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/menu/components/menu-sub-trigger.svelte
-var X = new Set([
+var Q = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -255,18 +256,18 @@ var X = new Set([
 	"child",
 	"onSelect",
 	"openDelay"
-]), Z = C("<div><!></div>");
-function Q(e, t) {
+]), $ = C("<div><!></div>");
+function re(e, t) {
 	let c = _();
 	n(t, !0);
-	let d = f(t, "id", 19, () => L(c)), m = f(t, "disabled", 3, !1), b = f(t, "ref", 15, null), S = f(t, "onSelect", 3, R), C = f(t, "openDelay", 3, 0), w = y(t, X), T = A.create({
+	let d = f(t, "id", 19, () => L(c)), m = f(t, "disabled", 3, !1), b = f(t, "ref", 15, null), S = f(t, "onSelect", 3, R), C = f(t, "openDelay", 3, 0), w = y(t, Q), T = A.create({
 		disabled: E(() => m()),
 		onSelect: E(() => S()),
 		id: E(() => d()),
 		ref: E(() => b(), (e) => b(e)),
 		openDelay: E(() => C())
 	}), D = x(() => I(w, T.props));
-	H(e, {
+	U(e, {
 		get id() {
 			return d();
 		},
@@ -278,7 +279,7 @@ function Q(e, t) {
 				var n = g();
 				o(i(n), () => t.child, () => ({ props: r(D) })), p(e, n);
 			}, f = (e) => {
-				var n = Z();
+				var n = $();
 				l(n, () => ({ ...r(D) })), o(u(n), () => t.children ?? v), a(n), p(e, n);
 			};
 			h(c, (e) => {
@@ -330,8 +331,8 @@ var ae = new Set([
 	"forceMount",
 	"trapFocus",
 	"style"
-]), $ = C("<div><div><!></div></div>");
-function oe(e, t) {
+]), oe = C("<div><div><!></div></div>");
+function se(e, t) {
 	let c = _();
 	n(t, !0);
 	let d = f(t, "id", 19, () => L(c)), m = f(t, "ref", 15, null), b = f(t, "loop", 3, !0), C = f(t, "onInteractOutside", 3, R), w = f(t, "onEscapeKeydown", 3, R), T = f(t, "onCloseAutoFocus", 3, R), D = f(t, "forceMount", 3, !1), O = f(t, "trapFocus", 3, !1), k = y(t, ae), A = P.create({
@@ -353,7 +354,7 @@ function oe(e, t) {
 		w()(e), !e.defaultPrevented && A.parentMenu.onClose();
 	}
 	var F = g(), ee = i(F), z = (e) => {
-		ne(e, S(() => r(j), () => A.popperProps, {
+		H(e, S(() => r(j), () => A.popperProps, {
 			get ref() {
 				return A.opts.ref;
 			},
@@ -389,7 +390,7 @@ function oe(e, t) {
 					}
 					p(e, n);
 				}, y = (e) => {
-					var n = $();
+					var n = oe();
 					l(n, () => ({ ...c() }));
 					var i = u(n);
 					l(i, () => ({ ...r(d) })), o(u(i), () => t.children ?? v), a(i), a(n), p(e, n);
@@ -437,7 +438,7 @@ function oe(e, t) {
 					}
 					p(e, n);
 				}, y = (e) => {
-					var n = $();
+					var n = oe();
 					l(n, () => ({ ...c() }));
 					var i = u(n);
 					l(i, () => ({ ...r(d) })), o(u(i), () => t.children ?? v), a(i), a(n), p(e, n);
@@ -455,7 +456,7 @@ function oe(e, t) {
 }
 //#endregion
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/menu/components/menu-trigger.svelte
-var se = new Set([
+var ce = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
@@ -465,16 +466,16 @@ var se = new Set([
 	"children",
 	"disabled",
 	"type"
-]), ce = C("<button><!></button>");
-function le(e, t) {
+]), le = C("<button><!></button>");
+function ue(e, t) {
 	let c = _();
 	n(t, !0);
-	let d = f(t, "id", 19, () => L(c)), m = f(t, "ref", 15, null), b = f(t, "disabled", 3, !1), S = f(t, "type", 3, "button"), C = y(t, se), w = M.create({
+	let d = f(t, "id", 19, () => L(c)), m = f(t, "ref", 15, null), b = f(t, "disabled", 3, !1), S = f(t, "type", 3, "button"), C = y(t, ce), w = M.create({
 		id: E(() => d()),
 		disabled: E(() => b() ?? !1),
 		ref: E(() => m(), (e) => m(e))
 	}), T = x(() => I(C, w.props, { type: S() }));
-	H(e, {
+	U(e, {
 		get id() {
 			return d();
 		},
@@ -486,7 +487,7 @@ function le(e, t) {
 				var n = g();
 				o(i(n), () => t.child, () => ({ props: r(T) })), p(e, n);
 			}, f = (e) => {
-				var n = ce();
+				var n = le();
 				l(n, () => ({ ...r(T) })), o(u(n), () => t.children ?? v), a(n), p(e, n);
 			};
 			h(c, (e) => {
@@ -498,32 +499,39 @@ function le(e, t) {
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown-content.svelte
-var ue = new Set([
+var de = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
 	"children",
 	"class"
 ]);
-function de(e, a) {
+function fe(e, a) {
 	n(a, !0);
-	let c = y(a, ue);
+	let c = y(a, de);
 	var l = g();
 	t(i(l), () => z, (e, n) => {
 		n(e, {
 			children: (e, n) => {
 				var s = g(), l = i(s);
 				{
-					let e = x(() => T("z-50 max-h-[min(30rem,var(--bits-menu-content-available-height,30rem))] min-w-(--bits-floating-anchor-width) overflow-y-auto overscroll-contain", "rounded-xl bg-dark-800 p-[5px] shadow-md", "border border-dark-600", a.class));
-					t(l, () => oe, (t, n) => {
+					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width)", "rounded-xl bg-dark-800 p-[5px] shadow-lg", "border border-dark-600", a.class));
+					t(l, () => se, (t, n) => {
 						n(t, S(() => c, {
 							get class() {
 								return r(e);
 							},
 							sideOffset: 4,
 							children: (e, t) => {
-								var n = g();
-								o(i(n), () => a.children ?? v), p(e, n);
+								W(e, {
+									orientation: "vertical",
+									viewportClasses: "max-h-(--bits-dropdown-menu-content-available-height) overflow-hidden",
+									children: (e, t) => {
+										var n = g();
+										o(i(n), () => a.children ?? v), p(e, n);
+									},
+									$$slots: { default: !0 }
+								});
 							},
 							$$slots: { default: !0 }
 						}));
@@ -537,19 +545,19 @@ function de(e, a) {
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown-item.svelte
-var fe = new Set([
+var pe = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
 	"children"
 ]);
-function pe(e, a) {
+function me(e, a) {
 	n(a, !0);
-	let c = y(a, fe);
+	let c = y(a, pe);
 	var l = g(), u = i(l);
 	{
 		let e = x(() => T("cursor-pointer rounded-md px-4 py-2 outline-none hover:bg-dark-700", a.class));
-		t(u, () => q, (t, n) => {
+		t(u, () => Y, (t, n) => {
 			n(t, S(() => c, {
 				get class() {
 					return r(e);
@@ -566,32 +574,39 @@ function pe(e, a) {
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown-sub-content.svelte
-var me = new Set([
+var he = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
 	"children",
 	"class"
 ]);
-function he(e, a) {
+function ge(e, a) {
 	n(a, !0);
-	let c = y(a, me);
+	let c = y(a, he);
 	var l = g();
 	t(i(l), () => z, (e, n) => {
 		n(e, {
 			children: (e, n) => {
 				var s = g(), l = i(s);
 				{
-					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width) max-h-[min(30rem,var(--bits-menu-content-available-height,30rem))] overflow-y-auto overscroll-contain", "rounded-xl bg-dark-800 p-[5px] shadow-md", "border border-dark-600", a.class));
-					t(l, () => Y, (t, n) => {
+					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width)", "rounded-xl bg-dark-800 p-[5px] shadow-lg", "border border-dark-600", a.class));
+					t(l, () => Z, (t, n) => {
 						n(t, S(() => c, {
 							get class() {
 								return r(e);
 							},
-							sideOffset: 8,
+							sideOffset: -1,
 							children: (e, t) => {
-								var n = g();
-								o(i(n), () => a.children ?? v), p(e, n);
+								W(e, {
+									orientation: "vertical",
+									viewportClasses: "max-h-(--bits-menu-content-available-height) overflow-hidden",
+									children: (e, t) => {
+										var n = g();
+										o(i(n), () => a.children ?? v), p(e, n);
+									},
+									$$slots: { default: !0 }
+								});
 							},
 							$$slots: { default: !0 }
 						}));
@@ -605,45 +620,50 @@ function he(e, a) {
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown-sub-trigger.svelte
-var ge = new Set([
+var _e = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
-	"children"
-]), _e = C("<!> <!>", 1);
-function ve(a, c) {
+	"children",
+	"class",
+	"openDelay"
+]), ve = C("<!> <!>", 1);
+function ye(a, c) {
 	n(c, !0);
-	let l = y(c, ge);
-	var u = g(), d = i(u);
+	let l = f(c, "openDelay", 3, 100), u = y(c, _e);
+	var d = g(), m = i(d);
 	{
 		let n = x(() => T("flex cursor-pointer items-center justify-between gap-2 rounded-md px-4 py-2 outline-none hover:bg-dark-700", "data-[state=open]:bg-dark-700", c.class));
-		t(d, () => Q, (t, a) => {
-			a(t, S(() => l, {
+		t(m, () => re, (t, a) => {
+			a(t, S(() => u, {
+				get openDelay() {
+					return l();
+				},
 				get class() {
 					return r(n);
 				},
 				children: (t, n) => {
-					var r = _e(), a = i(r);
+					var r = ve(), a = i(r);
 					o(a, () => c.children ?? v), w(e(a, 2), { icon: "ri:arrow-right-s-line" }), p(t, r);
 				},
 				$$slots: { default: !0 }
 			}));
 		});
 	}
-	p(a, u), s();
+	p(a, d), s();
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown-sub.svelte
-var ye = new Set([
+var be = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
 	"children"
 ]);
-function be(e, n) {
-	let r = y(n, ye);
+function xe(e, n) {
+	let r = y(n, be);
 	var a = g();
-	t(i(a), () => W, (e, t) => {
+	t(i(a), () => K, (e, t) => {
 		t(e, S(() => r, {
 			children: (e, t) => {
 				var r = g();
@@ -655,25 +675,25 @@ function be(e, n) {
 }
 //#endregion
 //#region ../ui/src/lib/components/dropdown/dropdown.svelte
-var xe = new Set([
+var Se = new Set([
 	"$$slots",
 	"$$events",
 	"$$legacy",
 	"children",
 	"trigger"
-]), Se = C("<!> <!>", 1);
-function Ce(n, r) {
-	let a = y(r, xe);
+]), Ce = C("<!> <!>", 1);
+function we(n, r) {
+	let a = y(r, Se);
 	var s = g();
 	t(i(s), () => ie, (n, s) => {
 		s(n, S(() => a, {
 			children: (n, a) => {
-				var s = Se(), l = i(s);
+				var s = Ce(), l = i(s);
 				{
 					let e = (e, t) => {
 						let n = () => t?.().props;
 						var a = g(), s = i(a), l = (e) => {
-							U(e, S(n, {
+							G(e, S(n, {
 								variant: "outline",
 								children: (e, t) => {
 									d();
@@ -690,7 +710,7 @@ function Ce(n, r) {
 							typeof r.trigger == "string" ? e(l) : e(u, -1);
 						}), p(e, a);
 					};
-					t(l, () => le, (t, n) => {
+					t(l, () => ue, (t, n) => {
 						n(t, {
 							child: e,
 							$$slots: { child: !0 }
@@ -704,4 +724,4 @@ function Ce(n, r) {
 	}), p(n, s);
 }
 //#endregion
-export { de as Content, pe as Item, Ce as Root, be as Sub, he as SubContent, ve as SubTrigger };
+export { fe as Content, me as Item, we as Root, xe as Sub, ge as SubContent, ye as SubTrigger };

@@ -1,6 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod audio;
 mod dev;
+mod editor;
 mod local_tts;
 mod media;
 mod network;
@@ -29,13 +30,31 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-async fn play_audio(data: Vec<u8>, volume: f32) -> Result<(), String> {
-    audio::play_audio_bytes(data, volume).await
+async fn play_audio(
+    state: tauri::State<'_, audio::AudioPlaybackState>,
+    data: Vec<u8>,
+    volume: f32,
+    session_id: Option<String>,
+) -> Result<(), String> {
+    audio::play_audio_bytes(state.inner().clone(), data, volume, session_id).await
 }
 
 #[tauri::command]
-async fn play_audio_file(path: String, volume: f32) -> Result<(), String> {
-    audio::play_audio_file(path, volume).await
+async fn play_audio_file(
+    state: tauri::State<'_, audio::AudioPlaybackState>,
+    path: String,
+    volume: f32,
+    session_id: Option<String>,
+) -> Result<(), String> {
+    audio::play_audio_file(state.inner().clone(), path, volume, session_id).await
+}
+
+#[tauri::command]
+fn stop_audio(
+    state: tauri::State<'_, audio::AudioPlaybackState>,
+    session_id: String,
+) -> Result<(), String> {
+    state.stop(&session_id)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -56,6 +75,7 @@ pub fn run() {
             greet,
             play_audio,
             play_audio_file,
+            stop_audio,
             media::get_media_file_duration_ms,
             network::is_tcp_port_reachable,
             local_tts::list_local_tts_voices,
@@ -88,13 +108,15 @@ pub fn run() {
             overlay_server::commands::overlay_broadcast_settings,
             overlay_server::commands::overlay_get_overlays_dir,
             scripts::script_get_project_dir,
-            scripts::script_get_scripts_dir
+            scripts::script_get_scripts_dir,
+            editor::resolve_editor_commands
         ])
         .setup(|app| {
             #[cfg(desktop)]
             app.handle()
                 .plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
 
+            app.manage(audio::AudioPlaybackState::new());
             app.manage(dev::PluginWatchers(std::sync::Mutex::new(
                 std::collections::HashMap::new(),
             )));

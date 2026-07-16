@@ -128,7 +128,8 @@ export async function saveAction(
 
 	const groupSortOrder = await getGroupSortOrder(group);
 	const sortOrder = await getNextSortOrder(group);
-	const queueId = input.queueId ?? (await getDefaultActionQueueId());
+	const queueId =
+		input.queueId !== undefined ? input.queueId : await getDefaultActionQueueId();
 
 	const [row] = await db
 		.insert(actions)

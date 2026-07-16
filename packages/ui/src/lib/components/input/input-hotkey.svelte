@@ -5,6 +5,7 @@
 	import { useId } from 'bits-ui';
 
 	import { cn } from '../../utils';
+	import { inputFieldBorder, inputFieldErrorMessage } from './input-field-classes';
 	import Label from './label.svelte';
 
 	type Props = {
@@ -159,10 +160,10 @@
 		{id}
 		type="button"
 		class={cn(
-			'flex h-10 w-full items-center gap-2 rounded-xl border bg-dark-800 px-4 text-left text-sm',
-			'focus:ring-2 focus:ring-primary focus:outline-none',
-			capturing && 'ring-2 ring-primary',
-			error ? 'border-red-500' : 'border-dark-500'
+			'flex h-10 w-full items-center gap-2 rounded-xl border px-4 text-left text-sm',
+			'bg-dark-800 focus:ring-2 focus:ring-ring focus:outline-none',
+			capturing && 'ring-2 ring-ring',
+			inputFieldBorder(error)
 		)}
 		onclick={startCapture}
 		onkeydown={onKeydown}
@@ -181,6 +182,6 @@
 	</button>
 
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

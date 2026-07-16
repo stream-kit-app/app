@@ -57,8 +57,6 @@
 		});
 
 	function retryBoot(): void {
-		// A full reload guarantees a clean state; re-running a partially completed
-		// boot in-process could double-register plugins.
 		window.location.reload();
 	}
 
@@ -108,36 +106,41 @@
 				<aside
 					class="flex h-full w-64 shrink-0 flex-col border-r border-dark-600 bg-dark-800"
 				>
-					<section class="mt-4 mb-4 p-2.5">
+					<section class="mt-4 mb-4 shrink-0 p-2.5">
 						<Logo />
 					</section>
-					<section class="p-2.5">
-						<Nav.Root
-							items={app.menu.items}
-							activePath={page.url.pathname}
-							{translateTitle}
-						/>
+					<section class="flex min-h-0 flex-1 flex-col p-2.5">
+						<ScrollArea
+							orientation="vertical"
+							class="h-full min-h-0 overflow-hidden"
+							viewportClasses="h-full"
+						>
+							<Nav.Root
+								items={app.menu.items}
+								activePath={page.url.pathname}
+								{translateTitle}
+							/>
+						</ScrollArea>
 					</section>
 				</aside>
 				<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
 					<AppPageHeader />
 					<AppToolbar />
-					<div class="flex min-h-0 flex-1 overflow-hidden">
-						<main class="flex min-h-0 min-w-0 flex-1 flex-col">
-							<ScrollArea
-								orientation="vertical"
-								class="h-full min-h-0 overflow-hidden"
-								viewportClasses="h-full"
-							>
-								{@render children()}
-							</ScrollArea>
-						</main>
-						{#each app.modals.entries() as [id, modal] (id)}
-							<Modal {modal} onClosed={() => app.removeModal(id)} />
-						{/each}
-					</div>
+					<main class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+						<ScrollArea
+							orientation="vertical"
+							class="h-full min-h-0 overflow-hidden"
+							viewportClasses="h-full"
+						>
+							{@render children()}
+						</ScrollArea>
+					</main>
 				</div>
 			</div>
+
+			{#each app.modals.entries() as [id, modal] (id)}
+				<Modal {modal} onClosed={() => app.removeModal(id)} />
+			{/each}
 		</TooltipProvider>
 
 		<ConfirmDialog confirm={app.confirm} />

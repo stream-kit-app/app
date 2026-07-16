@@ -2,6 +2,11 @@
 	import type { Snippet } from 'svelte';
 
 	import { cn } from '../../utils';
+	import {
+		inputFieldBorderError,
+		inputFieldErrorMessage,
+		inputFieldRequiredMark
+	} from './input-field-classes';
 	import Label from './label.svelte';
 
 	export type OneOfTab = {
@@ -63,15 +68,15 @@
 		<Label>
 			{label}
 			{#if required}
-				<span class="text-red-400" aria-hidden="true">*</span>
+				<span class={inputFieldRequiredMark} aria-hidden="true">*</span>
 			{/if}
 		</Label>
 	{/if}
 
 	<div
 		class={cn(
-			'inline-flex w-fit gap-0.5 rounded-xl border border-dark-600 bg-dark-800 p-1',
-			error && 'border-red-500'
+			'inline-flex w-fit gap-0.5 rounded-xl border border-border bg-dark-800 p-1',
+			error && inputFieldBorderError
 		)}
 		role="tablist"
 		aria-label={label}
@@ -110,6 +115,6 @@
 	</div>
 
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

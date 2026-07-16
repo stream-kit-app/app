@@ -114,6 +114,27 @@ export function sortUsersByPoints(users: UserRankingRecord[]): UserRankingRecord
 	});
 }
 
+export function countUsersByRank(
+	users: UserRankingRecord[],
+	ordered: OrderedRankEntry[]
+): Map<string, number> {
+	const counts = new Map<string, number>();
+
+	for (const entry of ordered) {
+		counts.set(entry.rank.id, 0);
+	}
+
+	for (const user of users) {
+		const rankId = resolveProgress(user.totalPoints, ordered).rank?.id;
+
+		if (rankId != null) {
+			counts.set(rankId, (counts.get(rankId) ?? 0) + 1);
+		}
+	}
+
+	return counts;
+}
+
 export function clampPoints(value: number): number {
 	if (!Number.isFinite(value)) {
 		return 0;

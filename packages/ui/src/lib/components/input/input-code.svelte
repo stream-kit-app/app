@@ -6,16 +6,19 @@
 
 	import Icon from '@iconify/svelte';
 	import { useId } from 'bits-ui';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 
 	import {
 		configureMonacoTypescript,
 		ensureMonacoEnvironment,
-		streamKitMonacoTheme
+		streamKitMonacoTheme,
+		warmupMonacoTypescript,
+		withMonacoProjectReference
 	} from '../../monaco';
 	import { VariablePopover } from '../variable-popover';
 	import { Button } from '../button';
 	import { cn } from '../../utils';
+	import { inputFieldErrorMessage } from './input-field-classes';
 	import Label from './label.svelte';
 
 	type Props = {
@@ -37,6 +40,8 @@
 		collapseLabel?: string;
 		class?: string;
 		extraLibs?: MonacoExtraLib[];
+		/** Virtual file URI under `file:///project/` for TypeScript IntelliSense. */
+		modelUri?: string;
 		loadingLabel?: string;
 		variables?: HandlerFieldVariable[];
 		variablesTitle?: string;
@@ -62,6 +67,7 @@
 		collapseLabel = 'Close',
 		class: className,
 		extraLibs = [],
+		modelUri,
 		loadingLabel = 'Loading...',
 		variables = [],
 		variablesTitle = 'Variables',
@@ -80,11 +86,39 @@
 	let monaco: MonacoModule | undefined = $state();
 	let isReady = $state(false);
 	let cancelled = false;
+	let initializing = false;
 	let syncingFromOutside = false;
 	let extraLibsSignature = $state('');
+	let ownsModel = false;
+	let overflowWidgetsHost: HTMLDivElement | undefined;
+
+	function createOverflowWidgetsHost(): HTMLDivElement {
+		const host = document.createElement('div');
+		// Monaco scopes suggest/hover CSS under `.monaco-editor` — same pattern as Monaco's multiDiffEditor.
+		host.className = 'monaco-editor stream-kit-monaco-overflow-host';
+		document.body.appendChild(host);
+		return host;
+	}
+
+	function disposeOverflowWidgetsHost(): void {
+		overflowWidgetsHost?.remove();
+		overflowWidgetsHost = undefined;
+	}
 
 	function extraLibsKey(libs: MonacoExtraLib[]): string {
 		return libs.map((lib) => `${lib.filePath ?? ''}\0${lib.content}`).join('\0');
+	}
+
+	function modelSource(source: string): string {
+		if (!modelUri) {
+			return source;
+		}
+
+		return withMonacoProjectReference(source, modelUri);
+	}
+
+	function stripModelReference(source: string): string {
+		return source.replace(/^\/\/\/ <reference path="[^"]+" \/>\r?\n/gm, '');
 	}
 
 	function emitValueChange(next: string): void {
@@ -93,7 +127,7 @@
 		}
 
 		oninput({
-			currentTarget: { value: next }
+			currentTarget: { value: stripModelReference(next) }
 		} as Event & { currentTarget: HTMLTextAreaElement });
 	}
 
@@ -122,79 +156,154 @@
 		editor.focus();
 	}
 
-	async function initEditor(): Promise<void> {
-		if (!container) {
+	async function applyTypescriptLibs(libs: MonacoExtraLib[], force = false): Promise<void> {
+		if (libs.length === 0) {
 			return;
 		}
 
-		ensureMonacoEnvironment();
+		await configureMonacoTypescript(libs, { force });
+		extraLibsSignature = extraLibsKey(libs);
+	}
 
-		const monacoModule = await import('monaco-editor');
-
-		if (cancelled || !container) {
-			return;
+	function createEditorModel(
+		monacoModule: MonacoModule,
+		source: string
+	): import('monaco-editor').editor.ITextModel | undefined {
+		if (!modelUri) {
+			return undefined;
 		}
 
-		monaco = monacoModule;
-		monaco.editor.defineTheme('stream-kit-dark', streamKitMonacoTheme);
-		await configureMonacoTypescript(extraLibs);
-		extraLibsSignature = extraLibsKey(extraLibs);
+		const uri = monacoModule.Uri.parse(modelUri);
+		const editorLanguage = language === 'json' ? 'json' : 'typescript';
+		const modelValue = modelSource(source);
+		const existing = monacoModule.editor.getModel(uri);
 
-		editor = monaco.editor.create(container, {
-			value,
-			language: language === 'json' ? 'json' : 'typescript',
-			theme: 'stream-kit-dark',
-			automaticLayout: true,
-			fixedOverflowWidgets: true,
-			minimap: { enabled: false },
-			fontSize: 13,
-			lineNumbers: 'on',
-			scrollBeyondLastLine: false,
-			tabSize: 2,
-			insertSpaces: true,
-			wordWrap: 'on',
-			padding: { top: 12, bottom: 12 },
-			overviewRulerLanes: 0,
-			suggestOnTriggerCharacters: true,
-			quickSuggestions: {
-				other: true,
-				comments: false,
-				strings: false
-			},
-			quickSuggestionsDelay: 10,
-			suggest: {
-				showWords: language === 'json',
-				preview: true
-			},
-			scrollbar: {
-				verticalScrollbarSize: 8,
-				horizontalScrollbarSize: 8
+		if (existing) {
+			if (existing.getValue() !== modelValue) {
+				existing.setValue(modelValue);
 			}
-		});
 
-		if (placeholder) {
-			editor.onDidFocusEditorText(() => {
-				if (editor?.getValue() === '' && placeholder) {
-					// Monaco has no built-in placeholder; keep empty state styling via aria.
-				}
-			});
+			ownsModel = false;
+			return existing;
 		}
 
-		editor.onDidChangeModelContent(() => {
-			if (syncingFromOutside || !editor) {
+		ownsModel = true;
+		return monacoModule.editor.createModel(modelValue, editorLanguage, uri);
+	}
+
+	async function initEditor(libs: MonacoExtraLib[], source: string): Promise<void> {
+		if (!container || initializing || isReady) {
+			return;
+		}
+
+		initializing = true;
+
+		try {
+			ensureMonacoEnvironment();
+
+			const monacoModule = await import('monaco-editor');
+
+			if (cancelled || !container) {
 				return;
 			}
 
-			emitValueChange(editor.getValue());
-		});
+			monaco = monacoModule;
+			monaco.editor.defineTheme('stream-kit-dark', streamKitMonacoTheme);
 
-		if (formatOnBlur) {
-			editor.onDidBlurEditorText(() => {
-				void formatDocument();
+			const editorLanguage = language === 'json' ? 'json' : 'typescript';
+			const model = createEditorModel(monacoModule, source);
+			const useOverflowHost = libs.length > 0;
+
+			if (useOverflowHost) {
+				overflowWidgetsHost = createOverflowWidgetsHost();
+			}
+
+			editor = monaco.editor.create(container, {
+				model,
+				value: model ? undefined : source,
+				language: model ? undefined : editorLanguage,
+				theme: 'stream-kit-dark',
+				automaticLayout: true,
+				...(useOverflowHost && overflowWidgetsHost
+					? {
+							fixedOverflowWidgets: true,
+							allowOverflow: true,
+							overflowWidgetsDomNode: overflowWidgetsHost
+						}
+					: {}),
+				minimap: { enabled: false },
+				fontSize: 13,
+				lineNumbers: 'on',
+				scrollBeyondLastLine: false,
+				tabSize: 2,
+				insertSpaces: true,
+				wordWrap: 'on',
+				padding: { top: 12, bottom: 12 },
+				overviewRulerLanes: 0,
+				hover: { enabled: true },
+				parameterHints: { enabled: true },
+				suggestOnTriggerCharacters: true,
+				quickSuggestions: {
+					other: true,
+					comments: false,
+					strings: false
+				},
+				quickSuggestionsDelay: 10,
+				suggest: {
+					showWords: language === 'json',
+					preview: true,
+					showMethods: true,
+					showFunctions: true,
+					showConstructors: true,
+					showFields: true,
+					showVariables: true,
+					showClasses: true,
+					showStructs: true,
+					showInterfaces: true,
+					showModules: true,
+					showProperties: true,
+					showEvents: true,
+					showOperators: true,
+					showUnits: true,
+					showValues: true,
+					showConstants: true,
+					showEnums: true,
+					showEnumMembers: true,
+					showKeywords: true,
+					showSnippets: true
+				},
+				scrollbar: {
+					verticalScrollbarSize: 8,
+					horizontalScrollbarSize: 8
+				}
 			});
-		}
 
-		isReady = true;
+			if (libs.length > 0) {
+				await applyTypescriptLibs(libs);
+			}
+
+			editor.onDidChangeModelContent(() => {
+				if (syncingFromOutside || !editor) {
+					return;
+				}
+
+				emitValueChange(editor.getValue());
+			});
+
+			if (formatOnBlur) {
+				editor.onDidBlurEditorText(() => {
+					void formatDocument();
+				});
+			}
+
+			if (model) {
+				await warmupMonacoTypescript(monacoModule, model);
+			}
+
+			isReady = true;
+		} finally {
+			initializing = false;
+		}
 	}
 
 	function replaceEditorText(next: string): void {
@@ -222,7 +331,7 @@
 
 		const source = editor.getValue();
 
-		if (source.trim() === '') {
+		if (stripModelReference(source).trim() === '') {
 			return;
 		}
 
@@ -242,8 +351,21 @@
 		}
 	}
 
-	onMount(() => {
-		void initEditor();
+	$effect(() => {
+		const el = container;
+		const libs = extraLibs;
+		const source = value ?? '';
+		const uri = modelUri;
+
+		if (!el || isReady || cancelled) {
+			return;
+		}
+
+		if (uri && libs.length === 0) {
+			return;
+		}
+
+		void initEditor(libs, source);
 	});
 
 	$effect(() => {
@@ -251,7 +373,7 @@
 			return;
 		}
 
-		const next = value ?? '';
+		const next = modelSource(value ?? '');
 
 		if (editor.getValue() === next) {
 			return;
@@ -277,8 +399,6 @@
 	});
 
 	$effect(() => {
-		// Re-layout Monaco right after the container resizes on expand/collapse,
-		// so it never keeps the stale (fullscreen) dimensions.
 		void expanded;
 
 		if (!editor) {
@@ -291,7 +411,7 @@
 	});
 
 	$effect(() => {
-		if (!isReady) {
+		if (!isReady || !editor || !monaco || extraLibs.length === 0) {
 			return;
 		}
 
@@ -301,15 +421,26 @@
 			return;
 		}
 
-		extraLibsSignature = signature;
-		void configureMonacoTypescript(extraLibs);
+		void applyTypescriptLibs(extraLibs).then(() => {
+			const model = editor?.getModel();
+
+			if (monaco && model) {
+				void warmupMonacoTypescript(monaco, model);
+			}
+		});
 	});
 
 	onDestroy(() => {
 		cancelled = true;
+		const model = editor?.getModel();
 		editor?.dispose();
 		editor = undefined;
 		monaco = undefined;
+		disposeOverflowWidgetsHost();
+
+		if (ownsModel && model && !model.isDisposed()) {
+			model.dispose();
+		}
 	});
 </script>
 
@@ -387,11 +518,11 @@
 		aria-invalid={error ? true : undefined}
 		aria-placeholder={placeholder}
 		class={cn(
-			'relative overflow-hidden rounded-lg border bg-dark-900 focus-within:ring-2',
+			'relative z-52 overflow-visible rounded-lg border bg-dark-900 focus-within:ring-2',
 			fillsHeight ? 'flex min-h-0 flex-1 flex-col' : '',
 			error
-				? 'border-red-500 focus-within:ring-red-500'
-				: 'border-dark-600 focus-within:ring-primary',
+				? 'border-destructive focus-within:ring-destructive'
+				: 'border-border focus-within:ring-ring',
 			className
 		)}
 		style:height={fillsHeight ? undefined : minHeight}
@@ -409,6 +540,6 @@
 		{/if}
 	</div>
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

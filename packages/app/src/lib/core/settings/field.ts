@@ -62,7 +62,15 @@ export type SettingsFieldDefinition =
 			itemsReload?: (context: SettingsContext) => unknown;
 			loadingPlaceholder?: string;
 	  })
-	| (SettingsFieldBase & { type: 'slider'; min: number; max: number; step?: number })
+	| (SettingsFieldBase & {
+			type: 'slider';
+			min: number;
+			max: number;
+			step?: number;
+			/** Unit shown next to the value (e.g. `%`, `px`). Empty string for no unit. Defaults to `%`. */
+			unit?: string;
+	  })
+	| (SettingsFieldBase & { type: 'color' })
 	| {
 			type: 'button';
 			key: string;

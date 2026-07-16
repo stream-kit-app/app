@@ -31,13 +31,14 @@ Choose a default **model** on the configure page; override per handler or use **
 
 | Handler | Description |
 | --- | --- |
+| **TTS → Skip** | Stop the currently playing TTS message (and discard in-flight synthesis); the next queued clip still plays |
 | **TTS → Local → Speak Text** | Offline Piper voice |
 | **TTS → StreamElements → Speak Text** | Cloud via StreamElements |
 | **TTS → ElevenLabs → Speak Text** | Cloud via ElevenLabs |
 
 Each handler supports a fixed voice or a **Variable** voice ID.
 
-Use an [action queue](/docs/guide/action-queues) with **blocking** enabled if multiple TTS lines must not overlap.
+Speak handlers finish only after their audio has finished playing. Use an [action queue](/docs/guide/action-queues) with **blocking** enabled when later actions must wait for that speech to end.
 
 Reference: [TTS handlers](/docs/api/handlers/tts).
 

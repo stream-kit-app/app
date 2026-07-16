@@ -132,7 +132,8 @@ export function initSettingsFieldValue(definition: SettingsFieldDefinition): Set
 	if (
 		definition.type === 'text' ||
 		definition.type === 'select' ||
-		definition.type === 'combobox'
+		definition.type === 'combobox' ||
+		definition.type === 'color'
 	) {
 		return '';
 	}
@@ -181,7 +182,8 @@ export function isSettingsFieldValueEmpty(
 	if (
 		definition.type === 'text' ||
 		definition.type === 'select' ||
-		definition.type === 'combobox'
+		definition.type === 'combobox' ||
+		definition.type === 'color'
 	) {
 		return !String(value ?? '').trim();
 	}

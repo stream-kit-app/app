@@ -1,7 +1,8 @@
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
+import { interpolateVariables } from '@stream-kit/core';
 
 import type { RankingsService } from '../app/lib/rankings.svelte';
-import { getFieldValue } from '../lib/get-field-value';
+import { contextToVariables, getFieldValue } from '../lib/get-field-value';
 import type { RankingsPlatform } from '../lib/types';
 import {
 	createUserTargetField,
@@ -17,6 +18,20 @@ function parseAmount(value: unknown): number {
 	}
 
 	return Math.max(0, Math.floor(amount));
+}
+
+function parseAmountFromField(
+	fields: Parameters<typeof getFieldValue>[0],
+	key: string,
+	context: unknown
+): number {
+	const value = getFieldValue(fields, key);
+
+	if (typeof value === 'string') {
+		return parseAmount(interpolateVariables(value, contextToVariables(context)));
+	}
+
+	return parseAmount(value);
 }
 
 function parseSource(value: unknown): string {
@@ -71,7 +86,7 @@ function createPointsExecute(
 
 		await mutate({
 			...identity,
-			amount: parseAmount(getFieldValue(handler.fields, 'amount')),
+			amount: parseAmountFromField(handler.fields, 'amount', context.data),
 			source: parseSource(getFieldValue(handler.fields, 'source'))
 		});
 
@@ -103,8 +118,34 @@ export function createRemovePointsHandler(app: PluginAppApi, rankings: RankingsS
 	return {
 		name: 'Remove points',
 		fields: createPointsHandlerFields(rankings),
-		execute: createPointsExecute(app, rankings, 'Remove points failed', (input) =>
-			rankings.removePoints(input)
-		)
+		execute: async (_action, handler, context, next) => {
+			const identity = resolveUserTarget(handler.fields, context.data, rankings);
+
+			if (!identity) {
+				app.toast.create({
+					title: 'Remove points failed',
+					description: userTargetFailureDescription(handler.fields),
+					variant: 'warning'
+				});
+				next();
+				return;
+			}
+
+			try {
+				await rankings.removePoints({
+					...identity,
+					amount: parseAmountFromField(handler.fields, 'amount', context.data),
+					source: parseSource(getFieldValue(handler.fields, 'source'))
+				});
+			} catch (error) {
+				app.toast.create({
+					title: 'Remove points failed',
+					description: error instanceof Error ? error.message : String(error),
+					variant: 'warning'
+				});
+			}
+
+			next();
+		}
 	} satisfies HandlerDefinitionProps;
 }

@@ -100,7 +100,7 @@
 	<InputTextSelect
 		label={t('Group')}
 		placeholder={t('Select or enter a group')}
-		items={() => getCommandsService().getGroups()}
+		items={() => getCommandsService().getGroupSelectItems()}
 		bind:value={command.group}
 	/>
 

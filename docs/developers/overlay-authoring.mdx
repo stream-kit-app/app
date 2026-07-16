@@ -32,7 +32,7 @@ Each overlay includes `overlay.manifest.json`:
 | `framework` | Starter template id (`vanilla`, `svelte`, `react`, …) |
 | `expectedEvents` | Event names for **Send to Overlay** combobox (app → overlay) |
 | `outgoingEvents` | Event names this overlay sends to Stream Kit (overlay → app); used for **Message Received** trigger setup |
-| `settings` | Configure page fields (text, switch, select, slider, sections) |
+| `settings` | Configure page fields (text, switch, select, slider, color, sections) |
 | `testHandlers` | Quick test buttons on overlay detail page |
 | `requiredPlugins` | Plugin keys required for action presets |
 | `actions` | Optional action presets to install |
@@ -41,7 +41,7 @@ Each overlay includes `overlay.manifest.json`:
 
 Settings fields render on the overlay **Configure** page. Values are broadcast to the browser source as event `overlay:settings` with a key-value map.
 
-Supported field types: `text`, `switch`, `checkbox`, `select`, `slider`, and grouped `section` blocks.
+Supported field types: `text`, `switch`, `checkbox`, `select`, `slider`, `color`, and grouped `section` blocks.
 
 Use `__overlay__` token in select items when a field should reference the current overlay id.
 

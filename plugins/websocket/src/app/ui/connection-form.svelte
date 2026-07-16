@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Connection } from '../lib/connection.svelte';
 
+	import { Alert } from '@stream-kit/ui/alert';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 
 	import { getConnectionsService } from '../lib/get-connections';
@@ -41,13 +42,15 @@
 	/>
 
 	{#if duplicateWarning}
-		<p class="text-sm text-warning-400">{duplicateWarning}</p>
+		<Alert variant="warning" description={duplicateWarning} />
 	{/if}
 
-	<InputSwitch label={t('Auto-connect')} bind:checked={connection.autoConnect} />
-	<p class="text-sm text-dark-300">
-		{t('Connect automatically when the plugin is enabled.')}
-	</p>
+	<div class="grid gap-2">
+		<InputSwitch label={t('Auto-connect')} bind:checked={connection.autoConnect} />
+		<p class="text-sm text-dark-300">
+			{t('Connect automatically when the plugin is enabled.')}
+		</p>
+	</div>
 
 	<div class="grid gap-4 sm:grid-cols-2">
 		<InputText

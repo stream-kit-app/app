@@ -45,7 +45,7 @@ function d(e) {
 		type: "equals",
 		value: "",
 		negate: !1
-	} : e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" ? "" : !1 : e.defaultValue;
+	} : e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" || e.type === "color" ? "" : !1 : e.defaultValue;
 }
 function ee(e) {
 	if (e.type === "one-of") {
@@ -110,7 +110,7 @@ function g(e, t) {
 		let n = t;
 		return (e.valuelessOperators ?? []).includes(n.type) ? !n.path.trim() : !n.path.trim() || !n.value.trim();
 	}
-	return e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" ? !String(t ?? "").trim() : !1;
+	return e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" || e.type === "color" ? !String(t ?? "").trim() : !1;
 }
 function _(e) {
 	return e.children.flatMap((e) => e.kind === "condition" ? [e] : _(e));

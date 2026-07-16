@@ -2,8 +2,9 @@
   "title": "Tts",
   "pages": [
     "index",
-    "speak-text",
-    "speak-text",
-    "speak-text"
+    "skip",
+    "local-speak-text",
+    "streamelements-speak-text",
+    "elevenlabs-speak-text"
   ]
 }

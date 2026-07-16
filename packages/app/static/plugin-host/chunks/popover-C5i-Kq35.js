@@ -562,7 +562,7 @@ function ce(i, s) {
 	let c = g(s, se);
 	var l = p(), d = r(l);
 	{
-		let t = v(() => x("z-50 w-72 rounded-xl border border-dark-600 bg-dark-800 p-3 shadow-md outline-none", s.class));
+		let t = v(() => x("z-[100] w-72 rounded-xl border border-dark-600 bg-dark-800 p-3 shadow-md outline-none", s.class));
 		e(d, () => $, (e, i) => {
 			i(e, y(() => c, {
 				get class() {

@@ -27,3 +27,9 @@ export type { OverlaySettingsContext } from './overlay-settings.svelte';
 export { OVERLAY_SETTINGS_EVENT } from './overlay-manifest';
 export type { OverlayFrameworkId, OverlayProjectFile, OverlayServerStatus } from './types';
 export { createOverlayId, DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';
+export {
+	OVERLAY_WIDGET_TEMPLATES,
+	getOverlayWidgetTemplate,
+	isOverlayWidgetId
+} from './widget-templates';
+export type { OverlayWidgetId, OverlayWidgetTemplate } from './widget-templates';

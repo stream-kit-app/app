@@ -1,0 +1,58 @@
+---
+description: First-party plugin registration, public API, and package layout
+globs:
+  - plugins/**/*
+alwaysApply: false
+---
+
+# Plugin architecture
+
+## Entry
+
+Default export is a `Plugin` factory:
+
+```ts
+const plugin: Plugin = (app) => {
+	configureFieldValueResolver(app);
+	return {
+		name: 'Twitch',
+		icon: 'ri:twitch-fill',
+		api: publicApi,
+		settings: { /* … */ },
+		triggers: [/* nested groups */],
+		handlers: [/* nested groups */]
+	};
+};
+
+export default plugin;
+```
+
+## Cross-plugin access
+
+Expose typed helpers in `lib/plugin-api.ts` — do not reach into another plugin’s internals:
+
+```ts
+export function getTwitch(app: PluginAppApi): TwitchPluginApi {
+	return app.plugins.get<TwitchPluginApi>('twitch');
+}
+
+export function tryGetTwitch(app: PluginAppApi): TwitchPluginApi | undefined {
+	return app.plugins.tryGet<TwitchPluginApi>('twitch');
+}
+```
+
+## Layout
+
+| Path | Purpose |
+| --- | --- |
+| `src/index.ts` | Plugin factory + registration |
+| `src/handler/`, `src/trigger/` | Definitions by category |
+| `src/lib/` | Domain logic, helpers, `plugin-api.ts` |
+| `src/app/` / `widgets/` | Plugin UI |
+| `PluginStore` | Persist JSON plugin data |
+
+Use `app.fs` for logs/assets when needed. Keep domain logic out of Svelte components.
+
+## Build
+
+Use shared `plugins/create-vite-build-config.js`. Host modules (`@stream-kit/plugin`, `@stream-kit/core`, `svelte`, `@stream-kit/ui`, …) are **externalized** via `isPluginHostExternal` — never bundle them into the plugin dist.

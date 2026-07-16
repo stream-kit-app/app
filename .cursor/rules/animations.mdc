@@ -1,0 +1,47 @@
+---
+description: Use tw-animate-css for all UI enter/exit and transition animations
+globs:
+  - packages/app/**/*.svelte
+  - packages/ui/**/*.svelte
+  - plugins/**/*.svelte
+---
+
+# Animations
+
+Use **`tw-animate-css`** utility classes whenever you add UI animations (dialogs, overlays, panels, tooltips, toasts, etc.). Do **not** add custom `@keyframes` or hand-written `animation:` rules in CSS for these cases.
+
+The package is imported in `packages/app/src/routes/layout.css`. UI components in `packages/ui` and `packages/app` rely on these utilities.
+
+## Enter / exit (bits-ui, data-state)
+
+Bind animations to `data-[state=open]` / `data-[state=closed]` (or equivalent state attributes):
+
+```svelte
+<div
+  class={cn(
+    'duration-300',
+    'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
+    'data-[state=open]:animate-in data-[state=open]:fade-in-0'
+  )}
+/>
+```
+
+Common combinations:
+
+| Effect | Enter | Exit |
+|--------|-------|------|
+| Fade | `fade-in-0` | `fade-out-0` |
+| Zoom | `zoom-in-95` | `zoom-out-95` |
+| Slide from right | `slide-in-from-right` | `slide-out-to-right` |
+| Slide from top | `slide-in-from-top-8` | `slide-out-to-top-8` |
+
+Always pair `animate-in` / `animate-out` with the specific effect class. Control timing with `duration-*` and optional `delay-*` on the same element.
+
+## Unmount timing
+
+When a component must stay mounted until an exit animation finishes (e.g. modals), keep a `*_DURATION_MS` constant in sync with the `duration-*` class used on that element.
+
+## When custom CSS is acceptable
+
+- Long-running ambient/decorative loops that tw-animate-css does not cover (e.g. boot splash backgrounds).
+- Do not use this exception for dialogs, overlays, slide panels, or other interactive UI motion — use tw-animate-css instead.

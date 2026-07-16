@@ -1,0 +1,54 @@
+---
+description: Clickable UI must show pointer cursor; verify after every UI edit
+alwaysApply: true
+---
+
+# Cursor pointer on clickable UI
+
+Every interactive control must show `cursor: pointer` on hover. Disabled controls use `cursor-not-allowed`.
+
+## Global baseline
+
+[`layout.css`](packages/app/src/routes/layout.css) sets pointer cursor for native interactives (`a[href]`, `button`, `[role='button']`, `[data-button-root]`, form controls, etc.). Do not rely on this alone for custom click targets.
+
+## When writing or editing UI
+
+After each UI change, check every click/tap target:
+
+| Target | Required |
+| --- | --- |
+| `<a href>` | Covered by base CSS; add `cursor-pointer` if styling overrides cursor |
+| `<button>`, `@stream-kit/ui/button` | Covered by base CSS / `buttonVariants` |
+| Custom row/card openers (`<button>`, `<a>`) | `cursor-pointer` on the clickable element |
+| Non-semantic click targets (`<div onclick>`, grid rows) | **Must** include `cursor-pointer` |
+| Drag handles | `cursor-grab` / `active:cursor-grabbing` (not pointer) |
+| Text inputs, textareas | Default text cursor — do **not** add `cursor-pointer` |
+| Disabled controls | `cursor-not-allowed` or `disabled:cursor-not-allowed` |
+
+## Examples
+
+```svelte
+<!-- ❌ BAD — clickable div without pointer -->
+<div class="hover:bg-dark-700/60" onclick={open}>
+
+<!-- ✅ GOOD -->
+<button type="button" class="w-full cursor-pointer text-left hover:bg-dark-700/60" onclick={open}>
+
+<!-- ✅ GOOD — semantic button; base CSS handles cursor -->
+<button type="button" class="font-medium text-primary hover:underline" onclick={open}>
+```
+
+```svelte
+<!-- ❌ BAD — link styled as action, no pointer if cursor is reset elsewhere -->
+<a href="/actions" class="text-dark-300 hover:text-dark-100 [cursor:inherit]">
+
+<!-- ✅ GOOD -->
+<a href="/actions" class="cursor-pointer text-dark-300 hover:text-dark-100">
+```
+
+## Workflow
+
+1. List click/tap targets in changed components (links, buttons, cards, list rows, icon actions).
+2. Confirm each shows pointer (or grab for drag handles).
+3. Prefer `<button type="button">` or `<a href>` over clickable `<div>`/`<span>`.
+4. When using `@stream-kit/ui/button`, do not remove its built-in `cursor-pointer` from `buttonVariants`.

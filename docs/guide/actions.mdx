@@ -15,6 +15,15 @@ Open **Actions** in the sidebar.
 - **Enable/disable** toggles whether triggers can run the action.
 - **Clone** duplicates an action including handlers and triggers.
 - **Bulk edit** assigns queue, group, or enabled state to multiple actions.
+- **Export / Import** share actions as a JSON file.
+
+## Export and import
+
+Use **Export all** (or **Export selected** when actions are selected) to download a JSON file of your actions. **Import** always creates new actions — existing ones are never replaced.
+
+- Queue assignments are stored by queue **name**. On import, matching queues are linked; otherwise the default queue is used. Actions with **No queue** stay without a queue.
+- Plugin-owned actions are not included in exports.
+- Triggers or handlers from plugins that are not installed still import, but show as unavailable until those plugins are available.
 
 ## Action editor
 

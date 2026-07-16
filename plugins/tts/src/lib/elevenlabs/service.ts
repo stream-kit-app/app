@@ -2,6 +2,7 @@ import type { ElevenLabsVoice } from './types';
 import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
 import { TtsPlayer } from '../player';
+import { TTS_SESSION_IDS } from '../session-ids';
 import { fetchElevenLabsSpeech, fetchElevenLabsVoices } from './api';
 import { DEFAULT_ELEVENLABS_MODEL_ID } from './types';
 
@@ -32,7 +33,10 @@ export class ElevenLabsService {
 
 	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
 		this.store = store;
-		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume));
+		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume, { sessionId: TTS_SESSION_IDS.elevenlabs }), {
+			sessionId: TTS_SESSION_IDS.elevenlabs,
+			stopPlayback: (sessionId) => app.audio.stop(sessionId)
+		});
 		await this.syncFromStore();
 	}
 
@@ -89,8 +93,18 @@ export class ElevenLabsService {
 		}
 
 		const modelId = options.modelId?.trim() || this.modelId;
+		const generation = this.player.getSpeakGeneration();
 		const blob = await fetchElevenLabsSpeech(this.apiKey, voiceId, text, modelId);
-		this.player.enqueue(blob, options.volume ?? this.volume);
+
+		if (generation !== this.player.getSpeakGeneration()) {
+			return;
+		}
+
+		await this.player.enqueue(blob, options.volume ?? this.volume);
+	}
+
+	skip(): void {
+		this.player.skip();
 	}
 
 	private invalidateVoiceCache(): void {

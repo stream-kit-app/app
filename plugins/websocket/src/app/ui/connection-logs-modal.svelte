@@ -7,6 +7,7 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
+	import { tooltip } from '@stream-kit/ui/attachments';
 
 	import { cn } from '@stream-kit/plugin/utils';
 
@@ -325,8 +326,11 @@
 								variant="outline"
 								size="icon-sm"
 								class="flex size-7 cursor-pointer items-center justify-center rounded-md border border-dark-700 bg-dark-800 text-dark-400 shadow-md transition-all hover:bg-dark-700 hover:text-dark-100"
-								title={t('Copy message')}
+								aria-label={copiedId === entry.id ? t('Copied') : t('Copy message')}
 								onclick={() => handleCopy(entry.id, entry.message)}
+								{@attach tooltip(() =>
+									copiedId === entry.id ? t('Copied') : t('Copy message')
+								)}
 							>
 								{#if copiedId === entry.id}
 									<Icon

@@ -17,6 +17,10 @@
 		type CronPreset
 	} from './cron-expression';
 	import CronExpressionEditor from './cron-expression-editor.svelte';
+	import {
+		inputFieldErrorMessage,
+		inputFieldSurface
+	} from './input-field-classes';
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 
@@ -85,12 +89,13 @@
 					{...props}
 					aria-label={editAriaLabel}
 					class={cn(
-						'flex w-full items-center gap-2 rounded-xl border bg-dark-700 text-left outline-none transition-all',
+						'flex w-full items-center gap-2 rounded-xl border text-left outline-none transition-all',
+						inputFieldSurface,
 						inputSizeClasses.md,
 						'focus-visible:ring-2',
 						error
-							? 'border-red-500 focus-visible:border-red-500/50 focus-visible:ring-red-500'
-							: 'border-dark-500 focus-visible:border-primary/50 focus-visible:ring-primary'
+							? 'border-destructive focus-visible:border-destructive/50 focus-visible:ring-destructive'
+							: 'border-border hover:border-dark-400 focus-visible:border-ring/50 focus-visible:ring-ring'
 					)}
 				>
 					<Icon icon="ri:time-line" class="size-5 shrink-0 text-dark-400" />
@@ -136,6 +141,6 @@
 	</PopoverRoot>
 
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

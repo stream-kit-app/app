@@ -1,0 +1,27 @@
+---
+description: console vs toast vs action log — when to use each
+globs:
+  - plugins/**/*
+  - packages/app/src/lib/core/**/*
+alwaysApply: false
+---
+
+# Logging
+
+## Choose the right channel
+
+| Situation | Use |
+| --- | --- |
+| Unexpected failure in runtime code | `console.error` / `console.warn` with a short prefix |
+| User-visible issue | `app.toast.create` (see `error-handling.mdc`) — not console-only |
+| Action execution history | Core `ActionLogService` / `core.logs` → `logs/actions.ndjson` |
+
+## Do not
+
+- Invent a parallel log file format or logger package.
+- Leave debug `console.log` in shipping paths (handlers, timers, WebSocket loops).
+- Log secrets, tokens, or full OAuth URLs.
+
+## Handler chain
+
+Thrown handlers are already logged in `run-handler-chain.ts` (`Handler execution failed`). Prefer soft-fail + toast for expected errors so you don’t double-noise the console.

@@ -7,6 +7,7 @@ import type { OverlayManifest } from './overlay-manifest';
 import type { OverlaySettingsDefinition } from './overlay-settings.svelte';
 
 import type { OverlayFrameworkId, OverlayServerStatus } from './types';
+import type { OverlayWidgetId } from './widget-templates';
 
 import {
 	getOverlay,
@@ -366,35 +367,25 @@ export class OverlayService {
 
 
 	async create(input: {
-
 		name: string;
-
-
-
-		framework: OverlayFrameworkId;
-
+		framework?: OverlayFrameworkId;
+		widgetTemplate?: OverlayWidgetId;
 	}): Promise<SaveOverlayInput> {
+		if (!input.widgetTemplate && !input.framework) {
+			throw new Error('Overlay create requires a framework or widget template.');
+		}
 
 		const record = await createOverlayProject(this.getApp().fs, {
-
 			id: createOverlayId(),
-
 			name: input.name,
-
-			framework: input.framework
-
+			framework: input.framework,
+			widgetTemplate: input.widgetTemplate
 		});
 
-
-
 		await this.refresh();
-
 		await this.syncConfigToServer(record.id, record.config);
 
-
-
 		return record;
-
 	}
 
 

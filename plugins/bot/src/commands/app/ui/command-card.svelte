@@ -19,17 +19,10 @@
 		command: Command;
 		selected?: boolean;
 		onSelectedChange?: (selected: boolean, shiftKey: boolean) => void;
-		isDragging?: boolean;
-		movingLabel?: string;
+		isOverlay?: boolean;
 	};
 
-	let {
-		command,
-		selected = false,
-		onSelectedChange,
-		isDragging = false,
-		movingLabel = ''
-	}: Props = $props();
+	let { command, selected = false, onSelectedChange, isOverlay = false }: Props = $props();
 
 	const t = getCommandsService().requireApp().i18n.t;
 	let shiftKey = false;
@@ -141,136 +134,119 @@
 	</div>
 {/snippet}
 
-<div class="relative min-w-0">
+<div
+	class={cn(
+		'group/card flex min-w-0 flex-1 items-center gap-3 transition-colors',
+		!isOverlay && {
+			'bg-destructive-950/40': isUnavailable,
+			'opacity-60': !command.enabled
+		}
+	)}
+>
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
 		class={cn(
-			'group/card relative flex items-center gap-3 overflow-hidden rounded-xl border px-3 py-2.5 transition-colors',
-			{
-				'border-dark-700 bg-dark-800 hover:border-dark-500 hover:bg-dark-700': !isUnavailable,
-				'border-destructive-700 bg-destructive-950 hover:border-destructive-600':
-					isUnavailable,
-				'opacity-60': !command.enabled,
-				'pointer-events-none opacity-0 select-none': isDragging
-			}
+			'shrink-0 transition-opacity',
+			!selected && 'opacity-0 group-hover/card:opacity-100 focus-within:opacity-100'
 		)}
-		aria-hidden={isDragging}
+		onclick={(event) => event.stopPropagation()}
+		onmousedown={(event) => {
+			shiftKey = event.shiftKey;
+		}}
 	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<div
-			class={cn(
-				'shrink-0 transition-opacity',
-				!selected && 'opacity-0 group-hover/card:opacity-100 focus-within:opacity-100'
-			)}
-			onclick={(event) => event.stopPropagation()}
-			onmousedown={(event) => {
-				shiftKey = event.shiftKey;
-			}}
-		>
-			<InputCheckbox
-				inline
-				aria-label={t('Select {name}', {
-					name: command.name.trim() || t('this command')
-				})}
-				bind:checked={() => selected, (value) => onSelectedChange?.(value, shiftKey)}
-			/>
-		</div>
-
-		<div
-			class={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', {
-				'bg-destructive-900 text-destructive-200': isUnavailable,
-				'bg-dark-700 text-dark-400': !command.enabled && !isUnavailable,
-				'bg-dark-700 text-primary': command.enabled && !isUnavailable
+		<InputCheckbox
+			inline
+			aria-label={t('Select {name}', {
+				name: command.name.trim() || t('this command')
 			})}
-			aria-hidden="true"
-		>
-			<Icon icon="ri:terminal-box-line" class="size-5" />
-		</div>
-
-		<button
-			type="button"
-			class="flex min-w-0 flex-1 flex-col gap-1 text-left"
-			onclick={() => command.open()}
-		>
-			<span
-				class={cn(
-					'truncate font-medium',
-					!command.enabled ? 'text-dark-300' : 'text-dark-50'
-				)}
-			>
-				{command.name.trim() || t('Untitled command')}
-			</span>
-			<span class="flex flex-wrap items-center gap-1.5">
-				{#if commandLabel}
-					<span class="truncate text-sm text-dark-300">{commandLabel}</span>
-				{/if}
-				<Badge
-					size="sm"
-					variant={handlersUnavailable ? 'destructive' : 'ghost'}
-					{@attach tooltip(() =>
-						tooltipSnippet(definitionList, {
-							title: t('Handlers'),
-							definitions: command.handlers.map((handler) => ({
-								id: handler.id,
-								name: handler.definition.name,
-								isAvailable: handler.definition.isAvailable
-							}))
-						})
-					)}
-				>
-					<Icon icon="ri:list-check" />
-					{t('handlers ({count})', { count: command.handlers.length })}
-				</Badge>
-				{#each roleLabels as role (role.id)}
-					<Badge size="sm" variant="outline">
-						<Icon icon="ri:shield-user-line" />
-						{role.label}
-					</Badge>
-				{/each}
-				{#if cooldownLabel}
-					<Badge
-						size="sm"
-						variant="secondary"
-						{@attach tooltip(() => cooldownTooltip ?? cooldownLabel)}
-					>
-						<Icon icon="ri:timer-line" />
-						{cooldownLabel}
-					</Badge>
-				{/if}
-				{#each command.sources as source (source)}
-					<Badge size="sm" variant="secondary">{source}</Badge>
-				{/each}
-			</span>
-		</button>
-
-		<div class="flex shrink-0 items-center gap-1">
-			{#if command.id != null}
-				<Button
-					variant="outline"
-					size="icon"
-					icon="clarity:clone-line"
-					class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
-					aria-label={t('Clone command')}
-					onclick={handleClone}
-					{@attach tooltip(() => t('Clone command'))}
-				/>
-			{/if}
-			<Icon
-				icon="ri:arrow-right-s-line"
-				class="size-5 shrink-0 text-dark-500 transition-[color,transform] group-hover/card:translate-x-0.5 group-hover/card:text-dark-300"
-				aria-hidden="true"
-			/>
-		</div>
+			bind:checked={() => selected, (value) => onSelectedChange?.(value, shiftKey)}
+		/>
 	</div>
 
-	{#if isDragging}
-		<div
-			class="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-dashed border-primary-300 bg-primary-950 px-4 text-sm font-medium text-primary-200"
-			aria-hidden="true"
+	<div
+		class={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', {
+			'bg-destructive-900 text-destructive-200': isUnavailable,
+			'bg-dark-700 text-dark-400': !command.enabled && !isUnavailable,
+			'bg-dark-700 text-primary': command.enabled && !isUnavailable
+		})}
+		aria-hidden="true"
+	>
+		<Icon icon="ri:terminal-box-line" class="size-5" />
+	</div>
+
+	<button
+		type="button"
+		class="flex min-w-0 flex-1 flex-col gap-1 text-left"
+		onclick={() => command.open()}
+	>
+		<span
+			class={cn(
+				'truncate text-base font-semibold',
+				!command.enabled ? 'text-dark-300' : 'text-dark-50'
+			)}
 		>
-			{t('Moving: {name}', {
-				name: movingLabel || command.name.trim() || t('this command')
-			})}
-		</div>
-	{/if}
+			{command.name.trim() || t('Untitled command')}
+		</span>
+		<span class="flex flex-wrap items-center gap-1.5">
+			{#if commandLabel}
+				<span class="truncate text-sm text-dark-300">{commandLabel}</span>
+			{/if}
+			<Badge
+				size="sm"
+				variant={handlersUnavailable ? 'destructive' : 'ghost'}
+				{@attach tooltip(() =>
+					tooltipSnippet(definitionList, {
+						title: t('Handlers'),
+						definitions: command.handlers.map((handler) => ({
+							id: handler.id,
+							name: handler.definition.name,
+							isAvailable: handler.definition.isAvailable
+						}))
+					})
+				)}
+			>
+				<Icon icon="ri:list-check" />
+				{t('handlers ({count})', { count: command.handlers.length })}
+			</Badge>
+			{#each roleLabels as role (role.id)}
+				<Badge size="sm" variant="outline">
+					<Icon icon="ri:shield-user-line" />
+					{role.label}
+				</Badge>
+			{/each}
+			{#if cooldownLabel}
+				<Badge
+					size="sm"
+					variant="secondary"
+					{@attach tooltip(() => cooldownTooltip ?? cooldownLabel)}
+				>
+					<Icon icon="ri:timer-line" />
+					{cooldownLabel}
+				</Badge>
+			{/if}
+			{#each command.sources as source (source)}
+				<Badge size="sm" variant="secondary">{source}</Badge>
+			{/each}
+		</span>
+	</button>
+
+	<div class="flex shrink-0 items-center gap-1">
+		{#if command.id != null}
+			<Button
+				variant="outline"
+				size="icon"
+				icon="clarity:clone-line"
+				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
+				aria-label={t('Clone command')}
+				onclick={handleClone}
+				{@attach tooltip(() => t('Clone command'))}
+			/>
+		{/if}
+		<Icon
+			icon="ri:arrow-right-s-line"
+			class="size-5 shrink-0 text-dark-500 transition-[color,transform] group-hover/card:translate-x-0.5 group-hover/card:text-dark-300"
+			aria-hidden="true"
+		/>
+	</div>
 </div>

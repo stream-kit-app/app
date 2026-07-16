@@ -22,6 +22,8 @@ import {
 	updateActionsQueue
 } from '$db/repositories/actions';
 
+import { save } from '@tauri-apps/plugin-dialog';
+
 import ActionForm from '$lib/components/core/action/action-form.svelte';
 import ActionFormFooter from '$lib/components/core/action/action-form-footer.svelte';
 import ActionFormHeader from '$lib/components/core/action/action-form-header.svelte';
@@ -30,7 +32,9 @@ import { translate } from '$lib/i18n';
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
 import { getApp } from '../registry';
 import { ActionExecution } from './action-execution.svelte';
+import { buildActionsExport, isExportableAction } from './action-export';
 import { ActionHandler, type HandlerBranch } from './action-handler.svelte';
+import { exportedActionToNewRecord, parseActionsExport } from './action-import';
 import { applyLayoutUpdates, buildDndLayout, compareActionsByLayout, dndLayoutToUpdates, getGroupOrder } from './action-layout';
 import { ActionTrigger } from './action-trigger.svelte';
 import { resolveHandlerDefinition, resolveTriggerDefinition } from './definition-id';
@@ -387,7 +391,8 @@ export class Actions {
 			name: input.name,
 			group: normalizeActionGroup(input.group),
 			enabled: input.enabled ?? true,
-			queueId: input.queueId ?? app.actionQueues.defaultQueueId,
+			queueId:
+				input.queueId !== undefined ? input.queueId : app.actionQueues.defaultQueueId,
 			ownerPluginKey: ownerPluginKey ?? null,
 			triggers: input.triggers,
 			handlers: input.handlers
@@ -498,6 +503,63 @@ export class Actions {
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}));
+	}
+
+	getExportableActions(): Action[] {
+		return this.items.filter(isExportableAction);
+	}
+
+	async exportToJson(actions: Action[]): Promise<void> {
+		const app = getApp();
+		const payload = buildActionsExport(actions);
+
+		if (payload.actions.length === 0) {
+			app.toast.create({
+				title: translate('Nothing to export'),
+				description: translate('Select one or more actions to export.'),
+				variant: 'warning'
+			});
+			return;
+		}
+
+		const path = await save({
+			defaultPath: 'actions.json',
+			filters: [{ name: translate('Actions JSON'), extensions: ['json'] }]
+		});
+
+		if (!path) {
+			return;
+		}
+
+		await app.fs.writeTextFile(path, JSON.stringify(payload, null, 2));
+
+		app.toast.create({
+			title: translate('Actions exported'),
+			description: translate('{count} actions exported.', {
+				count: payload.actions.length
+			}),
+			variant: 'success'
+		});
+	}
+
+	async importFromJsonPath(path: string): Promise<number> {
+		const app = getApp();
+		const raw = await app.fs.readTextFile(path);
+		const payload = parseActionsExport(raw);
+		let imported = 0;
+
+		for (const action of payload.actions) {
+			await this.createFromRecord(exportedActionToNewRecord(action));
+			imported += 1;
+		}
+
+		app.toast.create({
+			title: translate('Actions imported'),
+			description: translate('{count} actions imported.', { count: imported }),
+			variant: 'success'
+		});
+
+		return imported;
 	}
 }
 

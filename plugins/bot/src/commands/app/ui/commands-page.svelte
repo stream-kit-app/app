@@ -294,7 +294,7 @@
 			</div>
 		{/if}
 
-		<div class="grid gap-4">
+		<div class="grid gap-3">
 			{#each groupOrder as groupId, groupIndex (groupId)}
 				{@const groupCommands = layout[groupId] ?? []}
 				{@const groupCommandIds = groupCommands.map((item) => item.id)}
@@ -309,18 +309,16 @@
 					onCollapsedChange={(value) => setCommandGroupCollapsed(groupId, value)}
 				>
 					{#snippet children()}
-						<div class="flex flex-col gap-2">
-							{#each groupCommands as item, commandIndex (item.id)}
-								<CommandSortableItem
-									command={item.command}
-									{groupId}
-									index={commandIndex}
-									selected={selection.selectedIds.has(item.id)}
-									onSelectedChange={(value, shiftKey) =>
-										selection.handleSelectedChange(item.id, value, shiftKey)}
-								/>
-							{/each}
-						</div>
+						{#each groupCommands as item, commandIndex (item.id)}
+							<CommandSortableItem
+								command={item.command}
+								{groupId}
+								index={commandIndex}
+								selected={selection.selectedIds.has(item.id)}
+								onSelectedChange={(value, shiftKey) =>
+									selection.handleSelectedChange(item.id, value, shiftKey)}
+							/>
+						{/each}
 					{/snippet}
 				</ActionGroupSection>
 			{/each}
@@ -345,16 +343,14 @@
 					{#if groupItems}
 						<ActionGroupSection {t} groupId={source.id as string} index={0} isOverlay>
 							{#snippet children()}
-								<div class="flex flex-col gap-2">
-									{#each groupItems as item, commandIndex (item.id)}
-										<CommandSortableItem
-											command={item.command}
-											groupId={source.id as string}
-											index={commandIndex}
-											isOverlay
-										/>
-									{/each}
-								</div>
+								{#each groupItems as item, commandIndex (item.id)}
+									<CommandSortableItem
+										command={item.command}
+										groupId={source.id as string}
+										index={commandIndex}
+										isOverlay
+									/>
+								{/each}
 							{/snippet}
 						</ActionGroupSection>
 					{/if}

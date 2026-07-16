@@ -2,7 +2,7 @@
   "key": "rankings",
   "name": "Rankings",
   "version": "0.1.0-alpha.1",
-  "description": "Viewer rankings with tiers, points, and watch-time rewards.",
+  "description": "User rankings with tiers, points, and watch-time rewards.",
   "icon": "ri:trophy-line",
   "entry": "dist/index.js",
   "dependencies": ["core", "bot", "twitch"],

@@ -1,0 +1,28 @@
+---
+description: Preferred import paths across app, plugins, ui, and core
+globs:
+  - packages/**/*.{ts,svelte,svelte.ts}
+  - plugins/**/*.{ts,svelte,svelte.ts}
+alwaysApply: false
+---
+
+# Imports
+
+## Prefer these surfaces
+
+| Need | Import |
+| --- | --- |
+| UI components | `@stream-kit/ui/<component>` subpaths (e.g. `@stream-kit/ui/button`) |
+| Plugin types | `import type { … } from '@stream-kit/plugin'` |
+| Shared runtime helpers | `@stream-kit/core` |
+| App internals (app package only) | `$lib/core/…`, `$lib/components/core/…` |
+
+## Avoid
+
+- Deep relative imports into `packages/ui/src/…` from app/plugins — use package subpath exports.
+- Importing `@stream-kit/ui` for declarative plugin menu pages — define page schemas via `@stream-kit/plugin`; the app renders them.
+- Bundling host packages into plugin dist (see `plugin-architecture.mdc`).
+
+## App core barrels
+
+When adding a public app-core surface, re-export from the relevant `packages/app/src/lib/core/*/index.ts` so consumers can import from the package area consistently.

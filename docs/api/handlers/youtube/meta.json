@@ -2,7 +2,7 @@
   "title": "Youtube",
   "pages": [
     "index",
-    "send-message",
-    "delete-message"
+    "chat-send-message",
+    "chat-delete-message"
   ]
 }

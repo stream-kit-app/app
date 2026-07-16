@@ -6,6 +6,7 @@
 	import {
 		InputCheckbox,
 		InputCode,
+		InputColor,
 		InputFilePath,
 		InputSelect,
 		InputSwitch,
@@ -210,6 +211,13 @@
 		expandLabel={t('Expand')}
 		collapseLabel={t('Close')}
 		loadingLabel={t('Loading editor...')}
+		{error}
+	/>
+{:else if config.type === 'color'}
+	<InputColor
+		label={config.name}
+		defaultValue={typeof config.defaultValue === 'string' ? config.defaultValue : '#000000'}
+		bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
 		{error}
 	/>
 {/if}

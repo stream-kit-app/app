@@ -1,11 +1,11 @@
 ---
 title: Rankings
-description: Viewer rankings with tiers, points, watch-time rewards, and leaderboard commands.
+description: User rankings with tiers, points, watch-time rewards, and leaderboard commands.
 ---
 
 # Rankings
 
-The Rankings plugin tracks **viewer points**, **tiers**, and **ranks** for your community. Points can come from built-in Twitch watch time or from Actions you enable.
+The Rankings plugin tracks **user points**, **tiers**, and **ranks** for your community. Points can come from built-in Twitch watch time or from Actions you enable.
 
 ## Requirements
 
@@ -19,15 +19,15 @@ Open **Rankings** in the sidebar:
 
 | Page | Description |
 | --- | --- |
-| **Overview** | Stats, watch-time status, top viewers, tier distribution |
+| **Overview** | Stats, watch-time status, top users, tier distribution |
 | **Tiers & Ranks** | Create tiers and rank milestones (global point thresholds) |
-| **Leaderboard** | Search viewers and adjust points manually |
+| **Leaderboard** | Search users, adjust points manually, and remove users from rankings |
 
 ## Progression
 
-- Viewers earn **total points** that never reset when changing tiers.
+- Users earn **total points** that never reset when changing tiers.
 - Each **rank** is a milestone at a required point total.
-- **Tiers** group ranks; when a viewer reaches the highest rank in a tier and earns the next milestone, they advance into the next tier automatically.
+- **Tiers** group ranks; when a user reaches the highest rank in a tier and earns the next milestone, they advance into the next tier automatically.
 - Rank and tier changes emit **Rankings** triggers you can use in Actions.
 
 ## Watch time
@@ -49,7 +49,7 @@ Seeded under the **rankings** command group — enable them on **Bot → Command
 | --- | --- | --- |
 | Rank | `!rank` | Current rank, tier, and points |
 | Points | `!points` | Total points |
-| Leaderboard | `!top`, `!leaderboard` | Top viewers |
+| Leaderboard | `!top`, `!leaderboard` | Top users |
 
 ## Default actions (disabled)
 
@@ -68,8 +68,74 @@ Under **Rankings** in the action editor:
 
 **Triggers:** Points earned, Rank changed, Tier advanced
 
-**Handlers:** Add points, Set points, Remove points, Send rank message, Send leaderboard message
+**Handlers:** Get user rank, Add points, Set points, Remove points, Send rank message, Send leaderboard message, Send leaderboard to overlay
+
+Use **Send leaderboard to overlay** with a [Leaderboard](/docs/guide/overlays) browser source (or any overlay that listens for an `update` event with `{ entries: [...] }`).
+
+Full reference: [Rankings triggers](/docs/api/triggers/rankings), [Rankings handlers](/docs/api/handlers/rankings).
+
+### Source condition
+
+Every point change carries a **source** label (why the points changed). Rankings triggers expose an optional **Source** condition that matches that label (case-insensitive). Leave it empty to match every event.
+
+| Source value | Set by |
+| --- | --- |
+| `watch-time` | Automatic watch-time rewards |
+| `follow` | Default “Points on follow” action |
+| `subscription` | Default “Points on sub” action |
+| `cheer` | Default “Points on cheer” action |
+| `raid` | Default “Points on raid” action |
+| `manual` | Leaderboard UI adjustments |
+| custom text | **Source** field on Add / Set / Remove points (default `manual` if empty) |
+
+**When to use it**
+
+- **Points earned** — most useful. Example: only run an action when `source` is `cheer`, or leave empty and set **Minimum amount** instead.
+- **Rank changed** / **Tier advanced** — optional filter if you only want celebrations for certain origins (for example a sub or raid, not minute-by-minute watch time). For most setups, leave Source empty so every rank/tier change fires.
+
+Source also appears in point history and in the trigger context for handlers that follow the trigger.
+
+### Get user rank
+
+Use **Get user rank** to look up a user's points, rank, tier, watch time, and leaderboard position and store them in action variables for later handlers (for example a custom Bot reply).
+
+1. **User field:** choose **From trigger** for chat commands, **Select user** for a fixed user, or **Variable** for `{target}` placeholders
+2. Configure output variable names (defaults: `found`, `userId`, `username`, `points`, `rank`, `tier`, `watchTime`, `position`)
+3. `found` is `true` when the user exists in rankings; otherwise all other variables are empty
+4. `watchTime` is stored as **whole minutes** (not seconds)
+
+Example `!rank` with a custom reply:
+
+1. Trigger: Bot → Command (`!rank`)
+2. Handler: Rankings → **Get user rank** (User: From trigger)
+3. Handler: Bot → Send message with `{username} is {rank} ({tier}) — {points} pts (#{position})`
+
+The seeded **Rank** command uses **Send rank message** instead; both approaches work.
+
+### Manual `!addpoints` command
+
+To award points from chat (for example `!addpoints CoolUser 100`), create a command on **Bot → Commands**:
+
+1. **Command pattern:** `addpoints <target> <amount>` (placeholders must match the names you use in handler variables)
+2. **Handler:** Rankings → **Add points** (not Set points — Set replaces the total)
+3. **User field:** choose **Variable** and enter `{target}`
+4. **Amount field:** enter `{amount}`
+
+Restrict permissions to mods/broadcaster. Users are stored under a platform id such as `twitch:<userId>` when Twitch provides a numeric id, or `twitch:<username>` until that id is known. Add points **adds** to the current total; Set points **replaces** it.
+
+## Point history
+
+Click a user on **Leaderboard** or **Overview → Top users** to open their detail modal.
+
+The modal shows:
+
+- Current points, rank, tier, watch time, and platform
+- A chronological list of point changes with **when**, **source**, **change**, and **total after**
+
+Sources include follow, subscription, cheer, raid, watch time, manual adjustments, and commands. **Watch time** entries are aggregated into one row per hour per user (instead of one row per minute).
+
+History starts when this feature is enabled — earlier point changes are not backfilled.
 
 ## Dashboard widget
 
-Add the **Rankings** widget from the dashboard to see viewer count, total points, and the top five leaderboard at a glance.
+Add the **Rankings** widget from the dashboard to see user count, total points, and the top five leaderboard at a glance.

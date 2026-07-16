@@ -2,6 +2,7 @@
 	import { DropdownMenu } from 'bits-ui';
 
 	import { cn } from '../../utils';
+	import { ScrollArea } from '../scroll-area';
 
 	type Props = DropdownMenu.SubContentProps;
 	const { children, class: className, ...props }: Props = $props();
@@ -11,13 +12,18 @@
 	<DropdownMenu.SubContent
 		{...props}
 		class={cn(
-			'z-[100] min-w-(--bits-floating-anchor-width) max-h-[min(30rem,var(--bits-menu-content-available-height,30rem))] overflow-y-auto overscroll-contain',
-			'rounded-xl bg-dark-800 p-[5px] shadow-md',
+			'z-[100] min-w-(--bits-floating-anchor-width)',
+			'rounded-xl bg-dark-800 p-[5px] shadow-lg',
 			'border border-dark-600',
 			className
 		)}
-		sideOffset={8}
+		sideOffset={-1}
 	>
-		{@render children?.()}
+		<ScrollArea
+			orientation="vertical"
+			viewportClasses="max-h-(--bits-menu-content-available-height) overflow-hidden"
+		>
+			{@render children?.()}
+		</ScrollArea>
 	</DropdownMenu.SubContent>
 </DropdownMenu.Portal>

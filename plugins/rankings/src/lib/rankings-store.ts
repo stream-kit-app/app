@@ -4,17 +4,20 @@ import {
 	DEFAULT_RANKINGS_SETTINGS,
 	DEFAULT_RANKS,
 	DEFAULT_TIERS,
+	type PointHistoryEntry,
 	type RankRecord,
 	type RankingsSettings,
 	type TierRecord,
 	type UserRankingRecord
 } from './types';
+import { trimPointHistory } from './point-history';
 
 const TIERS_KEY = 'tiers';
 const RANKS_KEY = 'ranks';
 const USERS_KEY = 'users';
 const SETTINGS_KEY = 'settings';
 const SEED_VERSION_KEY = 'seedVersion';
+const POINT_HISTORY_KEY = 'pointHistory';
 
 export const CURRENT_SEED_VERSION = 1;
 
@@ -46,6 +49,19 @@ export async function loadUsers(store: PluginStore): Promise<UserRankingRecord[]
 
 export async function saveUsers(store: PluginStore, users: UserRankingRecord[]): Promise<void> {
 	await store.set(USERS_KEY, users);
+}
+
+export async function loadPointHistory(store: PluginStore): Promise<PointHistoryEntry[]> {
+	const history = await store.get<PointHistoryEntry[]>(POINT_HISTORY_KEY);
+
+	return history ?? [];
+}
+
+export async function savePointHistory(
+	store: PluginStore,
+	history: PointHistoryEntry[]
+): Promise<void> {
+	await store.set(POINT_HISTORY_KEY, trimPointHistory(history));
 }
 
 export async function loadSettings(store: PluginStore): Promise<RankingsSettings> {

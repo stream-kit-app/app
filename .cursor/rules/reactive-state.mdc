@@ -1,0 +1,38 @@
+---
+description: Domain state in .svelte.ts service classes with runes
+globs:
+  - packages/app/**/*.svelte.ts
+  - plugins/**/*.svelte.ts
+alwaysApply: false
+---
+
+# Reactive state (`.svelte.ts`)
+
+## Prefer service classes
+
+Domain state lives in classes in `*.svelte.ts` with `$state` / `$state.raw` / `$derived` fields — **not** `svelte/store` (`writable`, `readable`, etc.).
+
+Examples: `ActionQueues`, `OverlayService`, `Actions`, bot `commands.svelte.ts`, rankings `rankings.svelte.ts`.
+
+## Patterns
+
+- Expose `create` / `update` / `delete` (or established domain verbs) on collection-like services.
+- Mutate by reassigning `$state` arrays/objects so reactivity tracks.
+- Long-lived app services often extend `Bootable` and load via `load()` — avoid module-level side effects at import time.
+- Keep UI components thin; persistence and business rules stay in the `.svelte.ts` service.
+
+```ts
+export class ActionQueues extends Bootable {
+	queues = $state.raw<ActionQueueDefinition[]>([]);
+
+	async load(): Promise<void> {
+		// fetch + assign
+	}
+
+	async create(input: SaveActionQueueInput): Promise<ActionQueueDefinition> {
+		// …
+	}
+}
+```
+
+See also `svelte-5.mdc` for runes and `naming-consistency.mdc` for CRUD verbs.

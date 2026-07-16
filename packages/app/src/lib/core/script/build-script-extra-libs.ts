@@ -1,15 +1,51 @@
 import type { MonacoExtraLib } from '@stream-kit/ui/monaco';
 
-import { indexDts, pluginAppApiDts, triggerDataDts, triggerMap } from '@stream-kit/script-api/runtime';
+import { pluginAppApiDts, triggerDataDts, triggerMap } from '@stream-kit/script-api/runtime';
 
-const SCRIPT_HANDLER_URI = 'file:///src/handler.ts';
+/** Virtual project root — model URI and extra libs must share this prefix for Monaco IntelliSense. */
+export const SCRIPT_PROJECT_ROOT = 'file:///project';
+
+export const SCRIPT_HANDLER_URI = `${SCRIPT_PROJECT_ROOT}/src/handler.ts`;
+
+export const SCRIPT_API_ROOT = `${SCRIPT_PROJECT_ROOT}/node_modules/@stream-kit/script-api`;
+
+function projectLibPath(relativePath: string): string {
+	return `${SCRIPT_PROJECT_ROOT}/${relativePath}`;
+}
+
+function scriptApiLibPath(relativePath: string): string {
+	return `${SCRIPT_API_ROOT}/${relativePath}`;
+}
+
+const SCRIPT_TSCONFIG = {
+	compilerOptions: {
+		target: 'ESNext',
+		module: 'ESNext',
+		moduleResolution: 'node',
+		strict: true,
+		skipLibCheck: true,
+		allowJs: true,
+		isolatedModules: true,
+		noEmit: true,
+		allowNonTsExtensions: true,
+		esModuleInterop: true,
+		baseUrl: '.'
+	},
+	include: ['src/**/*.ts', 'node_modules/@stream-kit/script-api/**/*.d.ts']
+} as const;
 
 export type BuildScriptExtraLibsOptions = {
 	source?: string;
 	actionTriggers?: { id: string }[];
+	/** Unique handler ID — gives each script editor its own Monaco model URI. */
+	handlerId?: string;
 };
 
-function buildActionAwareIndex(triggerIds: string[]): string {
+function stripTripleSlashReferences(content: string): string {
+	return content.replace(/^\/\/\/ <reference path="[^"]+" \/>\r?\n/gm, '');
+}
+
+function resolveTriggerDataType(triggerIds: string[]): string {
 	const contextTypes = [
 		...new Set(
 			triggerIds
@@ -18,12 +54,13 @@ function buildActionAwareIndex(triggerIds: string[]): string {
 		)
 	];
 
-	const dataType = contextTypes.length > 0 ? contextTypes.join(' | ') : 'TriggerDataUnion';
+	return contextTypes.length > 0 ? contextTypes.join(' | ') : 'TriggerDataUnion';
+}
 
-	return `/// <reference path="./plugin-app-api.d.ts" />
-/// <reference path="./trigger-data.d.ts" />
+function buildHandlerContextDts(triggerIds: string[]): string {
+	const dataType = resolveTriggerDataType(triggerIds);
 
-/** One trigger payload passed to script handlers. */
+	return `/** One trigger payload passed to script handlers. */
 type HandlerTriggerContext = {
 	/** Stable trigger definition ID (for example \`twitch:twitch:chat:chat-message\`). */
 	trigger: string;
@@ -32,8 +69,11 @@ type HandlerTriggerContext = {
 	/** Mutable action-scoped variables for the current handler chain run. */
 	actionVariables?: Record<string, string>;
 };
+`;
+}
 
-/** Arguments passed to Run script handler user code. */
+function buildScriptIndexDts(): string {
+	return `/** Arguments passed to Run script handler user code. */
 type ScriptContext = {
 	/** Full Stream Kit application API (same as plugin handlers). */
 	app: PluginAppApi;
@@ -47,48 +87,100 @@ type ScriptResult = void | Promise<void>;
 /** A Run script handler body with fully typed \`app\` and \`context\`. */
 type ScriptHandler = (ctx: ScriptContext) => ScriptResult;
 
-/**
- * Entry point for a Run script action. Return your handler from \`defineScript\`
- * to get full autocomplete and type checking, then \`export default\` it.
- *
- * Your handler receives:
- * - \`app\` — the Stream Kit API: \`app.toast\`, \`app.fs\`, \`app.plugins\`,
- *   \`app.actions\`, \`app.process\`, and more.
- * - \`context\` — the triggers that fired this action. Each entry has \`trigger\`
- *   (the trigger ID), \`data\` (the trigger payload, typed to this action's
- *   triggers), and \`actionVariables\` (mutable variables shared with later handlers).
- *
- * @example
- * export default defineScript(async ({ app, context }) => {
- * 	const [{ data }] = context;
- * 	app.toast.create({ title: \`Hello \${data.user}\`, variant: 'success' });
- * });
- */
+/** Entry point for a Run script action. */
 declare function defineScript(handler: ScriptHandler): ScriptHandler;
 `;
 }
 
+export function buildScriptTypeDefinitionFiles(triggerIds: string[] = []): {
+	triggerDataDts: string;
+	handlerContextDts: string;
+	pluginAppApiDts: string;
+	indexDts: string;
+} {
+	const handlerContextBody = buildHandlerContextDts(triggerIds);
+	const handlerContextDts = `/// <reference path="./trigger-data.d.ts" />\n\n${handlerContextBody}`;
+
+	const indexDtsContent = `/// <reference path="./plugin-app-api.d.ts" />
+/// <reference path="./trigger-data.d.ts" />
+/// <reference path="./handler-context.d.ts" />
+
+${buildScriptIndexDts()}`;
+
+	const pluginAppApiContent = pluginAppApiDts.replace(
+		/^\/\/\/ <reference path="\.\/index\.d\.ts" \/>\r?\n/m,
+		''
+	);
+
+	return {
+		triggerDataDts: stripTripleSlashReferences(triggerDataDts),
+		handlerContextDts,
+		pluginAppApiDts: pluginAppApiContent,
+		indexDts: indexDtsContent
+	};
+}
+
+/** Relative /// <reference /> from a handler model URI to the script API index. */
+export function buildScriptReferenceDirective(modelUri: string): string {
+	const prefix = `${SCRIPT_PROJECT_ROOT}/`;
+
+	if (!modelUri.startsWith(prefix)) {
+		return '';
+	}
+
+	const relativePath = modelUri.slice(prefix.length);
+	const depth = relativePath.split('/').length - 1;
+
+	return `/// <reference path="${'../'.repeat(depth)}node_modules/@stream-kit/script-api/index.d.ts" />\n`;
+}
+
+export function withScriptReferenceDirective(source: string, modelUri: string): string {
+	const directive = buildScriptReferenceDirective(modelUri);
+
+	if (!directive || source.includes('/// <reference path=')) {
+		return source;
+	}
+
+	return `${directive}${source}`;
+}
+
+export function buildScriptHandlerUri(handlerId?: string): string {
+	if (!handlerId) {
+		return SCRIPT_HANDLER_URI;
+	}
+
+	const safeId = handlerId.replace(/[^a-zA-Z0-9:_-]/g, '_');
+	return `${SCRIPT_PROJECT_ROOT}/src/handlers/${safeId}/handler.ts`;
+}
+
+export function buildScriptProjectTypeFiles(triggerIds: string[] = []) {
+	return buildScriptTypeDefinitionFiles(triggerIds);
+}
+
 export function buildScriptExtraLibs(options: BuildScriptExtraLibsOptions = {}): MonacoExtraLib[] {
 	const triggerIds = options.actionTriggers?.map((trigger) => trigger.id) ?? [];
-	const indexContent =
-		triggerIds.length > 0 ? buildActionAwareIndex(triggerIds) : indexDts;
+	const types = buildScriptTypeDefinitionFiles(triggerIds);
 
-	// Only the ambient type definitions are returned as extra libs. The live
-	// handler source is NOT included here: it is edited directly in the Monaco
-	// model, and re-registering it on every keystroke would reset the TypeScript
-	// language service and cancel in-progress completions (e.g. after typing `.`).
 	return [
 		{
-			content: pluginAppApiDts,
-			filePath: 'file:///node_modules/@stream-kit/script-api/plugin-app-api.d.ts'
+			content: JSON.stringify(SCRIPT_TSCONFIG, null, 2),
+			filePath: projectLibPath('tsconfig.json')
 		},
 		{
-			content: triggerDataDts,
-			filePath: 'file:///node_modules/@stream-kit/script-api/trigger-data.d.ts'
+			content: types.triggerDataDts,
+			filePath: scriptApiLibPath('trigger-data.d.ts')
 		},
 		{
-			content: indexContent,
-			filePath: 'file:///node_modules/@stream-kit/script-api/index.d.ts'
+			content: types.handlerContextDts,
+			filePath: scriptApiLibPath('handler-context.d.ts')
+		},
+		{
+			content: types.pluginAppApiDts,
+			filePath: scriptApiLibPath('plugin-app-api.d.ts')
+		},
+		{
+			content: types.indexDts,
+			filePath: scriptApiLibPath('index.d.ts')
 		}
 	];
 }

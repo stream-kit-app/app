@@ -29,9 +29,9 @@
 	--color-dark-400: oklch(0.46 0.008 264);
 	--color-dark-500: oklch(0.38 0.007 264);
 	--color-dark-600: oklch(0.3 0.007 264);
-	--color-dark-700: oklch(0.23 0.006 264);
-	--color-dark-800: oklch(0.17 0.006 264);
-	--color-dark-900: oklch(0.11 0.005 264);
+	--color-dark-700: oklch(0.22 0.006 264);
+	--color-dark-800: oklch(0.15 0.006 264);
+	--color-dark-900: oklch(0.102 0.005 264);
 	--color-dark-950: oklch(0.06 0.004 264);
 
 	/* primary scale — chroma tapers at extremes, peaks around 300–400 */
@@ -129,6 +129,16 @@
 	--color-border: var(--color-dark-600);
 	--color-ring: var(--color-primary-200);
 
+	/* Border radius — one step tighter than Tailwind defaults across the app */
+	--radius-xs: 0.125rem;
+	--radius-sm: 0.125rem;
+	--radius-md: 0.25rem;
+	--radius-lg: 0.375rem;
+	--radius-xl: 0.5rem;
+	--radius-2xl: 0.625rem;
+	--radius-3xl: 0.75rem;
+	--radius-4xl: 1rem;
+
 	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;
 }
@@ -200,6 +210,99 @@
 		nav a
 	) {
 		@apply text-cap;
+	}
+
+	:where(
+		a[href],
+		area[href],
+		button:not(:disabled),
+		[data-button-root]:not([disabled]):not([aria-disabled='true']),
+		[role='button']:not([aria-disabled='true']),
+		[role='link'][href],
+		summary,
+		label[for],
+		select:not(:disabled),
+		input[type='checkbox']:not(:disabled),
+		input[type='radio']:not(:disabled),
+		input[type='file']:not(:disabled),
+		input[type='reset']:not(:disabled),
+		input[type='submit']:not(:disabled)
+	) {
+		cursor: pointer;
+	}
+
+	:where(
+		button:disabled,
+		[data-button-root][disabled],
+		[data-button-root][aria-disabled='true'],
+		[role='button'][aria-disabled='true'],
+		select:disabled,
+		input:disabled
+	) {
+		cursor: not-allowed;
+	}
+
+	/* Monaco hover/suggest/context menus must sit above app modals (z-51) and expanded editors (z-60).
+	   Overflow host must carry `.monaco-editor` so Monaco's built-in suggest/hover CSS matches. */
+	.stream-kit-monaco-overflow-host.monaco-editor {
+		position: fixed;
+		inset: 0;
+		z-index: 200;
+		pointer-events: none;
+		background-color: transparent !important;
+		color: #e5e7eb;
+		--vscode-editorWidget-background: #111827;
+		--vscode-editorWidget-foreground: #e5e7eb;
+		--vscode-editorWidget-border: #374151;
+		--vscode-editorHoverWidget-background: #111827;
+		--vscode-editorHoverWidget-foreground: #e5e7eb;
+		--vscode-editorHoverWidget-border: #374151;
+		--vscode-editorSuggestWidget-background: #111827;
+		--vscode-editorSuggestWidget-foreground: #e5e7eb;
+		--vscode-editorSuggestWidget-border: #374151;
+		--vscode-editorSuggestWidget-selectedBackground: #1f2937;
+		--vscode-editorSuggestWidget-selectedForeground: #f9fafb;
+		--vscode-editorSuggestWidget-highlightForeground: #c084fc;
+		--vscode-editorSuggestWidget-focusHighlightForeground: #c084fc;
+		--vscode-menu-background: #111827;
+		--vscode-menu-foreground: #e5e7eb;
+		--vscode-menu-border: #374151;
+		--vscode-menu-selectionBackground: #1f2937;
+		--vscode-menu-selectionForeground: #f9fafb;
+		--vscode-menu-separatorBackground: #374151;
+		--vscode-editorActionList-background: #111827;
+		--vscode-editorActionList-foreground: #e5e7eb;
+		--vscode-editorActionList-focusBackground: #1f2937;
+		--vscode-editorActionList-focusForeground: #f9fafb;
+		--vscode-quickInput-background: #111827;
+		--vscode-quickInput-foreground: #e5e7eb;
+		--vscode-input-background: #1f2937;
+		--vscode-input-foreground: #e5e7eb;
+		--vscode-input-border: #374151;
+		--vscode-textCodeBlock-background: #1f2937;
+	}
+
+	.stream-kit-monaco-overflow-host > * {
+		pointer-events: auto;
+	}
+
+	.stream-kit-monaco-overflow-host .suggest-widget,
+	.stream-kit-monaco-overflow-host .monaco-hover,
+	.stream-kit-monaco-overflow-host .parameter-hints-widget,
+	.stream-kit-monaco-overflow-host .overflowingContentWidgets,
+	.stream-kit-monaco-overflow-host .overflowingOverlayWidgets,
+	.suggest-widget,
+	.parameter-hints-widget,
+	.monaco-hover,
+	.monaco-editor .overflowingContentWidgets,
+	.monaco-editor .suggest-widget,
+	.monaco-editor .parameter-hints-widget,
+	.monaco-editor-overlaymessage,
+	.context-view,
+	.context-view.fixed,
+	.monaco-menu-container,
+	.monaco-menu {
+		z-index: 200 !important;
 	}
 
 	.boot-ambient {

@@ -490,6 +490,14 @@ export interface PluginAppNetworkApi {
 /**
  * Audio playback helpers.
  */
+export interface PluginAppAudioPlayOptions {
+	/** Optional session id used to stop this playback via {@link PluginAppAudioApi.stop}. */
+	sessionId?: string;
+}
+
+/**
+ * Audio playback helpers.
+ */
 export interface PluginAppAudioApi {
 	/**
 	 * Play audio from a blob. Volume is clamped between `0` and `2` (`1` = 100%).
@@ -500,12 +508,14 @@ export interface PluginAppAudioApi {
 	 * await app.audio.play(blob, 0.8);
 	 * ```
 	 */
-	play(blob: Blob, volume?: number): Promise<void>;
+	play(blob: Blob, volume?: number, options?: PluginAppAudioPlayOptions): Promise<void>;
 	/**
 	 * Play audio from a file path. The file is read and decoded in the app layer.
 	 * Prefer this over `play` for local files to avoid loading large files into memory.
 	 */
-	playFile(path: string, volume?: number): Promise<void>;
+	playFile(path: string, volume?: number, options?: PluginAppAudioPlayOptions): Promise<void>;
+	/** Stop the active playback for the given session id. No-op when nothing is playing. */
+	stop(sessionId: string): Promise<void>;
 }
 
 /**
@@ -781,6 +791,21 @@ export interface PluginAppOpenerApi {
 }
 
 /**
+ * Broadcast events to OBS browser-source overlays.
+ */
+export interface PluginAppOverlayApi {
+	/** Current overlay projects (id, name, expected events). */
+	readonly items: Array<{
+		id: string;
+		name: string;
+		expectedEvents: string[];
+	}>;
+
+	/** Push an event payload to a connected overlay. */
+	broadcast(overlayId: string, event: string, payload?: unknown): Promise<void>;
+}
+
+/**
  * APIs available to plugin authors via the `app` parameter and lifecycle {@link PluginSettingsContext}.
  */
 export interface PluginAppApi {
@@ -846,6 +871,9 @@ export interface PluginAppApi {
 
 	/** Open URLs in the default browser. */
 	opener: PluginAppOpenerApi;
+
+	/** Send events to browser-source overlays. */
+	overlay: PluginAppOverlayApi;
 
 	/**
 	 * Serialize work that touches the same shared resource across concurrent action runs.

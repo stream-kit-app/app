@@ -1,5 +1,6 @@
 import InputCheckbox from './input-checkbox.svelte';
 import InputCode from './input-code.svelte';
+import InputColor from './input-color.svelte';
 import InputCronExpression from './input-cron-expression.svelte';
 import InputFilePath from './input-file-path.svelte';
 import InputHotkey from './input-hotkey.svelte';
@@ -20,6 +21,7 @@ export { resolveSelectItems } from './resolve-select-items.svelte';
 export {
 	InputCheckbox,
 	InputCode,
+	InputColor,
 	InputCronExpression,
 	InputFilePath,
 	InputHotkey,

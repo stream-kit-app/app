@@ -1,6 +1,6 @@
 ---
 title: Overlays
-description: Browser source overlays for OBS — create, configure, and send events from actions.
+description: Browser source overlays for OBS — choose a widget or build from a framework starter.
 ---
 
 # Overlays
@@ -11,10 +11,27 @@ Overlays are **browser-based scenes** served locally by Stream Kit. Add them to 
 
 1. Open **Overlays** in the sidebar.
 2. Click **New overlay**.
-3. Pick a framework starter (Vanilla, React, Svelte, etc.).
+3. Choose a mode:
+   - **Choose an overlay** — pick a ready-made widget (Alerts, Chatbox, Timer, Counter, Goal, Leaderboard). These are vanilla HTML/JS projects with configurable settings and optional action presets. No build step.
+   - **Build an overlay** — pick a framework starter (Vanilla, React, Svelte, etc.) and customize the project yourself.
 4. Name the overlay and create the project.
 
-Stream Kit copies a starter project into your overlays folder and registers the overlay in the app.
+Stream Kit copies the project into your overlays folder and registers it in the app.
+
+### Ready-made widgets
+
+| Widget | Use for | Typical plugins |
+| --- | --- | --- |
+| **Alerts** | Follow, sub, bits, raid, donation, channel points | Twitch (YouTube Super Chat optional) |
+| **Chatbox** | On-stream chat | Twitch |
+| **Timer** | Countdown or stopwatch | Core |
+| **Counter** | Simple counters | Core |
+| **Goal** | Progress bar toward a target | Core |
+| **Leaderboard** | Top ranked users | Rankings |
+
+Open the overlay **Configure** page to edit settings (colors, templates, limits). Install **action presets** to wire Twitch/Rankings events automatically.
+
+Ready-made widgets include **Style** and **Layout** sections: typography, colors, background, borders, alignment, and widget-specific knobs (for example chat bubble gap or goal bar height). Changes apply live via CSS variables — no custom CSS editor.
 
 ## OBS browser source
 
@@ -31,7 +48,7 @@ The overlay server runs inside the desktop app on `127.0.0.1`. The port is shown
 
 ## Configure page
 
-Open an overlay → **Configure** to edit settings defined by the overlay manifest (colors, limits, feature toggles). Changes are pushed to the live browser source over WebSocket (`overlay:settings` event).
+Open an overlay → **Configure** to edit settings defined by the overlay manifest (behavior, **Style**, **Layout**, and feature toggles). Changes are pushed to the live browser source over WebSocket (`overlay:settings` event).
 
 ## Send events from actions
 

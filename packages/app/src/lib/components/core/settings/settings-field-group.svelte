@@ -13,6 +13,7 @@
 	import { Heading } from '@stream-kit/ui/heading';
 	import {
 		InputCheckbox,
+		InputColor,
 		InputSelect,
 		InputSlider,
 		InputSwitch,
@@ -105,8 +106,19 @@
 			min={config.min}
 			max={config.max}
 			step={config.step ?? 1}
+			unit={config.unit}
 			bind:value={
 				() => Number(field.value ?? config.defaultValue ?? config.min),
+				(value) => updateField(field, value)
+			}
+			{error}
+		/>
+	{:else if config.type === 'color'}
+		<InputColor
+			label={config.name}
+			defaultValue={typeof config.defaultValue === 'string' ? config.defaultValue : '#000000'}
+			bind:value={
+				() => String(field.value ?? config.defaultValue ?? ''),
 				(value) => updateField(field, value)
 			}
 			{error}

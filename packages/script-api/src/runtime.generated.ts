@@ -132,6 +132,11 @@ type ActionQueueEventContext = { queueId: number; queueName: string; pending: nu
 type QueuedActionEntry = { jobId: string; actionId: number | null; actionName: string };
 type ActionQueueStats = { pending: number; active: number; paused: boolean; pendingActions: QueuedActionEntry[]; activeActions: QueuedActionEntry[] };
 type HotkeyEventContext = { shortcut: string; modifiers: string[]; key: string };
+type ToolbarMetaItem = { icon?: string; label: string };
+type ToolbarAction = { id: string; label: string; icon?: string; variant?: 'default' | 'outline' | 'destructive' | 'ghost'; size?: 'default' | 'sm' | 'lg' | 'xs'; disabled?: boolean; onClick: () => void | Promise<void> };
+type ToolbarComponent = { id: string; component: unknown; props?: Record<string, unknown> };
+type ToolbarSelectAll = { label: string; checked: boolean; onChange: (checked: boolean) => void };
+type ToolbarConfig = { meta?: ToolbarMetaItem[]; primaryActions?: ToolbarAction[]; primaryComponents?: ToolbarComponent[]; selectAll?: ToolbarSelectAll | null; actions?: ToolbarAction[] };
 
 /** Opaque Drizzle client returned by {@link PluginAppDbApi.getClient}. */
 type PluginDbClient = unknown;
@@ -243,7 +248,8 @@ interface PluginAppModalApi {
 	 *   id: 'edit-item',
 	 *   title: 'Edit item',
 	 *   content: EditItemModal,
-	 *   props: { itemId: 'abc' }
+	 *   props: { itemId: 'abc' },
+	 *   size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'full'
 	 * });
 	 * modal.open();
 	 * \`\`\`
@@ -570,6 +576,14 @@ interface PluginAppNetworkApi {
 /**
  * Audio playback helpers.
  */
+interface PluginAppAudioPlayOptions {
+	/** Optional session id used to stop this playback via {@link PluginAppAudioApi.stop}. */
+	sessionId?: string;
+}
+
+/**
+ * Audio playback helpers.
+ */
 interface PluginAppAudioApi {
 	/**
 	 * Play audio from a blob. Volume is clamped between \`0\` and \`2\` (\`1\` = 100%).
@@ -580,12 +594,14 @@ interface PluginAppAudioApi {
 	 * await app.audio.play(blob, 0.8);
 	 * \`\`\`
 	 */
-	play(blob: Blob, volume?: number): Promise<void>;
+	play(blob: Blob, volume?: number, options?: PluginAppAudioPlayOptions): Promise<void>;
 	/**
 	 * Play audio from a file path. The file is read and decoded in the app layer.
 	 * Prefer this over \`play\` for local files to avoid loading large files into memory.
 	 */
-	playFile(path: string, volume?: number): Promise<void>;
+	playFile(path: string, volume?: number, options?: PluginAppAudioPlayOptions): Promise<void>;
+	/** Stop the active playback for the given session id. No-op when nothing is playing. */
+	stop(sessionId: string): Promise<void>;
 }
 
 /**
@@ -838,13 +854,6 @@ interface PluginAppToolbarApi {
 	reset(): void;
 }
 
-type {
-	ToolbarConfig,
-	ToolbarAction,
-	ToolbarMetaItem,
-	ToolbarSelectAll
-};
-
 /**
  * Open URLs in the system default browser.
  */
@@ -858,6 +867,21 @@ interface PluginAppOpenerApi {
 	 * \`\`\`
 	 */
 	openUrl(url: string): Promise<void>;
+}
+
+/**
+ * Broadcast events to OBS browser-source overlays.
+ */
+interface PluginAppOverlayApi {
+	/** Current overlay projects (id, name, expected events). */
+	readonly items: Array<{
+		id: string;
+		name: string;
+		expectedEvents: string[];
+	}>;
+
+	/** Push an event payload to a connected overlay. */
+	broadcast(overlayId: string, event: string, payload?: unknown): Promise<void>;
 }
 
 /**
@@ -926,6 +950,9 @@ interface PluginAppApi {
 
 	/** Open URLs in the default browser. */
 	opener: PluginAppOpenerApi;
+
+	/** Send events to browser-source overlays. */
+	overlay: PluginAppOverlayApi;
 
 	/**
 	 * Serialize work that touches the same shared resource across concurrent action runs.

@@ -48,6 +48,7 @@
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
+		"chokidar-cli": "^3.0.0",
 		"@twurple/api": "^8.1.4",
 		"@twurple/auth": "^8.1.4",
 		"@twurple/chat": "^8.1.4",

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { TranslateFn } from './resolve-translate';
 	import type { SelectableListController } from '$lib/components/core/list/selectable-list.svelte';
 	import type { Snippet } from 'svelte';
 
@@ -11,13 +12,15 @@
 
 	import { cn } from '$lib/utils';
 
-	import { resolveTranslate, type TranslateFn } from './resolve-translate';
+	import { resolveTranslate } from './resolve-translate';
 
 	type Props = {
 		t?: TranslateFn;
 		groupId: string;
 		index: number;
 		children: Snippet;
+		label?: string;
+		headerActions?: Snippet;
 		count?: number;
 		groupActionIds?: (string | number)[];
 		selection?: SelectableListController<string | number>;
@@ -31,6 +34,8 @@
 		groupId,
 		index,
 		children,
+		label,
+		headerActions,
 		count,
 		groupActionIds = [],
 		selection,
@@ -42,10 +47,8 @@
 	const collapsible = $derived(!isOverlay && onCollapsedChange != null);
 	const t = $derived(resolveTranslate(tProp));
 
-	const displayName = $derived(capitalize(groupId));
-	const showGroupSelect = $derived(
-		!isOverlay && selection != null && groupActionIds.length > 0
-	);
+	const displayName = $derived(label ?? capitalize(groupId));
+	const showGroupSelect = $derived(!isOverlay && selection != null && groupActionIds.length > 0);
 	const groupAllSelected = $derived(
 		showGroupSelect ? selection!.subsetAllSelected(groupActionIds) : false
 	);
@@ -62,14 +65,22 @@
 
 <section
 	{@attach ref}
-	class={isOverlay
-		? 'overflow-hidden rounded-2xl bg-dark-900 shadow-2xl ring-1 ring-white/10'
-		: 'overflow-hidden rounded-2xl border border-dark-700 bg-dark-900'}
+	class={cn(
+		'overflow-hidden rounded-xl',
+		isOverlay
+			? 'border border-dark-600 bg-dark-800 shadow-2xl ring-1 ring-white/10'
+			: 'border border-dark-600 bg-dark-800'
+	)}
 >
-	<div class="group/head flex items-stretch">
+	<div
+		class={cn(
+			'group/head flex items-stretch border-dark-700/80',
+			(!collapsed || isOverlay) && 'border-b'
+		)}
+	>
 		<button
 			type="button"
-			class="ms-2 flex w-7 shrink-0 cursor-grab items-center justify-center self-center rounded-lg text-dark-500 opacity-0 transition hover:bg-dark-700 hover:text-dark-200 focus-visible:opacity-100 active:cursor-grabbing group-hover/head:opacity-100"
+			class="ms-1 flex w-7 shrink-0 cursor-grab items-center justify-center self-center rounded-lg text-dark-500 opacity-0 transition group-hover/head:opacity-100 hover:bg-dark-700 hover:text-dark-200 focus-visible:opacity-100 active:cursor-grabbing"
 			{@attach handleRef}
 			aria-label={t('Drag to reorder group {name}', { name: displayName })}
 			onclick={(event) => event.stopPropagation()}
@@ -80,7 +91,7 @@
 		{#if collapsible}
 			<button
 				type="button"
-				class="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-3 text-left transition-colors hover:bg-dark-800"
+				class="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3 text-left transition-colors hover:bg-dark-700/40"
 				aria-expanded={!collapsed}
 				aria-label={collapsed
 					? t('Expand group {name}', { name: displayName })
@@ -102,8 +113,10 @@
 						<InputCheckbox
 							inline
 							aria-label={t('Select all in group {name}', { name: displayName })}
-							bind:checked={() => groupAllSelected, (value) =>
-								selection!.selectSubset(groupActionIds, value)}
+							bind:checked={
+								() => groupAllSelected,
+								(value) => selection!.selectSubset(groupActionIds, value)
+							}
 						/>
 					</span>
 				{/if}
@@ -113,13 +126,15 @@
 				{/if}
 			</button>
 		{:else}
-			<div class="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-3">
+			<div class="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3">
 				{#if showGroupSelect}
 					<InputCheckbox
 						inline
 						aria-label={t('Select all in group {name}', { name: displayName })}
-						bind:checked={() => groupAllSelected, (value) =>
-							selection!.selectSubset(groupActionIds, value)}
+						bind:checked={
+							() => groupAllSelected,
+							(value) => selection!.selectSubset(groupActionIds, value)
+						}
 					/>
 				{/if}
 				<span class="truncate text-sm font-semibold text-dark-50">{displayName}</span>
@@ -128,11 +143,22 @@
 				{/if}
 			</div>
 		{/if}
+
+		{#if headerActions && !isOverlay}
+			<div class="flex shrink-0 items-center gap-2 px-3">
+				{@render headerActions()}
+			</div>
+		{/if}
 	</div>
 
 	{#if !collapsed || isOverlay}
-		<div class="border-t border-dark-800 p-2.5">
-			<div class={cn(isDragging.current && !isOverlay && 'pointer-events-none select-none')}>
+		<div>
+			<div
+				class={cn(
+					'flex flex-col gap-1',
+					isDragging.current && !isOverlay && 'pointer-events-none select-none'
+				)}
+			>
 				{@render children()}
 			</div>
 		</div>

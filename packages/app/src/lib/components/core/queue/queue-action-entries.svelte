@@ -41,7 +41,7 @@
 						<button
 							type="button"
 							class={cn(
-								'flex w-full min-w-0 items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors',
+								'flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors',
 								variant === 'active'
 									? 'border-success-700/60 bg-success-950/40 text-success-50 hover:border-success-600'
 									: 'border-dark-700 bg-dark-900 text-dark-100 hover:border-dark-500 hover:bg-dark-800'

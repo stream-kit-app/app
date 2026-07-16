@@ -148,7 +148,14 @@ export type HandlerOneOfInnerFieldDefinition =
 			max: number;
 			/** Step increment. */
 			step?: number;
+			/** Unit shown next to the value (e.g. `%`, `px`). Empty string for no unit. Defaults to `%`. */
+			unit?: string;
 			defaultValue?: number;
+	  })
+	| (HandlerFieldBase & {
+			type: 'color';
+			/** Default hex color (`#rrggbb`). */
+			defaultValue?: string;
 	  });
 
 /** One selectable variant inside a one-of handler field. */

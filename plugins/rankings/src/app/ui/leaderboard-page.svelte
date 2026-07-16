@@ -1,20 +1,25 @@
 <script lang="ts">
-	import type { RankingsPluginApi } from '../../lib/plugin-api';
 	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
+	import Icon from '@iconify/svelte';
+
+	import { tooltip } from '@stream-kit/ui/attachments';
+	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { InputText } from '@stream-kit/ui/input';
 
 	import { formatWatchTime } from '../../lib/extract-user';
-	import { orderRanks, resolveProgress } from '../../lib/ranking-engine';
+	import { orderRanks, resolveProgress, sortUsersByPoints } from '../../lib/ranking-engine';
+	import { tryGetRankingsService } from '../lib/get-rankings';
+	import { RankedUser } from '../lib/ranked-user.svelte';
+	import RankingsEmptyState from './rankings-empty-state.svelte';
 
 	let { app, title: _title, description: _description }: PluginCustomViewProps = $props();
 
 	const t = $derived(app.i18n.t);
-	const plugin = $derived(app.plugins.tryGet<RankingsPluginApi>('rankings'));
-	const rankings = $derived(plugin?.rankings);
-	const leaderboard = $derived(rankings?.getLeaderboard() ?? []);
+	const rankings = $derived(tryGetRankingsService());
+	const leaderboard = $derived(rankings ? sortUsersByPoints(rankings.users) : []);
 	const ordered = $derived(rankings ? orderRanks(rankings.tiers, rankings.ranks) : []);
 
 	let search = $state('');
@@ -30,12 +35,32 @@
 		return leaderboard.filter((user) => user.username.toLowerCase().includes(query));
 	});
 
+	function platformIcon(platform: 'twitch' | 'youtube' | 'unknown'): string {
+		switch (platform) {
+			case 'twitch':
+				return 'ri:twitch-line';
+			case 'youtube':
+				return 'ri:youtube-line';
+			default:
+				return 'ri:user-line';
+		}
+	}
+
 	function getEditValue(userId: string, currentPoints: number) {
 		return editPoints[userId] ?? String(currentPoints);
 	}
 
 	function setEditValue(userId: string, value: string) {
 		editPoints = { ...editPoints, [userId]: value };
+	}
+
+	function clearEditValue(userId: string) {
+		if (!(userId in editPoints)) {
+			return;
+		}
+
+		const { [userId]: _removed, ...rest } = editPoints;
+		editPoints = rest;
 	}
 
 	async function savePoints(
@@ -64,6 +89,46 @@
 			amount: Math.max(0, Math.floor(amount)),
 			source: 'manual'
 		});
+		clearEditValue(userId);
+	}
+
+	function openUser(user: (typeof filtered)[number]) {
+		RankedUser.fromRecord(user).open();
+	}
+
+	async function deleteUser(userId: string, username: string) {
+		if (!rankings) {
+			return;
+		}
+
+		const confirmed = await app.confirm.ask({
+			title: t('Remove user from rankings?'),
+			description: t(
+				'Are you sure you want to remove {name} from rankings? Their points and history will be deleted. This cannot be undone.',
+				{ name: username }
+			),
+			confirmLabel: t('Remove')
+		});
+
+		if (!confirmed) {
+			return;
+		}
+
+		try {
+			await rankings.deleteUser(userId);
+			clearEditValue(userId);
+			app.toast.create({
+				title: t('User removed'),
+				description: t('The user has been removed from rankings'),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not remove user'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'warning'
+			});
+		}
 	}
 </script>
 
@@ -73,68 +138,101 @@
 			<InputText
 				label={t('Search')}
 				value={search}
-				placeholder={t('Search viewers')}
+				placeholder={t('Search users')}
 				class="max-w-md"
 				oninput={(event) => {
 					search = (event.currentTarget as HTMLInputElement).value;
 				}}
 			/>
 
-			<div class="overflow-hidden rounded-xl border border-dark-600 bg-dark-900">
-				<table class="min-w-full text-sm">
-					<thead class="border-b border-dark-600 bg-dark-900 text-left text-dark-300">
-						<tr>
-							<th class="px-4 py-3 font-medium">{t('Viewer')}</th>
-							<th class="px-4 py-3 font-medium">{t('Points')}</th>
-							<th class="px-4 py-3 font-medium">{t('Rank')}</th>
-							<th class="px-4 py-3 font-medium">{t('Watch time')}</th>
-							<th class="px-4 py-3 font-medium">{t('Adjust')}</th>
-						</tr>
-					</thead>
-					<tbody class="divide-y divide-dark-600">
-						{#each filtered as user (user.userId)}
-							{@const progress = resolveProgress(user.totalPoints, ordered)}
-							<tr>
-								<td class="px-4 py-3 text-dark-100">{user.username}</td>
-								<td class="px-4 py-3 text-dark-200">{user.totalPoints}</td>
-								<td class="px-4 py-3 text-dark-300">
-									{progress.rank?.name ?? t('Unranked')} · {progress.tier?.name ?? '—'}
-								</td>
-								<td class="px-4 py-3 text-dark-300">{formatWatchTime(user.watchTimeSeconds)}</td>
-								<td class="px-4 py-3">
-									<div class="flex items-center gap-2">
-										<InputText
-											value={getEditValue(user.userId, user.totalPoints)}
-											class="max-w-[8rem]"
-											inputmode="numeric"
-											oninput={(event) => {
-												setEditValue(
-													user.userId,
-													(event.currentTarget as HTMLInputElement).value
-												);
-											}}
-										/>
-										<Button
-											type="button"
-											variant="outline"
-											size="sm"
-											onclick={() => void savePoints(user.userId, user.username, user.platform)}
-										>
-											{t('Save')}
-										</Button>
-									</div>
-								</td>
-							</tr>
-						{:else}
-							<tr>
-								<td colspan="5" class="px-4 py-8 text-center text-dark-400">
-									{t('No viewers found.')}
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+			{#if filtered.length === 0}
+				<RankingsEmptyState
+					icon="ri:trophy-line"
+					title={search.trim() ? t('No users found.') : t('No users ranked yet.')}
+					description={search.trim()
+						? t('Try a different search term.')
+						: t('Users will appear here as they earn points.')}
+				/>
+			{:else}
+				<ul class="flex flex-col gap-2">
+					{#each filtered as user, index (user.userId)}
+						{@const progress = resolveProgress(user.totalPoints, ordered)}
+						<li
+							class="grid grid-cols-1 gap-3 rounded-xl border border-dark-600 bg-dark-800 p-3 transition-colors hover:border-dark-500 sm:grid-cols-[1fr_auto] sm:items-center"
+						>
+							<button
+								type="button"
+								class="group flex min-w-0 cursor-pointer items-center gap-3 text-left"
+								onclick={() => openUser(user)}
+							>
+								<span
+									class="grid size-8 shrink-0 place-items-center rounded-md bg-dark-900 text-xs font-medium text-dark-300"
+									aria-hidden="true"
+								>
+									{index + 1}
+								</span>
+								<div
+									class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+									aria-hidden="true"
+								>
+									<Icon icon={platformIcon(user.platform)} class="size-5" />
+								</div>
+								<div class="min-w-0 flex-1">
+									<p class="truncate font-medium text-dark-50 group-hover:text-primary">
+										{user.username}
+									</p>
+									<p class="truncate text-sm text-dark-300">
+										{user.totalPoints} pts · {formatWatchTime(user.watchTimeSeconds)}
+									</p>
+								</div>
+								<div class="flex shrink-0 flex-wrap justify-end gap-1">
+									{#if progress.rank}
+										<Badge variant="secondary" size="sm">{progress.rank.name}</Badge>
+									{:else}
+										<Badge variant="outline" size="sm">{t('Unranked')}</Badge>
+									{/if}
+									{#if progress.tier}
+										<Badge variant="outline" size="sm">{progress.tier.name}</Badge>
+									{/if}
+								</div>
+							</button>
+
+							<div class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+								<InputText
+									value={getEditValue(user.userId, user.totalPoints)}
+									class="max-w-28"
+									aria-label={t('Adjust')}
+									inputmode="numeric"
+									oninput={(event) => {
+										setEditValue(
+											user.userId,
+											(event.currentTarget as HTMLInputElement).value
+										);
+									}}
+									size="sm"
+								/>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onclick={() => void savePoints(user.userId, user.username, user.platform)}
+								>
+									{t('Save')}
+								</Button>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-sm"
+									icon="ri:delete-bin-line"
+									aria-label={t('Remove user')}
+									onclick={() => void deleteUser(user.userId, user.username)}
+									{@attach tooltip(() => t('Remove user'))}
+								/>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{/if}
 		</div>
 	{:else}
 		<p class="text-sm text-dark-300">{t('Rankings plugin unavailable.')}</p>

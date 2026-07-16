@@ -17,6 +17,7 @@ export const PLUGIN_HOST_UI_SUBPATHS = [
 	"nav",
 	"popover",
 	"scroll-area",
+	"toggle-group",
 	"tooltip",
 	"variable-popover"
 ];

@@ -3,6 +3,7 @@
 
 	import { cn } from '../../utils';
 
+	import { inputFieldErrorMessage } from './input-field-classes';
 	import Label from './label.svelte';
 
 	type Props = {
@@ -12,6 +13,7 @@
 		max?: number;
 		step?: number;
 		value?: number;
+		unit?: string;
 		error?: string;
 		onvaluechange?: (value: number) => void;
 	};
@@ -23,6 +25,7 @@
 		max = 100,
 		step = 1,
 		value = $bindable(0),
+		unit = '%',
 		error,
 		onvaluechange
 	}: Props = $props();
@@ -32,7 +35,7 @@
 	{#if label}
 		<div class="flex items-center justify-between gap-4">
 			<Label for={id}>{label}</Label>
-			<span class="text-sm text-dark-100">{value}%</span>
+			<span class="text-sm text-dark-100">{value}{unit}</span>
 		</div>
 	{/if}
 	<input
@@ -45,10 +48,10 @@
 		oninput={() => onvaluechange?.(value)}
 		class={cn(
 			'h-2 w-full cursor-pointer appearance-none rounded-full bg-dark-600 accent-primary',
-			error && 'ring-1 ring-red-500'
+			error && 'ring-1 ring-destructive'
 		)}
 	/>
 	{#if error}
-		<p class="text-sm text-red-500">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

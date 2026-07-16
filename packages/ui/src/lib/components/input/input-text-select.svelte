@@ -10,6 +10,15 @@
 
 	import { cn } from '../../utils';
 
+	import {
+		inputFieldBorder,
+		inputFieldDisabled,
+		inputFieldErrorMessage,
+		inputFieldFocusRing,
+		inputFieldGroup,
+		inputFieldRequiredMark,
+		inputFieldSurface
+	} from './input-field-classes';
 	import { inputSizeClasses } from './input-size-classes';
 	import Label from './label.svelte';
 	import { resolveSelectItems } from './resolve-select-items.svelte';
@@ -161,9 +170,11 @@
 			placeholder: resolvedItems.loading ? resolvedLoadingPlaceholder : resolvedPlaceholder,
 			autocomplete: 'off',
 			class: cn(
-				'min-w-0 w-full truncate rounded-l-xl border border-r-0 bg-dark-700 text-dark-50 outline-none',
+				'min-w-0 w-full truncate rounded-l-xl border border-r-0 outline-none',
+				inputFieldSurface,
+				inputFieldDisabled,
 				inputSizeClasses.md,
-				error ? 'border-red-500' : 'border-dark-500'
+				inputFieldBorder(error)
 			),
 			'aria-invalid': error ? true : undefined,
 			oninput: handleInput,
@@ -200,7 +211,7 @@
 		<Label for={id}>
 			{label}
 			{#if required}
-				<span class="text-red-400">*</span>
+				<span class={inputFieldRequiredMark}>*</span>
 			{/if}
 		</Label>
 	{/if}
@@ -223,8 +234,9 @@
 	>
 		<div
 			class={cn(
-				'flex w-full min-w-0 items-stretch rounded-xl has-focus:ring-2 has-focus:ring-primary',
-				error && 'has-focus:ring-red-500'
+				'flex w-full min-w-0 items-stretch rounded-xl',
+				inputFieldGroup,
+				inputFieldFocusRing(error)
 			)}
 		>
 			<div class="min-w-0 flex-1">
@@ -238,9 +250,11 @@
 				disabled={!!props.disabled}
 				onclick={handleTriggerClick}
 				class={cn(
-					'flex shrink-0 cursor-pointer items-center justify-center rounded-r-xl border bg-dark-700 text-dark-50 outline-none',
+					'flex shrink-0 cursor-pointer items-center justify-center rounded-r-xl border outline-none',
+					inputFieldSurface,
+					inputFieldDisabled,
 					inputSizeClasses.md,
-					error ? 'border-red-500' : 'border-dark-500',
+					inputFieldBorder(error),
 					selectClass
 				)}
 			>
@@ -252,7 +266,7 @@
 				{...contentProps}
 				sideOffset={contentProps?.sideOffset ?? 4}
 				class={cn(
-					'z-50 max-h-84 min-w-(--bits-combobox-anchor-width)',
+					'z-[100] max-h-84 min-w-(--bits-combobox-anchor-width)',
 					'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 					contentProps?.class
 				)}
@@ -287,6 +301,6 @@
 		</Combobox.Portal>
 	</Combobox.Root>
 	{#if error}
-		<p class="text-sm text-red-400">{error}</p>
+		<p class={inputFieldErrorMessage}>{error}</p>
 	{/if}
 </div>

@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: juni 2026  
+> Versie 0.1.0 — laatst bijgewerkt: juli 2026  
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -14,22 +14,25 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] TTS (Piper lokaal, StreamElements-token, ElevenLabs)
 - [x] WebSocket plugin (custom integraties)
 - [x] Core handlers (audio, TypeScript scripts, externe programma's, process watcher)
-- [x] Core variabelen (global, user, action scope) + Maps (persistente key-value stores)
+- [x] Core variabelen (global, user, action scope) + Collections (persistente key-value stores)
 - [x] Schedule triggers (Cron + Scheduled) in Core plugin
+- [x] Globale hotkeys (Core Hotkey trigger + HotkeyManager)
+- [x] Overlays — lokale browser-source server + ready-made widget templates
+- [x] Rankings plugin (punten, tiers, watch-time, leaderboard, overlay)
 - [x] Plugin-architectuur (built-in + externe zip-plugins)
 - [x] Plugin updates (manifest URL, check/install, startup check)
-- [x] Dashboard (`/`) — stat cards, verbindingen, pluginstatus
+- [x] Dashboard (`/`) — stat cards, verbindingen, pluginstatus, running-actions widget
 - [x] i18n (NL + EN)
 
 ---
 
 ## P0 — Productbasis (nodig voor elke richting)
 
-- [~] Dashboard uitbreiden — basis klaar; recente events-widget en lijst actieve acties nog open
+- [~] Dashboard uitbreiden — basis + running-actions klaar; recente events-widget nog open
 - [x] Bot plugin — commands, timers, moderation, built-in commands, overview settings
 - [~] Publieke installer + release-kanaal — alpha CI/builds (Windows); stabiel kanaal voor alle platformen nog open
-- [~] Documentatie uitbreiden — core, bot, websocket, dashboard, schedule, updates klaar; OBS-plugin doc + gebruikershandleiding nog open
-- [ ] Import/export van acties en commands (backup/restore)
+- [~] Documentatie uitbreiden — plugins (incl. OBS, rankings, overlay) + guide grotendeels klaar; onboarding/starter-templates nog open
+- [~] Import/export — acties JSON import/export klaar; commands backup/restore nog open
 - [ ] Stabiliseren van API's en database-schema's (richting v1.0)
 
 ---
@@ -48,8 +51,8 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 ### Platform-uitbreiding
 
-- [ ] YouTube handlers uitbreiden (moderatie, polls, memberships, etc.)
-- [ ] Twitch triggers/handlers aanvullen (goals, charity, ad breaks, shoutout received)
+- [~] YouTube — triggers grotendeels klaar (memberships, super chat, polls, etc.); handlers nog chat-only (send/delete)
+- [~] Twitch triggers/handlers aanvullen — shoutout + commercial handlers klaar; goals, charity, ad-break en shoutout-received triggers nog open
 - [ ] Donatie-platform triggers (Streamlabs, StreamElements events, Ko-fi, etc.)
 - [ ] Discord plugin (berichten, rollen, voice events)
 - [ ] Kick plugin
@@ -57,7 +60,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 ### Hardware & systeem
 
-- [ ] Globale hotkeys (app-breed, niet alleen OBS)
+- [x] Globale hotkeys (app-breed, niet alleen OBS)
 - [ ] Stream Deck integratie
 - [ ] MIDI triggers/handlers
 - [ ] Voice control (optioneel)
@@ -75,18 +78,18 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 ### Overlays & alerts
 
-- [ ] Lokale overlay-server (browser source URL) — basis geïmplementeerd; widget-editor drag-and-drop nog open
-- [ ] Alert-widgets (follow, sub, bits, raid, channel points, donation)
-- [ ] Widget-editor (drag-and-drop of template-gebaseerd)
-- [ ] Chatbox-overlay widget
-- [ ] Timer-, teller- en doel-widgets
-- [ ] Leaderboard-widgets
+- [~] Lokale overlay-server (browser source URL) + ready-made widgets; drag-and-drop widget-editor nog open
+- [~] Alert-widgets — template-based alerts (follow, sub, bits, raid, channel points, donation-style) klaar; verdere polish/uitbreiding open
+- [ ] Widget-editor (drag-and-drop)
+- [x] Chatbox-overlay widget (template)
+- [x] Timer-, teller- en doel-widgets (templates)
+- [x] Leaderboard-widgets (template)
 - [ ] Activity feed / recent events widget
 
 ### Monetisatie & engagement
 
 - [ ] Donatie-integraties (PayPal, Stripe, etc.)
-- [ ] Loyalty / punten-systeem
+- [~] Loyalty / punten-systeem — Rankings plugin MVP klaar; SE-achtige store/redeems nog open
 - [ ] Channel points store UI (eigen rewards, niet alleen Twitch events)
 - [ ] Tip goals & progress tracking
 
@@ -104,7 +107,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [ ] Action templates & delen
 - [ ] Remote control / companion app
 - [ ] Speaker.bot / Meld Studio integratie
-- [~] Betere test/simulate-modus — Test-knop per actie (dummy trigger data); volledige keten-simulator nog open
+- [~] Betere test/simulate-modus — Test-knop per actie (dummy trigger data) + overlay runTest; volledige keten-simulator nog open
 - [ ] Merch/store-koppelingen
 - [ ] Uitgebreidere appearance/thema-instellingen
 
@@ -112,7 +115,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 ## Technische schuld & documentatie
 
-- [ ] README bijwerken: OBS + WebSocket in plugin-tabel; projectstructuur (`commands/` → `bot/`, OBS/WebSocket toevoegen)
+- [ ] README bijwerken: OBS, WebSocket, Rankings, Overlay in plugin-tabel; TTS Piper; projectstructuur (`commands/` → `bot/`); installer-claim afstemmen op Windows release CI
 - [ ] README status-sectie: documentatie is niet meer "minimaal" — afstemmen op `/docs`
 - [ ] Meer voorbeeld-acties / starter-templates voor nieuwe gebruikers
 - [ ] E2E-tests voor kritieke flows (OAuth, actie-uitvoering, commands)

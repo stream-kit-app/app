@@ -3,6 +3,7 @@ import type { Plugin, PluginPageDefinition } from '@stream-kit/plugin';
 import LeaderboardPage from './app/ui/leaderboard-page.svelte';
 import OverviewPage from './app/ui/overview-page.svelte';
 import TiersPage from './app/ui/tiers-page.svelte';
+import { createGetUserRankHandler } from './handler/get-user-rank';
 import {
 	createAddPointsHandler,
 	createRemovePointsHandler,
@@ -12,6 +13,7 @@ import {
 	createLeaderboardMessageHandler,
 	createSendRankMessageHandler
 } from './handler/send-rank-message';
+import { createSendLeaderboardToOverlayHandler } from './handler/send-leaderboard-to-overlay';
 import { seedRankingsDefaults } from './lib/seed-defaults';
 import { rankings as rankingsService } from './lib/instances';
 import { WatchTimeTracker } from './lib/watch-time-tracker';
@@ -39,7 +41,7 @@ const tiersPage = {
 const leaderboardPage = {
 	customView: 'leaderboard',
 	title: 'Leaderboard',
-	description: 'Top viewers and manual point adjustments.'
+	description: 'Top users and manual point adjustments.'
 } as unknown as PluginPageDefinition;
 
 const plugin: Plugin = (app) => {
@@ -47,9 +49,10 @@ const plugin: Plugin = (app) => {
 
 	return {
 		name: 'Rankings',
-		description: 'Viewer rankings with tiers, points, and watch-time rewards.',
+		description: 'User rankings with tiers, points, and watch-time rewards.',
 		icon: 'ri:trophy-line',
 		dependencies: ['core', 'bot', 'twitch'],
+		isConfigured: () => rankingsService.isReady,
 		api: {
 			rankings: rankingsService
 		},
@@ -74,7 +77,7 @@ const plugin: Plugin = (app) => {
 			{
 				key: 'rankings',
 				title: 'Rankings',
-				description: 'Viewer stats and top leaderboard entries.',
+				description: 'User stats and top leaderboard entries.',
 				icon: 'ri:trophy-line',
 				columns: 2,
 				view: 'rankings-widget'
@@ -94,11 +97,13 @@ const plugin: Plugin = (app) => {
 			{
 				name: 'Rankings',
 				children: [
+					createGetUserRankHandler(app, rankingsService),
 					createAddPointsHandler(app, rankingsService),
 					createSetPointsHandler(app, rankingsService),
 					createRemovePointsHandler(app, rankingsService),
 					createSendRankMessageHandler(app, rankingsService),
-					createLeaderboardMessageHandler(app, rankingsService)
+					createLeaderboardMessageHandler(app, rankingsService),
+					createSendLeaderboardToOverlayHandler(app, rankingsService)
 				]
 			}
 		],
@@ -184,8 +189,7 @@ const plugin: Plugin = (app) => {
 			};
 
 			await rankingsService.persistSettings();
-			watchTimeTracker?.stop();
-			watchTimeTracker?.start();
+			watchTimeTracker?.restart();
 		}
 	};
 };

@@ -2,6 +2,7 @@ import type { LocalTtsVoiceInfo } from './types';
 import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
 import { TtsPlayer } from '../player';
+import { TTS_SESSION_IDS } from '../session-ids';
 
 const STORE_KEY_SUFFIXES = {
 	defaultVoice: 'local-tts-default-voice',
@@ -57,7 +58,10 @@ export class LocalTtsService {
 	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
 		this.store = store;
 		this.setApp(app);
-		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume));
+		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume, { sessionId: TTS_SESSION_IDS.local }), {
+			sessionId: TTS_SESSION_IDS.local,
+			stopPlayback: (sessionId) => app.audio.stop(sessionId)
+		});
 		await this.syncFromStore();
 		await this.refreshVoices();
 	}
@@ -164,13 +168,23 @@ export class LocalTtsService {
 	async speak(text: string, voiceId: string, volume?: number): Promise<void> {
 		await this.ensureRuntime();
 
+		const generation = this.player.getSpeakGeneration();
 		const bytes = await this.tts.synthesize(voiceId, text);
+
+		if (generation !== this.player.getSpeakGeneration()) {
+			return;
+		}
+
 		const blob = new Blob([Uint8Array.from(bytes)], { type: 'audio/wav' });
-		this.player.enqueue(blob, volume ?? this.volume);
+		await this.player.enqueue(blob, volume ?? this.volume);
 	}
 
 	async testVoice(voiceId: string, sampleText: string, volume?: number): Promise<void> {
 		await this.speak(sampleText, voiceId, volume);
+	}
+
+	skip(): void {
+		this.player.skip();
 	}
 }
 
