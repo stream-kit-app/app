@@ -17,9 +17,14 @@
     "@stream-kit/site": "0.0.1",
     "@stream-kit/docs": "0.0.0",
     "@stream-kit/plugin": "0.1.0-alpha.0",
-    "@stream-kit/script-api": "0.1.0-alpha.0"
+    "@stream-kit/script-api": "0.1.0-alpha.0",
+    "@stream-kit/plugin-rankings": "0.1.0-alpha.1"
   },
   "changesets": [
-    "shy-shirts-divide"
+    "bright-news-kick",
+    "shy-shirts-divide",
+    "silent-moons-hug",
+    "silver-spiders-sleep",
+    "tame-boxes-look"
   ]
 }

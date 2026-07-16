@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/ui",
-	"version": "0.2.0-alpha.5",
+	"version": "0.2.0-alpha.6",
 	"description": "Shared Svelte 5 UI primitives for Stream Kit plugins and the desktop app",
 	"type": "module",
 	"license": "MIT",
