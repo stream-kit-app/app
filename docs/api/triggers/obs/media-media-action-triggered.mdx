@@ -11,6 +11,23 @@ description: "OBS trigger: obs:obs:media:media-action-triggered"
 | **Plugin** | OBS |
 | **Category** | Media |
 
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "inputName", type: "string", description: "OBS input (source) name.", example: "Test Media Source" },
+  { name: "inputUuid", type: "string", description: "OBS input UUID.", example: "test-media-uuid" },
+  { name: "mediaAction", type: "string", description: "OBS media action type (play, pause, stop, restart, next, previous).", example: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Input name | Match OBS input/source name. Leave empty to match any input. |
+| Media action | Match OBS media action type (play, pause, stop, restart, next, previous). |
+
 ## Related
 
 - [OBS plugin](/docs/plugins/obs)

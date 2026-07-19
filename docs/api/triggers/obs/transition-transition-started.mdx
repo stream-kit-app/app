@@ -11,6 +11,21 @@ description: "OBS trigger: obs:obs:transition:transition-started"
 | **Plugin** | OBS |
 | **Category** | Transition |
 
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "transitionName", type: "string", description: "OBS transition name.", example: "Fade" },
+  { name: "transitionUuid", type: "string", description: "OBS transition UUID.", example: "test-transition-uuid" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Transition | Match OBS transition name. Leave empty to match any transition. |
+
 ## Related
 
 - [OBS plugin](/docs/plugins/obs)

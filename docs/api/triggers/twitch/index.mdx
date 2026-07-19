@@ -1,40 +1,49 @@
 ---
 title: "Twitch"
-description: "All triggers for the twitch plugin."
+description: "All triggers for the Twitch plugin."
 ---
 
 # Twitch triggers
 
-| Name | ID |
-| --- | --- |
-| [Chat Message](/docs/api/triggers/twitch/chat-chat-message/) | `twitch:twitch:chat:chat-message` |
-| [Cheer](/docs/api/triggers/twitch/chat-cheer/) | `twitch:twitch:chat:cheer` |
-| [Whisper](/docs/api/triggers/twitch/chat-whisper/) | `twitch:twitch:chat:whisper` |
-| [Channel Point Redemption](/docs/api/triggers/twitch/chat-channel-point-redemption/) | `twitch:twitch:chat:channel-point-redemption` |
-| [Hype Chat](/docs/api/triggers/twitch/chat-hype-chat/) | `twitch:twitch:chat:hype-chat` |
-| [New Subscription](/docs/api/triggers/twitch/subscriptions-new-subscription/) | `twitch:twitch:subscriptions:new-subscription` |
-| [Resubscription](/docs/api/triggers/twitch/subscriptions-resubscription/) | `twitch:twitch:subscriptions:resubscription` |
-| [Gift Subscription](/docs/api/triggers/twitch/subscriptions-gift-subscription/) | `twitch:twitch:subscriptions:gift-subscription` |
-| [Community Subscription](/docs/api/triggers/twitch/subscriptions-community-subscription/) | `twitch:twitch:subscriptions:community-subscription` |
-| [Incoming Raid](/docs/api/triggers/twitch/raids-incoming-raid/) | `twitch:twitch:raids:incoming-raid` |
-| [User Banned](/docs/api/triggers/twitch/moderation-user-banned/) | `twitch:twitch:moderation:user-banned` |
-| [User Timed Out](/docs/api/triggers/twitch/moderation-user-timed-out/) | `twitch:twitch:moderation:user-timed-out` |
-| [User Banned (EventSub)](/docs/api/triggers/twitch/moderation-user-banned-eventsub/) | `twitch:twitch:moderation:user-banned-eventsub` |
-| [User Unbanned (EventSub)](/docs/api/triggers/twitch/moderation-user-unbanned-eventsub/) | `twitch:twitch:moderation:user-unbanned-eventsub` |
-| [Shield Mode Enabled](/docs/api/triggers/twitch/moderation-shield-mode-enabled/) | `twitch:twitch:moderation:shield-mode-enabled` |
-| [Shield Mode Disabled](/docs/api/triggers/twitch/moderation-shield-mode-disabled/) | `twitch:twitch:moderation:shield-mode-disabled` |
-| [User Join](/docs/api/triggers/twitch/engagement-user-join/) | `twitch:twitch:engagement:user-join` |
-| [User Part](/docs/api/triggers/twitch/engagement-user-part/) | `twitch:twitch:engagement:user-part` |
-| [Stream Online](/docs/api/triggers/twitch/stream-stream-online/) | `twitch:twitch:stream:stream-online` |
-| [Stream Offline](/docs/api/triggers/twitch/stream-stream-offline/) | `twitch:twitch:stream:stream-offline` |
-| [New Follower](/docs/api/triggers/twitch/channel-new-follower/) | `twitch:twitch:channel:new-follower` |
-| [Channel Update](/docs/api/triggers/twitch/channel-channel-update/) | `twitch:twitch:channel:channel-update` |
-| [Reward Redeemed](/docs/api/triggers/twitch/channel-points-reward-redeemed/) | `twitch:twitch:channel-points:reward-redeemed` |
-| [Hype Train Begin](/docs/api/triggers/twitch/hype-train-hype-train-begin/) | `twitch:twitch:hype-train:hype-train-begin` |
-| [Hype Train Progress](/docs/api/triggers/twitch/hype-train-hype-train-progress/) | `twitch:twitch:hype-train:hype-train-progress` |
-| [Hype Train End](/docs/api/triggers/twitch/hype-train-hype-train-end/) | `twitch:twitch:hype-train:hype-train-end` |
-| [Poll Begin](/docs/api/triggers/twitch/polls-poll-begin/) | `twitch:twitch:polls:poll-begin` |
-| [Poll End](/docs/api/triggers/twitch/polls-poll-end/) | `twitch:twitch:polls:poll-end` |
-| [Prediction Begin](/docs/api/triggers/twitch/predictions-prediction-begin/) | `twitch:twitch:predictions:prediction-begin` |
-| [Prediction Lock](/docs/api/triggers/twitch/predictions-prediction-lock/) | `twitch:twitch:predictions:prediction-lock` |
-| [Prediction End](/docs/api/triggers/twitch/predictions-prediction-end/) | `twitch:twitch:predictions:prediction-end` |
+| Category | Name | ID |
+| --- | --- | --- |
+| Ads | [Ad Break Begin](/docs/api/triggers/twitch/ads-ad-break-begin/) | `twitch:twitch:ads:ad-break-begin` |
+| Channel | [Channel Update](/docs/api/triggers/twitch/channel-channel-update/) | `twitch:twitch:channel:channel-update` |
+| Channel | [New Follower](/docs/api/triggers/twitch/channel-new-follower/) | `twitch:twitch:channel:new-follower` |
+| Channel Points | [Reward Redeemed](/docs/api/triggers/twitch/channel-points-reward-redeemed/) | `twitch:twitch:channel-points:reward-redeemed` |
+| Charity | [Charity Campaign Progress](/docs/api/triggers/twitch/charity-charity-campaign-progress/) | `twitch:twitch:charity:charity-campaign-progress` |
+| Charity | [Charity Campaign Start](/docs/api/triggers/twitch/charity-charity-campaign-start/) | `twitch:twitch:charity:charity-campaign-start` |
+| Charity | [Charity Campaign Stop](/docs/api/triggers/twitch/charity-charity-campaign-stop/) | `twitch:twitch:charity:charity-campaign-stop` |
+| Charity | [Charity Donation](/docs/api/triggers/twitch/charity-charity-donation/) | `twitch:twitch:charity:charity-donation` |
+| Chat | [Channel Point Redemption](/docs/api/triggers/twitch/chat-channel-point-redemption/) | `twitch:twitch:chat:channel-point-redemption` |
+| Chat | [Chat Message](/docs/api/triggers/twitch/chat-chat-message/) | `twitch:twitch:chat:chat-message` |
+| Chat | [Cheer](/docs/api/triggers/twitch/chat-cheer/) | `twitch:twitch:chat:cheer` |
+| Chat | [Hype Chat](/docs/api/triggers/twitch/chat-hype-chat/) | `twitch:twitch:chat:hype-chat` |
+| Chat | [Whisper](/docs/api/triggers/twitch/chat-whisper/) | `twitch:twitch:chat:whisper` |
+| Engagement | [User Join](/docs/api/triggers/twitch/engagement-user-join/) | `twitch:twitch:engagement:user-join` |
+| Engagement | [User Part](/docs/api/triggers/twitch/engagement-user-part/) | `twitch:twitch:engagement:user-part` |
+| Goals | [Goal Begin](/docs/api/triggers/twitch/goals-goal-begin/) | `twitch:twitch:goals:goal-begin` |
+| Goals | [Goal End](/docs/api/triggers/twitch/goals-goal-end/) | `twitch:twitch:goals:goal-end` |
+| Goals | [Goal Progress](/docs/api/triggers/twitch/goals-goal-progress/) | `twitch:twitch:goals:goal-progress` |
+| Hype Train | [Hype Train Begin](/docs/api/triggers/twitch/hype-train-hype-train-begin/) | `twitch:twitch:hype-train:hype-train-begin` |
+| Hype Train | [Hype Train End](/docs/api/triggers/twitch/hype-train-hype-train-end/) | `twitch:twitch:hype-train:hype-train-end` |
+| Hype Train | [Hype Train Progress](/docs/api/triggers/twitch/hype-train-hype-train-progress/) | `twitch:twitch:hype-train:hype-train-progress` |
+| Moderation | [Shield Mode Disabled](/docs/api/triggers/twitch/moderation-shield-mode-disabled/) | `twitch:twitch:moderation:shield-mode-disabled` |
+| Moderation | [Shield Mode Enabled](/docs/api/triggers/twitch/moderation-shield-mode-enabled/) | `twitch:twitch:moderation:shield-mode-enabled` |
+| Moderation | [User Banned](/docs/api/triggers/twitch/moderation-user-banned/) | `twitch:twitch:moderation:user-banned` |
+| Moderation | [User Banned (EventSub)](/docs/api/triggers/twitch/moderation-user-banned-eventsub/) | `twitch:twitch:moderation:user-banned-eventsub` |
+| Moderation | [User Timed Out](/docs/api/triggers/twitch/moderation-user-timed-out/) | `twitch:twitch:moderation:user-timed-out` |
+| Moderation | [User Unbanned (EventSub)](/docs/api/triggers/twitch/moderation-user-unbanned-eventsub/) | `twitch:twitch:moderation:user-unbanned-eventsub` |
+| Polls | [Poll Begin](/docs/api/triggers/twitch/polls-poll-begin/) | `twitch:twitch:polls:poll-begin` |
+| Polls | [Poll End](/docs/api/triggers/twitch/polls-poll-end/) | `twitch:twitch:polls:poll-end` |
+| Predictions | [Prediction Begin](/docs/api/triggers/twitch/predictions-prediction-begin/) | `twitch:twitch:predictions:prediction-begin` |
+| Predictions | [Prediction End](/docs/api/triggers/twitch/predictions-prediction-end/) | `twitch:twitch:predictions:prediction-end` |
+| Predictions | [Prediction Lock](/docs/api/triggers/twitch/predictions-prediction-lock/) | `twitch:twitch:predictions:prediction-lock` |
+| Raids | [Incoming Raid](/docs/api/triggers/twitch/raids-incoming-raid/) | `twitch:twitch:raids:incoming-raid` |
+| Shoutouts | [Shoutout Received](/docs/api/triggers/twitch/shoutouts-shoutout-received/) | `twitch:twitch:shoutouts:shoutout-received` |
+| Stream | [Stream Offline](/docs/api/triggers/twitch/stream-stream-offline/) | `twitch:twitch:stream:stream-offline` |
+| Stream | [Stream Online](/docs/api/triggers/twitch/stream-stream-online/) | `twitch:twitch:stream:stream-online` |
+| Subscriptions | [Community Subscription](/docs/api/triggers/twitch/subscriptions-community-subscription/) | `twitch:twitch:subscriptions:community-subscription` |
+| Subscriptions | [Gift Subscription](/docs/api/triggers/twitch/subscriptions-gift-subscription/) | `twitch:twitch:subscriptions:gift-subscription` |
+| Subscriptions | [New Subscription](/docs/api/triggers/twitch/subscriptions-new-subscription/) | `twitch:twitch:subscriptions:new-subscription` |
+| Subscriptions | [Resubscription](/docs/api/triggers/twitch/subscriptions-resubscription/) | `twitch:twitch:subscriptions:resubscription` |

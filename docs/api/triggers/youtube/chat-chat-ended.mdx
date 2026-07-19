@@ -1,0 +1,29 @@
+---
+title: "Chat Ended"
+description: "YouTube trigger: youtube:youtube:chat:chat-ended"
+---
+
+# Chat Ended
+
+| | |
+| --- | --- |
+| **Trigger ID** | `youtube:youtube:chat:chat-ended` |
+| **Plugin** | YouTube |
+| **Category** | Chat |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "raw", type: "YouTubeLiveChatMessage | und…", description: "Raw platform chat message object (JSON)." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "broadcastId", type: "string", description: "YouTube broadcast (stream) ID." }
+]} />
+
+## Related
+
+- [YouTube plugin](/docs/plugins/youtube)
+- [Triggers guide](/docs/guide/triggers)

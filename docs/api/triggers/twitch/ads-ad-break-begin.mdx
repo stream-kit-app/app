@@ -1,0 +1,30 @@
+---
+title: "Ad Break Begin"
+description: "Twitch trigger: twitch:twitch:ads:ad-break-begin"
+---
+
+# Ad Break Begin
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:ads:ad-break-begin` |
+| **Plugin** | Twitch |
+| **Category** | Ads |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "durationSeconds", type: "number", description: "Duration Seconds (number).", example: "60" },
+  { name: "isAutomatic", type: "boolean", description: "Is Automatic (boolean).", example: "false" },
+  { name: "requester", type: "string", description: "Requester (string).", example: "TestBroadcaster" },
+  { name: "requesterId", type: "string", description: "Requester Id (string).", example: "123456" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

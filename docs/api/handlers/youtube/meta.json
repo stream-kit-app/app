@@ -1,8 +1,11 @@
 {
-  "title": "Youtube",
+  "title": "YouTube",
   "pages": [
     "index",
+    "---Chat---",
+    "chat-delete-message",
     "chat-send-message",
-    "chat-delete-message"
+    "---Moderation---",
+    "moderation-ban-timeout-user"
   ]
 }

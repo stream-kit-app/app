@@ -1,0 +1,4 @@
+node_modules/
+*.log
+app.stream-kit.streamdeck.sdPlugin/logs/
+app.stream-kit.streamdeck.sdPlugin/bin/*.map

@@ -1,0 +1,32 @@
+---
+title: "Goal End"
+description: "Twitch trigger: twitch:twitch:goals:goal-end"
+---
+
+# Goal End
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:goals:goal-end` |
+| **Plugin** | Twitch |
+| **Category** | Goals |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "goalId", type: "string", description: "Goal Id (string).", example: "test-goal-id" },
+  { name: "type", type: "string", description: "Stream Deck event type (`keyDown`, `keyUp`, `dialRotate`, …).", example: "follower" },
+  { name: "description", type: "string", description: "Description (string).", example: "Reach 100 followers" },
+  { name: "currentAmount", type: "number", description: "Current Amount (number).", example: "42" },
+  { name: "targetAmount", type: "number", description: "Target Amount (number).", example: "100" },
+  { name: "isAchieved", type: "boolean", description: "Is Achieved (boolean).", example: "false" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

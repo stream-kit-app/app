@@ -400,3 +400,262 @@ export function subscribeShieldModeEnd(
 		return () => sub.stop();
 	}, handler);
 }
+
+export function subscribeGoalBegin(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		goalId: string;
+		type: string;
+		description: string;
+		currentAmount: number;
+		targetAmount: number;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'goal-begin', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelGoalBegin(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				goalId: event.id,
+				type: event.type,
+				description: event.description,
+				currentAmount: event.currentAmount,
+				targetAmount: event.targetAmount
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeGoalProgress(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		goalId: string;
+		type: string;
+		description: string;
+		currentAmount: number;
+		targetAmount: number;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'goal-progress', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelGoalProgress(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				goalId: event.id,
+				type: event.type,
+				description: event.description,
+				currentAmount: event.currentAmount,
+				targetAmount: event.targetAmount
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeGoalEnd(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		goalId: string;
+		type: string;
+		description: string;
+		currentAmount: number;
+		targetAmount: number;
+		isAchieved: boolean;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'goal-end', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelGoalEnd(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				goalId: event.id,
+				type: event.type,
+				description: event.description,
+				currentAmount: event.currentAmount,
+				targetAmount: event.targetAmount,
+				isAchieved: event.isAchieved
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeCharityCampaignStart(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		campaignId: string;
+		charityName: string;
+		currentAmount: number;
+		targetAmount: number;
+		currency: string;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'charity-start', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelCharityCampaignStart(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				campaignId: event.id,
+				charityName: event.charityName,
+				currentAmount: event.currentAmount.localizedValue,
+				targetAmount: event.targetAmount.localizedValue,
+				currency: event.currentAmount.currency
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeCharityCampaignProgress(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		campaignId: string;
+		charityName: string;
+		currentAmount: number;
+		targetAmount: number;
+		currency: string;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'charity-progress', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelCharityCampaignProgress(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				campaignId: event.id,
+				charityName: event.charityName,
+				currentAmount: event.currentAmount.localizedValue,
+				targetAmount: event.targetAmount.localizedValue,
+				currency: event.currentAmount.currency
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeCharityCampaignStop(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		campaignId: string;
+		charityName: string;
+		currentAmount: number;
+		targetAmount: number;
+		currency: string;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'charity-stop', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelCharityCampaignStop(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				campaignId: event.id,
+				charityName: event.charityName,
+				currentAmount: event.currentAmount.localizedValue,
+				targetAmount: event.targetAmount.localizedValue,
+				currency: event.currentAmount.currency
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeCharityDonation(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		campaignId: string;
+		charityName: string;
+		currency: string;
+		user: string;
+		userId: string;
+		amount: number;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'charity-donate', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelCharityDonation(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				campaignId: event.campaignId,
+				charityName: event.charityName,
+				currency: event.amount.currency,
+				user: event.donorDisplayName,
+				userId: event.donorId,
+				amount: event.amount.localizedValue
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeAdBreakBegin(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		durationSeconds: number;
+		isAutomatic: boolean;
+		requester: string;
+		requesterId: string;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'ad-break-begin', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelAdBreakBegin(userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				durationSeconds: event.durationSeconds,
+				isAutomatic: event.isAutomatic,
+				requester: event.requesterDisplayName,
+				requesterId: event.requesterId
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}
+
+export function subscribeShoutoutReceive(
+	app: PluginAppApi,
+	handler: SimpleHandler<{
+		broadcasterId: string;
+		channel: string;
+		user: string;
+		userId: string;
+		viewers: number;
+	}>
+): () => void {
+	return subscribeEventSub(app, 'shoutout-receive', (userId, emit) => {
+		const sub = getTwitch(app).eventSub!.onChannelShoutoutReceive(userId, userId, (event) => {
+			emit({
+				broadcasterId: userId,
+				channel: event.broadcasterDisplayName,
+				user: event.shoutingOutBroadcasterDisplayName,
+				userId: event.shoutingOutBroadcasterId,
+				viewers: event.viewerCount
+			});
+		});
+
+		return () => sub.stop();
+	}, handler);
+}

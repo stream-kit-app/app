@@ -11,6 +11,23 @@ description: "Bot trigger: bot:bot:moderation-rule"
 | **Plugin** | Bot |
 | **Category** | Bot |
 
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "source", type: "'twitch' | 'youtube'", description: "Event source (platform such as `twitch`/`youtube`, or rankings source such as `watch-time`/`manual`).", example: "twitch" },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "123456" },
+  { name: "message", type: "string", description: "Full message text from the event.", example: "Test message for chat trigger" },
+  { name: "role", type: "string", description: "Role of the user (for example everyone, mod, broadcaster, vip, subscriber).", example: "user" },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred.", example: "#testchannel" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account.", example: "654321" },
+  { name: "messageId", type: "string", description: "Platform message ID for the chat message.", example: "test-message-id" },
+  { name: "liveChatId", type: "string", description: "YouTube live chat ID for the active broadcast." },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account." }
+]} />
+
 ## Related
 
 - [Bot plugin](/docs/plugins/bot)

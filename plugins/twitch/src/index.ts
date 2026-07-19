@@ -28,8 +28,13 @@ import { createPredictionEndHandler } from './handler/predictions/end';
 import { createPredictionLockHandler } from './handler/predictions/lock';
 import { createTwitchPluginApi } from './lib/twitch';
 import { configureFieldValueResolver } from './get-field-value';
+import { createAdBreakBeginTrigger } from './trigger/ads/ad-break-begin';
 import { createFollowTrigger } from './trigger/channel/follow';
 import { createChannelUpdateTrigger } from './trigger/channel/update';
+import { createCharityDonationTrigger } from './trigger/charity/donate';
+import { createCharityCampaignProgressTrigger } from './trigger/charity/progress';
+import { createCharityCampaignStartTrigger } from './trigger/charity/start';
+import { createCharityCampaignStopTrigger } from './trigger/charity/stop';
 import { createCheerTrigger } from './trigger/chat/cheer';
 import { createHypeChatTrigger } from './trigger/chat/hype';
 import { createChatMessageTrigger } from './trigger/chat/message';
@@ -37,6 +42,9 @@ import { createRedemptionTrigger } from './trigger/chat/redemption';
 import { createWhisperTrigger } from './trigger/chat/whisper';
 import { createUserJoinTrigger } from './trigger/engagement/join';
 import { createUserPartTrigger } from './trigger/engagement/part';
+import { createGoalBeginTrigger } from './trigger/goals/begin';
+import { createGoalEndTrigger } from './trigger/goals/end';
+import { createGoalProgressTrigger } from './trigger/goals/progress';
 import { createHypeTrainBeginTrigger } from './trigger/hype/begin';
 import { createHypeTrainEndTrigger } from './trigger/hype/end';
 import { createHypeTrainProgressTrigger } from './trigger/hype/progress';
@@ -53,6 +61,7 @@ import { createPredictionBeginTrigger } from './trigger/predictions/begin';
 import { createPredictionEndTrigger } from './trigger/predictions/end';
 import { createPredictionLockTrigger } from './trigger/predictions/lock';
 import { createIncomingRaidTrigger } from './trigger/raids/incoming';
+import { createShoutoutReceivedTrigger } from './trigger/shoutouts/received';
 import { createStreamOfflineTrigger } from './trigger/stream/offline';
 import { createStreamOnlineTrigger } from './trigger/stream/online';
 import { createCommunitySubTrigger } from './trigger/subscriptions/community';
@@ -247,6 +256,31 @@ const plugin: Plugin = (app) => {
 							createPredictionLockTrigger(app),
 							createPredictionEndTrigger(app)
 						]
+					},
+					{
+						name: 'Goals',
+						children: [
+							createGoalBeginTrigger(app),
+							createGoalProgressTrigger(app),
+							createGoalEndTrigger(app)
+						]
+					},
+					{
+						name: 'Charity',
+						children: [
+							createCharityCampaignStartTrigger(app),
+							createCharityCampaignProgressTrigger(app),
+							createCharityCampaignStopTrigger(app),
+							createCharityDonationTrigger(app)
+						]
+					},
+					{
+						name: 'Ads',
+						children: [createAdBreakBeginTrigger(app)]
+					},
+					{
+						name: 'Shoutouts',
+						children: [createShoutoutReceivedTrigger(app)]
 					}
 				]
 			}

@@ -7,6 +7,13 @@ on:
     paths:
       - 'docs/**'
       - 'docs-site/**'
+      - 'plugins/**'
+      - 'packages/app/src/lib/core/overlay/**'
+      - 'scripts/generate-docs-reference.mjs'
+      - 'scripts/lib/parse-plugin-definitions.mjs'
+      - 'scripts/lib/definition-id.mjs'
+      - 'scripts/lib/docs-reference-metadata.mjs'
+      - 'scripts/templates/docs/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/deploy-docs.yml'

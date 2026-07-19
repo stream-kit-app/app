@@ -1,0 +1,10 @@
+{
+	"key": "stream-deck",
+	"name": "Stream Deck",
+	"version": "0.1.0-alpha.1",
+	"description": "Integrate Elgato Stream Deck with Stream Kit actions, triggers, and button feedback.",
+	"icon": "ri:keyboard-box-line",
+	"entry": "dist/index.js",
+	"streamKitVersion": ">=0.1.0",
+	"updateManifestUrl": "https://stream-kit.app/api/plugins/stream-deck/manifest.json"
+}

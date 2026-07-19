@@ -3,6 +3,7 @@ export const GITHUB_ORG = 'stream-kit-app';
 export const PLUGIN_KEYS = [
 	'bot',
 	'core',
+	'discord',
 	'obs',
 	'rankings',
 	'tts',
@@ -14,6 +15,7 @@ export const PLUGIN_KEYS = [
 export const PLUGIN_DESCRIPTIONS = {
 	bot: 'Stream Kit Bot plugin distribution',
 	core: 'Stream Kit Core Handlers plugin distribution',
+	discord: 'Stream Kit Discord plugin distribution',
 	obs: 'Stream Kit OBS plugin distribution',
 	rankings: 'Stream Kit Rankings plugin distribution',
 	tts: 'Stream Kit TTS plugin distribution',

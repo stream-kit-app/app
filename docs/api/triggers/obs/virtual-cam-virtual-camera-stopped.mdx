@@ -1,0 +1,27 @@
+---
+title: "Virtual Camera Stopped"
+description: "OBS trigger: obs:obs:virtual-cam:virtual-camera-stopped"
+---
+
+# Virtual Camera Stopped
+
+| | |
+| --- | --- |
+| **Trigger ID** | `obs:obs:virtual-cam:virtual-camera-stopped` |
+| **Plugin** | OBS |
+| **Category** | Virtual Cam |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "outputActive", type: "boolean", description: "Whether the OBS output is active.", example: "true" },
+  { name: "outputState", type: "string", description: "OBS output state string (stream/recording)." },
+  { name: "outputPath", type: "string", description: "File path for recording or replay output." }
+]} />
+
+## Related
+
+- [OBS plugin](/docs/plugins/obs)
+- [Triggers guide](/docs/guide/triggers)

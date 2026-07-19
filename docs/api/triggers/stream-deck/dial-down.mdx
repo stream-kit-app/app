@@ -1,0 +1,36 @@
+---
+title: "Dial Down"
+description: "Stream Deck trigger: stream-deck:stream-deck:dial-down"
+---
+
+# Dial Down
+
+| | |
+| --- | --- |
+| **Trigger ID** | `stream-deck:stream-deck:dial-down` |
+| **Plugin** | Stream Deck |
+| **Category** | Stream Deck |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "type", type: "object", description: "Stream Deck event type (`keyDown`, `keyUp`, `dialRotate`, …)." },
+  { name: "context", type: "string", description: "Stream Deck action instance context id.", example: "test-context" },
+  { name: "device", type: "string", description: "Stream Deck device identifier.", example: "test-device" },
+  { name: "action", type: "string", description: "Stream Deck action UUID that fired the event.", example: "app.stream-kit.streamdeck.run-action" },
+  { name: "alias", type: "string", description: "Optional button alias configured in Stream Kit.", example: "test-button" },
+  { name: "coordinates", type: "object", description: "Button coordinates on the Stream Deck (`column`, `row`)." },
+  { name: "settings", type: "string", description: "Action settings object from the Stream Deck button." },
+  { name: "isInMultiAction", type: "boolean", description: "Whether the button is part of a multi-action.", example: "false" },
+  { name: "ticks", type: "number", description: "Dial rotation ticks (dial events only)." },
+  { name: "pressed", type: "boolean", description: "Whether the dial was pressed while rotating." },
+  { name: "lastEventAt", type: "string", description: "ISO timestamp of the latest Stream Deck event." },
+  { name: "payload", type: "string", description: "Extra event payload object (overlay events, Stream Deck settings extras, etc.)." }
+]} />
+
+## Related
+
+- [Stream Deck plugin](/docs/plugins/stream-deck)
+- [Triggers guide](/docs/guide/triggers)

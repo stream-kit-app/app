@@ -5,13 +5,13 @@ import { fileURLToPath } from 'node:url';
 import { flattenDefinitionTree, resolveDefinitionId } from './lib/definition-id.mjs';
 import {
 	findFactoryFile,
+	parseAllContextTypes,
 	parseContextTypes,
 	parseDefinitionProps,
 	parseIndexSection,
-	parseTestContextDetails,
-	parseTreeBlock,
 	parseVariableLabels,
-	resolveFactoryName
+	resolveFactoryName,
+	resolveTestContextDetails
 } from './lib/parse-plugin-definitions.mjs';
 import {
 	describeCondition,
@@ -34,6 +34,58 @@ const appOverlayTrigger = path.join(
 );
 const appOverlayContexts = path.join(root, 'packages/app/src/lib/core/overlay/contexts.ts');
 
+/** Matches docs/plugins/meta.json order */
+const PLUGIN_ORDER = [
+	'core',
+	'bot',
+	'rankings',
+	'quotes',
+	'twitch',
+	'youtube',
+	'discord',
+	'obs',
+	'tts',
+	'websocket',
+	'stream-deck',
+	'overlay'
+];
+
+/** Display overrides when manifest names are awkward for docs */
+const PLUGIN_DISPLAY_NAMES = {
+	core: 'Core',
+	bot: 'Bot',
+	rankings: 'Rankings',
+	quotes: 'Quotes',
+	twitch: 'Twitch',
+	youtube: 'YouTube',
+	discord: 'Discord',
+	obs: 'OBS',
+	tts: 'TTS',
+	websocket: 'WebSocket',
+	'stream-deck': 'Stream Deck',
+	overlay: 'Overlay'
+};
+
+const MANUAL_RUN_SCRIPT_ID = 'core:core:script:run-script';
+const MANUAL_RUN_SCRIPT_SLUG = 'run-script';
+
+/** @param {string} pluginKey */
+function pluginDisplayName(pluginKey) {
+	return PLUGIN_DISPLAY_NAMES[pluginKey] ?? pluginKey;
+}
+
+/** @param {string[]} keys */
+function sortPluginKeys(keys) {
+	return [...keys].sort((a, b) => {
+		const ai = PLUGIN_ORDER.indexOf(a);
+		const bi = PLUGIN_ORDER.indexOf(b);
+		const aOrder = ai === -1 ? PLUGIN_ORDER.length : ai;
+		const bOrder = bi === -1 ? PLUGIN_ORDER.length : bi;
+		if (aOrder !== bOrder) return aOrder - bOrder;
+		return a.localeCompare(b);
+	});
+}
+
 /** @param {string} text */
 function escapeMdxTableCell(text) {
 	const escaped = text.replace(/\|/g, '\\|');
@@ -44,17 +96,48 @@ function escapeMdxTableCell(text) {
 }
 
 /**
- * @param {{
- *   id: string,
- *   name: string,
- *   kind: 'trigger' | 'handler',
- *   pluginKey: string,
- *   pluginName: string,
- *   category: string,
- *   fields: { name: string, type: string, required?: boolean, placeholder?: string }[],
- *   conditions: { name: string, fnName: string, key: string }[],
- *   variables: { name: string, type?: string, description: string, example?: string }[]
- * }} item
+ * Prefer unique trailing segments of the handler/trigger id so siblings like
+ * `tts:tts:local:speak-text` and `tts:tts:elevenlabs:speak-text` do not collide.
+ * @param {string} id
+ */
+function referenceSlug(id) {
+	const parts = id.split(':').filter(Boolean);
+
+	if (parts.length <= 2) {
+		return parts.at(-1) ?? id;
+	}
+
+	return parts.slice(2).join('-');
+}
+
+/**
+ * @param {{ id: string }[]} items
+ */
+function dedupeById(items) {
+	const seen = new Set();
+	/** @type {typeof items} */
+	const unique = [];
+	for (const item of items) {
+		if (seen.has(item.id)) continue;
+		seen.add(item.id);
+		unique.push(item);
+	}
+	return unique;
+}
+
+/**
+ * @param {{ category: string, name: string }[]} items
+ */
+function sortByCategoryThenName(items) {
+	return [...items].sort((a, b) => {
+		const cat = a.category.localeCompare(b.category);
+		if (cat !== 0) return cat;
+		return a.name.localeCompare(b.name);
+	});
+}
+
+/**
+ * @param {{ name: string, type?: string, description: string, example?: string }[]} variables
  */
 function renderVariablesTable(variables) {
 	const entries = variables
@@ -142,21 +225,6 @@ description: ${JSON.stringify(`${item.pluginName} ${item.kind}: ${item.id}`)}
 }
 
 /**
- * Prefer unique trailing segments of the handler/trigger id so siblings like
- * `tts:tts:local:speak-text` and `tts:tts:elevenlabs:speak-text` do not collide.
- * @param {string} id
- */
-function referenceSlug(id) {
-	const parts = id.split(':').filter(Boolean);
-
-	if (parts.length <= 2) {
-		return parts.at(-1) ?? id;
-	}
-
-	return parts.slice(2).join('-');
-}
-
-/**
  * @param {string} pluginDir
  * @param {string} pluginKey
  * @param {string} pluginName
@@ -170,24 +238,26 @@ function collectPluginDefinitions(pluginDir, pluginKey, pluginName, kind) {
 	const indexContent = fs.readFileSync(indexPath, 'utf8');
 	const tree = parseIndexSection(indexContent, section);
 	const leaves = flattenDefinitionTree(tree, pluginKey, pluginKey, kind);
-	const testContextsPath = path.join(pluginDir, 'src', 'lib', 'test-contexts.ts');
-	const contextsPath = path.join(pluginDir, 'src', 'contexts.ts');
 	const variableLabels = parseVariableLabels(pluginDir);
-	const contextTypes = parseContextTypes(contextsPath);
+	const contextTypes = parseAllContextTypes(pluginDir);
 
-	return leaves.map((leaf) => {
+	const items = leaves.map((leaf) => {
 		const factoryFile = findFactoryFile(pluginDir, leaf.factory ?? '');
 		let props = { name: undefined, explicitId: undefined, fields: [], conditions: [], testFactory: null };
 
 		if (factoryFile) {
-			props = parseDefinitionProps(fs.readFileSync(factoryFile, 'utf8'), leaf.factory);
+			props = parseDefinitionProps(
+				fs.readFileSync(factoryFile, 'utf8'),
+				leaf.factory,
+				pluginDir
+			);
 		}
 
 		const resolvedName =
 			resolveFactoryName(leaf.factory ?? '', leaf.factoryArg) ?? props.name ?? leaf.factory ?? 'Unknown';
 		const id = resolveDefinitionId(props.explicitId, resolvedName, leaf.parentScope);
 		const category = leaf.path[leaf.path.length - 1] ?? pluginName;
-		const testDetails = parseTestContextDetails(testContextsPath, props.testFactory);
+		const testDetails = resolveTestContextDetails(pluginDir, props.testFactory, factoryFile);
 		const contextFields =
 			(testDetails.contextType && contextTypes.get(testDetails.contextType)) || new Map();
 		const sampleByName = new Map(testDetails.variables.map((item) => [item.name, item.sample]));
@@ -200,7 +270,7 @@ function collectPluginDefinitions(pluginDir, pluginKey, pluginName, kind) {
 							...contextFields.keys()
 						])
 					]
-				: [...contextFields.keys()].slice(0, 24);
+				: [...contextFields.keys()].slice(0, 40);
 
 		const variables = variableNames.map((name) => {
 			const type = contextFields.get(name);
@@ -226,6 +296,8 @@ function collectPluginDefinitions(pluginDir, pluginKey, pluginName, kind) {
 			variables
 		};
 	});
+
+	return dedupeById(items);
 }
 
 function collectOverlayHandlers() {
@@ -317,39 +389,83 @@ function cleanApiDir() {
 	}
 }
 
+/**
+ * @param {string} id
+ * @param {'triggers' | 'handlers'} kind
+ * @param {string} pluginKey
+ */
+function pageSlugForItem(id, kind, pluginKey) {
+	if (id === MANUAL_RUN_SCRIPT_ID && kind === 'handlers' && pluginKey === 'core') {
+		return MANUAL_RUN_SCRIPT_SLUG;
+	}
+	return referenceSlug(id);
+}
+
+/**
+ * @param {'triggers' | 'handlers'} kind
+ * @param {string} pluginKey
+ * @param {ReturnType<typeof collectPluginDefinitions>} items
+ */
 function writePluginSection(kind, pluginKey, items) {
 	const pluginDir = path.join(docsApiDir, kind, pluginKey);
 	fs.mkdirSync(pluginDir, { recursive: true });
 
-	/** @type {string[]} */
-	const pages = ['index'];
+	const displayName = pluginDisplayName(pluginKey);
+	const sorted = sortByCategoryThenName(items);
+
+	const indexRows = sorted
+		.map((item) => {
+			const slug = pageSlugForItem(item.id, kind, pluginKey);
+			return `| ${escapeMdxTableCell(item.category)} | [${escapeMdxTableCell(item.name)}](/docs/api/${kind}/${pluginKey}/${slug}/) | \`${item.id}\` |`;
+		})
+		.join('\n');
 
 	const indexBody = `---
-title: ${JSON.stringify(pluginKey.charAt(0).toUpperCase() + pluginKey.slice(1))}
-description: ${JSON.stringify(`All ${kind} for the ${pluginKey} plugin.`)}
+title: ${JSON.stringify(displayName)}
+description: ${JSON.stringify(`All ${kind} for the ${displayName} plugin.`)}
 ---
 
-# ${pluginKey.charAt(0).toUpperCase() + pluginKey.slice(1)} ${kind}
+# ${displayName} ${kind}
 
-| Name | ID |
-| --- | --- |
-${items.map((item) => {
-	const slug = referenceSlug(item.id);
-	return `| [${item.name}](/docs/api/${kind}/${pluginKey}/${slug}/) | \`${item.id}\` |`;
-}).join('\n')}
+| Category | Name | ID |
+| --- | --- | --- |
+${indexRows}
 `;
 
 	fs.writeFileSync(path.join(pluginDir, 'index.mdx'), indexBody, 'utf8');
 
-	for (const item of items) {
-		const { slug, body } = renderReferencePage(item);
-		fs.writeFileSync(path.join(pluginDir, `${slug}.mdx`), body, 'utf8');
-		pages.push(slug);
+	/** @type {string[]} */
+	const pages = ['index'];
+	/** @type {Map<string, string[]>} */
+	const byCategory = new Map();
+
+	for (const item of sorted) {
+		const slug = pageSlugForItem(item.id, kind, pluginKey);
+		const isManualRunScript = slug === MANUAL_RUN_SCRIPT_SLUG && pluginKey === 'core';
+
+		if (!isManualRunScript) {
+			const { body } = renderReferencePage(item);
+			fs.writeFileSync(path.join(pluginDir, `${slug}.mdx`), body, 'utf8');
+		}
+
+		const list = byCategory.get(item.category) ?? [];
+		list.push(slug);
+		byCategory.set(item.category, list);
+	}
+
+	const categories = [...byCategory.keys()].sort((a, b) => a.localeCompare(b));
+	const useSeparators = categories.length > 1;
+
+	for (const category of categories) {
+		if (useSeparators) {
+			pages.push(`---${category}---`);
+		}
+		pages.push(...(byCategory.get(category) ?? []));
 	}
 
 	fs.writeFileSync(
 		path.join(pluginDir, 'meta.json'),
-		JSON.stringify({ title: pluginKey.charAt(0).toUpperCase() + pluginKey.slice(1), pages }, null, 2) + '\n',
+		JSON.stringify({ title: displayName, pages }, null, 2) + '\n',
 		'utf8'
 	);
 }
@@ -360,53 +476,44 @@ function main() {
 	const pluginKeys = fs
 		.readdirSync(pluginsDir, { withFileTypes: true })
 		.filter((d) => d.isDirectory())
-		.map((d) => d.name);
+		.map((d) => d.name)
+		.filter((name) => fs.existsSync(path.join(pluginsDir, name, 'manifest.json')));
 
-	/** @type {Record<string, { triggers: unknown[], handlers: unknown[] }>} */
+	/** @type {Record<string, { triggers: ReturnType<typeof collectPluginDefinitions>, handlers: ReturnType<typeof collectPluginDefinitions> }>} */
 	const all = {};
 
-	for (const pluginKey of pluginKeys) {
+	for (const pluginKey of sortPluginKeys(pluginKeys)) {
 		const manifestPath = path.join(pluginsDir, pluginKey, 'manifest.json');
-		if (!fs.existsSync(manifestPath)) continue;
-
 		const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 		const pluginDir = path.join(pluginsDir, pluginKey);
-		const pluginName = manifest.name ?? pluginKey;
+		const pluginName = pluginDisplayName(pluginKey) || manifest.name || pluginKey;
 
 		const triggers = collectPluginDefinitions(pluginDir, pluginKey, pluginName, 'trigger');
 		const handlers = collectPluginDefinitions(pluginDir, pluginKey, pluginName, 'handler');
 
 		all[pluginKey] = { triggers, handlers };
 
-		if (triggers.length) writePluginSection('triggers', pluginKey, triggers);
-		if (handlers.length) writePluginSection('handlers', pluginKey, handlers);
+		if (triggers.length) {
+			writePluginSection('triggers', pluginKey, triggers);
+		}
+		if (handlers.length) {
+			writePluginSection('handlers', pluginKey, handlers);
+		}
 	}
 
-	// Overlay handlers (app-level, not a plugin manifest)
-	const overlayHandlers = collectOverlayHandlers();
-	writePluginSection('handlers', 'overlay', overlayHandlers);
+	all.overlay = {
+		triggers: collectOverlayTriggers(),
+		handlers: collectOverlayHandlers()
+	};
+	writePluginSection('handlers', 'overlay', all.overlay.handlers);
+	writePluginSection('triggers', 'overlay', all.overlay.triggers);
 
-	const overlayTriggers = collectOverlayTriggers();
-	writePluginSection('triggers', 'overlay', overlayTriggers);
-
-	// WebSocket has no handlers in manifest tree sometimes - check
-	const wsHandlers = all.websocket?.handlers ?? [];
-	if (wsHandlers.length === 0) {
-		// websocket only triggers
-	}
-
-	// API root meta
-	const triggerPlugins = Object.keys(all).filter((k) => all[k].triggers.length > 0);
-
-	const handlerPlugins = [
-		...Object.keys(all).filter((k) => all[k].handlers.length > 0),
-		'overlay'
-	];
-
-	const uniqueHandlerPlugins = [...new Set(handlerPlugins)];
-	const uniqueTriggerPlugins = [
-		...new Set([...triggerPlugins.filter((k) => all[k]?.triggers?.length), 'overlay'])
-	];
+	const uniqueTriggerPlugins = sortPluginKeys(
+		Object.keys(all).filter((k) => all[k].triggers.length > 0)
+	);
+	const uniqueHandlerPlugins = sortPluginKeys(
+		Object.keys(all).filter((k) => all[k].handlers.length > 0)
+	);
 
 	fs.writeFileSync(
 		path.join(docsApiDir, 'meta.json'),
@@ -427,6 +534,26 @@ function main() {
 		'utf8'
 	);
 
+	const catalogRows = sortPluginKeys([...new Set([...uniqueTriggerPlugins, ...uniqueHandlerPlugins])])
+		.map((k) => {
+			const name = pluginDisplayName(k);
+			const triggerCount = all[k]?.triggers?.length ?? 0;
+			const handlerCount = all[k]?.handlers?.length ?? 0;
+			const triggerCell =
+				triggerCount > 0
+					? `[${triggerCount}](/docs/api/triggers/${k}/)`
+					: '—';
+			const handlerCell =
+				handlerCount > 0
+					? `[${handlerCount}](/docs/api/handlers/${k}/)`
+					: '—';
+			return `| [${name}](/docs/plugins/${k}) | ${triggerCell} | ${handlerCell} |`;
+		})
+		.join('\n');
+
+	const totalTriggers = uniqueTriggerPlugins.reduce((n, k) => n + all[k].triggers.length, 0);
+	const totalHandlers = uniqueHandlerPlugins.reduce((n, k) => n + all[k].handlers.length, 0);
+
 	fs.writeFileSync(
 		path.join(docsApiDir, 'index.mdx'),
 		`---
@@ -436,21 +563,25 @@ description: Complete reference of Stream Kit triggers and handlers with stable 
 
 # API Reference
 
-Browse triggers and handlers (sub-actions) by plugin. Each page lists the stable **definition ID**, configuration fields, and trigger variables.
+Browse every trigger and handler (sub-action) by plugin. Each definition has a stable **ID**, configuration fields, and — for triggers — variables and conditions.
 
-## Triggers
+Use search to jump by name or ID, or open a plugin table below (${totalTriggers} triggers, ${totalHandlers} handlers).
 
-${uniqueTriggerPlugins.map((k) => `- [${k}](/docs/api/triggers/${k}/)`).join('\n')}
+## Catalog
 
-## Handlers
+| Plugin | Triggers | Handlers |
+| --- | ---: | ---: |
+${catalogRows}
 
-${uniqueHandlerPlugins.map((k) => `- [${k}](/docs/api/handlers/${k}/)`).join('\n')}
+## Triggers by plugin
+
+${uniqueTriggerPlugins.map((k) => `- [${pluginDisplayName(k)}](/docs/api/triggers/${k}/) — ${all[k].triggers.length}`).join('\n')}
+
+## Handlers by plugin
+
+${uniqueHandlerPlugins.map((k) => `- [${pluginDisplayName(k)}](/docs/api/handlers/${k}/) — ${all[k].handlers.length}`).join('\n')}
 `,
 		'utf8'
-	);
-
-	console.log(
-		`Generated API reference: ${uniqueTriggerPlugins.length} trigger plugins, ${uniqueHandlerPlugins.length} handler plugins`
 	);
 
 	const manualRunScript = path.join(
@@ -462,7 +593,16 @@ ${uniqueHandlerPlugins.map((k) => `- [${k}](/docs/api/handlers/${k}/)`).join('\n
 	if (fs.existsSync(manualRunScript)) {
 		fs.mkdirSync(path.dirname(runScriptTarget), { recursive: true });
 		fs.copyFileSync(manualRunScript, runScriptTarget);
+		// Remove thin auto-generated sibling if present
+		const generatedSibling = path.join(docsApiDir, 'handlers/core/script-run-script.mdx');
+		if (fs.existsSync(generatedSibling)) {
+			fs.unlinkSync(generatedSibling);
+		}
 	}
+
+	console.log(
+		`Generated API reference: ${totalTriggers} triggers across ${uniqueTriggerPlugins.length} plugins, ${totalHandlers} handlers across ${uniqueHandlerPlugins.length} plugins`
+	);
 }
 
 main();

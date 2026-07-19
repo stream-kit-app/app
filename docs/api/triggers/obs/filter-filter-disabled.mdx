@@ -1,0 +1,34 @@
+---
+title: "Filter Disabled"
+description: "OBS trigger: obs:obs:filter:filter-disabled"
+---
+
+# Filter Disabled
+
+| | |
+| --- | --- |
+| **Trigger ID** | `obs:obs:filter:filter-disabled` |
+| **Plugin** | OBS |
+| **Category** | Filter |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "sourceName", type: "string", description: "OBS source name (alias for input on filter events).", example: "Test Input" },
+  { name: "filterName", type: "string", description: "OBS filter name.", example: "Color Correction" },
+  { name: "filterEnabled", type: "boolean", description: "Whether the OBS filter is enabled.", example: "true" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Input name | Match OBS input/source name. Leave empty to match any input. |
+| Filter name | Match OBS filter name. Leave empty to match any filter. |
+
+## Related
+
+- [OBS plugin](/docs/plugins/obs)
+- [Triggers guide](/docs/guide/triggers)

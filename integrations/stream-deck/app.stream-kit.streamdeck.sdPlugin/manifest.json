@@ -1,0 +1,87 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+	"Name": "Stream Kit",
+	"Version": "0.1.0.0",
+	"Author": "Stream Kit",
+	"Category": "Stream Kit",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "Trigger Stream Kit actions from your Stream Deck, fire Stream Kit triggers, and update keys from Stream Kit handlers.",
+	"Icon": "imgs/plugin/marketplace",
+	"UUID": "app.stream-kit.streamdeck",
+	"SDKVersion": 2,
+	"Software": {
+		"MinimumVersion": "6.9"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "12"
+		},
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "20",
+		"Debug": "--inspect=127.0.0.1:19724"
+	},
+	"Actions": [
+		{
+			"Name": "Run Action",
+			"UUID": "app.stream-kit.streamdeck.run-action",
+			"Icon": "imgs/actions/run/icon",
+			"Tooltip": "Run a Stream Kit action by id",
+			"PropertyInspectorPath": "ui/run-action.html",
+			"Controllers": ["Keypad"],
+			"States": [
+				{
+					"Image": "imgs/actions/run/key",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Toggle Action",
+			"UUID": "app.stream-kit.streamdeck.toggle-action",
+			"Icon": "imgs/actions/toggle/icon",
+			"Tooltip": "Toggle between two Stream Kit actions",
+			"PropertyInspectorPath": "ui/toggle-action.html",
+			"Controllers": ["Keypad"],
+			"States": [
+				{
+					"Name": "Off",
+					"Image": "imgs/actions/toggle/key",
+					"TitleAlignment": "middle"
+				},
+				{
+					"Name": "On",
+					"Image": "imgs/actions/toggle/key-on",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Dial Control",
+			"UUID": "app.stream-kit.streamdeck.dial-control",
+			"Icon": "imgs/actions/dial/icon",
+			"Tooltip": "Report dial rotation and optionally run a Stream Kit action",
+			"PropertyInspectorPath": "ui/dial-control.html",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"TriggerDescription": {
+					"Rotate": "Report dial rotate / run action",
+					"Push": "Report dial press / run action",
+					"Touch": "Report touch tap / run action"
+				}
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/dial/key",
+					"TitleAlignment": "middle"
+				}
+			]
+		}
+	]
+}

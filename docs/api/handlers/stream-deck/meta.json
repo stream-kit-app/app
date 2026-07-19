@@ -1,0 +1,12 @@
+{
+  "title": "Stream Deck",
+  "pages": [
+    "index",
+    "set-button-settings",
+    "set-image",
+    "set-state",
+    "set-title",
+    "show-alert",
+    "show-ok"
+  ]
+}

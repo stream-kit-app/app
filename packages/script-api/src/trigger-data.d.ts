@@ -166,6 +166,35 @@ type EventSubModerationContext = TwitchBaseContext & {
 	userId: string;
 	reason?: string;
 };
+type GoalContext = TwitchBaseContext & {
+	goalId: string;
+	type: string;
+	description: string;
+	currentAmount: number;
+	targetAmount: number;
+	isAchieved?: boolean;
+};
+type CharityContext = TwitchBaseContext & {
+	campaignId: string;
+	charityName: string;
+	currency: string;
+	currentAmount?: number;
+	targetAmount?: number;
+	user?: string;
+	userId?: string;
+	amount?: number;
+};
+type AdBreakContext = TwitchBaseContext & {
+	durationSeconds: number;
+	isAutomatic: boolean;
+	requester: string;
+	requesterId: string;
+};
+type ShoutoutReceivedContext = TwitchBaseContext & {
+	user: string;
+	userId: string;
+	viewers: number;
+};
 type TwitchContext = | ChatMessageContext
 	| WhisperContext
 	| CheerContext
@@ -185,7 +214,11 @@ type TwitchContext = | ChatMessageContext
 	| HypeTrainContext
 	| PollContext
 	| PredictionContext
-	| EventSubModerationContext;
+	| EventSubModerationContext
+	| GoalContext
+	| CharityContext
+	| AdBreakContext
+	| ShoutoutReceivedContext;
 type YouTubeAuthorDetails = {
 	channelId: string;
 	channelUrl: string;
@@ -520,4 +553,4 @@ type OverlayMessageContext = {
 	timestamp: number;
 };
 
-type TriggerDataUnion = ProcessEventContext | AppLifecycleContext | TwitchBaseContext | ChatMessageContext | WhisperContext | CheerContext | RedemptionContext | CommandContext | HypeChatContext | SubContext | GiftSubContext | CommunitySubContext | RaidContext | ModerationContext | UserJoinPartContext | StreamContext | FollowContext | ChannelUpdateContext | PointsRedemptionContext | HypeTrainContext | PollContext | PredictionContext | EventSubModerationContext | TwitchContext | YouTubeBaseContext | SuperChatContext | SuperStickerContext | NewMemberContext | MemberMilestoneContext | MembershipGiftContext | GiftMembershipReceivedContext | GiftContext | MessageDeletedContext | SponsorsOnlyContext | ChatEndedContext | YouTubeContext | SceneChangedContext | OutputStateContext | RecordFileChangedContext | TransitionContext | InputStateContext | MediaContext | MediaActionContext | FilterContext | ReplayBufferContext | VirtualCamContext | StudioModeContext | ObsContext | ScheduleEventContext | WsMessageContext | WsConnectionStateContext | OverlayMessageContext;
+type TriggerDataUnion = ProcessEventContext | AppLifecycleContext | TwitchBaseContext | ChatMessageContext | WhisperContext | CheerContext | RedemptionContext | CommandContext | HypeChatContext | SubContext | GiftSubContext | CommunitySubContext | RaidContext | ModerationContext | UserJoinPartContext | StreamContext | FollowContext | ChannelUpdateContext | PointsRedemptionContext | HypeTrainContext | PollContext | PredictionContext | EventSubModerationContext | GoalContext | CharityContext | AdBreakContext | ShoutoutReceivedContext | TwitchContext | YouTubeBaseContext | SuperChatContext | SuperStickerContext | NewMemberContext | MemberMilestoneContext | MembershipGiftContext | GiftMembershipReceivedContext | GiftContext | MessageDeletedContext | SponsorsOnlyContext | ChatEndedContext | YouTubeContext | SceneChangedContext | OutputStateContext | RecordFileChangedContext | TransitionContext | InputStateContext | MediaContext | MediaActionContext | FilterContext | ReplayBufferContext | VirtualCamContext | StudioModeContext | ObsContext | ScheduleEventContext | WsMessageContext | WsConnectionStateContext | OverlayMessageContext;

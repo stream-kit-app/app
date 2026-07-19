@@ -20,10 +20,11 @@ function O(g, O) {
 	var P = e(M, 2), F = (n) => {
 		var o = w(), l = c(o);
 		{
-			let n = m(() => _(k()));
+			let n = m(() => _("w-full overflow-hidden", k()));
 			v(l, {
 				orientation: "vertical",
-				get class() {
+				class: "overflow-hidden",
+				get viewportClasses() {
 					return r(n);
 				},
 				children: (n, o) => {

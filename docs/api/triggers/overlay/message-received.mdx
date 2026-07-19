@@ -18,7 +18,7 @@ Copy variables into handler fields using `{variableName}` syntax.
 <VariablesTable variables={[
   { name: "overlayId", type: "string", description: "ID of the overlay that received the event." },
   { name: "event", type: "string", description: "Lifecycle or queue event name." },
-  { name: "payload", type: "unknown", description: "Event payload sent to the overlay (object or string)." },
+  { name: "payload", type: "unknown", description: "Extra event payload object (overlay events, Stream Deck settings extras, etc.)." },
   { name: "message", type: "string", description: "Full message text from the event." },
   { name: "timestamp", type: "number", description: "ISO timestamp when the event fired." }
 ]} />

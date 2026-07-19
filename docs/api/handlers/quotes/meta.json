@@ -1,0 +1,9 @@
+{
+  "title": "Quotes",
+  "pages": [
+    "index",
+    "add-quote",
+    "delete-quote",
+    "send-quote-message"
+  ]
+}

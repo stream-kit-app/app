@@ -1,0 +1,11 @@
+{
+	"key": "quotes",
+	"name": "Quotes",
+	"version": "0.1.0-alpha.1",
+	"description": "Save and recall memorable chat quotes.",
+	"icon": "ri:double-quotes-l",
+	"entry": "dist/index.js",
+	"dependencies": ["core", "bot", "twitch"],
+	"streamKitVersion": ">=0.1.0",
+	"updateManifestUrl": "https://stream-kit.app/api/plugins/quotes/manifest.json"
+}

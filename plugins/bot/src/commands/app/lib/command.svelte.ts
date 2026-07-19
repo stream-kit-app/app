@@ -314,8 +314,12 @@ export class Command {
 	}
 
 	runHandlers(data: unknown, triggerLabel = 'Command'): void {
+		void this.runHandlersAsync(data, triggerLabel);
+	}
+
+	async runHandlersAsync(data: unknown, triggerLabel = 'Command'): Promise<boolean> {
 		if (!this.enabled) {
-			return;
+			return false;
 		}
 
 		if (this.hasUnavailableDefinitions) {
@@ -328,7 +332,8 @@ export class Command {
 			actionVariables: {}
 		};
 
-		void runHandlerChain(this.handlers, this as unknown as Action, context);
+		await runHandlerChain(this.handlers, this as unknown as Action, context);
+		return true;
 	}
 
 	validateForm(): boolean {

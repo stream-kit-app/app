@@ -1,6 +1,7 @@
 packages:
     - 'packages/*'
     - 'plugins/*'
+    - 'integrations/*'
     - 'site'
     - 'docs-site'
 

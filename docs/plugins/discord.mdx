@@ -1,0 +1,60 @@
+---
+title: Discord
+description: Connect a Discord bot for messages, roles, and voice channel events.
+---
+
+# Discord
+
+The Discord plugin connects a **Discord bot** via the Gateway for message, role, and voice events, plus handlers to send messages and manage roles.
+
+## Setup
+
+1. Create an application in the [Discord Developer Portal](https://discord.com/developers/applications).
+2. Under **Bot**, create a bot user and copy the **bot token**.
+3. Enable privileged intents:
+   - **Message Content Intent** (required for message text)
+   - **Server Members Intent** (required for role add/remove detection)
+4. Open **Plugins → Discord** in Stream Kit.
+5. Paste the bot token and click **Connect**.
+6. Optional: set `DISCORD_CLIENT_ID` in `plugins/discord/src/config.ts` (monorepo builds), then use **Invite bot to server** to add the bot with the right permissions.
+7. Confirm status shows **Connected**.
+
+## Requirements
+
+- Discord application with a bot user
+- Bot token
+- Privileged intents: Message Content, Server Members
+- Bot invited to at least one server (Gateway will list guilds after connect)
+
+The plugin reports **configured** when a bot token is saved. Triggers and handlers require an active Gateway connection.
+
+## Features
+
+| Area | Capabilities |
+| --- | --- |
+| **Message** | Message received trigger, send message handler |
+| **Role** | Role added / removed triggers, add / remove role handlers |
+| **Voice** | Voice join, leave, and move triggers |
+
+## Triggers and handlers
+
+- [Discord triggers](/docs/api/triggers/discord)
+- [Discord handlers](/docs/api/handlers/discord)
+
+### Example trigger IDs
+
+| Trigger | ID |
+| --- | --- |
+| Message received | `discord:discord:message:message-received` |
+| Role added | `discord:discord:role:role-added` |
+| Voice join | `discord:discord:voice:voice-join` |
+
+## Invite helper
+
+**Invite bot to server** opens Discord’s bot authorize URL (OAuth `scope=bot`) with permissions for viewing channels, sending messages, managing roles, and reading message history. A local redirect (port `9004`) confirms the invite; the bot token is still what authenticates the Gateway.
+
+## Related
+
+- [Setup guide](/docs/get-started/setup)
+- [Triggers guide](/docs/guide/triggers)
+- [Handlers guide](/docs/guide/handlers)

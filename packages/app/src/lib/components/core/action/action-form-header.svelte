@@ -6,6 +6,8 @@
 	import { Action } from '$lib/core/action/action.svelte';
 	import { useI18n } from '$lib/i18n';
 
+	import ActionIdCopy from './action-id-copy.svelte';
+
 	type Props = {
 		action: ActionType;
 	};
@@ -35,7 +37,12 @@
 </script>
 
 <div class="flex w-full items-start justify-between gap-4">
-	<h2 class="min-w-0 truncate text-2xl font-bold">{title}</h2>
+	<div class="flex min-w-0 flex-col gap-1">
+		<h2 class="min-w-0 truncate text-2xl font-bold">{title}</h2>
+		{#if action.id != null}
+			<ActionIdCopy id={action.id} />
+		{/if}
+	</div>
 	<div class="flex shrink-0 items-center gap-2">
 		{#if action.id != null}
 			<Button

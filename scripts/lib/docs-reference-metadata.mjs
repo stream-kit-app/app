@@ -16,7 +16,7 @@ export const VARIABLE_DESCRIPTIONS = {
 	args: 'Parsed command arguments as key-value pairs (JSON object).',
 	bits: 'Number of bits cheered with the message.',
 	rewardId: 'Channel point reward ID tied to the redemption.',
-	amount: 'Monetary or hype amount associated with the event.',
+	amount: 'Numeric amount for the event (bits, points awarded, Super Chat value, etc.).',
 	amountMicros: 'Super Chat amount in micro-units of the currency.',
 	currency: 'ISO currency code for a Super Chat (for example USD, EUR).',
 	tier: 'Subscription or Super Chat tier level.',
@@ -81,7 +81,7 @@ export const VARIABLE_DESCRIPTIONS = {
 	data: 'Parsed JSON payload from the WebSocket message.',
 	affectedConnectionIds: 'Connection IDs affected by a broadcast event.',
 	overlayId: 'ID of the overlay that received the event.',
-	payload: 'Event payload sent to the overlay (object or string).',
+	payload: 'Extra event payload object (overlay events, Stream Deck settings extras, etc.).',
 	stickerId: 'Super Sticker ID from YouTube.',
 	memberLevelName: 'YouTube membership level name.',
 	memberMonth: 'Member milestone month count.',
@@ -94,7 +94,28 @@ export const VARIABLE_DESCRIPTIONS = {
 	deletedMessageId: 'ID of the deleted chat message.',
 	question: 'Poll question text.',
 	status: 'Poll status (`unknown`, `active`, `closed`).',
-	mediaFilePath: 'Resolved filesystem path after Set Media Input File runs.'
+	mediaFilePath: 'Resolved filesystem path after Set Media Input File runs.',
+	source: 'Event source (platform such as `twitch`/`youtube`, or rankings source such as `watch-time`/`manual`).',
+	kind: 'Schedule kind (`cron` or `scheduled`).',
+	messageId: 'Platform message ID for the chat message.',
+	totalPoints: 'User total points after the rankings event.',
+	watchTimeSeconds: 'Accumulated watch time in seconds for the user.',
+	previousRank: 'Rank record before the change (JSON), when applicable.',
+	currentRank: 'Rank record after the change (JSON), when applicable.',
+	previousTier: 'Tier record before the change (JSON), when applicable.',
+	currentTier: 'Tier record after the change (JSON), when applicable.',
+	platform: 'Platform key for the user (`twitch`, `youtube`, …).',
+	type: 'Stream Deck event type (`keyDown`, `keyUp`, `dialRotate`, …).',
+	device: 'Stream Deck device identifier.',
+	action: 'Stream Deck action UUID that fired the event.',
+	alias: 'Optional button alias configured in Stream Kit.',
+	coordinates: 'Button coordinates on the Stream Deck (`column`, `row`).',
+	settings: 'Action settings object from the Stream Deck button.',
+	isInMultiAction: 'Whether the button is part of a multi-action.',
+	ticks: 'Dial rotation ticks (dial events only).',
+	pressed: 'Whether the dial was pressed while rotating.',
+	lastEventAt: 'ISO timestamp of the latest Stream Deck event.',
+	context: 'Stream Deck action instance context id.'
 };
 
 /** @param {string} fnName @param {string} key @param {string} name */
@@ -239,6 +260,15 @@ export function formatVariableExample(raw) {
 	return trimmed;
 }
 
+/** @param {string} varName */
+function humanizeVariableName(varName) {
+	const spaced = varName
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.replace(/[_-]+/g, ' ')
+		.trim();
+	return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1) : varName;
+}
+
 /**
  * @param {string} varName
  * @param {{ label?: string, type?: string }} meta
@@ -246,7 +276,11 @@ export function formatVariableExample(raw) {
 export function variableDescription(varName, meta = {}) {
 	if (VARIABLE_DESCRIPTIONS[varName]) return VARIABLE_DESCRIPTIONS[varName];
 	if (meta.label) return meta.label.endsWith('.') ? meta.label : `${meta.label}.`;
-	return varName;
+	const label = humanizeVariableName(varName);
+	if (meta.type) {
+		return `${label} (${simplifyType(meta.type)}).`;
+	}
+	return `${label}.`;
 }
 
 /**

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Run Action</title>
+		<link rel="stylesheet" href="pi.css" />
+		<script src="sdpi-components.js"></script>
+	</head>
+	<body>
+		<div class="pi-section">Connection</div>
+		<sdpi-item label="Host">
+			<sdpi-textfield setting="host" global placeholder="127.0.0.1"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Port">
+			<sdpi-textfield setting="port" global placeholder="7892"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Access token">
+			<sdpi-password setting="token" global placeholder="API Server token"></sdpi-password>
+		</sdpi-item>
+		<sdpi-item label="Auto-reconnect">
+			<sdpi-checkbox setting="autoReconnect" global default="true">
+				Reconnect automatically
+			</sdpi-checkbox>
+		</sdpi-item>
+
+		<div class="pi-section">Action</div>
+		<sdpi-item label="Action ID">
+			<sdpi-textfield setting="actionId" placeholder="42"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Alias">
+			<sdpi-textfield setting="alias" placeholder="scene-brb"></sdpi-textfield>
+		</sdpi-item>
+
+		<div class="pi-note">
+			Enable <strong>Settings → API Server</strong> in Stream Kit, paste the access token above, then set
+			the numeric action ID from Actions. An optional alias lets Stream Kit handlers target this key.
+		</div>
+	</body>
+</html>

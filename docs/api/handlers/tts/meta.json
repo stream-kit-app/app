@@ -1,10 +1,14 @@
 {
-  "title": "Tts",
+  "title": "TTS",
   "pages": [
     "index",
-    "skip",
+    "---ElevenLabs---",
+    "elevenlabs-speak-text",
+    "---Local---",
     "local-speak-text",
+    "---StreamElements---",
     "streamelements-speak-text",
-    "elevenlabs-speak-text"
+    "---TTS---",
+    "skip"
   ]
 }

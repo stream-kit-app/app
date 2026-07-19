@@ -1,0 +1,15 @@
+{
+  "title": "Discord",
+  "pages": [
+    "index",
+    "---Message---",
+    "message-message-received",
+    "---Role---",
+    "role-role-added",
+    "role-role-removed",
+    "---Voice---",
+    "voice-voice-join",
+    "voice-voice-leave",
+    "voice-voice-move"
+  ]
+}

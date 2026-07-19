@@ -1,0 +1,28 @@
+---
+title: "Run program"
+description: "Core handler: core:core:program:run-program"
+---
+
+# Run program
+
+| | |
+| --- | --- |
+| **Handler ID** | `core:core:program:run-program` |
+| **Plugin** | Core |
+| **Category** | Program |
+
+## Configuration
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| Program | select-file-or-folder | Yes | — |
+| Working directory | select-file-or-folder | No | — |
+| Arguments | text | No | `Optional, e.g. script.js {user}` |
+| Environment variables | key-value-list | No | Key-value pairs. |
+| Hide window | switch | No | Enable or disable this option. |
+| Run in shell | checkbox | No | Enable or disable this option. |
+
+## Related
+
+- [Core plugin](/docs/plugins/core)
+- [Actions guide](/docs/guide/actions)

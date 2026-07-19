@@ -35,19 +35,25 @@ Stream Kit is a desktop automation app for streamers. Build **actions** (handler
 | --- | --- |
 | [Core](./plugins/core) | Audio, scripts, variables, collections, schedules, hotkeys |
 | [Bot](./plugins/bot) | Chat commands, timers, moderation |
+| [Rankings](./plugins/rankings) | Points, tiers, watch time, leaderboards |
+| [Quotes](./plugins/quotes) | Save and recall chat quotes |
 | [Twitch](./plugins/twitch) | Twitch chat, subs, raids, channel points |
 | [YouTube](./plugins/youtube) | YouTube live chat and events |
+| [Discord](./plugins/discord) | Discord messages, roles, and voice events |
 | [OBS](./plugins/obs) | Scene and source control |
 | [TTS](./plugins/tts) | Text-to-speech handlers |
 | [WebSocket](./plugins/websocket) | External integrations via WebSocket |
+| [Stream Deck](./plugins/stream-deck) | Elgato Stream Deck triggers and feedback |
 | [Overlay](./plugins/overlay) | Send events to browser overlays |
 
 ## API Reference
 
-Browse every trigger and handler with stable **definition IDs** and variables:
+Browse every trigger and handler with stable **definition IDs**, variables, and configuration:
 
-- [Triggers](/docs/api/triggers/core) — e.g. `core:core:input:hotkey`
-- [Handlers](/docs/api/handlers/core) — e.g. `overlay:overlay:send-to-overlay`
+- [API catalog](/docs/api/) — counts and links for all plugins
+- [Twitch triggers](/docs/api/triggers/twitch/) — e.g. `twitch:twitch:chat:chat-message`
+- [Core handlers](/docs/api/handlers/core/) — e.g. hotkeys, variables, Run script
+- [OBS handlers](/docs/api/handlers/obs/) — scenes, sources, stream/record
 
 ## Developers
 

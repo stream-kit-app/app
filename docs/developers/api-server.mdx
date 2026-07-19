@@ -146,8 +146,17 @@ The host also clears plugin methods when a plugin is disabled or uninstalled.
 - LAN bind (`0.0.0.0`) exposes the API on your network — treat the token like a password.
 - TLS (`wss`) is not included in v1.
 
+## Example client: Stream Deck
+
+The [Stream Deck](/docs/plugins/stream-deck) integration uses this API as its only transport:
+
+- Built-in `actions.getSnapshot` / `actions.runById` to pick and run actions from Stream Deck keys
+- Plugin methods `plugin:stream-deck:reportEvent`, `registerButton`, `getStatus`, …
+- Subscribe to `plugin:stream-deck.*` for feedback (`setTitle`, `setImage`, `setState`, …)
+
 ## Related
 
 - [Plugin Authoring API](/docs/developers/plugin-api)
 - [WebSocket plugin](/docs/plugins/websocket) (outbound client)
+- [Stream Deck](/docs/plugins/stream-deck) (Elgato hardware via this API)
 - [Overlays](/docs/guide/overlays) (separate local server on port `7891`)

@@ -112,6 +112,39 @@ export type EventSubModerationContext = TwitchBaseContext & {
 	reason?: string;
 };
 
+export type GoalContext = TwitchBaseContext & {
+	goalId: string;
+	type: string;
+	description: string;
+	currentAmount: number;
+	targetAmount: number;
+	isAchieved?: boolean;
+};
+
+export type CharityContext = TwitchBaseContext & {
+	campaignId: string;
+	charityName: string;
+	currency: string;
+	currentAmount?: number;
+	targetAmount?: number;
+	user?: string;
+	userId?: string;
+	amount?: number;
+};
+
+export type AdBreakContext = TwitchBaseContext & {
+	durationSeconds: number;
+	isAutomatic: boolean;
+	requester: string;
+	requesterId: string;
+};
+
+export type ShoutoutReceivedContext = TwitchBaseContext & {
+	user: string;
+	userId: string;
+	viewers: number;
+};
+
 export type TwitchContext =
 	| ChatMessageContext
 	| WhisperContext
@@ -132,4 +165,8 @@ export type TwitchContext =
 	| HypeTrainContext
 	| PollContext
 	| PredictionContext
-	| EventSubModerationContext;
+	| EventSubModerationContext
+	| GoalContext
+	| CharityContext
+	| AdBreakContext
+	| ShoutoutReceivedContext;

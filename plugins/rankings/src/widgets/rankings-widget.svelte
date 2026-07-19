@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { PluginWidgetProps } from '@stream-kit/plugin';
 
+	import { Badge } from '@stream-kit/ui/badge';
+
 	import { tryGetRankingsService } from '../app/lib/get-rankings';
+	import { RankedUser } from '../app/lib/ranked-user.svelte';
+	import { formatWatchTime } from '../lib/extract-user';
 	import { orderRanks, resolveProgress } from '../lib/ranking-engine';
 
 	const LEADERBOARD_PATH = '/plugins/rankings/rankings/leaderboard';
@@ -12,36 +16,78 @@
 	const rankings = $derived(tryGetRankingsService());
 	const stats = $derived(rankings?.getStats());
 	const ordered = $derived(rankings ? orderRanks(rankings.tiers, rankings.ranks) : []);
+
+	function openUser(user: NonNullable<typeof rankings>['users'][number]) {
+		RankedUser.fromRecord(user).open();
+	}
 </script>
 
 {#if rankings && stats}
-	<a href={LEADERBOARD_PATH} class="block space-y-4 text-sm transition hover:opacity-90">
-		<div class="grid grid-cols-2 gap-3">
+	<div class="space-y-3 text-sm">
+		<div class="grid grid-cols-3 gap-2">
 			<div>
 				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Users')}</p>
-				<p class="text-2xl font-semibold text-dark-50">{stats.totalUsers}</p>
+				<p class="text-xl font-semibold text-dark-50">{stats.totalUsers}</p>
 			</div>
 			<div>
 				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Points')}</p>
-				<p class="text-2xl font-semibold text-dark-50">{stats.totalPointsAwarded}</p>
+				<p class="text-xl font-semibold text-dark-50">{stats.totalPointsAwarded}</p>
+			</div>
+			<div>
+				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Watch time')}</p>
+				<p class="text-xl font-semibold text-dark-50">
+					{formatWatchTime(stats.totalWatchTimeSeconds)}
+				</p>
 			</div>
 		</div>
 
 		<div>
-			<p class="text-xs uppercase tracking-wide text-dark-400">{t('Top 5')}</p>
-			<ul class="mt-2 space-y-1">
-				{#each stats.topUsers as user, index (user.userId)}
-					{@const progress = resolveProgress(user.totalPoints, ordered)}
-					<li class="flex justify-between gap-2 text-dark-200">
-						<span>{index + 1}. {user.username}</span>
-						<span class="text-dark-400">{progress.rank?.name ?? t('Unranked')}</span>
-					</li>
-				{:else}
-					<li class="text-dark-400">{t('No rankings yet.')}</li>
-				{/each}
-			</ul>
+			<p class="text-xs uppercase tracking-wide text-dark-400">{t('Top users')}</p>
+			{#if stats.topUsers.length > 0}
+				<ul class="mt-1.5 flex flex-col gap-0.5">
+					{#each stats.topUsers as user, index (user.userId)}
+						{@const progress = resolveProgress(user.totalPoints, ordered)}
+						<li>
+							<button
+								type="button"
+								class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-dark-700/60"
+								onclick={() => openUser(user)}
+							>
+								<span
+									class="grid size-7 shrink-0 place-items-center rounded-md bg-dark-800 text-xs font-medium text-dark-300"
+									aria-hidden="true"
+								>
+									{index + 1}
+								</span>
+								<span class="min-w-0 flex-1 truncate font-medium text-dark-50">
+									{user.username}
+								</span>
+								<div class="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+									<span class="text-xs text-dark-300">
+										{user.totalPoints} pts · {formatWatchTime(user.watchTimeSeconds)}
+									</span>
+									{#if progress.rank}
+										<Badge variant="secondary" size="sm">{progress.rank.name}</Badge>
+									{:else}
+										<Badge variant="outline" size="sm">{t('Unranked')}</Badge>
+									{/if}
+								</div>
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<p class="mt-1.5 text-dark-400">{t('No rankings yet.')}</p>
+			{/if}
 		</div>
-	</a>
+
+		<a
+			href={LEADERBOARD_PATH}
+			class="inline-block cursor-pointer text-xs font-medium text-primary hover:underline"
+		>
+			{t('View leaderboard')}
+		</a>
+	</div>
 {:else}
 	<div class="text-sm text-dark-300">{t('Rankings plugin unavailable')}</div>
 {/if}

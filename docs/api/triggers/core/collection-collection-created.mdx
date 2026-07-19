@@ -1,6 +1,6 @@
 ---
 title: "Collection created"
-description: "Core Handlers trigger: core:core:collection:collection-created"
+description: "Core trigger: core:core:collection:collection-created"
 ---
 
 # Collection created
@@ -8,8 +8,17 @@ description: "Core Handlers trigger: core:core:collection:collection-created"
 | | |
 | --- | --- |
 | **Trigger ID** | `core:core:collection:collection-created` |
-| **Plugin** | Core Handlers |
+| **Plugin** | Core |
 | **Category** | Collection |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "collectionName", type: "string", description: "Name of the collection that changed.", example: "scores" },
+  { name: "lifetime", type: "object", description: "Collection lifetime (`session` or `persistent`).", example: "session" }
+]} />
 
 ## Conditions
 
@@ -20,5 +29,5 @@ description: "Core Handlers trigger: core:core:collection:collection-created"
 
 ## Related
 
-- [Core Handlers plugin](/docs/plugins/core)
+- [Core plugin](/docs/plugins/core)
 - [Triggers guide](/docs/guide/triggers)

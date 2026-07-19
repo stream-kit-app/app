@@ -1,0 +1,34 @@
+---
+title: "Charity Donation"
+description: "Twitch trigger: twitch:twitch:charity:charity-donation"
+---
+
+# Charity Donation
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:charity:charity-donation` |
+| **Plugin** | Twitch |
+| **Category** | Charity |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "campaignId", type: "string", description: "Campaign Id (string).", example: "test-campaign-id" },
+  { name: "charityName", type: "string", description: "Charity Name (string).", example: "Test Charity" },
+  { name: "currency", type: "string", description: "ISO currency code for a Super Chat (for example USD, EUR).", example: "USD" },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestDonor" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "999002" },
+  { name: "amount", type: "number", description: "Numeric amount for the event (bits, points awarded, Super Chat value, etc.).", example: "25" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." },
+  { name: "currentAmount", type: "number", description: "Current Amount (number)." },
+  { name: "targetAmount", type: "number", description: "Target Amount (number)." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

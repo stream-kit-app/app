@@ -1,0 +1,27 @@
+---
+title: "Send quote message"
+description: "Quotes handler: quotes:quotes:send-quote-message"
+---
+
+# Send quote message
+
+| | |
+| --- | --- |
+| **Handler ID** | `quotes:quotes:send-quote-message` |
+| **Plugin** | Quotes |
+| **Category** | Quotes |
+
+## Configuration
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| Quote ID | text | No | `{id}` |
+| Message | text | Yes | `Quote #{id}: "{quote}" — {addedBy}` |
+| Not found | text | No | `Quote #{id} does not exist.` |
+| Empty | text | No | No quotes saved yet. |
+| As bot | switch | No | Send as bot account |
+
+## Related
+
+- [Quotes plugin](/docs/plugins/quotes)
+- [Actions guide](/docs/guide/actions)

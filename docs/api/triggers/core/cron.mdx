@@ -1,6 +1,6 @@
 ---
 title: "Cron"
-description: "Core Handlers trigger: core:core:cron"
+description: "Core trigger: core:core:cron"
 ---
 
 # Cron
@@ -8,8 +8,23 @@ description: "Core Handlers trigger: core:core:cron"
 | | |
 | --- | --- |
 | **Trigger ID** | `core:core:cron` |
-| **Plugin** | Core Handlers |
+| **Plugin** | Core |
 | **Category** | Core |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "kind", type: "'cron' | 'scheduled'", description: "Schedule kind (`cron` or `scheduled`).", example: "cron" },
+  { name: "firedAt", type: "string", description: "ISO timestamp when the schedule fired." },
+  { name: "scheduledAt", type: "string", description: "ISO timestamp when the event was scheduled." },
+  { name: "cronExpression", type: "string", description: "Cron expression for recurring schedules.", example: "0 9 * * *" },
+  { name: "date", type: "string", description: "Scheduled date (`YYYY-MM-DD`) for one-shot schedules." },
+  { name: "time", type: "string", description: "Scheduled time (`HH:mm`) for one-shot schedules." },
+  { name: "repeat", type: "object", description: "Repeat mode for scheduled triggers (`once`, `daily`, `weekly`)." },
+  { name: "weekday", type: "string", description: "Weekday used by weekly schedules." }
+]} />
 
 ## Conditions
 
@@ -19,5 +34,5 @@ description: "Core Handlers trigger: core:core:cron"
 
 ## Related
 
-- [Core Handlers plugin](/docs/plugins/core)
+- [Core plugin](/docs/plugins/core)
 - [Triggers guide](/docs/guide/triggers)

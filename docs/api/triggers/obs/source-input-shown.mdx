@@ -1,0 +1,34 @@
+---
+title: "Input Shown"
+description: "OBS trigger: obs:obs:source:input-shown"
+---
+
+# Input Shown
+
+| | |
+| --- | --- |
+| **Trigger ID** | `obs:obs:source:input-shown` |
+| **Plugin** | OBS |
+| **Category** | Source |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "inputName", type: "string", description: "OBS input (source) name.", example: "Test Input" },
+  { name: "inputUuid", type: "string", description: "OBS input UUID.", example: "test-input-uuid" },
+  { name: "inputMuted", type: "boolean", description: "Input Muted (boolean).", example: "false" },
+  { name: "inputEnabled", type: "boolean", description: "Input Enabled (boolean).", example: "true" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Input name | Match OBS input/source name. Leave empty to match any input. |
+
+## Related
+
+- [OBS plugin](/docs/plugins/obs)
+- [Triggers guide](/docs/guide/triggers)

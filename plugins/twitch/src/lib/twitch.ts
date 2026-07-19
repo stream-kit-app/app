@@ -88,6 +88,9 @@ export function createTwitchPluginApi(
 		'channel:manage:predictions',
 		'channel:read:goals',
 		'channel:read:hype_train',
+		'channel:read:ads',
+		'channel:read:charity',
+		'channel:edit:commercial',
 		'channel:read:vips',
 		'channel:manage:vips',
 		'channel:manage:videos',
@@ -113,6 +116,8 @@ export function createTwitchPluginApi(
 		'moderator:manage:shield_mode',
 		'moderator:manage:warnings',
 		'moderator:read:warnings',
+		'moderator:read:shoutouts',
+		'moderator:manage:shoutouts',
 		'clips:edit',
 		'chat:read',
 		'chat:edit'
@@ -154,7 +159,10 @@ export function createTwitchPluginApi(
 
 		authProvider = new StaticAuthProvider(TWITCH_CLIENT_ID, nextAccessToken, scopes);
 		client = new TwurpleApiClient({ authProvider });
-		chat = new TwurpleChatClient({ authProvider });
+		chat = new TwurpleChatClient({
+			authProvider,
+			requestMembershipEvents: true
+		});
 		await chat.connect();
 
 		eventSub = new TwurpleEventSubWsListener({ apiClient: client });

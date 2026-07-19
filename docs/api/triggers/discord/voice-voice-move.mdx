@@ -1,0 +1,42 @@
+---
+title: "Voice Move"
+description: "Discord trigger: discord:discord:voice:voice-move"
+---
+
+# Voice Move
+
+| | |
+| --- | --- |
+| **Trigger ID** | `discord:discord:voice:voice-move` |
+| **Plugin** | Discord |
+| **Category** | Voice |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "guildId", type: "string", description: "Server ID.", example: "123456789012345678" },
+  { name: "guild", type: "string", description: "Server name.", example: "Test Server" },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "345678901234567890" },
+  { name: "username", type: "string", description: "Login name of the user (lowercase on Twitch).", example: "testuser" },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account.", example: "789012345678901234" },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred.", example: "Stage" },
+  { name: "previousChannelId", type: "string", description: "Previous channel ID.", example: "678901234567890123" },
+  { name: "previousChannel", type: "string", description: "Previous channel name.", example: "Stream Voice" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+| Guild ID (optional) | Filter on **Guild ID (optional)**. Configure in the trigger condition editor. |
+| New voice channel ID (optional) | Filter on **New voice channel ID (optional)**. Configure in the trigger condition editor. |
+| Previous voice channel ID (optional) | Filter on **Previous voice channel ID (optional)**. Configure in the trigger condition editor. |
+
+## Related
+
+- [Discord plugin](/docs/plugins/discord)
+- [Triggers guide](/docs/guide/triggers)

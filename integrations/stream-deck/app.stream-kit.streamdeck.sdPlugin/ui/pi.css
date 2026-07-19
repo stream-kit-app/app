@@ -1,0 +1,45 @@
+:root {
+	color-scheme: dark;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	background: transparent;
+	color: #d8d8d8;
+	font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.pi-section {
+	margin: 14px 0 6px;
+	padding: 0 0 4px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+	color: #f2f2f2;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.pi-section:first-child {
+	margin-top: 4px;
+}
+
+.pi-note {
+	margin: 10px 0 4px;
+	padding: 8px 10px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 6px;
+	background: rgba(255, 255, 255, 0.04);
+	color: #a8a8a8;
+	font-size: 11px;
+	line-height: 1.45;
+}
+
+.pi-note strong {
+	color: #e6e6e6;
+	font-weight: 600;
+}

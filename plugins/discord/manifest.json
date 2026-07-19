@@ -1,0 +1,11 @@
+{
+	"key": "discord",
+	"name": "Discord",
+	"version": "0.1.0-alpha.0",
+	"description": "Discord bot messages, roles, and voice events.",
+	"icon": "ri:discord-fill",
+	"entry": "dist/index.js",
+	"dependencies": ["core"],
+	"streamKitVersion": ">=0.1.0",
+	"updateManifestUrl": "https://stream-kit.app/api/plugins/discord/manifest.json"
+}

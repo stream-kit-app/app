@@ -1,0 +1,32 @@
+---
+title: "Media Started"
+description: "OBS trigger: obs:obs:media:media-started"
+---
+
+# Media Started
+
+| | |
+| --- | --- |
+| **Trigger ID** | `obs:obs:media:media-started` |
+| **Plugin** | OBS |
+| **Category** | Media |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "inputName", type: "string", description: "OBS input (source) name.", example: "Test Media Source" },
+  { name: "inputUuid", type: "string", description: "OBS input UUID.", example: "test-media-uuid" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Input name | Match OBS input/source name. Leave empty to match any input. |
+
+## Related
+
+- [OBS plugin](/docs/plugins/obs)
+- [Triggers guide](/docs/guide/triggers)

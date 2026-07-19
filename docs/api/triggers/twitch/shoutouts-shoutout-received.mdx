@@ -1,0 +1,29 @@
+---
+title: "Shoutout Received"
+description: "Twitch trigger: twitch:twitch:shoutouts:shoutout-received"
+---
+
+# Shoutout Received
+
+| | |
+| --- | --- |
+| **Trigger ID** | `twitch:twitch:shoutouts:shoutout-received` |
+| **Plugin** | Twitch |
+| **Category** | Shoutouts |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "ShoutingOutStreamer" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "999003" },
+  { name: "viewers", type: "number", description: "Number of viewers in an incoming raid.", example: "150" },
+  { name: "broadcasterId", type: "string", description: "Broadcaster channel ID for the connected account." },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred." }
+]} />
+
+## Related
+
+- [Twitch plugin](/docs/plugins/twitch)
+- [Triggers guide](/docs/guide/triggers)

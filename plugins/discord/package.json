@@ -1,0 +1,32 @@
+{
+	"name": "@stream-kit/plugin-discord",
+	"version": "0.1.0-alpha.0",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"files": [
+		"src",
+		"dist",
+		"manifest.json"
+	],
+	"scripts": {
+		"build": "vite build --config vite.build.config.js",
+		"package": "node ../../scripts/package-plugin.mjs",
+		"check": "tsc --noEmit",
+		"dev": "vite build --config vite.build.config.js --watch"
+	},
+	"dependencies": {
+		"@stream-kit/core": "workspace:*"
+	},
+	"devDependencies": {
+		"@stream-kit/app": "workspace:*",
+		"@stream-kit/plugin": "workspace:*",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"svelte": "^5.56.1",
+		"typescript": "~6.0.3",
+		"vite": "^8.0.16",
+		"vite-plugin-node-polyfills": "^0.28.0"
+	}
+}

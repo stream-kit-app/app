@@ -1,0 +1,31 @@
+{
+	"name": "@stream-kit/streamdeck-plugin",
+	"version": "0.1.0-alpha.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"prebuild": "node scripts/generate-icons.mjs",
+		"build": "rollup -c",
+		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart app.stream-kit.streamdeck\"",
+		"link": "streamdeck link app.stream-kit.streamdeck.sdPlugin",
+		"restart": "streamdeck restart app.stream-kit.streamdeck",
+		"icons": "node scripts/generate-icons.mjs",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@elgato/streamdeck": "^2.0.1",
+		"ws": "^8.19.0"
+	},
+	"devDependencies": {
+		"@elgato/cli": "^1.7.0",
+		"@rollup/plugin-commonjs": "^28.0.2",
+		"@rollup/plugin-node-resolve": "^16.0.0",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@rollup/plugin-typescript": "^12.1.2",
+		"@types/node": "^22.13.0",
+		"@types/ws": "^8.18.1",
+		"rollup": "^4.32.1",
+		"tslib": "^2.8.1",
+		"typescript": "^5.7.3"
+	}
+}

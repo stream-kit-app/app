@@ -1,22 +1,26 @@
 {
-  "title": "Youtube",
+  "title": "YouTube",
   "pages": [
     "index",
+    "---Chat---",
+    "chat-chat-ended",
     "chat-chat-message",
-    "chat-super-chat",
-    "chat-super-sticker",
     "chat-gift-jewels",
     "chat-live-poll",
+    "chat-members-only-mode-ended",
     "chat-members-only-mode-started",
-    "chat-members-only-mode-started",
-    "chat-members-only-mode-started",
-    "membership-new-member",
+    "chat-super-chat",
+    "chat-super-sticker",
+    "---Membership---",
+    "membership-gift-membership-received",
     "membership-member-milestone",
     "membership-membership-gift",
-    "membership-gift-membership-received",
-    "moderation-user-banned",
+    "membership-new-member",
+    "---Moderation---",
     "moderation-message-deleted",
-    "stream-stream-online",
-    "stream-stream-offline"
+    "moderation-user-banned",
+    "---Stream---",
+    "stream-stream-offline",
+    "stream-stream-online"
   ]
 }

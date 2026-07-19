@@ -1,0 +1,95 @@
+---
+title: Stream Deck
+description: Connect Elgato Stream Deck to Stream Kit — run actions, fire triggers, and update keys from handlers.
+---
+
+# Stream Deck
+
+The Stream Deck integration has two parts:
+
+1. **Stream Kit plugin** (`stream-deck`) — triggers, feedback handlers, button registry, and API methods
+2. **Elgato Stream Deck plugin** (`integrations/stream-deck`) — keys/dials in the Stream Deck app that talk to Stream Kit over the [WebSocket API Server](/docs/developers/api-server)
+
+## Requirements
+
+- **API Server** enabled under **Settings → API Server** (default port `7892`) with an access token
+- Stream Kit **Stream Deck** plugin enabled
+- Elgato Stream Deck app 6.9+ with the Stream Kit Stream Deck plugin installed/linked
+
+## Setup
+
+1. In Stream Kit, enable **Settings → API Server** and copy the access token.
+2. Enable the **Stream Deck** plugin and open **Stream Deck → Overview** for status.
+3. Install or link the Elgato plugin (see [development notes](#elgato-plugin-development)).
+4. In Stream Deck, add **Stream Kit → Run Action** (or Toggle / Dial).
+5. In the Property Inspector, set host (`127.0.0.1`), port (`7892`), token, and the Stream Kit **Action ID** (copy it from the Actions list or action editor).
+6. Optionally set a button **Alias** so Stream Kit handlers can target that key.
+
+## Elgato actions
+
+| Action | Behavior |
+| --- | --- |
+| **Run Action** | On key down: `actions.runById` + report `keyDown` / `keyUp` |
+| **Toggle Action** | Alternates two action ids and flips key state `0`/`1` |
+| **Dial Control** | Reports dial rotate / press / touch; optional action on rotate or push |
+
+## Triggers
+
+Under **Stream Deck** in the action editor:
+
+| Trigger | When |
+| --- | --- |
+| Key Down / Key Up | Key press events |
+| Dial Rotate / Dial Down / Dial Up | Encoder events |
+| Touch Tap | Touch strip tap (where supported) |
+| Will Appear / Will Disappear | Key lifecycle on the profile |
+| Connected / Disconnected | Elgato plugin session to the API Server |
+
+Optional conditions filter by **Alias**, **Action UUID**, or **Device**.
+
+Browse IDs: [Stream Deck triggers](/docs/api/triggers/stream-deck).
+
+## Handlers
+
+| Handler | Description |
+| --- | --- |
+| **Set Title** | Update key title (by alias or last pressed key) |
+| **Set Image** | Update key image (path, URL, or data URI) |
+| **Set State** | Set state `0` or `1` (toggle keys) |
+| **Show OK** / **Show Alert** | Brief Stream Deck feedback |
+| **Set Button Settings** | Merge JSON into the key’s settings |
+
+Browse IDs: [Stream Deck handlers](/docs/api/handlers/stream-deck).
+
+## Aliases
+
+Give a key an **Alias** in the Property Inspector. Stream Kit stores it when the key appears. Handlers resolve targets as:
+
+1. Explicit alias field on the handler
+2. Otherwise the **last pressed** key context
+
+## API methods
+
+The Stream Kit plugin extends the API Server with `plugin:stream-deck:*`:
+
+| Method | Purpose |
+| --- | --- |
+| `reportEvent` | Elgato → Stream Kit event (fires triggers) |
+| `registerButton` / `unregisterButton` | Button registry |
+| `getStatus` / `listButtons` | Status for UI / debugging |
+
+Clients should also subscribe to `plugin:stream-deck.*` for feedback events (`setTitle`, `setImage`, …).
+
+Running actions uses the built-in `actions.getSnapshot` and `actions.runById` methods — no duplicates.
+
+## Elgato plugin development
+
+From the monorepo:
+
+```bash
+pnpm --filter @stream-kit/streamdeck-plugin build
+pnpm --filter @stream-kit/streamdeck-plugin link
+pnpm --filter @stream-kit/streamdeck-plugin watch
+```
+
+Requires the [Stream Deck CLI](https://github.com/elgatosf/cli) (`npm i -g @elgato/cli`) for `link` / `restart`. Details: `integrations/stream-deck/README.md`.

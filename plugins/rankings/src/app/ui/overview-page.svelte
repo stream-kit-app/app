@@ -4,6 +4,7 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Container } from '@stream-kit/ui/container';
 
+	import { formatWatchTime } from '../../lib/extract-user';
 	import { orderRanks, resolveProgress } from '../../lib/ranking-engine';
 	import { tryGetRankingsService } from '../lib/get-rankings';
 	import { RankedUser } from '../lib/ranked-user.svelte';
@@ -43,12 +44,14 @@
 				/>
 				<RankingsStatCard
 					icon="ri:time-line"
-					value={settings.watchTimeEnabled ? t('Enabled') : t('Disabled')}
+					value={formatWatchTime(stats.totalWatchTimeSeconds)}
 					label={t('Watch time')}
-					description={t('{points} pts/min every {seconds}s', {
-						points: settings.pointsPerMinute,
-						seconds: settings.awardIntervalSeconds
-					})}
+					description={settings.watchTimeEnabled
+						? t('Enabled · {points} pts/min every {seconds}s', {
+								points: settings.pointsPerMinute,
+								seconds: settings.awardIntervalSeconds
+							})
+						: t('Disabled')}
 				/>
 			</div>
 
@@ -77,7 +80,9 @@
 											{user.username}
 										</span>
 										<div class="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-											<span class="text-sm text-dark-300">{user.totalPoints} pts</span>
+											<span class="text-sm text-dark-300">
+												{user.totalPoints} pts · {formatWatchTime(user.watchTimeSeconds)}
+											</span>
 											{#if progress.rank}
 												<Badge variant="secondary" size="sm">{progress.rank.name}</Badge>
 											{:else}

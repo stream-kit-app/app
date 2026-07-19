@@ -2,8 +2,11 @@
 	"plugins": [
 		"plugins/core",
 		"plugins/bot",
+		"plugins/discord",
 		"plugins/obs",
+		"plugins/quotes",
 		"plugins/rankings",
+		"plugins/stream-deck",
 		"plugins/tts",
 		"plugins/twitch",
 		"plugins/websocket",

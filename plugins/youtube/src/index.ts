@@ -3,6 +3,7 @@ import type { Plugin } from '@stream-kit/plugin';
 
 import { createDeleteMessageHandler } from './handler/chat/delete-message';
 import { createSendMessageHandler } from './handler/chat/send-message';
+import { createBanHandler } from './handler/moderation/ban';
 import { createYouTubePluginApi } from './lib/youtube';
 import { configureFieldValueResolver } from './get-field-value';
 import { createGiftTrigger } from './trigger/chat/gift';
@@ -182,6 +183,10 @@ const plugin: Plugin = (app) => {
 					{
 						name: 'Chat',
 						children: [createSendMessageHandler(app), createDeleteMessageHandler(app)]
+					},
+					{
+						name: 'Moderation',
+						children: [createBanHandler(app)]
 					}
 				]
 			}

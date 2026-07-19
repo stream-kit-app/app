@@ -1,0 +1,39 @@
+---
+title: "Role Removed"
+description: "Discord trigger: discord:discord:role:role-removed"
+---
+
+# Role Removed
+
+| | |
+| --- | --- |
+| **Trigger ID** | `discord:discord:role:role-removed` |
+| **Plugin** | Discord |
+| **Category** | Role |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "guildId", type: "string", description: "Server ID.", example: "123456789012345678" },
+  { name: "guild", type: "string", description: "Server name.", example: "Test Server" },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "345678901234567890" },
+  { name: "username", type: "string", description: "Login name of the user (lowercase on Twitch).", example: "testuser" },
+  { name: "roleId", type: "string", description: "Role ID.", example: "567890123456789012" },
+  { name: "role", type: "string", description: "Role of the user (for example everyone, mod, broadcaster, vip, subscriber).", example: "VIP" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+| Guild ID (optional) | Filter on **Guild ID (optional)**. Configure in the trigger condition editor. |
+| Role ID (optional) | Filter on **Role ID (optional)**. Configure in the trigger condition editor. |
+
+## Related
+
+- [Discord plugin](/docs/plugins/discord)
+- [Triggers guide](/docs/guide/triggers)

@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: 16 juli 2026  
+> Versie 0.1.0 — laatst bijgewerkt: 17 juli 2026 (docs API-catalogus)
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -19,6 +19,8 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Globale hotkeys (Core Hotkey trigger + HotkeyManager)
 - [x] Overlays — lokale browser-source server + ready-made widget templates
 - [x] Rankings plugin (punten, tiers, watch-time, leaderboard, overlay)
+- [x] Quotes plugin (opgeslagen quotes, UI, seeded chat commands)
+- [x] Stream Deck plugin (triggers, feedback handlers, Elgato companion via API Server)
 - [x] Plugin-architectuur (built-in + externe zip-plugins)
 - [x] Plugin updates (manifest URL, check/install, startup check)
 - [x] Dashboard (`/`) — stat cards, verbindingen, pluginstatus, running-actions widget
@@ -32,7 +34,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [~] Dashboard uitbreiden — basis + running-actions klaar; recente events-widget nog open
 - [x] Bot plugin — commands, timers, moderation, custom roles, built-in commands, overview settings
 - [~] Publieke installer + release-kanaal — alpha CI/builds (Windows); stabiel kanaal voor alle platformen nog open
-- [~] Documentatie uitbreiden — plugins (incl. OBS, rankings, overlay) + guide grotendeels klaar; onboarding/starter-templates nog open
+- [~] Documentatie uitbreiden — plugins + guide + API-catalogus (alle triggers/handlers per plugin) klaar; onboarding/starter-templates nog open
 - [x] Import/export — acties + commands JSON import/export klaar
 - [ ] Stabiliseren van API's en database-schema's (richting v1.0)
 
@@ -46,23 +48,23 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Per-gebruiker variabelen (Core user scope, persistent per username)
 - [ ] Sub-actions / herbruikbare actiegroepen
 - [x] Actie-queues (algemene handler-queue)
-- [ ] Quote-systeem
+- [x] Quote-systeem — Quotes plugin (store, UI, handlers, seeded !quote/!addquote/!delquote)
 - [x] Custom roles — Bot plugin Roles + command permissions (`role:<id>`); sessie-credits via collections/actions
 - [~] Timers & geplande triggers — Core Cron/Scheduled + Bot interval timers; geavanceerde planning nog open
 
 ### Platform-uitbreiding
 
-- [~] YouTube — triggers grotendeels klaar (memberships, super chat, polls, etc.); handlers nog chat-only (send/delete)
-- [~] Twitch triggers/handlers aanvullen — shoutout + commercial handlers klaar; goals, charity, ad-break en shoutout-received triggers nog open
+- [x] YouTube — triggers + chat/moderation handlers (send, delete, ban/timeout)
+- [x] Twitch triggers/handlers aanvullen — shoutout/commercial handlers + goals, charity, ad-break, shoutout-received triggers
 - [ ] Donatie-platform triggers (Streamlabs, StreamElements events, Ko-fi, etc.)
-- [ ] Discord plugin (berichten, rollen, voice events)
+- [~] Discord plugin — bot token + invite OAuth, berichten, rollen, voice events klaar; must-haves nog open: member join/leave, moderatie (delete/timeout/kick/ban), reactie add/remove, embeds bij send message, channel/role pickers in handlers
 - [ ] Kick plugin
 - [ ] TikTok Live plugin (optioneel)
 
 ### Hardware & systeem
 
 - [x] Globale hotkeys (app-breed, niet alleen OBS)
-- [ ] Stream Deck integratie
+- [x] Stream Deck integratie — Stream Kit-plugin + Elgato companion (`integrations/stream-deck`); Marketplace-distributie nog open
 - [ ] MIDI triggers/handlers
 - [ ] Voice control (optioneel)
 
@@ -118,6 +120,6 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 ## Technische schuld & documentatie
 
 - [ ] README bijwerken: OBS, WebSocket, Rankings, Overlay in plugin-tabel; TTS Piper; projectstructuur (`commands/` → `bot/`); installer-claim afstemmen op Windows release CI
-- [ ] README status-sectie: documentatie is niet meer "minimaal" — afstemmen op `/docs`
+- [ ] README status-sectie: documentatie is niet meer "minimaal" — afstemmen op `/docs` (API-catalogus + volledige plugin-lijst)
 - [ ] Meer voorbeeld-acties / starter-templates voor nieuwe gebruikers
 - [ ] E2E-tests voor kritieke flows (OAuth, actie-uitvoering, commands)

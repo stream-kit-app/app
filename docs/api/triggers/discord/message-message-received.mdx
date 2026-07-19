@@ -1,0 +1,42 @@
+---
+title: "Message Received"
+description: "Discord trigger: discord:discord:message:message-received"
+---
+
+# Message Received
+
+| | |
+| --- | --- |
+| **Trigger ID** | `discord:discord:message:message-received` |
+| **Plugin** | Discord |
+| **Category** | Message |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "guildId", type: "string", description: "Server ID.", example: "123456789012345678" },
+  { name: "guild", type: "string", description: "Server name.", example: "Test Server" },
+  { name: "channelId", type: "string", description: "YouTube channel ID for the connected account.", example: "234567890123456789" },
+  { name: "channel", type: "string", description: "Channel login or display name where the event occurred.", example: "general" },
+  { name: "user", type: "string", description: "Display name of the user who triggered the event.", example: "TestUser" },
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor.", example: "345678901234567890" },
+  { name: "username", type: "string", description: "Login name of the user (lowercase on Twitch).", example: "testuser" },
+  { name: "message", type: "string", description: "Full message text from the event.", example: "Hello from Stream Kit" },
+  { name: "messageId", type: "string", description: "Platform message ID for the chat message.", example: "456789012345678901" }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| Message | Match message text (starts with, ends with, contains, equals). Leave empty to always match. |
+| Username | Match chatter username (equals, contains, starts with, ends with). Leave empty to always match. |
+| Guild ID (optional) | Filter on **Guild ID (optional)**. Configure in the trigger condition editor. |
+| Channel ID (optional) | Filter on **Channel ID (optional)**. Configure in the trigger condition editor. |
+
+## Related
+
+- [Discord plugin](/docs/plugins/discord)
+- [Triggers guide](/docs/guide/triggers)

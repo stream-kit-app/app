@@ -11,6 +11,31 @@ description: "Rankings trigger: rankings:rankings:points-earned"
 | **Plugin** | Rankings |
 | **Category** | Rankings |
 
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "userId", type: "string", description: "Platform user ID of the chatter or actor." },
+  { name: "username", type: "string", description: "Login name of the user (lowercase on Twitch)." },
+  { name: "platform", type: "object", description: "Platform key for the user (`twitch`, `youtube`, …)." },
+  { name: "totalPoints", type: "number", description: "User total points after the rankings event." },
+  { name: "watchTimeSeconds", type: "number", description: "Accumulated watch time in seconds for the user." },
+  { name: "source", type: "string", description: "Event source (platform such as `twitch`/`youtube`, or rankings source such as `watch-time`/`manual`).", example: "manual" },
+  { name: "amount", type: "number", description: "Numeric amount for the event (bits, points awarded, Super Chat value, etc.).", example: "10" },
+  { name: "previousRank", type: "RankRecord | null", description: "Rank record before the change (JSON), when applicable." },
+  { name: "currentRank", type: "RankRecord | null", description: "Rank record after the change (JSON), when applicable." },
+  { name: "previousTier", type: "TierRecord | null", description: "Tier record before the change (JSON), when applicable." },
+  { name: "currentTier", type: "TierRecord | null", description: "Tier record after the change (JSON), when applicable." }
+]} />
+
+## Conditions
+
+| Condition | Description |
+| --- | --- |
+| source | Filter on **source**. Configure in the trigger condition editor. |
+| minimum Amount | Filter on **minimum Amount**. Configure in the trigger condition editor. |
+
 ## Related
 
 - [Rankings plugin](/docs/plugins/rankings)

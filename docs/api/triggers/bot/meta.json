@@ -2,7 +2,7 @@
   "title": "Bot",
   "pages": [
     "index",
-    "moderation-rule",
-    "chat-message"
+    "chat-message",
+    "moderation-rule"
   ]
 }

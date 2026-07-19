@@ -2,6 +2,7 @@ import type { CommandMatch } from '@stream-kit/core';
 import type { PluginAppApi } from '@stream-kit/plugin';
 import type { CommandRecord } from '@stream-kit/plugin';
 
+import { getCommandsService } from '../app/lib/get-commands';
 import { sendChatMessage } from '../../lib/send-chat-message';
 import {
 	formatCooldownChatMessage,
@@ -72,7 +73,6 @@ export async function executeCommand(
 		return;
 	}
 
-
 	const cooldownBlock = getCooldownBlock(
 		cooldownState,
 		command.id,
@@ -96,11 +96,7 @@ export async function executeCommand(
 		return;
 	}
 
-	app.commands.runById(command.id, {
-		trigger: 'Command',
-		data: buildCommandContext(context, match)
-	});
-
+	// Reserve cooldown before handlers run so overlapping chat events cannot both execute.
 	markCooldown(
 		cooldownState,
 		command.id,
@@ -108,4 +104,9 @@ export async function executeCommand(
 		command.cooldownGlobalMs,
 		command.cooldownUserMs
 	);
+
+	await getCommandsService().runByIdAsync(command.id, {
+		trigger: 'Command',
+		data: buildCommandContext(context, match)
+	});
 }

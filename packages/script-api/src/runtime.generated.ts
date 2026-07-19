@@ -1181,6 +1181,35 @@ type EventSubModerationContext = TwitchBaseContext & {
 	userId: string;
 	reason?: string;
 };
+type GoalContext = TwitchBaseContext & {
+	goalId: string;
+	type: string;
+	description: string;
+	currentAmount: number;
+	targetAmount: number;
+	isAchieved?: boolean;
+};
+type CharityContext = TwitchBaseContext & {
+	campaignId: string;
+	charityName: string;
+	currency: string;
+	currentAmount?: number;
+	targetAmount?: number;
+	user?: string;
+	userId?: string;
+	amount?: number;
+};
+type AdBreakContext = TwitchBaseContext & {
+	durationSeconds: number;
+	isAutomatic: boolean;
+	requester: string;
+	requesterId: string;
+};
+type ShoutoutReceivedContext = TwitchBaseContext & {
+	user: string;
+	userId: string;
+	viewers: number;
+};
 type TwitchContext = | ChatMessageContext
 	| WhisperContext
 	| CheerContext
@@ -1200,7 +1229,11 @@ type TwitchContext = | ChatMessageContext
 	| HypeTrainContext
 	| PollContext
 	| PredictionContext
-	| EventSubModerationContext;
+	| EventSubModerationContext
+	| GoalContext
+	| CharityContext
+	| AdBreakContext
+	| ShoutoutReceivedContext;
 type YouTubeAuthorDetails = {
 	channelId: string;
 	channelUrl: string;
@@ -1535,7 +1568,7 @@ type OverlayMessageContext = {
 	timestamp: number;
 };
 
-type TriggerDataUnion = ProcessEventContext | AppLifecycleContext | TwitchBaseContext | ChatMessageContext | WhisperContext | CheerContext | RedemptionContext | CommandContext | HypeChatContext | SubContext | GiftSubContext | CommunitySubContext | RaidContext | ModerationContext | UserJoinPartContext | StreamContext | FollowContext | ChannelUpdateContext | PointsRedemptionContext | HypeTrainContext | PollContext | PredictionContext | EventSubModerationContext | TwitchContext | YouTubeBaseContext | SuperChatContext | SuperStickerContext | NewMemberContext | MemberMilestoneContext | MembershipGiftContext | GiftMembershipReceivedContext | GiftContext | MessageDeletedContext | SponsorsOnlyContext | ChatEndedContext | YouTubeContext | SceneChangedContext | OutputStateContext | RecordFileChangedContext | TransitionContext | InputStateContext | MediaContext | MediaActionContext | FilterContext | ReplayBufferContext | VirtualCamContext | StudioModeContext | ObsContext | ScheduleEventContext | WsMessageContext | WsConnectionStateContext | OverlayMessageContext;
+type TriggerDataUnion = ProcessEventContext | AppLifecycleContext | TwitchBaseContext | ChatMessageContext | WhisperContext | CheerContext | RedemptionContext | CommandContext | HypeChatContext | SubContext | GiftSubContext | CommunitySubContext | RaidContext | ModerationContext | UserJoinPartContext | StreamContext | FollowContext | ChannelUpdateContext | PointsRedemptionContext | HypeTrainContext | PollContext | PredictionContext | EventSubModerationContext | GoalContext | CharityContext | AdBreakContext | ShoutoutReceivedContext | TwitchContext | YouTubeBaseContext | SuperChatContext | SuperStickerContext | NewMemberContext | MemberMilestoneContext | MembershipGiftContext | GiftMembershipReceivedContext | GiftContext | MessageDeletedContext | SponsorsOnlyContext | ChatEndedContext | YouTubeContext | SceneChangedContext | OutputStateContext | RecordFileChangedContext | TransitionContext | InputStateContext | MediaContext | MediaActionContext | FilterContext | ReplayBufferContext | VirtualCamContext | StudioModeContext | ObsContext | ScheduleEventContext | WsMessageContext | WsConnectionStateContext | OverlayMessageContext;
 `;
 export const triggerMap = {
 	"core:core:input:hotkey": "HotkeyEventContext",
@@ -1549,6 +1582,12 @@ export const triggerMap = {
 	"core:processes:process-stopped": "ProcessEventContext",
 	"core:app:app-started": "AppLifecycleContext",
 	"core:app:app-exit": "AppLifecycleContext",
+	"discord:discord:message:message-received": "MessageReceivedContext",
+	"discord:discord:role:role-added": "RoleChangedContext",
+	"discord:discord:role:role-removed": "RoleChangedContext",
+	"discord:discord:voice:voice-join": "VoiceStateChangedContext",
+	"discord:discord:voice:voice-leave": "VoiceStateChangedContext",
+	"discord:discord:voice:voice-move": "VoiceStateChangedContext",
 	"obs:obs:scene:preview-scene-changed": "SceneChangedContext",
 	"obs:obs:stream:createstreamstartingtrigger": "OutputStateContext",
 	"obs:obs:stream:stream-started": "OutputStateContext",
@@ -1563,6 +1602,7 @@ export const triggerMap = {
 	"obs:obs:replay-buffer:replay-buffer-started": "OutputStateContext",
 	"obs:obs:virtual-cam:virtual-camera-started": "OutputStateContext",
 	"obs:obs:studio-mode:studio-mode-enabled": "StudioModeContext",
+	"stream-deck:stream-deck:key-down": "StreamDeckEventContext",
 	"twitch:twitch:chat:chat-message": "ChatMessageContext",
 	"twitch:twitch:chat:cheer": "CheerContext",
 	"twitch:twitch:chat:whisper": "WhisperContext",
@@ -1594,6 +1634,15 @@ export const triggerMap = {
 	"twitch:twitch:predictions:prediction-begin": "PredictionContext",
 	"twitch:twitch:predictions:prediction-lock": "PredictionContext",
 	"twitch:twitch:predictions:prediction-end": "PredictionContext",
+	"twitch:twitch:goals:goal-begin": "GoalContext",
+	"twitch:twitch:goals:goal-progress": "GoalContext",
+	"twitch:twitch:goals:goal-end": "GoalContext",
+	"twitch:twitch:charity:charity-campaign-start": "CharityContext",
+	"twitch:twitch:charity:charity-campaign-progress": "CharityContext",
+	"twitch:twitch:charity:charity-campaign-stop": "CharityContext",
+	"twitch:twitch:charity:charity-donation": "CharityContext",
+	"twitch:twitch:ads:ad-break-begin": "AdBreakContext",
+	"twitch:twitch:shoutouts:shoutout-received": "ShoutoutReceivedContext",
 	"websocket:websocket:message-received": "WsMessageContext",
 	"websocket:websocket:connected": "WsConnectionStateContext",
 	"websocket:websocket:disconnected": "WsConnectionStateContext",

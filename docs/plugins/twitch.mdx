@@ -36,7 +36,7 @@ The plugin reports **configured** when OAuth completes and the connection is hea
 | --- | --- |
 | **Chat** | Messages, cheers, whispers, hype chat, redemptions |
 | **Engagement** | Follows, subs, gifts, raids, joins/parts |
-| **Channel** | Stream online/offline, channel update |
+| **Channel** | Stream online/offline, channel update, goals, charity, ad breaks, shoutouts received |
 | **Moderation** | Ban, timeout, shield mode, warn, delete message |
 | **Interactive** | Polls, predictions, hype train |
 | **Actions** | Send message, announcement, shoutout, clips, commercials, raids, VIP/mod, get user info |
@@ -52,7 +52,10 @@ The plugin reports **configured** when OAuth completes and the connection is hea
 | --- | --- |
 | Chat message | `twitch:twitch:chat:chat-message` |
 | New follower | `twitch:twitch:channel:new-follower` |
-| Channel point redemption | `twitch:twitch:channel:channel-point-redemption` |
+| Channel point redemption (chat) | `twitch:twitch:chat:channel-point-redemption` |
+| Reward redeemed (EventSub) | `twitch:twitch:channel-points:reward-redeemed` |
+
+Use the **chat** redemption trigger for IRC-style redemption messages, and **Reward Redeemed** for the EventSub channel-points event (richer reward metadata).
 
 ## Bot integration
 

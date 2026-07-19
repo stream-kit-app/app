@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Dial Control</title>
+		<link rel="stylesheet" href="pi.css" />
+		<script src="sdpi-components.js"></script>
+	</head>
+	<body>
+		<div class="pi-section">Connection</div>
+		<sdpi-item label="Host">
+			<sdpi-textfield setting="host" global placeholder="127.0.0.1"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Port">
+			<sdpi-textfield setting="port" global placeholder="7892"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Access token">
+			<sdpi-password setting="token" global placeholder="API Server token"></sdpi-password>
+		</sdpi-item>
+		<sdpi-item label="Auto-reconnect">
+			<sdpi-checkbox setting="autoReconnect" global default="true">
+				Reconnect automatically
+			</sdpi-checkbox>
+		</sdpi-item>
+
+		<div class="pi-section">Dial</div>
+		<sdpi-item label="Action ID">
+			<sdpi-textfield setting="actionId" placeholder="Optional"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Run on rotate">
+			<sdpi-checkbox setting="runActionOnRotate">Run action when the dial rotates</sdpi-checkbox>
+		</sdpi-item>
+		<sdpi-item label="Alias">
+			<sdpi-textfield setting="alias" placeholder="volume-dial"></sdpi-textfield>
+		</sdpi-item>
+
+		<div class="pi-note">
+			Dial events are always reported to Stream Kit. Set an action ID if you also want Stream Kit to run
+			an action on push or rotate.
+		</div>
+	</body>
+</html>

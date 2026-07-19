@@ -342,43 +342,95 @@ function splitTopLevelObjects(source) {
 }
 
 /**
+ * Slice from an export declaration to the next top-level export / EOF.
  * @param {string} content
- * @param {string | undefined} factoryName
+ * @param {number} startIndex
  */
-function extractExportFunctionBody(content, factoryName) {
-	if (!factoryName) {
-		return content;
-	}
+function sliceUntilNextExport(content, startIndex) {
+	const rest = content.slice(startIndex);
+	const nextExport = rest.search(/\nexport\s+/);
+	return nextExport === -1 ? rest : rest.slice(0, nextExport);
+}
 
-	const fnPattern = new RegExp(`export\\s+function\\s+${factoryName}\\s*\\(`);
-	const match = fnPattern.exec(content);
+/**
+ * Extract a function body after its parameter list (skips typed `{…}` in params).
+ * @param {string} content
+ * @param {number} matchIndex index of `function name` / `export function name`
+ * @returns {string | null}
+ */
+function extractFunctionBodyAfterParams(content, matchIndex) {
+	const parenStart = content.indexOf('(', matchIndex);
+	if (parenStart === -1) return null;
 
-	if (!match) {
-		return content;
-	}
+	const { end: afterParams } = extractBalancedParens(content, parenStart);
+	const after = content.slice(afterParams);
+	const bodyIntro = after.match(/^\s*(?::[^=;{]+)?\s*\{/);
+	if (!bodyIntro) return null;
 
-	const openBrace = content.indexOf('{', match.index);
-
-	if (openBrace === -1) {
-		return content;
-	}
-
+	const openBrace = afterParams + bodyIntro[0].length - 1;
 	return extractBalancedBraces(content, openBrace).content;
 }
 
 /**
+ * Extract the source region for one factory so multi-export files do not
+ * collapse onto the first `name:` in the file.
+ *
+ * Supports exported and local helpers:
+ * - `export function createFoo(...) { ... }`
+ * - `function createFoo(...) { ... }`
+ * - `export const createFoo = (app) => ({ ... })`
+ * - `export const createFoo = createHof('Name', ...)`
+ *
  * @param {string} content
- * @param {string | undefined} [factoryName]
+ * @param {string | undefined} factoryName
+ * @returns {{ scoped: string, hofName?: string, hofCallee?: string }}
  */
-export function parseDefinitionProps(content, factoryName) {
-	const scopedContent = extractExportFunctionBody(content, factoryName);
-	const nameMatch = scopedContent.match(/name:\s*['"]([^'"]+)['"]/);
+function extractExportScope(content, factoryName) {
+	if (!factoryName) {
+		return { scoped: content };
+	}
+
+	const exportFn = new RegExp(`export\\s+function\\s+${factoryName}\\s*\\(`).exec(content);
+	if (exportFn) {
+		const body = extractFunctionBodyAfterParams(content, exportFn.index);
+		if (body != null) return { scoped: body };
+	}
+
+	const localFn = new RegExp(`(?:^|\\n)\\s*function\\s+${factoryName}\\s*\\(`).exec(content);
+	if (localFn) {
+		const body = extractFunctionBodyAfterParams(content, localFn.index);
+		if (body != null) return { scoped: body };
+	}
+
+	const constPattern = new RegExp(`export\\s+const\\s+${factoryName}\\s*=`);
+	const constMatch = constPattern.exec(content);
+	if (!constMatch) {
+		return { scoped: content };
+	}
+
+	const rhsStart = constMatch.index + constMatch[0].length;
+	const scoped = sliceUntilNextExport(content, rhsStart).trim();
+
+	// HOF alias: createFoo = createBar('Display Name', ...)
+	const hofCall = scoped.match(/^(create[A-Za-z]+)\s*\(\s*['"]([^'"]+)['"]/);
+	if (hofCall && !/^\(/.test(scoped) && !/^async\s*\(/.test(scoped)) {
+		return { scoped, hofName: hofCall[2], hofCallee: hofCall[1] };
+	}
+
+	return { scoped };
+}
+
+/**
+ * Parse fields / conditions / onTest from a definition object body.
+ * @param {string} scopedContent
+ */
+function parsePropsFromScopedContent(scopedContent) {
 	/** @type {{ name: string, type: string, required?: boolean, description?: string, placeholder?: string }[]} */
 	const fields = [];
 
-	const fieldsIndex = scopedContent.indexOf('fields:');
-	if (fieldsIndex !== -1) {
-		const bracketStart = scopedContent.indexOf('[', fieldsIndex);
+	const fieldsMatch = /\bfields:\s*\[/.exec(scopedContent);
+	if (fieldsMatch) {
+		const bracketStart = fieldsMatch.index + fieldsMatch[0].length - 1;
 		const fieldsBlock = extractBalanced(scopedContent, bracketStart);
 
 		for (const block of splitTopLevelObjects(fieldsBlock)) {
@@ -396,24 +448,96 @@ export function parseDefinitionProps(content, factoryName) {
 
 	/** @type {{ name: string, fnName: string, key: string }[]} */
 	const conditions = [];
-	const conditionsIndex = scopedContent.indexOf('conditions:');
-	if (conditionsIndex !== -1) {
-		const bracketStart = content.indexOf('[', conditionsIndex);
-		if (bracketStart !== -1) {
-			const conditionsBlock = extractBalanced(content, bracketStart);
-			conditions.push(...parseConditionCalls(conditionsBlock));
-		}
+	// Require `conditions: [` so parameter names like `(conditions: …)` are ignored.
+	const conditionsMatch = /\bconditions:\s*\[/.exec(scopedContent);
+	if (conditionsMatch) {
+		const bracketStart = conditionsMatch.index + conditionsMatch[0].length - 1;
+		const conditionsBlock = extractBalanced(scopedContent, bracketStart);
+		conditions.push(...parseConditionCalls(conditionsBlock));
 	}
 
-	const onTestMatch = content.match(/onTest:\s*createOnTest\(\(\)\s*=>\s*create(\w+)\(/);
+	// `onTest: createOnTest(() => createFoo(` or bare `onTest: () => createFoo(`
+	const onTestMatch = scopedContent.match(
+		/onTest:\s*(?:createOnTest\()?\(\)\s*=>\s*create(\w+)\(/
+	);
 	const testFactory = onTestMatch ? `create${onTestMatch[1]}` : null;
+
+	const nameMatch = scopedContent.match(/name:\s*['"]([^'"]+)['"]/);
 
 	return {
 		name: nameMatch?.[1],
-		explicitId: undefined,
 		fields,
 		conditions,
 		testFactory
+	};
+}
+
+/**
+ * @param {{
+ *   name?: string,
+ *   fields: { name: string, type: string, required?: boolean, placeholder?: string }[],
+ *   conditions: { name: string, fnName: string, key: string }[],
+ *   testFactory: string | null
+ * }} base
+ * @param {{
+ *   name?: string,
+ *   fields: { name: string, type: string, required?: boolean, placeholder?: string }[],
+ *   conditions: { name: string, fnName: string, key: string }[],
+ *   testFactory: string | null
+ * }} extra
+ */
+function mergeDefinitionProps(base, extra) {
+	return {
+		name: base.name ?? extra.name,
+		fields: base.fields.length ? base.fields : extra.fields,
+		conditions: base.conditions.length ? base.conditions : extra.conditions,
+		testFactory: base.testFactory ?? extra.testFactory
+	};
+}
+
+/**
+ * @param {string} content
+ * @param {string | undefined} [factoryName]
+ * @param {string} [pluginDir] when set, resolve delegated create* helpers for conditions/onTest
+ */
+export function parseDefinitionProps(content, factoryName, pluginDir) {
+	const { scoped, hofName, hofCallee } = extractExportScope(content, factoryName);
+	let props = parsePropsFromScopedContent(scoped);
+
+	// HOF alias in the same file: createPaused = createRecordingStateTrigger('…', …)
+	if (hofCallee && hofCallee !== factoryName) {
+		const hofScope = extractExportScope(content, hofCallee);
+		if (hofScope.scoped !== content) {
+			props = mergeDefinitionProps(props, parsePropsFromScopedContent(hofScope.scoped));
+		}
+	}
+
+	// Wrappers like: (app) => createInputMatchTrigger(app, { name: '...', ... })
+	if (pluginDir && (!props.testFactory || props.conditions.length === 0)) {
+		const delegateMatch = scoped.match(/\b(create[A-Za-z]+)\(\s*(?:app|_app)\s*,/);
+		if (delegateMatch && delegateMatch[1] !== factoryName) {
+			const delegateFile = findFactoryFile(pluginDir, delegateMatch[1]);
+			if (delegateFile) {
+				const delegated = parseDefinitionProps(
+					fs.readFileSync(delegateFile, 'utf8'),
+					delegateMatch[1]
+				);
+				props = mergeDefinitionProps(props, {
+					name: delegated.name,
+					fields: delegated.fields,
+					conditions: delegated.conditions,
+					testFactory: delegated.testFactory
+				});
+			}
+		}
+	}
+
+	return {
+		name: props.name ?? hofName,
+		explicitId: undefined,
+		fields: props.fields,
+		conditions: props.conditions,
+		testFactory: props.testFactory
 	};
 }
 
@@ -469,15 +593,10 @@ function extractTypeBody(content, start) {
 }
 
 /**
- * @param {string} contextsPath
+ * @param {string} content
+ * @param {Map<string, Map<string, string>>} [into]
  */
-export function parseContextTypes(contextsPath) {
-	/** @type {Map<string, Map<string, string>>} */
-	const types = new Map();
-
-	if (!fs.existsSync(contextsPath)) return types;
-
-	const content = fs.readFileSync(contextsPath, 'utf8');
+function parseContextTypesFromContent(content, into = new Map()) {
 	const rawTypes = [];
 
 	for (const match of content.matchAll(/export type (\w+)\s*=\s*/g)) {
@@ -488,15 +607,95 @@ export function parseContextTypes(contextsPath) {
 	}
 
 	for (const entry of rawTypes) {
-		types.set(entry.typeName, new Map());
+		if (!into.has(entry.typeName)) {
+			into.set(entry.typeName, new Map());
+		}
 	}
 
 	for (const entry of rawTypes) {
-		const fields = resolveTypeFields(entry.body, content, types, new Set());
-		types.set(entry.typeName, fields);
+		const fields = resolveTypeFields(entry.body, content, into, new Set());
+		if (fields.size > 0) {
+			into.set(entry.typeName, fields);
+		}
 	}
 
+	return into;
+}
+
+/**
+ * @param {string} contextsPath
+ */
+export function parseContextTypes(contextsPath) {
+	/** @type {Map<string, Map<string, string>>} */
+	const types = new Map();
+
+	if (!fs.existsSync(contextsPath)) return types;
+
+	return parseContextTypesFromContent(fs.readFileSync(contextsPath, 'utf8'), types);
+}
+
+/**
+ * Collect `export type …Context` (and related) fields from the whole plugin src tree.
+ * @param {string} pluginDir
+ */
+export function parseAllContextTypes(pluginDir) {
+	/** @type {Map<string, Map<string, string>>} */
+	const types = new Map();
+	const srcDir = path.join(pluginDir, 'src');
+	if (!fs.existsSync(srcDir)) return types;
+
+	/** @param {string} dir */
+	function walk(dir) {
+		for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+			const full = path.join(dir, entry.name);
+			if (entry.isDirectory()) {
+				walk(full);
+			} else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) {
+				const content = fs.readFileSync(full, 'utf8');
+				if (content.includes('export type ')) {
+					parseContextTypesFromContent(content, types);
+				}
+			}
+		}
+	}
+
+	walk(srcDir);
 	return types;
+}
+
+/**
+ * Find a file that defines `functionName` (export or local).
+ * @param {string} pluginDir
+ * @param {string} functionName
+ */
+export function findFunctionFile(pluginDir, functionName) {
+	if (!functionName) return null;
+
+	const srcDir = path.join(pluginDir, 'src');
+	if (!fs.existsSync(srcDir)) return null;
+
+	/** @param {string} dir */
+	function walk(dir) {
+		for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+			const full = path.join(dir, entry.name);
+			if (entry.isDirectory()) {
+				const found = walk(full);
+				if (found) return found;
+			} else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) {
+				const content = fs.readFileSync(full, 'utf8');
+				if (
+					content.includes(`export function ${functionName}`) ||
+					content.includes(`function ${functionName}(`) ||
+					content.includes(`export const ${functionName}`)
+				) {
+					return full;
+				}
+			}
+		}
+		return null;
+	}
+
+	return walk(srcDir);
 }
 
 /**
@@ -558,24 +757,53 @@ function formatSampleValue(raw) {
 }
 
 /**
- * @param {string} testContextsPath
+ * @param {string} content
+ * @param {string} testFactory
+ * @returns {number} start index of the function declaration, or -1
+ */
+function findFunctionStart(content, testFactory) {
+	const patterns = [
+		new RegExp(`export\\s+function\\s+${testFactory}\\s*\\(`),
+		new RegExp(`(?:^|\\n)\\s*function\\s+${testFactory}\\s*\\(`),
+		new RegExp(`export\\s+const\\s+${testFactory}\\s*=`)
+	];
+
+	for (const pattern of patterns) {
+		const match = pattern.exec(content);
+		if (match) return match.index;
+	}
+
+	return -1;
+}
+
+/**
+ * @param {string} content
+ * @param {number} fnStart
+ */
+function parseReturnTypeAt(content, fnStart) {
+	const parenStart = content.indexOf('(', fnStart);
+	if (parenStart === -1) return null;
+
+	const { end: afterParams } = extractBalancedParens(content, parenStart);
+	const typeMatch = content.slice(afterParams).match(/^\s*:\s*([A-Za-z_][\w]*)/);
+	return typeMatch?.[1] ?? null;
+}
+
+/**
+ * @param {string} content
  * @param {string | null} testFactory
  */
-export function parseTestContextDetails(testContextsPath, testFactory) {
-	if (!testFactory || !fs.existsSync(testContextsPath)) {
+export function parseTestContextDetailsFromContent(content, testFactory) {
+	if (!testFactory) {
 		return { contextType: null, variables: [] };
 	}
 
-	const content = fs.readFileSync(testContextsPath, 'utf8');
-	const fnStart = content.indexOf(`export function ${testFactory}`);
+	const fnStart = findFunctionStart(content, testFactory);
 	if (fnStart === -1) {
 		return { contextType: null, variables: [] };
 	}
 
-	const headerMatch = content
-		.slice(fnStart, fnStart + 300)
-		.match(new RegExp(`export function ${testFactory}\\([\\s\\S]*?\\)\\s*:\\s*([\\w]+)`));
-	const contextType = headerMatch?.[1] ?? null;
+	const contextType = parseReturnTypeAt(content, fnStart);
 
 	const returnIdx = content.indexOf('return {', fnStart);
 	const fnSlice = content.slice(fnStart, returnIdx === -1 ? fnStart + 4000 : returnIdx);
@@ -618,6 +846,59 @@ export function parseTestContextDetails(testContextsPath, testFactory) {
 	}
 
 	return { contextType, variables };
+}
+
+/**
+ * @param {string} testContextsPath
+ * @param {string | null} testFactory
+ */
+export function parseTestContextDetails(testContextsPath, testFactory) {
+	if (!testFactory || !fs.existsSync(testContextsPath)) {
+		return { contextType: null, variables: [] };
+	}
+
+	return parseTestContextDetailsFromContent(fs.readFileSync(testContextsPath, 'utf8'), testFactory);
+}
+
+/**
+ * Resolve test-context variables from the factory file, dedicated helpers, or any match in the plugin.
+ * @param {string} pluginDir
+ * @param {string | null | undefined} testFactory
+ * @param {string | null} [hintFile]
+ */
+export function resolveTestContextDetails(pluginDir, testFactory, hintFile = null) {
+	if (!testFactory) {
+		return { contextType: null, variables: [] };
+	}
+
+	/** @type {string[]} */
+	const candidates = [];
+	if (hintFile) candidates.push(hintFile);
+
+	const found = findFunctionFile(pluginDir, testFactory);
+	if (found) candidates.push(found);
+
+	const defaults = [
+		path.join(pluginDir, 'src', 'lib', 'test-contexts.ts'),
+		path.join(pluginDir, 'src', 'lib', 'test-collection-contexts.ts'),
+		path.join(pluginDir, 'src', 'lib', 'schedule-service.ts'),
+		path.join(pluginDir, 'src', 'lib', 'bot-trigger-helpers.ts')
+	];
+	for (const file of defaults) {
+		if (fs.existsSync(file)) candidates.push(file);
+	}
+
+	const seen = new Set();
+	for (const file of candidates) {
+		if (seen.has(file) || !fs.existsSync(file)) continue;
+		seen.add(file);
+		const details = parseTestContextDetailsFromContent(fs.readFileSync(file, 'utf8'), testFactory);
+		if (details.contextType || details.variables.length > 0) {
+			return details;
+		}
+	}
+
+	return { contextType: null, variables: [] };
 }
 
 /**

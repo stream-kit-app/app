@@ -70,6 +70,7 @@ function getFilterName(key) {
 	const filters = {
 		bot: '@stream-kit/plugin-bot',
 		core: '@stream-kit/plugin-handlers',
+		discord: '@stream-kit/plugin-discord',
 		obs: '@stream-kit/plugin-obs',
 		tts: '@stream-kit/plugin-tts',
 		twitch: '@stream-kit/plugin-twitch',

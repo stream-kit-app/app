@@ -2,7 +2,9 @@ import type { PluginAppApi } from '@stream-kit/plugin';
 import type { ChatMessage } from '@twurple/chat';
 
 import type {
+	AdBreakContext,
 	ChannelUpdateContext,
+	CharityContext,
 	ChatMessageContext,
 	CheerContext,
 	CommandContext,
@@ -10,6 +12,7 @@ import type {
 	EventSubModerationContext,
 	FollowContext,
 	GiftSubContext,
+	GoalContext,
 	HypeChatContext,
 	HypeTrainContext,
 	ModerationContext,
@@ -18,6 +21,7 @@ import type {
 	PredictionContext,
 	RaidContext,
 	RedemptionContext,
+	ShoutoutReceivedContext,
 	StreamContext,
 	SubContext,
 	UserJoinPartContext,
@@ -244,5 +248,59 @@ export function createTestEventSubModerationContext(app: PluginAppApi): EventSub
 		user: 'TestUser',
 		userId: '999001',
 		reason: 'Test moderation reason'
+	};
+}
+
+export function createTestGoalContext(app: PluginAppApi): GoalContext {
+	return {
+		...createBase(app),
+		goalId: 'test-goal-id',
+		type: 'follower',
+		description: 'Reach 100 followers',
+		currentAmount: 42,
+		targetAmount: 100,
+		isAchieved: false
+	};
+}
+
+export function createTestCharityContext(app: PluginAppApi): CharityContext {
+	return {
+		...createBase(app),
+		campaignId: 'test-campaign-id',
+		charityName: 'Test Charity',
+		currency: 'USD',
+		currentAmount: 250,
+		targetAmount: 1000
+	};
+}
+
+export function createTestCharityDonationContext(app: PluginAppApi): CharityContext {
+	return {
+		...createBase(app),
+		campaignId: 'test-campaign-id',
+		charityName: 'Test Charity',
+		currency: 'USD',
+		user: 'TestDonor',
+		userId: '999002',
+		amount: 25
+	};
+}
+
+export function createTestAdBreakContext(app: PluginAppApi): AdBreakContext {
+	return {
+		...createBase(app),
+		durationSeconds: 60,
+		isAutomatic: false,
+		requester: 'TestBroadcaster',
+		requesterId: '123456'
+	};
+}
+
+export function createTestShoutoutReceivedContext(app: PluginAppApi): ShoutoutReceivedContext {
+	return {
+		...createBase(app),
+		user: 'ShoutingOutStreamer',
+		userId: '999003',
+		viewers: 150
 	};
 }

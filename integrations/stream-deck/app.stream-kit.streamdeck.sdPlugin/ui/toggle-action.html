@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Toggle Action</title>
+		<link rel="stylesheet" href="pi.css" />
+		<script src="sdpi-components.js"></script>
+	</head>
+	<body>
+		<div class="pi-section">Connection</div>
+		<sdpi-item label="Host">
+			<sdpi-textfield setting="host" global placeholder="127.0.0.1"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Port">
+			<sdpi-textfield setting="port" global placeholder="7892"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Access token">
+			<sdpi-password setting="token" global placeholder="API Server token"></sdpi-password>
+		</sdpi-item>
+		<sdpi-item label="Auto-reconnect">
+			<sdpi-checkbox setting="autoReconnect" global default="true">
+				Reconnect automatically
+			</sdpi-checkbox>
+		</sdpi-item>
+
+		<div class="pi-section">Toggle</div>
+		<sdpi-item label="Action ID (on)">
+			<sdpi-textfield setting="actionIdOn" placeholder="10"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Action ID (off)">
+			<sdpi-textfield setting="actionIdOff" placeholder="11"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Alias">
+			<sdpi-textfield setting="alias" placeholder="mic-toggle"></sdpi-textfield>
+		</sdpi-item>
+
+		<div class="pi-note">
+			Pressing the key alternates between the on/off action IDs and flips the key state. Use the same
+			connection token as other Stream Kit keys.
+		</div>
+	</body>
+</html>

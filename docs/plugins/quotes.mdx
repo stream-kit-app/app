@@ -1,0 +1,54 @@
+---
+title: Quotes
+description: Save and recall memorable chat quotes with bot commands and a management UI.
+---
+
+# Quotes
+
+The Quotes plugin stores memorable chat moments and lets viewers recall them with bot commands. Manage the full list from the **Quotes** page in the sidebar.
+
+## Requirements
+
+- [Core](/docs/plugins/core) — action handlers
+- [Bot](/docs/plugins/bot) — default chat commands (`!quote`, `!addquote`, `!delquote`)
+- [Twitch](/docs/plugins/twitch) — chat replies from handlers
+
+## Pages
+
+Open **Quotes** in the sidebar:
+
+| Page | Description |
+| --- | --- |
+| **Quotes** | Search, add, edit, and delete saved quotes |
+
+Each quote has a sequential **ID**, the quote text, an **author** (who said it), and when it was saved. Chat `!addquote` uses the chatter as author; the Quotes page lets you set the author manually.
+
+## Default commands (disabled)
+
+Seeded under the **quotes** command group — enable them on **Bot → Commands**:
+
+| Command | Triggers | Permission | Description |
+| --- | --- | --- | --- |
+| Quote | `!quote`, `!quote <id>` | Everyone | Random quote, or a specific ID |
+| Add quote | `!addquote <quote>` | Mod | Save a new quote |
+| Delete quote | `!delquote <id>` | Mod | Remove a quote by ID |
+
+## Handlers
+
+Under **Quotes** in the action editor:
+
+| Handler | Description |
+| --- | --- |
+| **Add quote** | Persist quote text (from a field or `{quote}` command arg) and optionally reply in chat |
+| **Send quote message** | Post a quote by ID or pick a random one; template vars `{id}`, `{quote}` / `{text}`, `{addedBy}`, `{createdAt}`. Configurable chat replies when the ID is missing or the list is empty. |
+| **Delete quote** | Remove a quote by ID and optionally reply |
+
+Full reference with stable IDs: [Quotes handlers](/docs/api/handlers/quotes/).
+
+## Example workflow
+
+1. Enable the Quotes plugin.
+2. On **Bot → Commands**, enable **Quote**, **Add quote**, and **Delete quote**.
+3. In chat: `!addquote Never trust a loading screen`
+4. Anyone can run `!quote` for a random quote, or `!quote 1` for ID 1.
+5. Edit or remove quotes anytime on the **Quotes** page.

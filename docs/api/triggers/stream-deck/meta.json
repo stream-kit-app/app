@@ -1,0 +1,16 @@
+{
+  "title": "Stream Deck",
+  "pages": [
+    "index",
+    "connected",
+    "dial-down",
+    "dial-rotate",
+    "dial-up",
+    "disconnected",
+    "key-down",
+    "key-up",
+    "touch-tap",
+    "will-appear",
+    "will-disappear"
+  ]
+}

@@ -1,4 +1,4 @@
 {
   "title": "Plugins",
-  "pages": ["core", "bot", "rankings", "twitch", "youtube", "obs", "tts", "websocket", "overlay"]
+  "pages": ["core", "bot", "rankings", "quotes", "twitch", "youtube", "discord", "obs", "tts", "websocket", "stream-deck", "overlay"]
 }

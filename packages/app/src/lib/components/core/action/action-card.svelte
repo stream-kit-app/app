@@ -13,6 +13,8 @@
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
+	import ActionIdCopy from './action-id-copy.svelte';
+
 	type Definition = { id: string; name: string; isAvailable: boolean };
 
 	type Props = {
@@ -187,6 +189,7 @@
 
 	<div class="flex shrink-0 items-center gap-1">
 		{#if action.id != null}
+			<ActionIdCopy id={action.id} variant="badge" />
 			<Button
 				variant="outline"
 				size="icon"

@@ -300,6 +300,7 @@ export class RankingsService {
 		return {
 			totalUsers: this.users.length,
 			totalPointsAwarded: this.users.reduce((sum, user) => sum + user.totalPoints, 0),
+			totalWatchTimeSeconds: this.users.reduce((sum, user) => sum + user.watchTimeSeconds, 0),
 			topUsers,
 			tierDistribution
 		};

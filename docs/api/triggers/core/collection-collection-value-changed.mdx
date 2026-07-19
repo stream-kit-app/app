@@ -1,6 +1,6 @@
 ---
 title: "Collection value changed"
-description: "Core Handlers trigger: core:core:collection:collection-value-changed"
+description: "Core trigger: core:core:collection:collection-value-changed"
 ---
 
 # Collection value changed
@@ -8,8 +8,21 @@ description: "Core Handlers trigger: core:core:collection:collection-value-chang
 | | |
 | --- | --- |
 | **Trigger ID** | `core:core:collection:collection-value-changed` |
-| **Plugin** | Core Handlers |
+| **Plugin** | Core |
 | **Category** | Collection |
+
+## Variables
+
+Copy variables into handler fields using `{variableName}` syntax.
+
+<VariablesTable variables={[
+  { name: "collectionName", type: "string", description: "Name of the collection that changed.", example: "scores" },
+  { name: "lifetime", type: "object", description: "Collection lifetime (`session` or `persistent`).", example: "session" },
+  { name: "key", type: "string", description: "Key pressed without modifiers, or collection entry key on collection triggers.", example: "player1" },
+  { name: "value", type: "string", description: "New collection value after the change.", example: "100" },
+  { name: "previousValue", type: "string", description: "Previous collection value before the change.", example: "50" },
+  { name: "changeType", type: "object", description: "Type of collection mutation (`set`, `update`, `delete`, `clear`).", example: "update" }
+]} />
 
 ## Conditions
 
@@ -24,5 +37,5 @@ description: "Core Handlers trigger: core:core:collection:collection-value-chang
 
 ## Related
 
-- [Core Handlers plugin](/docs/plugins/core)
+- [Core plugin](/docs/plugins/core)
 - [Triggers guide](/docs/guide/triggers)

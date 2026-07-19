@@ -1,0 +1,33 @@
+---
+title: Stream Deck (Elgato plugin)
+description: Build and link the Elgato Stream Deck companion plugin in the monorepo.
+---
+
+# Stream Deck Elgato plugin
+
+The Stream Kit-side plugin lives at `plugins/stream-deck`. The Elgato companion (runs inside the Stream Deck app) lives at `integrations/stream-deck`.
+
+## Commands
+
+```bash
+pnpm --filter @stream-kit/streamdeck-plugin build
+pnpm --filter @stream-kit/streamdeck-plugin check
+pnpm --filter @stream-kit/streamdeck-plugin watch
+```
+
+Install the [Stream Deck CLI](https://github.com/elgatosf/cli) for linking:
+
+```bash
+npm i -g @elgato/cli
+streamdeck dev
+pnpm --filter @stream-kit/streamdeck-plugin run link
+pnpm --filter @stream-kit/streamdeck-plugin run restart
+```
+
+`streamdeck restart` requires **developer mode** (`streamdeck dev`). Plugin logs: `integrations/stream-deck/app.stream-kit.streamdeck.sdPlugin/logs/`.
+
+Icons are generated with `node integrations/stream-deck/scripts/generate-icons.mjs`.
+
+## Protocol
+
+The Elgato plugin connects to Stream Kit’s API Server (`ws://host:port/ws?token=…`), calls `actions.runById` / `plugin:stream-deck:*`, and subscribes to `plugin:stream-deck.*` for key feedback.

@@ -3,7 +3,11 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const pluginConfigPaths = ['plugins/twitch/src/config.ts', 'plugins/youtube/src/config.ts'];
+const pluginConfigPaths = [
+	'plugins/twitch/src/config.ts',
+	'plugins/youtube/src/config.ts',
+	'plugins/discord/src/config.ts'
+];
 
 for (const configPath of pluginConfigPaths) {
 	const targetPath = join(root, configPath);

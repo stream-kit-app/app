@@ -401,13 +401,22 @@ export class Commands {
 			return false;
 		}
 
+		void this.runByIdAsync(id, context);
+		return true;
+	}
+
+	async runByIdAsync(id: string, context: HandlerTriggerContext): Promise<boolean> {
+		const command = this.items.find((item) => item.id === id);
+
+		if (!command) {
+			return false;
+		}
+
 		if (command.hasUnavailableDefinitions) {
 			command.rebindDefinitions();
 		}
 
-		command.runHandlers(context.data, context.trigger);
-
-		return true;
+		return command.runHandlersAsync(context.data, context.trigger);
 	}
 
 	async setEnabledBulk(ids: string[], enabled: boolean): Promise<void> {

@@ -31,6 +31,7 @@ export type RankingsEventMap = {
 export type RankingsStats = {
 	totalUsers: number;
 	totalPointsAwarded: number;
+	totalWatchTimeSeconds: number;
 	topUsers: UserRankingRecord[];
 	tierDistribution: Array<{ tier: TierRecord; count: number }>;
 };

@@ -200,6 +200,19 @@ export function contextToVariables(context: unknown): Record<string, string> {
 	set('level', record.level);
 	set('total', record.total);
 	set('reason', record.reason);
+	set('goalId', record.goalId);
+	set('type', record.type);
+	set('description', record.description);
+	set('currentAmount', record.currentAmount);
+	set('targetAmount', record.targetAmount);
+	set('isAchieved', record.isAchieved);
+	set('campaignId', record.campaignId);
+	set('charityName', record.charityName);
+	set('currency', record.currency);
+	set('durationSeconds', record.durationSeconds);
+	set('isAutomatic', record.isAutomatic);
+	set('requester', record.requester);
+	set('requesterId', record.requesterId);
 
 	if (record.msg && typeof record.msg === 'object') {
 		variables.msg = JSON.stringify(record.msg);

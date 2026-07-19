@@ -94,10 +94,15 @@ async function handleChatMessage(
 
 export function createChatRuntime(app: PluginAppApi, deps: ChatRuntimeDeps): () => void {
 	const cooldownState = createCooldownTracker();
+	let chain: Promise<void> = Promise.resolve();
 
 	return subscribeBotChatMessages(app, (context) => {
-		void handleChatMessage(app, deps, context, cooldownState).catch((error) => {
-			console.error('Failed to handle chat message', error);
-		});
+		// Process chat lines one at a time so cooldown replies cannot race ahead of
+		// an in-flight command that still has handlers sending chat.
+		chain = chain
+			.then(() => handleChatMessage(app, deps, context, cooldownState))
+			.catch((error) => {
+				console.error('Failed to handle chat message', error);
+			});
 	});
 }

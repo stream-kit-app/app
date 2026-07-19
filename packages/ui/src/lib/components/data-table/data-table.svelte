@@ -42,7 +42,11 @@
 
 	{#if data.length > 0}
 		<div class="bg-dark-900/50">
-			<ScrollArea orientation="vertical" class={cn(maxHeight)}>
+			<ScrollArea
+				orientation="vertical"
+				class="overflow-hidden"
+				viewportClasses={cn('w-full overflow-hidden', maxHeight)}
+			>
 				<table class="min-w-full text-sm">
 					<thead class="sticky top-0 z-10 border-b border-dark-600 bg-dark-900">
 						<tr>
