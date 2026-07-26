@@ -30,6 +30,7 @@
 	let passwordConfirm = $state('');
 	let savingPassword = $state(false);
 	let cancellingSubscription = $state(false);
+	let migratingCloudFiles = $state(false);
 
 	const account = $derived(app.auth.account);
 	const user = $derived(app.auth.user);
@@ -276,6 +277,22 @@
 			cancellingSubscription = false;
 		}
 	}
+
+	async function migrateCloudFiles(): Promise<void> {
+		if (!user?.subscription || migratingCloudFiles) {
+			return;
+		}
+
+		migratingCloudFiles = true;
+		try {
+			const { runCloudFileMigration } = await import(
+				'$lib/core/user-files/cloud-file-migration'
+			);
+			await runCloudFileMigration(app);
+		} finally {
+			migratingCloudFiles = false;
+		}
+	}
 </script>
 
 {#if !account}
@@ -398,6 +415,36 @@
 						onclick={() => void app.configSync.sync()}
 					>
 						{t('Sync now')}
+					</Button>
+				</div>
+				<div
+					class="flex flex-col gap-4 rounded-xl border border-dark-600 bg-dark-800 p-4 sm:flex-row sm:items-center sm:justify-between"
+				>
+					<div class="flex min-w-0 items-start gap-3">
+						<span
+							class="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/15 text-primary"
+							aria-hidden="true"
+						>
+							<Icon icon="ri:folder-cloud-line" class="size-5" />
+						</span>
+						<div class="min-w-0">
+							<p class="text-xs font-medium tracking-wide text-dark-400 uppercase">
+								{t('Cloud files')}
+							</p>
+							<p class="mt-1 text-sm text-dark-200">
+								{t(
+									'Re-upload files referenced by actions from a previous PocketBase host (e.g. localhost) into this account.'
+								)}
+							</p>
+						</div>
+					</div>
+					<Button
+						size="sm"
+						class="shrink-0 self-start sm:self-center"
+						disabled={migratingCloudFiles}
+						onclick={() => void migrateCloudFiles()}
+					>
+						{t('Migrate cloud files')}
 					</Button>
 				</div>
 			{/if}

@@ -2,6 +2,7 @@
 
 /**
  * Fill metadata and enforce plan upload quotas on `user_files` creates.
+ * Always bind `user` to the authenticated record (createRule only checks auth).
  * Note: `filesystem.File` has size / originalName / name — not `type`.
  */
 function mimeFromName(name) {
@@ -38,8 +39,8 @@ function applyFileMetadata(record, file) {
 	record.set('originalName', originalName);
 }
 
-function onUserFilesCreate(e) {
-	const auth = e.requestInfo().auth;
+function onUserFilesCreateRequest(e) {
+	const auth = e.auth || (e.requestInfo && e.requestInfo().auth);
 	if (!auth || !auth.id) {
 		throw new BadRequestError('You must be signed in to upload files.');
 	}
@@ -118,5 +119,5 @@ function onUserFilesUpdate(e) {
 	return e.next();
 }
 
-onRecordCreate(onUserFilesCreate, 'user_files');
+onRecordCreateRequest(onUserFilesCreateRequest, 'user_files');
 onRecordUpdate(onUserFilesUpdate, 'user_files');

@@ -31,11 +31,25 @@ function matchesListFilters(record: UserFileRecord, options?: UserFilesListOptio
 	return true;
 }
 
+/** Local PocketBase origins tried when a cloud file URL 404s on the current host. */
+const LEGACY_FILE_HOSTS = ['http://127.0.0.1:8090', 'http://localhost:8090'] as const;
+
 export function isCloudFileUrl(value: string | null | undefined): boolean {
 	if (typeof value !== 'string' || !value.trim()) {
 		return false;
 	}
 	return /^https?:\/\//i.test(value.trim());
+}
+
+export function isPocketBaseFileUrl(value: string | null | undefined): boolean {
+	if (!isCloudFileUrl(value)) {
+		return false;
+	}
+	try {
+		return new URL(value!.trim()).pathname.includes('/api/files/');
+	} catch {
+		return false;
+	}
 }
 
 /**
@@ -47,7 +61,7 @@ export function needsCloudFileHostMigration(
 	baseUrl: string | null | undefined
 ): boolean {
 	const trimmed = value.trim();
-	if (!baseUrl || !isCloudFileUrl(trimmed)) {
+	if (!baseUrl || !isPocketBaseFileUrl(trimmed)) {
 		return false;
 	}
 
@@ -55,10 +69,6 @@ export function needsCloudFileHostMigration(
 	try {
 		parsed = new URL(trimmed);
 	} catch {
-		return false;
-	}
-
-	if (!parsed.pathname.includes('/api/files/')) {
 		return false;
 	}
 
@@ -79,6 +89,74 @@ function fileNameFromCloudUrl(url: string): string {
 		return segment && segment.length > 0 ? decodeURIComponent(segment) : 'upload.bin';
 	} catch {
 		return 'upload.bin';
+	}
+}
+
+function candidateDownloadUrls(sourceUrl: string, currentBaseUrl: string | null | undefined): string[] {
+	let parsed: URL;
+	try {
+		parsed = new URL(sourceUrl.trim());
+	} catch {
+		return [sourceUrl.trim()];
+	}
+
+	const pathAndQuery = parsed.pathname + parsed.search;
+	const urls: string[] = [];
+
+	const push = (url: string) => {
+		if (!urls.includes(url)) {
+			urls.push(url);
+		}
+	};
+
+	// Prefer legacy local hosts first when the stored URL already points at the
+	// current (empty) host — avoids a guaranteed 404 before trying localhost.
+	if (currentBaseUrl) {
+		try {
+			const currentOrigin = new URL(currentBaseUrl).origin;
+			if (parsed.origin === currentOrigin) {
+				for (const host of LEGACY_FILE_HOSTS) {
+					push(host + pathAndQuery);
+				}
+				push(sourceUrl.trim());
+				return urls;
+			}
+		} catch {
+			// fall through
+		}
+	}
+
+	push(sourceUrl.trim());
+
+	if (currentBaseUrl) {
+		try {
+			push(new URL(currentBaseUrl).origin + pathAndQuery);
+		} catch {
+			// ignore invalid base
+		}
+	}
+
+	for (const host of LEGACY_FILE_HOSTS) {
+		push(host + pathAndQuery);
+	}
+
+	return urls;
+}
+
+async function tryDownloadBlob(url: string, authToken?: string | null): Promise<Blob | null> {
+	const headers: HeadersInit = {};
+	if (authToken) {
+		headers.Authorization = authToken;
+	}
+
+	try {
+		const response = await fetch(url, { headers });
+		if (!response.ok) {
+			return null;
+		}
+		return await response.blob();
+	} catch {
+		return null;
 	}
 }
 
@@ -123,9 +201,18 @@ export class UserFiles {
 		}
 
 		const originalName = options.originalName.trim() || 'upload.bin';
+		const mimeType =
+			(file instanceof File && file.type) ||
+			(file.type && file.type !== 'application/octet-stream' ? file.type : '') ||
+			mimeFromFileName(originalName);
+		const uploadFile =
+			file instanceof File
+				? file
+				: new File([file], originalName, { type: mimeType || 'application/octet-stream' });
+
 		const body = new FormData();
 		body.set('user', userId);
-		body.set('file', file, originalName);
+		body.set('file', uploadFile, originalName);
 
 		try {
 			const created = await pb.collection('user_files').create(body);
@@ -211,8 +298,37 @@ export class UserFiles {
 	}
 
 	/**
-	 * Download a file from an arbitrary HTTP(S) URL and upload it to the current
-	 * PocketBase `user_files` collection (used when the PB host changes).
+	 * True when a PocketBase file URL already resolves on the configured host.
+	 */
+	async isReachableOnCurrentHost(sourceUrl: string): Promise<boolean> {
+		const trimmed = sourceUrl.trim();
+		const baseUrl = this.#auth.client.baseUrl;
+		if (!isPocketBaseFileUrl(trimmed) || !baseUrl) {
+			return false;
+		}
+
+		let parsed: URL;
+		let base: URL;
+		try {
+			parsed = new URL(trimmed);
+			base = new URL(baseUrl);
+		} catch {
+			return false;
+		}
+
+		if (parsed.origin !== base.origin) {
+			return false;
+		}
+
+		const token = this.#auth.client.authStore.token;
+		const blob = await tryDownloadBlob(trimmed, token);
+		return blob != null && blob.size > 0;
+	}
+
+	/**
+	 * Download a PocketBase `/api/files/` blob (trying the given URL, the current
+	 * host, then common local PocketBase origins) and upload it to the current
+	 * `user_files` collection.
 	 */
 	async reuploadFromUrl(sourceUrl: string): Promise<UserFileRecord> {
 		const trimmed = sourceUrl.trim();
@@ -220,16 +336,29 @@ export class UserFiles {
 			throw new Error(translate('Invalid cloud file URL.'));
 		}
 
-		const response = await fetch(trimmed);
-		if (!response.ok) {
+		const token = this.#auth.isConfigured ? this.#auth.client.authStore.token : null;
+		const baseUrl = this.#auth.isConfigured ? this.#auth.client.baseUrl : null;
+		const candidates = isPocketBaseFileUrl(trimmed)
+			? candidateDownloadUrls(trimmed, baseUrl)
+			: [trimmed];
+
+		let blob: Blob | null = null;
+		for (const candidate of candidates) {
+			blob = await tryDownloadBlob(candidate, token);
+			if (blob && blob.size > 0) {
+				break;
+			}
+			blob = null;
+		}
+
+		if (!blob) {
 			throw new Error(
-				translate('Could not download cloud file ({status}).', {
-					status: String(response.status)
-				})
+				translate(
+					'Could not download cloud file. Start the previous PocketBase (e.g. localhost:8090) and try again.'
+				)
 			);
 		}
 
-		const blob = await response.blob();
 		return this.upload(blob, { originalName: fileNameFromCloudUrl(trimmed) });
 	}
 

@@ -191,31 +191,31 @@ export type SubscriptionsRecord<Tbullets = unknown> = {
 }
 
 export type UserActionQueuesRecord = {
-	clientUpdatedAt: number
-	concurrency: number
+	clientUpdatedAt?: number
+	concurrency?: number
 	createdAt: IsoAutoDateString
 	deletedAt?: number
 	id: string
 	maxLength?: number
 	name: string
-	sortOrder: number
+	sortOrder?: number
 	updatedAt: IsoAutoDateString
 	user: RecordIdString
 }
 
 export type UserActionsRecord<Thandlers = unknown, Ttriggers = unknown> = {
-	clientUpdatedAt: number
+	clientUpdatedAt?: number
 	createdAt: IsoAutoDateString
 	deletedAt?: number
 	enabled?: boolean
 	group: string
-	groupSortOrder: number
+	groupSortOrder?: number
 	handlers: null | Thandlers
 	id: string
 	name: string
 	ownerPluginKey?: string
 	queueSyncId?: string
-	sortOrder: number
+	sortOrder?: number
 	triggers: null | Ttriggers
 	updatedAt: IsoAutoDateString
 	user: RecordIdString

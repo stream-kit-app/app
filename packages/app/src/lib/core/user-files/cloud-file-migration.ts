@@ -10,7 +10,7 @@ import { translate } from '$lib/i18n';
 
 import { flattenActionHandlers } from '../action/handler-tree';
 import { isLocalFilePath, usesCloudFileStorage } from './cloud-file-path';
-import { isCloudFileUrl, needsCloudFileHostMigration } from './user-files';
+import { isPocketBaseFileUrl } from './user-files';
 
 type UploadCache = Map<string, string>;
 
@@ -50,6 +50,8 @@ let running = false;
  * - upload local file values on cloud-capable handler fields
  * - re-upload PocketBase file URLs that still point at a previous host
  *   (e.g. localhost → production) so blobs exist on the current server
+ * - recover URLs already rewritten to the current host but missing there
+ *   by retrying common local PocketBase origins
  * - upload rankings data-URL icons
  */
 export function startCloudFileMigration(app: App): void {
@@ -63,23 +65,29 @@ export function startCloudFileMigration(app: App): void {
 	});
 }
 
+/** Manual retry from Profile (e.g. after starting local PocketBase). */
+export async function runCloudFileMigration(app: App): Promise<MigrationStats> {
+	return migrateCloudFilesIfNeeded(app, app.auth.user, { force: true });
+}
+
 async function migrateCloudFilesIfNeeded(
 	app: App,
-	user: AuthPublicUser | null
-): Promise<void> {
+	user: AuthPublicUser | null,
+	options?: { force?: boolean }
+): Promise<MigrationStats> {
+	const empty: MigrationStats = { uploaded: 0, failed: 0 };
 	if (!app.auth.isConfigured || !user?.subscription || running) {
-		return;
+		return empty;
 	}
 
 	running = true;
 	const cache: UploadCache = new Map();
 	const stats: MigrationStats = { uploaded: 0, failed: 0 };
-	const baseUrl = app.auth.client.baseUrl;
 
 	try {
-		await migrateActions(app, cache, stats, baseUrl);
-		await migrateBotHandlers(app, cache, stats, baseUrl);
-		await migrateRankingsIcons(app, cache, stats, baseUrl);
+		await migrateActions(app, cache, stats);
+		await migrateBotHandlers(app, cache, stats);
+		await migrateRankingsIcons(app, cache, stats);
 
 		if (stats.uploaded > 0) {
 			app.configSync.scheduleSync();
@@ -95,31 +103,49 @@ async function migrateCloudFilesIfNeeded(
 		if (stats.failed > 0) {
 			app.toast.create({
 				title: translate('Cloud files'),
-				description: translate('{count} files could not be uploaded to the cloud.', {
-					count: stats.failed
-				}),
+				description: translate(
+					'{count} files could not be uploaded. Start the previous PocketBase (e.g. localhost:8090) and retry.',
+					{ count: stats.failed }
+				),
 				variant: 'warning'
+			});
+		} else if (options?.force && stats.uploaded === 0) {
+			app.toast.create({
+				title: translate('Cloud files'),
+				description: translate('No cloud files needed migration.'),
+				variant: 'success'
 			});
 		}
 	} catch (error) {
 		console.warn('Cloud file migration failed', error);
+		if (options?.force) {
+			app.toast.create({
+				title: translate('Cloud files'),
+				description:
+					error instanceof Error
+						? error.message
+						: translate('Cloud file migration failed.'),
+				variant: 'error'
+			});
+		}
 	} finally {
 		running = false;
 	}
+
+	return stats;
 }
 
 async function migrateActions(
 	app: App,
 	cache: UploadCache,
-	stats: MigrationStats,
-	baseUrl: string
+	stats: MigrationStats
 ): Promise<void> {
 	for (const action of app.actions.items) {
 		if (action.id == null) {
 			continue;
 		}
 
-		const dirty = await migrateHandlerTree(app, action.handlers, cache, stats, baseUrl);
+		const dirty = await migrateHandlerTree(app, action.handlers, cache, stats);
 		if (!dirty) {
 			continue;
 		}
@@ -147,8 +173,7 @@ async function migrateActions(
 async function migrateBotHandlers(
 	app: App,
 	cache: UploadCache,
-	stats: MigrationStats,
-	baseUrl: string
+	stats: MigrationStats
 ): Promise<void> {
 	const bot = app.plugins.tryGet<{
 		commands?: BotCommandsApi;
@@ -164,13 +189,7 @@ async function migrateBotHandlers(
 			if (command.id == null) {
 				continue;
 			}
-			const dirty = await migrateHandlerTree(
-				app,
-				command.handlers,
-				cache,
-				stats,
-				baseUrl
-			);
+			const dirty = await migrateHandlerTree(app, command.handlers, cache, stats);
 			if (dirty) {
 				try {
 					await bot.commands.upsert(command);
@@ -187,7 +206,7 @@ async function migrateBotHandlers(
 			if (timer.id == null) {
 				continue;
 			}
-			const dirty = await migrateHandlerTree(app, timer.handlers, cache, stats, baseUrl);
+			const dirty = await migrateHandlerTree(app, timer.handlers, cache, stats);
 			if (dirty) {
 				try {
 					await bot.timers.upsert(timer);
@@ -203,8 +222,7 @@ async function migrateBotHandlers(
 async function migrateRankingsIcons(
 	app: App,
 	cache: UploadCache,
-	stats: MigrationStats,
-	baseUrl: string
+	stats: MigrationStats
 ): Promise<void> {
 	const plugin = app.plugins.tryGet<RankingsApi>('rankings');
 	const rankings = plugin?.rankings;
@@ -218,9 +236,9 @@ async function migrateRankingsIcons(
 			continue;
 		}
 
-		if (isCloudFileUrl(icon) && needsCloudFileHostMigration(icon, baseUrl)) {
-			const url = await reuploadForeignCloudUrl(app, icon, cache, stats);
-			if (!url) {
+		if (isPocketBaseFileUrl(icon)) {
+			const url = await ensureCloudFileUrl(app, icon, cache, stats);
+			if (!url || url === icon) {
 				continue;
 			}
 			try {
@@ -254,14 +272,13 @@ async function migrateHandlerTree(
 	app: App,
 	handlers: ActionHandler[],
 	cache: UploadCache,
-	stats: MigrationStats,
-	baseUrl: string
+	stats: MigrationStats
 ): Promise<boolean> {
 	let dirty = false;
 
 	for (const handler of flattenActionHandlers(handlers)) {
 		for (const field of handler.fields) {
-			if (await migrateHandlerField(app, handler, field, cache, stats, baseUrl)) {
+			if (await migrateHandlerField(app, handler, field, cache, stats)) {
 				dirty = true;
 			}
 		}
@@ -275,8 +292,7 @@ async function migrateHandlerField(
 	handler: ActionHandler,
 	field: HandlerFieldInstance,
 	cache: UploadCache,
-	stats: MigrationStats,
-	baseUrl: string
+	stats: MigrationStats
 ): Promise<boolean> {
 	const definition = handler.getFieldDefinition(field.key);
 	if (!definition) {
@@ -284,12 +300,9 @@ async function migrateHandlerField(
 	}
 
 	if (definition.type === 'select-file-or-folder' && usesCloudFileStorage(definition)) {
-		if (
-			typeof field.value === 'string' &&
-			needsCloudFileHostMigration(field.value, baseUrl)
-		) {
-			const url = await reuploadForeignCloudUrl(app, field.value, cache, stats);
-			if (!url) {
+		if (typeof field.value === 'string' && isPocketBaseFileUrl(field.value)) {
+			const url = await ensureCloudFileUrl(app, field.value, cache, stats);
+			if (!url || url === field.value) {
 				return false;
 			}
 			field.value = url;
@@ -320,9 +333,9 @@ async function migrateHandlerField(
 			continue;
 		}
 		const current = nextValues[variant.id];
-		if (typeof current === 'string' && needsCloudFileHostMigration(current, baseUrl)) {
-			const url = await reuploadForeignCloudUrl(app, current, cache, stats);
-			if (!url) {
+		if (typeof current === 'string' && isPocketBaseFileUrl(current)) {
+			const url = await ensureCloudFileUrl(app, current, cache, stats);
+			if (!url || url === current) {
 				continue;
 			}
 			nextValues = { ...nextValues, [variant.id]: url };
@@ -351,7 +364,11 @@ async function migrateHandlerField(
 	return true;
 }
 
-async function reuploadForeignCloudUrl(
+/**
+ * Ensure a PocketBase file URL exists as a `user_files` record on the current host.
+ * Skips when the URL already resolves on the current origin.
+ */
+async function ensureCloudFileUrl(
 	app: App,
 	sourceUrl: string,
 	cache: UploadCache,
@@ -364,6 +381,11 @@ async function reuploadForeignCloudUrl(
 	}
 
 	try {
+		if (await app.userFiles.isReachableOnCurrentHost(key)) {
+			cache.set(key, key);
+			return key;
+		}
+
 		const uploaded = await app.userFiles.reuploadFromUrl(key);
 		cache.set(key, uploaded.url);
 		stats.uploaded += 1;
