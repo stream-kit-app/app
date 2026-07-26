@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/pocketbase",
 	"private": true,
-	"version": "0.1.0",
+	"version": "0.1.1-alpha.0",
 	"description": "Stream Kit PocketBase hooks, migrations, and Docker image"
 }

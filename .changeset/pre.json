@@ -18,10 +18,17 @@
     "@stream-kit/docs": "0.0.0",
     "@stream-kit/plugin": "0.1.0-alpha.0",
     "@stream-kit/script-api": "0.1.0-alpha.0",
-    "@stream-kit/plugin-rankings": "0.1.0-alpha.1"
+    "@stream-kit/plugin-rankings": "0.1.0-alpha.1",
+    "@stream-kit/streamdeck-plugin": "0.1.0-alpha.1",
+    "@stream-kit/plugin-discord": "0.1.0-alpha.0",
+    "@stream-kit/plugin-quotes": "0.1.0-alpha.1",
+    "@stream-kit/plugin-stream-deck": "0.1.0-alpha.1",
+    "@stream-kit/pocketbase": "0.1.0"
   },
   "changesets": [
     "bright-news-kick",
+    "free-wings-ask",
+    "hot-aliens-float",
     "shy-shirts-divide",
     "silent-moons-hug",
     "silver-spiders-sleep",
