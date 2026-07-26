@@ -2,9 +2,10 @@
 
 /**
  * Require an active subscription for cloud config sync collections.
+ * Always bind `user` to the authenticated record (createRule only checks auth).
  */
 function requireActiveSubscription(e) {
-	const auth = e.requestInfo().auth;
+	const auth = e.auth || (e.requestInfo && e.requestInfo().auth);
 	if (!auth || !auth.id) {
 		throw new BadRequestError('You must be signed in to sync configuration.');
 	}
@@ -26,7 +27,7 @@ function requireActiveSubscription(e) {
 	return e.next();
 }
 
-onRecordCreate(requireActiveSubscription, 'user_action_queues');
-onRecordUpdate(requireActiveSubscription, 'user_action_queues');
-onRecordCreate(requireActiveSubscription, 'user_actions');
-onRecordUpdate(requireActiveSubscription, 'user_actions');
+onRecordCreateRequest(requireActiveSubscription, 'user_action_queues');
+onRecordUpdateRequest(requireActiveSubscription, 'user_action_queues');
+onRecordCreateRequest(requireActiveSubscription, 'user_actions');
+onRecordUpdateRequest(requireActiveSubscription, 'user_actions');

@@ -1,7 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate((app) => {
 	const collection = new Collection({
-		createRule: '@request.auth.id != "" && user = @request.auth.id',
+		createRule: '@request.auth.id != ""',
 		deleteRule: '@request.auth.id != "" && user = @request.auth.id',
 		updateRule: '@request.auth.id != "" && user = @request.auth.id',
 		fields: [

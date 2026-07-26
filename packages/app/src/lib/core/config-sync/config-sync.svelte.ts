@@ -499,32 +499,41 @@ export class ConfigSync {
 	}
 
 	async #upsertRemoteQueue(body: Record<string, unknown>): Promise<void> {
-		const pb = this.#app.auth.client;
-		const id = String(body.id);
-		const payload = sanitizeSyncPayload(body);
-		try {
-			await pb.collection('user_action_queues').update(id, payload, { requestKey: null });
-		} catch (updateError) {
-			try {
-				await pb.collection('user_action_queues').create(payload, { requestKey: null });
-			} catch (createError) {
-				throw enrichPocketBaseError(createError, updateError);
-			}
-		}
+		await this.#upsertRemoteRecord('user_action_queues', body);
 	}
 
 	async #upsertRemoteAction(body: Record<string, unknown>): Promise<void> {
+		await this.#upsertRemoteRecord('user_actions', body);
+	}
+
+	async #upsertRemoteRecord(
+		collection: 'user_action_queues' | 'user_actions',
+		body: Record<string, unknown>
+	): Promise<void> {
 		const pb = this.#app.auth.client;
+		const authId = pb.authStore.record?.id ?? this.#app.auth.user?.id;
+		if (!authId) {
+			throw new Error(translate('You must be signed in to use cloud files.'));
+		}
+
 		const id = String(body.id);
-		const payload = sanitizeSyncPayload(body);
+		const payload = sanitizeSyncPayload({
+			...body,
+			user: authId
+		});
+
 		try {
-			await pb.collection('user_actions').update(id, payload, { requestKey: null });
-		} catch (updateError) {
-			try {
-				await pb.collection('user_actions').create(payload, { requestKey: null });
-			} catch (createError) {
-				throw enrichPocketBaseError(createError, updateError);
-			}
+			await pb.collection(collection).getOne(id, { requestKey: null });
+			await pb.collection(collection).update(id, payload, { requestKey: null });
+			return;
+		} catch {
+			// Record missing — create below.
+		}
+
+		try {
+			await pb.collection(collection).create(payload, { requestKey: null });
+		} catch (createError) {
+			throw enrichPocketBaseError(createError);
 		}
 	}
 }
@@ -544,14 +553,12 @@ function sanitizeSyncPayload(body: Record<string, unknown>): Record<string, unkn
 	return payload;
 }
 
-function enrichPocketBaseError(createError: unknown, updateError: unknown): Error {
-	const detail =
+function enrichPocketBaseError(createError: unknown): Error {
+	const response =
 		createError && typeof createError === 'object' && 'response' in createError
-			? JSON.stringify((createError as { response?: unknown }).response ?? {})
-			: createError instanceof Error
-				? createError.message
-				: String(createError);
-	const message = `Config sync create failed: ${detail}`;
-	console.warn(message, { createError, updateError });
-	return createError instanceof Error ? createError : new Error(message);
+			? (createError as { response?: unknown }).response
+			: undefined;
+	const detail = response != null ? JSON.stringify(response) : String(createError);
+	console.warn(`Config sync create failed: ${detail}`, { createError });
+	return createError instanceof Error ? createError : new Error(detail);
 }
