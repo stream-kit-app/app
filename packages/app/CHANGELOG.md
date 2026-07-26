@@ -1,5 +1,17 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.13
+
+### Patch Changes
+
+- [`57be460`](https://github.com/stream-kit-app/app/commit/57be46079e78960c2e6e1e7e5315efdb953f4e06) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - add auth and cloud features
+
+- Updated dependencies [[`57be460`](https://github.com/stream-kit-app/app/commit/57be46079e78960c2e6e1e7e5315efdb953f4e06)]:
+    - @stream-kit/script-api@0.1.0-alpha.2
+    - @stream-kit/plugin@0.2.0-alpha.7
+    - @stream-kit/ui@0.2.0-alpha.7
+    - @stream-kit/core@0.2.0-alpha.4
+
 ## 0.1.0-alpha.12
 
 ### Patch Changes
