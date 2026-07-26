@@ -75,7 +75,7 @@ On first run, the dev script downloads the PocketBase binary automatically. The 
 
 ### Production Docker image
 
-The production image is published to GitHub Container Registry as `ghcr.io/stream-kit-app/pocketbase`. It includes the PocketBase binary (version from `PB_VERSION`), `pb_hooks/`, and `pb_migrations/`. Runtime data (`pb_data`) must be a persistent volume — never bake it into the image.
+The production image is published to GitHub Container Registry as `ghcr.io/stream-kit-app/pocketbase`. It includes the PocketBase binary (version from `PB_VERSION`), production `pb_hooks/` (e.g. `files.pb.js`, `user_files.pb.js`, …), and `pb_migrations/`. Local-only schema codegen (`main.pb.js`, `handler.js`, `config.json`, `lib/`, `views/`) is excluded via `.dockerignore`. Runtime data (`pb_data`) must be a persistent volume — never bake it into the image.
 
 Versioning:
 

@@ -102,7 +102,7 @@ When changing **hooks or migrations**, add a changeset for `@stream-kit/pocketba
 
 ### Production (Docker / Dockhand)
 
-- Image: `ghcr.io/stream-kit-app/pocketbase` (hooks + migrations baked in; **not** `pb_data`)
+- Image: `ghcr.io/stream-kit-app/pocketbase` (production hooks + migrations baked in; **not** `pb_data`; excludes local schema codegen `main.pb.js` / `lib/` / …)
 - Persist `/pb/pb_data` as a volume (see `site/pb/docker-compose.yml`)
 - Dockhand: add GHCR (`https://ghcr.io`) with a PAT that has `read:packages` if the package is private
 - Point the Cloudflare Tunnel at the container HTTP port (`8090`)

@@ -7,3 +7,11 @@ LICENSE.md
 package.json
 docker-compose.yml
 .dockerignore
+
+# Local-only schema codegen (main.pb.js + deps) — not for production
+pb_hooks/main.pb.js
+pb_hooks/handler.js
+pb_hooks/config.json
+pb_hooks/schema.json
+pb_hooks/views
+pb_hooks/lib
