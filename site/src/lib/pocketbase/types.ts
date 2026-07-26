@@ -16,6 +16,8 @@ export const Collections = {
 	PluginVersions: "plugin_versions",
 	Plugins: "plugins",
 	Subscriptions: "subscriptions",
+	UserActionQueues: "user_action_queues",
+	UserActions: "user_actions",
 	UserFiles: "user_files",
 	UserSubscriptions: "user_subscriptions",
 	Users: "users",
@@ -188,6 +190,37 @@ export type SubscriptionsRecord<Tbullets = unknown> = {
 	updatedAt: IsoAutoDateString
 }
 
+export type UserActionQueuesRecord = {
+	clientUpdatedAt: number
+	concurrency: number
+	createdAt: IsoAutoDateString
+	deletedAt?: number
+	id: string
+	maxLength?: number
+	name: string
+	sortOrder: number
+	updatedAt: IsoAutoDateString
+	user: RecordIdString
+}
+
+export type UserActionsRecord<Thandlers = unknown, Ttriggers = unknown> = {
+	clientUpdatedAt: number
+	createdAt: IsoAutoDateString
+	deletedAt?: number
+	enabled?: boolean
+	group: string
+	groupSortOrder: number
+	handlers: null | Thandlers
+	id: string
+	name: string
+	ownerPluginKey?: string
+	queueSyncId?: string
+	sortOrder: number
+	triggers: null | Ttriggers
+	updatedAt: IsoAutoDateString
+	user: RecordIdString
+}
+
 export type UserFilesRecord = {
 	createdAt: IsoAutoDateString
 	file: FileNameString
@@ -240,6 +273,8 @@ export type PluginReviewsResponse<Texpand = unknown> = Required<PluginReviewsRec
 export type PluginVersionsResponse<Texpand = unknown> = Required<PluginVersionsRecord> & BaseSystemFields<Texpand>
 export type PluginsResponse<Texpand = unknown> = Required<PluginsRecord> & BaseSystemFields<Texpand>
 export type SubscriptionsResponse<Tbullets = unknown, Texpand = unknown> = Required<SubscriptionsRecord<Tbullets>> & BaseSystemFields<Texpand>
+export type UserActionQueuesResponse<Texpand = unknown> = Required<UserActionQueuesRecord> & BaseSystemFields<Texpand>
+export type UserActionsResponse<Thandlers = unknown, Ttriggers = unknown, Texpand = unknown> = Required<UserActionsRecord<Thandlers, Ttriggers>> & BaseSystemFields<Texpand>
 export type UserFilesResponse<Texpand = unknown> = Required<UserFilesRecord> & BaseSystemFields<Texpand>
 export type UserSubscriptionsResponse<Texpand = unknown> = Required<UserSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
@@ -257,6 +292,8 @@ export type CollectionRecords = {
 	plugin_versions: PluginVersionsRecord
 	plugins: PluginsRecord
 	subscriptions: SubscriptionsRecord
+	user_action_queues: UserActionQueuesRecord
+	user_actions: UserActionsRecord
 	user_files: UserFilesRecord
 	user_subscriptions: UserSubscriptionsRecord
 	users: UsersRecord
@@ -273,6 +310,8 @@ export type CollectionResponses = {
 	plugin_versions: PluginVersionsResponse
 	plugins: PluginsResponse
 	subscriptions: SubscriptionsResponse
+	user_action_queues: UserActionQueuesResponse
+	user_actions: UserActionsResponse
 	user_files: UserFilesResponse
 	user_subscriptions: UserSubscriptionsResponse
 	users: UsersResponse

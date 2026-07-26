@@ -309,7 +309,7 @@ export class ConfigSync {
 					user: userId,
 					name: local?.name ?? DEFAULT_ACTION_QUEUE_NAME,
 					concurrency: local?.concurrency ?? 1,
-					maxLength: local?.maxLength ?? null,
+					maxLength: local?.maxLength ?? undefined,
 					sortOrder: local?.sortOrder ?? 0,
 					clientUpdatedAt: toEpochMs(tomb.deletedAt),
 					deletedAt: toEpochMs(tomb.deletedAt)
@@ -323,10 +323,9 @@ export class ConfigSync {
 					user: userId,
 					name: local.name,
 					concurrency: local.concurrency,
-					maxLength: local.maxLength,
+					maxLength: local.maxLength ?? undefined,
 					sortOrder: local.sortOrder,
-					clientUpdatedAt: toEpochMs(local.updatedAt),
-					deletedAt: null
+					clientUpdatedAt: toEpochMs(local.updatedAt)
 				});
 			}
 		}
@@ -468,9 +467,9 @@ export class ConfigSync {
 					enabled: local?.enabled ?? false,
 					queueSyncId:
 						local?.queueId != null
-							? (queueSyncIdById.get(local.queueId) ?? '')
-							: '',
-					ownerPluginKey: local?.ownerPluginKey ?? '',
+							? (queueSyncIdById.get(local.queueId) ?? undefined)
+							: undefined,
+					ownerPluginKey: local?.ownerPluginKey ?? undefined,
 					clientUpdatedAt: toEpochMs(tomb.deletedAt),
 					deletedAt: toEpochMs(tomb.deletedAt)
 				});
@@ -490,11 +489,10 @@ export class ConfigSync {
 					enabled: local.enabled,
 					queueSyncId:
 						local.queueId != null
-							? (queueSyncIdById.get(local.queueId) ?? '')
-							: '',
-					ownerPluginKey: local.ownerPluginKey ?? '',
-					clientUpdatedAt: toEpochMs(local.updatedAt),
-					deletedAt: null
+							? (queueSyncIdById.get(local.queueId) ?? undefined)
+							: undefined,
+					ownerPluginKey: local.ownerPluginKey ?? undefined,
+					clientUpdatedAt: toEpochMs(local.updatedAt)
 				});
 			}
 		}
@@ -503,20 +501,57 @@ export class ConfigSync {
 	async #upsertRemoteQueue(body: Record<string, unknown>): Promise<void> {
 		const pb = this.#app.auth.client;
 		const id = String(body.id);
+		const payload = sanitizeSyncPayload(body);
 		try {
-			await pb.collection('user_action_queues').update(id, body, { requestKey: null });
-		} catch {
-			await pb.collection('user_action_queues').create(body, { requestKey: null });
+			await pb.collection('user_action_queues').update(id, payload, { requestKey: null });
+		} catch (updateError) {
+			try {
+				await pb.collection('user_action_queues').create(payload, { requestKey: null });
+			} catch (createError) {
+				throw enrichPocketBaseError(createError, updateError);
+			}
 		}
 	}
 
 	async #upsertRemoteAction(body: Record<string, unknown>): Promise<void> {
 		const pb = this.#app.auth.client;
 		const id = String(body.id);
+		const payload = sanitizeSyncPayload(body);
 		try {
-			await pb.collection('user_actions').update(id, body, { requestKey: null });
-		} catch {
-			await pb.collection('user_actions').create(body, { requestKey: null });
+			await pb.collection('user_actions').update(id, payload, { requestKey: null });
+		} catch (updateError) {
+			try {
+				await pb.collection('user_actions').create(payload, { requestKey: null });
+			} catch (createError) {
+				throw enrichPocketBaseError(createError, updateError);
+			}
 		}
 	}
+}
+
+/** PocketBase rejects explicit `null` on most fields — omit instead. */
+function sanitizeSyncPayload(body: Record<string, unknown>): Record<string, unknown> {
+	const payload: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(body)) {
+		if (value === null || value === undefined) {
+			continue;
+		}
+		if (typeof value === 'string' && value === '' && key !== 'name' && key !== 'group') {
+			continue;
+		}
+		payload[key] = value;
+	}
+	return payload;
+}
+
+function enrichPocketBaseError(createError: unknown, updateError: unknown): Error {
+	const detail =
+		createError && typeof createError === 'object' && 'response' in createError
+			? JSON.stringify((createError as { response?: unknown }).response ?? {})
+			: createError instanceof Error
+				? createError.message
+				: String(createError);
+	const message = `Config sync create failed: ${detail}`;
+	console.warn(message, { createError, updateError });
+	return createError instanceof Error ? createError : new Error(message);
 }

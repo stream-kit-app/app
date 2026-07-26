@@ -38,6 +38,50 @@ export function isCloudFileUrl(value: string | null | undefined): boolean {
 	return /^https?:\/\//i.test(value.trim());
 }
 
+/**
+ * True when `value` is a PocketBase `/api/files/` URL whose origin differs from
+ * the configured `PUBLIC_POCKETBASE_URL` — those blobs must be re-uploaded.
+ */
+export function needsCloudFileHostMigration(
+	value: string,
+	baseUrl: string | null | undefined
+): boolean {
+	const trimmed = value.trim();
+	if (!baseUrl || !isCloudFileUrl(trimmed)) {
+		return false;
+	}
+
+	let parsed: URL;
+	try {
+		parsed = new URL(trimmed);
+	} catch {
+		return false;
+	}
+
+	if (!parsed.pathname.includes('/api/files/')) {
+		return false;
+	}
+
+	let base: URL;
+	try {
+		base = new URL(baseUrl);
+	} catch {
+		return false;
+	}
+
+	return parsed.origin !== base.origin;
+}
+
+function fileNameFromCloudUrl(url: string): string {
+	try {
+		const pathname = new URL(url).pathname;
+		const segment = pathname.split('/').filter(Boolean).pop();
+		return segment && segment.length > 0 ? decodeURIComponent(segment) : 'upload.bin';
+	} catch {
+		return 'upload.bin';
+	}
+}
+
 export class UserFiles {
 	#auth: Auth;
 
@@ -164,6 +208,29 @@ export class UserFiles {
 		}
 
 		return response.blob();
+	}
+
+	/**
+	 * Download a file from an arbitrary HTTP(S) URL and upload it to the current
+	 * PocketBase `user_files` collection (used when the PB host changes).
+	 */
+	async reuploadFromUrl(sourceUrl: string): Promise<UserFileRecord> {
+		const trimmed = sourceUrl.trim();
+		if (!isCloudFileUrl(trimmed)) {
+			throw new Error(translate('Invalid cloud file URL.'));
+		}
+
+		const response = await fetch(trimmed);
+		if (!response.ok) {
+			throw new Error(
+				translate('Could not download cloud file ({status}).', {
+					status: String(response.status)
+				})
+			);
+		}
+
+		const blob = await response.blob();
+		return this.upload(blob, { originalName: fileNameFromCloudUrl(trimmed) });
 	}
 
 	#requireClient() {

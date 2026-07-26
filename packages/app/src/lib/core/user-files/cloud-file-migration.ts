@@ -10,6 +10,7 @@ import { translate } from '$lib/i18n';
 
 import { flattenActionHandlers } from '../action/handler-tree';
 import { isLocalFilePath, usesCloudFileStorage } from './cloud-file-path';
+import { isCloudFileUrl, needsCloudFileHostMigration } from './user-files';
 
 type UploadCache = Map<string, string>;
 
@@ -45,8 +46,11 @@ let started = false;
 let running = false;
 
 /**
- * Watch auth and, while the user has an active plan, upload local file values
- * on cloud-capable handler fields (and rankings data-URL icons) in the background.
+ * Watch auth and, while the user has an active plan:
+ * - upload local file values on cloud-capable handler fields
+ * - re-upload PocketBase file URLs that still point at a previous host
+ *   (e.g. localhost → production) so blobs exist on the current server
+ * - upload rankings data-URL icons
  */
 export function startCloudFileMigration(app: App): void {
 	if (started) {
@@ -63,20 +67,22 @@ async function migrateCloudFilesIfNeeded(
 	app: App,
 	user: AuthPublicUser | null
 ): Promise<void> {
-	if (!user?.subscription || running) {
+	if (!app.auth.isConfigured || !user?.subscription || running) {
 		return;
 	}
 
 	running = true;
 	const cache: UploadCache = new Map();
 	const stats: MigrationStats = { uploaded: 0, failed: 0 };
+	const baseUrl = app.auth.client.baseUrl;
 
 	try {
-		await migrateActions(app, cache, stats);
-		await migrateBotHandlers(app, cache, stats);
-		await migrateRankingsIcons(app, cache, stats);
+		await migrateActions(app, cache, stats, baseUrl);
+		await migrateBotHandlers(app, cache, stats, baseUrl);
+		await migrateRankingsIcons(app, cache, stats, baseUrl);
 
 		if (stats.uploaded > 0) {
+			app.configSync.scheduleSync();
 			app.toast.create({
 				title: translate('Cloud files'),
 				description: translate('Uploaded {count} local files to the cloud.', {
@@ -105,14 +111,15 @@ async function migrateCloudFilesIfNeeded(
 async function migrateActions(
 	app: App,
 	cache: UploadCache,
-	stats: MigrationStats
+	stats: MigrationStats,
+	baseUrl: string
 ): Promise<void> {
 	for (const action of app.actions.items) {
 		if (action.id == null) {
 			continue;
 		}
 
-		const dirty = await migrateHandlerTree(app, action.handlers, cache, stats);
+		const dirty = await migrateHandlerTree(app, action.handlers, cache, stats, baseUrl);
 		if (!dirty) {
 			continue;
 		}
@@ -140,7 +147,8 @@ async function migrateActions(
 async function migrateBotHandlers(
 	app: App,
 	cache: UploadCache,
-	stats: MigrationStats
+	stats: MigrationStats,
+	baseUrl: string
 ): Promise<void> {
 	const bot = app.plugins.tryGet<{
 		commands?: BotCommandsApi;
@@ -156,7 +164,13 @@ async function migrateBotHandlers(
 			if (command.id == null) {
 				continue;
 			}
-			const dirty = await migrateHandlerTree(app, command.handlers, cache, stats);
+			const dirty = await migrateHandlerTree(
+				app,
+				command.handlers,
+				cache,
+				stats,
+				baseUrl
+			);
 			if (dirty) {
 				try {
 					await bot.commands.upsert(command);
@@ -173,7 +187,7 @@ async function migrateBotHandlers(
 			if (timer.id == null) {
 				continue;
 			}
-			const dirty = await migrateHandlerTree(app, timer.handlers, cache, stats);
+			const dirty = await migrateHandlerTree(app, timer.handlers, cache, stats, baseUrl);
 			if (dirty) {
 				try {
 					await bot.timers.upsert(timer);
@@ -189,7 +203,8 @@ async function migrateBotHandlers(
 async function migrateRankingsIcons(
 	app: App,
 	cache: UploadCache,
-	stats: MigrationStats
+	stats: MigrationStats,
+	baseUrl: string
 ): Promise<void> {
 	const plugin = app.plugins.tryGet<RankingsApi>('rankings');
 	const rankings = plugin?.rankings;
@@ -199,7 +214,25 @@ async function migrateRankingsIcons(
 
 	for (const rank of [...rankings.ranks]) {
 		const icon = rank.icon?.trim();
-		if (!icon?.startsWith('data:image/')) {
+		if (!icon) {
+			continue;
+		}
+
+		if (isCloudFileUrl(icon) && needsCloudFileHostMigration(icon, baseUrl)) {
+			const url = await reuploadForeignCloudUrl(app, icon, cache, stats);
+			if (!url) {
+				continue;
+			}
+			try {
+				await rankings.updateRank(rank.id, { icon: url });
+			} catch (error) {
+				console.warn(`Failed to persist cloud re-upload for rank ${rank.id}`, error);
+				stats.failed += 1;
+			}
+			continue;
+		}
+
+		if (!icon.startsWith('data:image/')) {
 			continue;
 		}
 
@@ -221,13 +254,14 @@ async function migrateHandlerTree(
 	app: App,
 	handlers: ActionHandler[],
 	cache: UploadCache,
-	stats: MigrationStats
+	stats: MigrationStats,
+	baseUrl: string
 ): Promise<boolean> {
 	let dirty = false;
 
 	for (const handler of flattenActionHandlers(handlers)) {
 		for (const field of handler.fields) {
-			if (await migrateHandlerField(app, handler, field, cache, stats)) {
+			if (await migrateHandlerField(app, handler, field, cache, stats, baseUrl)) {
 				dirty = true;
 			}
 		}
@@ -241,7 +275,8 @@ async function migrateHandlerField(
 	handler: ActionHandler,
 	field: HandlerFieldInstance,
 	cache: UploadCache,
-	stats: MigrationStats
+	stats: MigrationStats,
+	baseUrl: string
 ): Promise<boolean> {
 	const definition = handler.getFieldDefinition(field.key);
 	if (!definition) {
@@ -249,6 +284,17 @@ async function migrateHandlerField(
 	}
 
 	if (definition.type === 'select-file-or-folder' && usesCloudFileStorage(definition)) {
+		if (
+			typeof field.value === 'string' &&
+			needsCloudFileHostMigration(field.value, baseUrl)
+		) {
+			const url = await reuploadForeignCloudUrl(app, field.value, cache, stats);
+			if (!url) {
+				return false;
+			}
+			field.value = url;
+			return true;
+		}
 		if (!isLocalFilePath(field.value)) {
 			return false;
 		}
@@ -274,6 +320,15 @@ async function migrateHandlerField(
 			continue;
 		}
 		const current = nextValues[variant.id];
+		if (typeof current === 'string' && needsCloudFileHostMigration(current, baseUrl)) {
+			const url = await reuploadForeignCloudUrl(app, current, cache, stats);
+			if (!url) {
+				continue;
+			}
+			nextValues = { ...nextValues, [variant.id]: url };
+			changed = true;
+			continue;
+		}
 		if (!isLocalFilePath(current)) {
 			continue;
 		}
@@ -294,6 +349,30 @@ async function migrateHandlerField(
 		values: nextValues
 	};
 	return true;
+}
+
+async function reuploadForeignCloudUrl(
+	app: App,
+	sourceUrl: string,
+	cache: UploadCache,
+	stats: MigrationStats
+): Promise<string | null> {
+	const key = sourceUrl.trim();
+	const cached = cache.get(key);
+	if (cached) {
+		return cached;
+	}
+
+	try {
+		const uploaded = await app.userFiles.reuploadFromUrl(key);
+		cache.set(key, uploaded.url);
+		stats.uploaded += 1;
+		return uploaded.url;
+	} catch (error) {
+		console.warn('Cloud host re-upload failed', key, error);
+		stats.failed += 1;
+		return null;
+	}
 }
 
 async function uploadLocalPath(

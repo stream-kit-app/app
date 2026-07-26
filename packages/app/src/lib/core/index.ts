@@ -53,7 +53,7 @@ export type {
 	WriteFileOptions
 } from './filesystem';
 export { Audio } from './audio';
-export { UserFiles, isCloudFileUrl } from './user-files';
+export { UserFiles, isCloudFileUrl, needsCloudFileHostMigration } from './user-files';
 export type {
 	UserFileRecord,
 	UserFilesListOptions,

@@ -53,7 +53,7 @@ migrate((app) => {
 				name: 'concurrency',
 				onlyInt: true,
 				presentable: false,
-				required: true,
+				required: false,
 				system: false,
 				type: 'number'
 			},
@@ -77,7 +77,7 @@ migrate((app) => {
 				name: 'sortOrder',
 				onlyInt: true,
 				presentable: false,
-				required: true,
+				required: false,
 				system: false,
 				type: 'number'
 			},
@@ -89,7 +89,7 @@ migrate((app) => {
 				name: 'clientUpdatedAt',
 				onlyInt: true,
 				presentable: false,
-				required: true,
+				required: false,
 				system: false,
 				type: 'number'
 			},
@@ -97,7 +97,7 @@ migrate((app) => {
 				hidden: false,
 				id: 'number8930103856',
 				max: null,
-				min: 0,
+				min: null,
 				name: 'deletedAt',
 				onlyInt: true,
 				presentable: false,
