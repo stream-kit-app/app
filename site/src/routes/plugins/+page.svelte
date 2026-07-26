@@ -3,153 +3,100 @@
 
 	import Icon from '@iconify/svelte';
 
+	import { Alert } from '@stream-kit/ui/alert';
 	import { Badge } from '@stream-kit/ui/badge';
-	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
+
+	import MarketplaceSidebar from '$lib/components/plugins/marketplace-sidebar.svelte';
+	import PluginCard from '$lib/components/plugins/plugin-card.svelte';
 
 	let { data }: { data: PageData } = $props();
 	let plugins = $derived(data.plugins ?? []);
+	let filters = $derived(data.filters);
 
 	const year = new Date().getFullYear();
 </script>
 
 <svelte:head>
-	<title>Plugins — Stream Kit</title>
+	<title>Plugin Marketplace — Stream Kit</title>
 	<meta
 		name="description"
-		content="Browse Stream Kit plugins: official integrations for Twitch, YouTube, OBS, TTS, and more. Download the latest releases for your setup."
+		content="Browse, filter, and download Stream Kit plugins. Official integrations for Twitch, YouTube, OBS, TTS, and more."
 	/>
 </svelte:head>
 
-<section class="relative">
-	<div
-		class="pointer-events-none absolute inset-x-0 -top-40 -z-10 mx-auto h-150 max-w-5xl rounded-full bg-primary-500/20 blur-[120px]"
-		aria-hidden="true"
-	></div>
-
-	<Container center size="lg" class="pt-20 pb-12 sm:pt-28">
-		<div class="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
-			<Badge size="lg" variant="secondary">
-				<Icon icon="mdi:puzzle-outline" />
-				Plugin catalog
+<section>
+	<Container center size="lg" class="px-6 pt-10 pb-6">
+		<div class="flex max-w-3xl flex-col gap-3">
+			<Badge size="sm" variant="secondary" class="w-fit">
+				<Icon icon="mdi:storefront-outline" />
+				Plugin Marketplace
 			</Badge>
 
-			<h1 class="font-outfit text-4xl font-bold tracking-tight text-balance sm:text-5xl">
-				Extend Stream Kit with plugins
+			<h1 class="font-outfit text-2xl font-bold tracking-tight text-balance sm:text-3xl">
+				Find plugins for your setup
 			</h1>
 
-			<p class="max-w-2xl text-lg text-balance text-muted-foreground">
-				Every integration is a plugin. Download official releases and install them from the
-				Stream Kit desktop app.
+			<p class="max-w-2xl text-sm text-balance text-dark-300 sm:text-base">
+				Search and filter official Stream Kit plugins, then open a plugin for docs, ratings, and
+				downloads.
 			</p>
 		</div>
 	</Container>
 </section>
 
 <section>
-	<Container center size="lg" class="pb-20">
+	<Container center size="lg" class="px-6 pb-20">
 		{#if data.error}
-			<div
-				class="mb-8 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-100"
-				role="status"
-			>
-				{data.error}
-			</div>
+			<Alert variant="warning" description={data.error} class="mb-6" />
 		{/if}
 
-		<div class="rounded-2xl border border-dark-600 bg-dark-900/70 p-6 sm:p-10">
-			{#if plugins.length === 0}
-				<div
-					class="relative flex flex-col items-center gap-4 overflow-hidden rounded-xl border border-dashed border-dark-600 bg-dark-900/50 px-6 py-16 text-center"
-				>
-					<div
-						class="relative flex size-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary"
+		<div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-0">
+			<MarketplaceSidebar
+				search={filters.search}
+				categories={filters.categories}
+				tags={filters.tags}
+				sort={filters.sort}
+			/>
+
+			<div class="min-w-0 flex-1 lg:px-6">
+				<div class="mb-4 flex flex-wrap items-center gap-2 border-b border-dark-600 pb-3">
+					<span
+						class="inline-flex items-center gap-1.5 rounded-lg border border-dark-600 bg-dark-800 px-2.5 py-1 text-xs font-medium text-dark-300"
 					>
-						<Icon icon="mdi:puzzle-outline" class="size-7" aria-hidden="true" />
-					</div>
-					<div class="relative flex flex-col gap-1.5">
-						<h2 class="font-outfit text-xl font-semibold">No plugins published yet</h2>
-						<p class="text-sm text-muted-foreground">
-							Check back soon — official plugin releases will appear here.
-						</p>
-					</div>
+						<Icon icon="ri:plug-line" class="size-3.5" />
+						{plugins.length}
+						{plugins.length === 1 ? 'plugin' : 'plugins'}
+					</span>
 				</div>
-			{:else}
-				<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-					{#each plugins as plugin (plugin.key)}
-						<article
-							class="group flex h-full flex-col overflow-hidden rounded-xl border border-dark-600 bg-dark-800/60 transition-colors hover:border-primary-400/40 hover:bg-dark-800"
-						>
-							<div class="flex items-start gap-3 p-5 pb-4">
-								<div
-									class="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary"
-								>
-									<Icon icon={plugin.icon} class="size-5" />
-								</div>
-								<div class="min-w-0 flex-1">
-									<div class="flex flex-wrap items-center gap-2">
-										<h2 class="font-outfit text-lg font-semibold">
-											{plugin.name}
-										</h2>
-										<Badge variant="default" size="sm">v{plugin.version}</Badge>
-									</div>
-									{#if plugin.description}
-										<p
-											class="mt-2 text-sm leading-relaxed text-muted-foreground"
-										>
-											{plugin.description}
-										</p>
-									{/if}
-								</div>
-							</div>
 
-							{#if plugin.streamKitVersion}
-								<div
-									class="border-t border-dark-700/80 bg-dark-900/50 px-5 py-3 text-xs text-muted-foreground"
-								>
-									Requires Stream Kit {plugin.streamKitVersion}
-								</div>
-							{/if}
-
-							<div
-								class="mt-auto flex flex-wrap items-center gap-2 border-t border-dark-700 p-3"
-							>
-								{#if plugin.downloadUrl}
-									<Button
-										href={plugin.downloadUrl}
-										icon="mdi:download"
-										size="sm"
-										variant="outline"
-									>
-										Download
-									</Button>
-								{/if}
-							</div>
-						</article>
-					{/each}
-				</div>
-			{/if}
+				{#if plugins.length === 0}
+					<EmptyState
+						icon="ri:puzzle-line"
+						title="No plugins match"
+						description="Try a different search or clear your filters."
+						class="min-h-0 p-0"
+					/>
+				{:else}
+					<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+						{#each plugins as plugin (plugin.key)}
+							<PluginCard {plugin} />
+						{/each}
+					</div>
+				{/if}
+			</div>
 		</div>
 	</Container>
 </section>
 
-<footer class="border-t border-dark-700">
-	<Container center size="lg" class="py-10">
+<footer class="border-t border-dark-600">
+	<Container center size="lg" class="px-6 py-10">
 		<div class="flex flex-col items-center justify-between gap-6 sm:flex-row">
 			<p class="text-sm text-muted-foreground">© {year} Stream Kit. All rights reserved.</p>
 			<nav class="flex gap-6 text-sm">
-				<a href="/" class="cursor-pointer text-muted-foreground hover:text-foreground"
-					>Home</a
-				>
-				<a href="/docs" class="cursor-pointer text-muted-foreground hover:text-foreground"
-					>Docs</a
-				>
-				<a
-					href="/contact"
-					class="cursor-pointer text-muted-foreground hover:text-foreground"
-				>
-					Contact
-				</a>
+				<a href="/" class="text-muted-foreground hover:text-foreground">Home</a>
+				<a href="/docs" class="text-muted-foreground hover:text-foreground">Docs</a>
 			</nav>
 		</div>
 	</Container>

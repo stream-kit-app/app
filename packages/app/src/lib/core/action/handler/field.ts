@@ -125,6 +125,12 @@ export type HandlerOneOfInnerFieldDefinition =
 			/** Pick a file or folder. */
 			mode: 'file' | 'folder';
 			filters?: HandlerFileFilter[];
+			/**
+			 * Where selected files are stored.
+			 * - `cloud` (default for `mode: 'file'`): upload/browse `user_files`, value is a URL
+			 * - `local`: keep an absolute filesystem path (programs, folders)
+			 */
+			storage?: 'cloud' | 'local';
 	  })
 	| (HandlerFieldBase & {
 			type: 'code';

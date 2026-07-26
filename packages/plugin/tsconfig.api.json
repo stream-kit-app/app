@@ -16,6 +16,8 @@
 			"$lib/locales/en.json": ["./stubs/locale-en.d.ts"],
 			"$lib/locales/nl.json": ["./stubs/locale-nl.d.ts"],
 			"$lib/*": ["../app/src/lib/*"],
+			"$env/static/public": ["./stubs/env-static-public.ts"],
+			"$env/dynamic/public": ["./stubs/env-dynamic-public.ts"],
 			"*.wasm?url": ["./stubs/wasm-url.d.ts"]
 		}
 	},

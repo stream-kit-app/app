@@ -3,6 +3,7 @@ packages:
     - 'plugins/*'
     - 'integrations/*'
     - 'site'
+    - 'site/pb'
     - 'docs-site'
 
 onlyBuiltDependencies:

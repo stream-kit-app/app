@@ -1,13 +1,13 @@
 import { $n as e, Ct as t, Et as n, Hr as r, On as i, Qn as a, Qr as o, Qt as s, Vr as c, Z as l, Zn as u, a as d, cn as f, jt as p, ln as m, mn as h, ni as g, o as _, pr as v, s as y, un as b } from "../../chunks/client-xxWnFgeR.js";
 import "../../chunks/disclose-version-YhYaTdgb.js";
 import { t as x } from "../../chunks/utils-DJt177zd.js";
-import { D as S } from "../../chunks/animations-complete-BfqHI4B-.js";
-import { i as C, n as w } from "../../chunks/use-id-C9llEPxa.js";
-import { r as T } from "../../chunks/dom-B4Rzp8oi.js";
-import { t as E } from "../../chunks/portal-D-OgjF3O.js";
-import { a as D, n as O, r as k, t as A } from "../../chunks/popper-layer-force-mount-BxV85AhM.js";
-import { i as j, n as M, r as N, t as P } from "../../chunks/tooltip-C_5s9rd7.js";
-//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/tooltip/components/tooltip.svelte
+import { D as S } from "../../chunks/animations-complete-DFBLw3EK.js";
+import { i as C, n as w } from "../../chunks/use-id-Dbt6eP9X.js";
+import { r as T } from "../../chunks/dom-CAV9qhsv.js";
+import { t as E } from "../../chunks/portal-BFSsRkE3.js";
+import { a as D, n as O, r as k, t as A } from "../../chunks/popper-layer-force-mount-C0Qq7_vt.js";
+import { i as j, n as M, r as N, t as P } from "../../chunks/tooltip-BnaOsZw-.js";
+//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_a5a66d84ac7409b4078304c79e393e2b/node_modules/bits-ui/dist/bits/tooltip/components/tooltip.svelte
 function F(e, t) {
 	r(t, !0);
 	let n = d(t, "open", 15, !1), i = d(t, "triggerId", 15, null), o = d(t, "onOpenChange", 3, T), l = d(t, "onOpenChangeComplete", 3, T), u = j.create({
@@ -39,7 +39,7 @@ function F(e, t) {
 	}), c();
 }
 //#endregion
-//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/tooltip/components/tooltip-content.svelte
+//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_a5a66d84ac7409b4078304c79e393e2b/node_modules/bits-ui/dist/bits/tooltip/components/tooltip-content.svelte
 var I = new Set([
 	"$$slots",
 	"$$events",
@@ -189,7 +189,7 @@ function R(e, t) {
 	}), f(e, q), c();
 }
 //#endregion
-//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_bb7c24489ad33e958e13e9fce07f62f9/node_modules/bits-ui/dist/bits/tooltip/components/tooltip-provider.svelte
+//#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_a5a66d84ac7409b4078304c79e393e2b/node_modules/bits-ui/dist/bits/tooltip/components/tooltip-provider.svelte
 function z(e, t) {
 	r(t, !0);
 	let n = d(t, "delayDuration", 3, 700), i = d(t, "disableCloseOnTriggerClick", 3, !1), o = d(t, "disableHoverableContent", 3, !1), l = d(t, "disabled", 3, !1), u = d(t, "ignoreNonKeyboardFocus", 3, !1), p = d(t, "skipDelayDuration", 3, 300);
@@ -219,55 +219,50 @@ function V(o, l) {
 				var d = e(u, 2);
 				{
 					let e = (e, r) => {
-						let o = () => r?.().payload, c = () => r?.().open;
-						var l = m(), u = a(l), d = (e) => {
-							var r = m();
-							t(a(r), () => E, (e, r) => {
-								r(e, {
-									children: (e, r) => {
-										var c = m(), l = a(c);
-										{
-											let e = v(() => x("z-110 max-w-xs rounded-lg border border-dark-600 bg-dark-800 px-3 py-2 text-sm text-dark-200 shadow-md", "animate-in fade-in-0 zoom-in-95", "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"));
-											t(l, () => R, (t, r) => {
-												r(t, {
-													side: "top",
-													sideOffset: 4,
-													get class() {
-														return i(e);
-													},
-													children: (e, t) => {
-														var r = m(), i = a(r), c = (e) => {
-															var t = m(), n = a(t), r = (e) => {
-																var t = m();
-																s(a(t), () => o().snippet), f(e, t);
-															}, i = (e) => {
-																var t = m();
-																s(a(t), () => o().snippet, () => o().arg), f(e, t);
-															};
-															p(n, (e) => {
-																o().mode === "none" ? e(r) : e(i, -1);
-															}), f(e, t);
-														}, l = (e) => {
+						let o = () => r?.().payload;
+						var c = m();
+						t(a(c), () => E, (e, r) => {
+							r(e, {
+								children: (e, r) => {
+									var c = m(), l = a(c);
+									{
+										let e = v(() => x("z-110 max-w-xs rounded-lg border border-dark-600 bg-dark-800 px-3 py-2 text-sm text-dark-200 shadow-md", "animate-in fade-in-0 zoom-in-95", "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"));
+										t(l, () => R, (t, r) => {
+											r(t, {
+												side: "top",
+												sideOffset: 4,
+												get class() {
+													return i(e);
+												},
+												children: (e, t) => {
+													var r = m(), i = a(r), c = (e) => {
+														var t = m(), n = a(t), r = (e) => {
 															var t = m();
-															n(a(t), () => o().content), f(e, t);
+															s(a(t), () => o().snippet), f(e, t);
+														}, i = (e) => {
+															var t = m();
+															s(a(t), () => o().snippet, () => o().arg), f(e, t);
 														};
-														p(i, (e) => {
-															o().kind === "snippet" ? e(c) : e(l, -1);
-														}), f(e, r);
-													},
-													$$slots: { default: !0 }
-												});
+														p(n, (e) => {
+															o().mode === "none" ? e(r) : e(i, -1);
+														}), f(e, t);
+													}, l = (e) => {
+														var t = m();
+														n(a(t), () => o().content), f(e, t);
+													};
+													p(i, (e) => {
+														o()?.kind === "snippet" ? e(c) : o() && e(l, 1);
+													}), f(e, r);
+												},
+												$$slots: { default: !0 }
 											});
-										}
-										f(e, c);
-									},
-									$$slots: { default: !0 }
-								});
-							}), f(e, r);
-						};
-						p(u, (e) => {
-							c() && o() != null && e(d);
-						}), f(e, l);
+										});
+									}
+									f(e, c);
+								},
+								$$slots: { default: !0 }
+							});
+						}), f(e, c);
 					};
 					t(d, () => F, (t, n) => {
 						n(t, {

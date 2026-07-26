@@ -3,7 +3,6 @@
 
 	import { Button } from '@stream-kit/ui/button';
 
-	import { Action } from '$lib/core/action/action.svelte';
 	import { useI18n } from '$lib/i18n';
 
 	import ActionIdCopy from './action-id-copy.svelte';
@@ -26,7 +25,7 @@
 	);
 
 	function handleClone(): void {
-		const clone = Action.createFrom(action);
+		const clone = action.clone();
 		action.close();
 		clone.open();
 	}

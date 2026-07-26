@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 import { translate } from '$lib/i18n';
 
-import { app } from '../app-init';
+import { getApp } from '../registry';
 
 export async function linkWorkspaceDevPlugins(workspaceRoot?: string): Promise<void> {
 	if (!workspaceRoot) {
@@ -21,7 +21,7 @@ export async function linkWorkspaceDevPlugins(workspaceRoot?: string): Promise<v
 		}
 	} catch (error) {
 		console.error('Failed to link workspace dev plugins', error);
-		app.toast.create({
+		getApp().toast.create({
 			title: translate('Plugin could not be loaded'),
 			description:
 				error instanceof Error

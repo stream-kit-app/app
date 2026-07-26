@@ -28,6 +28,11 @@ export const pluginsSchema = z.object({
     key: z.string().regex(/^[a-z0-9-]+$/).min(1).max(5000),
     description: z.string().min(1).max(5000),
     icon: z.string().min(1).max(5000),
+    content: z.string().max(5000).optional(),
+    category: z.enum(['core', 'platform', 'streaming', 'chat', 'audio', 'hardware', 'utility']).optional(),
+    tags: z.enum(['twitch', 'youtube', 'discord', 'obs', 'bot', 'tts', 'overlay', 'moderation', 'automation']).array().max(9).optional(),
+    averageRating: z.number().min(0).max(5).optional(),
+    ratingCount: z.number().int().min(0).optional(),
 })
 
 export const pluginVersionsSchema = z.object({
@@ -55,6 +60,95 @@ export const filesSchema = z.object({
     size: z.number().min(0).optional(),
     sha256: z.string().regex(/^[a-f0-9]{64}$/).max(64).optional(),
     originalName: z.string().max(5000).optional(),
+    createdAt: z.string().regex(DATETIME_REGEX).optional(),
+    updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const pluginReviewsSchema = z.object({
+    collectionId: z.literal('pbc_6929103849').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    plugin: z.string().regex(/^[a-z0-9]+$/).length(15),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    rating: z.number().int().min(1).max(5).refine((n) => n !== 0),
+    body: z.string().max(5000).optional(),
+    createdAt: z.string().regex(DATETIME_REGEX).optional(),
+    updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const subscriptionsSchema = z.object({
+    collectionId: z.literal('pbc_7929103850').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    key: z.string().regex(/^[a-z0-9-]+$/).min(1).max(5000),
+    name: z.string().min(1).max(5000),
+    description: z.string().min(1).max(5000),
+    icon: z.string().min(1).max(5000),
+    enabled: z.boolean().optional(),
+    bullets: z.unknown().optional(),
+    maxFileBytes: z.number(),
+    maxStorageBytes: z.number(),
+    createdAt: z.string().regex(DATETIME_REGEX).optional(),
+    updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const userSubscriptionsSchema = z.object({
+    collectionId: z.literal('pbc_8929103851').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    subscription: z.string().regex(/^[a-z0-9]+$/).length(15),
+    purchasedAt: z.string().regex(DATETIME_REGEX),
+    cancelledAt: z.string().regex(DATETIME_REGEX).optional(),
+    status: z.enum(['active', 'cancelled', 'expired']),
+    createdAt: z.string().regex(DATETIME_REGEX).optional(),
+    updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const userFilesSchema = z.object({
+    collectionId: z.literal('pbc_9929103852').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    file: z.string().optional(),
+    mimeType: z.string().optional(),
+    size: z.number().optional(),
+    originalName: z.string().optional(),
+    createdAt: z.string().regex(DATETIME_REGEX).optional(),
+    updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const userActionQueuesSchema = z.object({
+    collectionId: z.literal('pbc_8930103850').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    name: z.string().min(1).max(5000),
+    concurrency: z.number(),
+    maxLength: z.number().optional(),
+    sortOrder: z.number(),
+    clientUpdatedAt: z.number(),
+    deletedAt: z.number().optional(),
+    createdAt: z.string().regex(DATETIME_REGEX).optional(),
+    updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const userActionsSchema = z.object({
+    collectionId: z.literal('pbc_8930103860').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    name: z.string().min(1).max(5000),
+    group: z.string().min(1).max(5000),
+    groupSortOrder: z.number(),
+    sortOrder: z.number(),
+    triggers: z.unknown(),
+    handlers: z.unknown(),
+    enabled: z.boolean().optional(),
+    queueSyncId: z.string().optional(),
+    ownerPluginKey: z.string().optional(),
+    clientUpdatedAt: z.number(),
+    deletedAt: z.number().optional(),
     createdAt: z.string().regex(DATETIME_REGEX).optional(),
     updatedAt: z.string().regex(DATETIME_REGEX).optional(),
 })

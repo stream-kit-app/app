@@ -63,7 +63,7 @@
 	}
 </script>
 
-<div class={cn('grid w-full min-w-0 gap-2')}>
+<div class={cn('grid w-full min-w-0 gap-3')}>
 	{#if label}
 		<Label>
 			{label}

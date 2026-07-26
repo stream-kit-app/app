@@ -63,11 +63,45 @@ The site uses [PocketBase](https://pocketbase.io/) as its backend. The PocketBas
 | --- | --- |
 | `site/pb/pocketbase` (or `.exe` on Windows) | Downloaded executable (gitignored) |
 | `site/pb/pb_data/` | Local database and uploads (gitignored) |
-| `site/pb/pb_migrations/` | Collection migrations (`plugins`, `plugin_versions`, `files`) |
+| `site/pb/pb_migrations/` | Collection migrations (`plugins`, `plugin_versions`, `files`, `plugin_reviews`, `subscriptions`, …) |
 | `site/pb/pb_hooks/` | JavaScript hooks (including `files.pb.js` metadata sync) |
+| `site/pb/PB_VERSION` | PocketBase binary version (local setup + Docker) |
+| `site/pb/package.json` | `@stream-kit/pocketbase` package (changeset version + GHCR image tags) |
+| `site/pb/Dockerfile` | Production image with binary, hooks, and migrations |
+| `site/pb/docker-compose.yml` | Example stack for Dockhand (`pb_data` volume) |
 | `site/src/lib/pocketbase/types.ts` | Generated PocketBase TypeScript types |
 
 On first run, the dev script downloads the PocketBase binary automatically. The admin UI is available at [http://127.0.0.1:8090/_/](http://127.0.0.1:8090/_/).
+
+### Production Docker image
+
+The production image is published to GitHub Container Registry as `ghcr.io/stream-kit-app/pocketbase`. It includes the PocketBase binary (version from `PB_VERSION`), `pb_hooks/`, and `pb_migrations/`. Runtime data (`pb_data`) must be a persistent volume — never bake it into the image.
+
+Versioning:
+
+1. Change hooks, migrations, `Dockerfile`, or `PB_VERSION`.
+2. Run `pnpm changeset` and select `@stream-kit/pocketbase` (`@stream-kit/site` stays ignored by changesets).
+3. Merge the version PR on `main`. The Release workflow triggers `publish-pocketbase.yml`, which pushes tags `VERSION`, `vVERSION`, and `latest`. If that version tag already exists on GHCR, the publish job is a no-op.
+
+Example Compose / Dockhand stack (also in `site/pb/docker-compose.yml`):
+
+```yaml
+services:
+  pocketbase:
+    image: ghcr.io/stream-kit-app/pocketbase:latest
+    ports:
+      - '8090:8090'
+    volumes:
+      - pb_data:/pb/pb_data
+    restart: unless-stopped
+
+volumes:
+  pb_data:
+```
+
+In Dockhand, register GHCR (`https://ghcr.io`) with a GitHub PAT that has `read:packages` when the package is private. Point the Cloudflare Tunnel at the service on port `8090`. On first start, create a superuser from the installer URL in the logs or with `pocketbase superuser create`.
+
+Manual publish: Actions → **Publish PocketBase** → Run workflow (optional force rebuild).
 
 ### Collections
 
@@ -107,6 +141,43 @@ Both `plugins`, `plugin_versions`, and `files` have public read rules (`listRule
 | `publishedAt` | Publication date |
 
 Unique index on `(plugin, version)`.
+
+**`subscriptions`** — admin catalog of plans that unlock cloud app features:
+
+| Field | Description |
+| --- | --- |
+| `key` | Stable identifier (unique, e.g. `pro`) |
+| `name` | Display name |
+| `description` | Short catalog description |
+| `icon` | Iconify icon id |
+| `enabled` | When `true`, visible via public list/view rules |
+| `bullets` | JSON array of benefit strings for plan cards (e.g. `["Cloud sync", "Priority support"]`) |
+| `maxFileBytes` | Max size per `user_files` upload (bytes) |
+| `maxStorageBytes` | Total `user_files` storage quota per user on this plan (bytes) |
+
+Public `listRule` / `viewRule` is `enabled = true`. Create/update/delete are admin-only (`null` rules).
+
+**`user_subscriptions`** — membership lifecycle history (multiple rows over time):
+
+| Field | Description |
+| --- | --- |
+| `user` | Relation to `users` |
+| `subscription` | Relation to `subscriptions` (the plan for that period) |
+| `purchasedAt` | When this membership started |
+| `cancelledAt` | When cancelled (optional) |
+| `status` | `active`, `cancelled`, or `expired` |
+
+Users may list/view their own rows. Create/delete remain admin-only until purchase flows exist. Owners may **cancel** an active membership (`status` → `cancelled`, optional `cancelledAt`). The app resolves the current plan by querying the latest `user_subscriptions` row with `status = "active"` (expand `subscription`).
+
+**`user_files`** — authenticated user media (audio/images/video for actions and rankings icons):
+
+| Field | Description |
+| --- | --- |
+| `user` | Relation to `users` (owner) |
+| `file` | Uploaded blob |
+| `mimeType` / `size` / `originalName` | Filled by `user_files.pb.js` on create |
+
+Owner-only list/view/create/delete. Create hook rejects uploads without an active plan or when over `maxFileBytes` / `maxStorageBytes`. Marketplace release zips remain in the separate **`files`** collection.
 
 ### Type generation
 

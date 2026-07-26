@@ -112,15 +112,25 @@
 					</div>
 				</div>
 
-				<ScrollArea orientation="vertical" class="min-h-0 flex-1" viewportClasses="h-full w-full">
-					<div class="px-8 pt-6 pb-8">
+				{#if modal.scrollBody !== false}
+					<ScrollArea orientation="vertical" class="min-h-0 flex-1" viewportClasses="h-full w-full">
+						<div class="px-8 pt-6 pb-8">
+							{#if modal.contentHost === 'plugin'}
+								<PluginComponentHost component={modal.content} props={modal.props} />
+							{:else}
+								<modal.content {...modal.props} />
+							{/if}
+						</div>
+					</ScrollArea>
+				{:else}
+					<div class="flex min-h-0 flex-1 flex-col overflow-hidden px-8 pt-6 pb-8">
 						{#if modal.contentHost === 'plugin'}
 							<PluginComponentHost component={modal.content} props={modal.props} />
 						{:else}
 							<modal.content {...modal.props} />
 						{/if}
 					</div>
-				</ScrollArea>
+				{/if}
 
 				{#if modal.footer}
 					<div class="shrink-0 border-t border-dark-600 bg-dark-800 px-8 py-4">

@@ -1,7 +1,7 @@
 import type { HandlerDefinitionProps } from '../action/handler';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { SettingsFieldDefinition, SettingsFieldSectionDefinition } from '../settings';
-import type { PluginAppApi } from './app-api';
+import type { PluginAppApi } from './plugin-app-api.types';
 import type { PluginSettingsContext } from './context';
 import type {
 	PageBlock,

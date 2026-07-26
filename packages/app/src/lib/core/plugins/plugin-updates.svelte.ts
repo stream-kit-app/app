@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 import { translate } from '$lib/i18n';
 
-import { app } from '../app-init';
+import { getApp } from '../registry';
 import { checkAllPluginUpdates, canApplyPluginUpdates } from './plugin-update';
 import type { InstalledPluginManifest } from './installed-plugin';
 
@@ -69,7 +69,7 @@ class PluginUpdates {
 		}
 
 		const { applyPluginUpdate } = await import('./plugin-update');
-		await applyPluginUpdate(app, update);
+		await applyPluginUpdate(getApp(), update);
 		this.removeUpdate(key);
 	}
 }

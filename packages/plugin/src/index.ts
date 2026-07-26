@@ -86,6 +86,16 @@ export type {
 } from '../../app/src/lib/core/plugins';
 export type { OAuthStartOptions } from '../../app/src/lib/core/oauth';
 export type {
+	AuthAccount,
+	AuthLoginInput,
+	AuthPublicSubscription,
+	AuthPublicUser,
+	AuthRegisterInput,
+	AuthUpdatePasswordInput,
+	AuthUpdateProfileInput
+} from '../../app/src/lib/core/auth/types';
+export type { PluginAppAuthApi } from '../../app/src/lib/core/plugins/plugin-app-api.types';
+export type {
 	CopyFileOptions,
 	CreateOptions,
 	DebouncedWatchOptions,

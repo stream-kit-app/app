@@ -4,6 +4,7 @@ import {
 	DEFAULT_RANKINGS_SETTINGS,
 	DEFAULT_RANKS,
 	DEFAULT_TIERS,
+	type IgnoredUserRecord,
 	type PointHistoryEntry,
 	type RankRecord,
 	type RankingsSettings,
@@ -15,6 +16,7 @@ import { trimPointHistory } from './point-history';
 const TIERS_KEY = 'tiers';
 const RANKS_KEY = 'ranks';
 const USERS_KEY = 'users';
+const IGNORED_USERS_KEY = 'ignoredUsers';
 const SETTINGS_KEY = 'settings';
 const SEED_VERSION_KEY = 'seedVersion';
 const POINT_HISTORY_KEY = 'pointHistory';
@@ -49,6 +51,19 @@ export async function loadUsers(store: PluginStore): Promise<UserRankingRecord[]
 
 export async function saveUsers(store: PluginStore, users: UserRankingRecord[]): Promise<void> {
 	await store.set(USERS_KEY, users);
+}
+
+export async function loadIgnoredUsers(store: PluginStore): Promise<IgnoredUserRecord[]> {
+	const ignored = await store.get<IgnoredUserRecord[]>(IGNORED_USERS_KEY);
+
+	return ignored ?? [];
+}
+
+export async function saveIgnoredUsers(
+	store: PluginStore,
+	ignoredUsers: IgnoredUserRecord[]
+): Promise<void> {
+	await store.set(IGNORED_USERS_KEY, ignoredUsers);
 }
 
 export async function loadPointHistory(store: PluginStore): Promise<PointHistoryEntry[]> {

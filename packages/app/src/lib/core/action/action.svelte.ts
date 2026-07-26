@@ -67,6 +67,7 @@ export type ActionProps = {
 	groupSortOrder?: number;
 	sortOrder?: number;
 	id?: number;
+	syncId?: string;
 	enabled?: boolean;
 	queueId?: number | null;
 	ownerPluginKey?: string;
@@ -488,9 +489,12 @@ export class Actions {
 
 	getSnapshot(): ActionRecord[] {
 		return this.items
-			.filter((action): action is Action & { id: number } => action.id != null)
+			.filter((action): action is Action & { id: number; syncId: string } =>
+				action.id != null && Boolean(action.syncId)
+			)
 			.map((action) => ({
 				id: action.id,
+				syncId: action.syncId,
 				name: action.name,
 				group: action.group,
 				groupSortOrder: action.groupSortOrder,
@@ -565,6 +569,7 @@ export class Actions {
 
 export class Action {
 	id?: number;
+	syncId?: string;
 	modalId?: string;
 	name: string = $state('');
 	group: string = $state(DEFAULT_ACTION_GROUP);
@@ -582,6 +587,7 @@ export class Action {
 
 	constructor(props: ActionProps = {}) {
 		this.id = props.id;
+		this.syncId = props.syncId;
 		this.name = props.name ?? '';
 		this.group = normalizeActionGroup(props.group);
 		this.groupSortOrder = props.groupSortOrder ?? 0;
@@ -627,6 +633,10 @@ export class Action {
 		});
 	}
 
+	clone(): Action {
+		return Action.createFrom(this);
+	}
+
 	static fromRecord(record: ActionRecord): Action {
 		const app = getApp();
 		// Unresolved trigger/handler types are loaded as unavailable placeholders
@@ -649,6 +659,7 @@ export class Action {
 
 		return new Action({
 			id: record.id,
+			syncId: record.syncId,
 			name: record.name,
 			group: record.group,
 			groupSortOrder: record.groupSortOrder,
@@ -1134,6 +1145,7 @@ export class Action {
 		}
 
 		this.id = row.id;
+		this.syncId = row.syncId;
 		this.group = normalizeActionGroup(row.group);
 		this.groupSortOrder = row.groupSortOrder;
 		this.sortOrder = row.sortOrder;

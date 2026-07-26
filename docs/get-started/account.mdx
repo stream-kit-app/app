@@ -1,0 +1,47 @@
+---
+title: Stream Kit account
+description: Create and manage your Stream Kit account in the desktop app.
+---
+
+# Stream Kit account
+
+Stream Kit accounts are optional. You can use the app without signing in. An account lets you manage a profile (name, email, avatar) and enables future marketplace features that require identity.
+
+## Sign in or create an account
+
+1. Click **Log in** in the top-right of the app header.
+2. Enter your email and password, or choose **Create account**.
+3. After you sign in, the header shows your avatar. Open the menu for **Profile** or **Log out**.
+
+## Profile
+
+Open **Profile** from the avatar menu to update:
+
+- Avatar image (JPEG, PNG, WebP, or GIF up to 5 MB; you can also remove it)
+- Display name
+- Email (sends a confirmation link to the new address; your login email updates after you confirm)
+- Password (current password required; you stay signed in on this device)
+
+If your account has an active plan, your avatar shows a primary ring (header and profile) and the plan appears in a **Subscription** card on the profile page. You can cancel an active plan from that card.
+
+Active plans also unlock **cloud files** (`user_files`): upload or browse media from handler file fields (for example Play audio file) and rankings icons. Each plan defines a max file size and total storage quota.
+
+When a plan becomes active, Stream Kit automatically uploads existing local files from cloud-capable fields (actions, bot commands/timers, and rankings image icons) in the background. You can still use **Upload to cloud** on a field to migrate a single path manually. Local paths keep working for playback until they are migrated.
+
+Active plans also enable **cloud sync** for actions and action queues: your local SQLite database stays the offline runtime store, and changes sync to PocketBase (`user_actions`, `user_action_queues`) while you are signed in with an active plan. Conflicts use last-write-wins on timestamps. Open **Profile** to see sync status or tap **Sync now**.
+
+## Developers / local setup
+
+The desktop app talks to PocketBase using `PUBLIC_POCKETBASE_URL` from `$env/static/public` (baked in at build time).
+
+1. Run PocketBase locally (for example via `@stream-kit/site`: `pnpm --filter @stream-kit/site pb:setup` then start the site/PB stack).
+2. Copy `packages/app/.env.example` to `packages/app/.env`.
+3. Set:
+
+```env
+PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090
+```
+
+For release builds, set `PUBLIC_POCKETBASE_URL` in CI at build time so the packaged app points at the production PocketBase.
+
+Plugins can read the signed-in public profile and call login/logout via `app.auth` — see [Plugin Authoring API](/docs/developers/plugin-api).

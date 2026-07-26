@@ -25,6 +25,11 @@ import type { MenuItemLink } from '../menu/types';
 import type { Modal } from '../modal/modal.svelte';
 import type { ModalProps } from '../modal/modal.svelte';
 import type { OAuthStartOptions } from '../oauth/oauth';
+import type {
+	AuthLoginInput,
+	AuthPublicUser,
+	AuthRegisterInput
+} from '../auth/types';
 import type { ToastCreateProps } from '../toast/toast.svelte';
 import type { ToastItem } from '../toast/toast-item.svelte';
 import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
@@ -532,6 +537,55 @@ export interface PluginAppAudioApi {
 }
 
 /**
+ * Authenticated cloud user media (`user_files` in PocketBase).
+ */
+export interface PluginAppUserFileRecord {
+	id: string;
+	url: string;
+	size: number;
+	mimeType: string;
+	originalName: string;
+	createdAt: string | null;
+}
+
+export interface PluginAppUserFilesQuota {
+	usedBytes: number;
+	maxStorageBytes: number;
+	maxFileBytes: number;
+	planKey: string;
+	planName: string;
+}
+
+export interface PluginAppUserFilesListOptions {
+	mimePrefix?: string;
+	extensions?: string[];
+}
+
+export interface PluginAppUserFilesUploadOptions {
+	originalName: string;
+}
+
+export interface PluginAppUserFilesApi {
+	/** True when the value looks like an `http(s)` cloud file URL. */
+	isCloudUrl(value: string | null | undefined): boolean;
+	/** List the signed-in user's cloud files (optional mime/extension filters). */
+	list(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord[]>;
+	/** Upload a file/blob; requires auth + active subscription within plan limits. */
+	upload(
+		file: File | Blob,
+		options: PluginAppUserFilesUploadOptions
+	): Promise<PluginAppUserFileRecord>;
+	/** Delete one of the signed-in user's cloud files. */
+	remove(id: string): Promise<void>;
+	/** Current plan quota usage, or `null` when signed out / no active plan. */
+	getQuota(): Promise<PluginAppUserFilesQuota | null>;
+	/** Download a private cloud file URL with the signed-in auth token. */
+	fetchBlob(url: string): Promise<Blob>;
+	/** Open the app cloud file picker modal; resolves `null` when cancelled. */
+	pick(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord | null>;
+}
+
+/**
  * App-owned bridge to the local (Piper) TTS runtime. Keeps Tauri command
  * invocation in the app layer so plugins stay platform-agnostic.
  */
@@ -772,6 +826,51 @@ export interface PluginAppCommandsApi {
 }
 
 /**
+ * Stream Kit account authentication (PocketBase).
+ */
+export interface PluginAppAuthApi {
+	/** Public profile of the signed-in user, or `null` when logged out. */
+	readonly user: AuthPublicUser | null;
+
+	/** Whether a Stream Kit account session is active. */
+	readonly isAuthenticated: boolean;
+
+	/**
+	 * Sign in with email and password.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.auth.login({ email: 'you@example.com', password: 'secret' });
+	 * ```
+	 */
+	login(input: AuthLoginInput): Promise<void>;
+
+	/**
+	 * Create a Stream Kit account and sign in.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.auth.register({
+	 *   email: 'you@example.com',
+	 *   password: 'secret',
+	 *   passwordConfirm: 'secret',
+	 *   name: 'You'
+	 * });
+	 * ```
+	 */
+	register(input: AuthRegisterInput): Promise<void>;
+
+	/** Clear the current session. */
+	logout(): Promise<void>;
+
+	/**
+	 * Subscribe to auth changes. Invoked immediately with the current user.
+	 * Returns an unsubscribe function.
+	 */
+	onChange(handler: (user: AuthPublicUser | null) => void): () => void;
+}
+
+/**
  * OAuth redirect flow helpers via the Tauri OAuth plugin.
  */
 export interface PluginAppOAuthApi {
@@ -877,6 +976,9 @@ export interface PluginAppApi {
 	/** Play audio blobs. */
 	audio: PluginAppAudioApi;
 
+	/** Authenticated cloud user media library (`user_files`). */
+	userFiles: PluginAppUserFilesApi;
+
 	/** Probe local media files (for example video duration). */
 	media: PluginAppMediaApi;
 
@@ -909,6 +1011,9 @@ export interface PluginAppApi {
 
 	/** Integrate with the Commands plugin. */
 	commands: PluginAppCommandsApi;
+
+	/** Stream Kit account authentication and public profile. */
+	auth: PluginAppAuthApi;
 
 	/** OAuth redirect flow helpers. */
 	oauth: PluginAppOAuthApi;

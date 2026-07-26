@@ -6,8 +6,8 @@
 	import InputText from './input-text.svelte';
 
 	/**
-	 * File picker for uploads (local browse today; cloud upload later).
-	 * Keeps Tauri/fs out of `@stream-kit/ui` — the caller supplies `onBrowse`.
+	 * File picker for uploads. Keeps Tauri/fs out of `@stream-kit/ui` — the caller
+	 * supplies `onBrowse` / optional `onCloudBrowse`.
 	 */
 	type Props = {
 		label?: string;
@@ -23,10 +23,13 @@
 		 * `null`/`undefined` if cancelled.
 		 */
 		onBrowse: () => Promise<string | null | undefined>;
+		/** Optional cloud library picker; return a display label when selected. */
+		onCloudBrowse?: () => Promise<string | null | undefined>;
 		onValueChange?: (value: string) => void;
 		/** Clear the current selection. */
 		onClear?: () => void;
 		browseLabel?: string;
+		cloudLabel?: string;
 		clearLabel?: string;
 		emptyLabel?: string;
 		/** Optional preview (e.g. image thumbnail) shown above the field. */
@@ -40,33 +43,34 @@
 		error,
 		value = '',
 		onBrowse,
+		onCloudBrowse,
 		onValueChange,
 		onClear,
-		browseLabel = 'Browse',
+		browseLabel = 'Upload',
+		cloudLabel = 'Cloud',
 		clearLabel = 'Clear',
 		emptyLabel = 'No file selected',
 		preview
 	}: Props = $props();
 
-	let isBrowsing = $state(false);
+	let isBusy = $state(false);
 
-	async function browse(): Promise<void> {
-		if (isBrowsing) {
+	async function runPicker(
+		picker: () => Promise<string | null | undefined>
+	): Promise<void> {
+		if (isBusy) {
 			return;
 		}
 
-		isBrowsing = true;
-
+		isBusy = true;
 		try {
-			const selected = await onBrowse();
-
+			const selected = await picker();
 			if (!selected) {
 				return;
 			}
-
 			onValueChange?.(selected);
 		} finally {
-			isBrowsing = false;
+			isBusy = false;
 		}
 	}
 </script>
@@ -78,27 +82,38 @@
 		</div>
 	{/if}
 
-	<div class="flex items-end gap-2">
-		<div class="min-w-0 flex-1">
-			<InputText
-				{label}
-				placeholder={placeholder ?? emptyLabel}
-				{required}
-				{error}
-				readonly
-				value={value}
-			/>
-		</div>
+	<InputText
+		{label}
+		placeholder={placeholder ?? emptyLabel}
+		{required}
+		{error}
+		readonly
+		value={value}
+	/>
+
+	<div class="flex flex-wrap items-center gap-2">
 		<Button
 			type="button"
 			variant="outline"
-			onclick={() => void browse()}
-			disabled={isBrowsing}
-			isLoading={isBrowsing}
+			onclick={() => void runPicker(onBrowse)}
+			disabled={isBusy}
+			isLoading={isBusy}
 			icon="ri:upload-2-line"
 		>
 			{browseLabel}
 		</Button>
+		{#if onCloudBrowse}
+			<Button
+				type="button"
+				variant="outline"
+				onclick={() => void runPicker(onCloudBrowse)}
+				disabled={isBusy}
+				isLoading={isBusy}
+				icon="ri:cloud-line"
+			>
+				{cloudLabel}
+			</Button>
+		{/if}
 		{#if onClear && value}
 			<Button type="button" variant="ghost" onclick={() => onClear()} icon="ri:close-line">
 				{clearLabel}

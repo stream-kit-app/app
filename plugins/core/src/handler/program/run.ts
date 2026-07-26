@@ -18,12 +18,14 @@ export const createRunProgramHandler = ({ app, variables }: CorePluginContext) =
 				mode: 'file' as const,
 				name: 'Program',
 				filters: PROGRAM_FILTERS,
+				storage: 'local' as const,
 				required: true
 			},
 			{
 				type: 'select-file-or-folder',
 				mode: 'folder' as const,
-				name: 'Working directory'
+				name: 'Working directory',
+				storage: 'local' as const
 			},
 			{
 				type: 'text',

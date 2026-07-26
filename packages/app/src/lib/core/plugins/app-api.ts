@@ -176,6 +176,25 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			playFile: app.audio.playFile.bind(app.audio),
 			stop: app.audio.stop.bind(app.audio)
 		},
+		userFiles: {
+			isCloudUrl: app.userFiles.isCloudUrl.bind(app.userFiles),
+			list: app.userFiles.list.bind(app.userFiles),
+			upload: app.userFiles.upload.bind(app.userFiles),
+			remove: app.userFiles.remove.bind(app.userFiles),
+			getQuota: app.userFiles.getQuota.bind(app.userFiles),
+			fetchBlob: app.userFiles.fetchBlob.bind(app.userFiles),
+			pick: async (options) => {
+				const { openCloudFilePicker } = await import(
+					'$lib/components/core/user-files/open-cloud-file-picker'
+				);
+				return openCloudFilePicker({
+					filters: options?.extensions
+						? [{ name: 'Files', extensions: options.extensions }]
+						: undefined,
+					mimePrefix: options?.mimePrefix
+				});
+			}
+		},
 		media: {
 			getFileDurationMs: getVideoFileDurationMs
 		},
@@ -274,6 +293,18 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			getSnapshot: () => app.actions.getSnapshot()
 		},
 		commands: createCommandsApi(app, scope),
+		auth: {
+			get user() {
+				return app.auth.user;
+			},
+			get isAuthenticated() {
+				return app.auth.isAuthenticated;
+			},
+			login: app.auth.login.bind(app.auth),
+			register: app.auth.register.bind(app.auth),
+			logout: app.auth.logout.bind(app.auth),
+			onChange: app.auth.onChange.bind(app.auth)
+		},
 		oauth: {
 			start: app.oauth.start.bind(app.oauth),
 			onUrl: app.oauth.onUrl.bind(app.oauth),

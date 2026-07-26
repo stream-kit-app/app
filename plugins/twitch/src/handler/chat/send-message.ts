@@ -30,17 +30,41 @@ export const createSendMessageHandler = (app: PluginAppApi) => {
 			const channel = resolveChannel(context, app);
 			const broadcasterId = resolveBroadcasterId(context, app);
 
-			if (typeof message !== 'string' || !message.trim() || !channel) {
-				return;
-			}
-
-			if (asBot && broadcasterId) {
-				void getTwitch(app).sendChatMessageAsBot(broadcasterId, message.trim());
+			if (typeof message !== 'string' || !message.trim()) {
 				next();
 				return;
 			}
 
-			void getTwitch(app).chat?.say(channel, message.trim());
+			const trimmed = message.trim();
+
+			// As bot only needs a broadcaster id — do not require IRC channel first.
+			if (asBot) {
+				if (!broadcasterId) {
+					app.toast.create({
+						title: 'Send message failed',
+						description: 'Connect Twitch (or provide a broadcaster) to send as bot.',
+						variant: 'warning'
+					});
+					next();
+					return;
+				}
+
+				void getTwitch(app).sendChatMessageAsBot(broadcasterId, trimmed);
+				next();
+				return;
+			}
+
+			if (!channel) {
+				app.toast.create({
+					title: 'Send message failed',
+					description: 'No Twitch channel available to send to.',
+					variant: 'warning'
+				});
+				next();
+				return;
+			}
+
+			void getTwitch(app).chat?.say(channel, trimmed);
 			next();
 		}
 	} satisfies HandlerDefinitionProps;

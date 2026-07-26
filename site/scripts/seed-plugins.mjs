@@ -22,8 +22,49 @@ const SEED_AUTHOR = {
 	name: 'Stream Kit'
 };
 
+/** @type {Record<string, { category: string; tags: string[] }>} */
+const PLUGIN_MARKETPLACE_META = {
+	core: { category: 'core', tags: ['automation'] },
+	bot: { category: 'chat', tags: ['bot', 'moderation', 'automation'] },
+	twitch: { category: 'platform', tags: ['twitch'] },
+	youtube: { category: 'platform', tags: ['youtube'] },
+	discord: { category: 'platform', tags: ['discord'] },
+	obs: { category: 'streaming', tags: ['obs', 'overlay'] },
+	tts: { category: 'audio', tags: ['tts'] },
+	websocket: { category: 'utility', tags: ['automation'] },
+	rankings: { category: 'chat', tags: ['bot', 'automation'] },
+	quotes: { category: 'chat', tags: ['bot'] },
+	'stream-deck': { category: 'hardware', tags: ['automation'] }
+};
+
 function pocketBaseDate(date = new Date()) {
 	return date.toISOString().replace('T', ' ');
+}
+
+function marketplaceMeta(key) {
+	return PLUGIN_MARKETPLACE_META[key] ?? { category: 'utility', tags: [] };
+}
+
+async function loadPluginContent(pluginDirName, manifest) {
+	const readmePath = join(pluginsDir, pluginDirName, 'README.md');
+
+	try {
+		return await readFile(readmePath, 'utf8');
+	} catch {
+		const description = manifest.description?.trim();
+		const lines = [`# ${manifest.name}`, ''];
+		if (description) {
+			lines.push(description, '');
+		}
+		lines.push(
+			'## Install',
+			'',
+			'Download the latest release from the Stream Kit marketplace and install it from the desktop app.',
+			'',
+			`Requires Stream Kit \`${manifest.streamKitVersion ?? '*'}\`.`
+		);
+		return lines.join('\n');
+	}
 }
 
 function distributionDownloadUrl(manifest) {
@@ -55,7 +96,8 @@ async function loadManifests() {
 
 		try {
 			const content = await readFile(manifestPath, 'utf8');
-			manifests.push(JSON.parse(content));
+			const manifest = JSON.parse(content);
+			manifests.push({ ...manifest, _dirName: entry.name });
 		} catch {
 			// skip plugin folders without a manifest
 		}
@@ -94,12 +136,18 @@ async function ensureAuthor(pb) {
 }
 
 async function upsertPlugin(pb, authorId, manifest) {
+	const meta = marketplaceMeta(manifest.key);
+	const content = await loadPluginContent(manifest._dirName ?? manifest.key, manifest);
+
 	const payload = {
 		key: manifest.key,
 		name: manifest.name,
 		description: manifest.description ?? '',
 		icon: manifest.icon ?? '',
-		author: authorId
+		author: authorId,
+		category: meta.category,
+		tags: meta.tags,
+		content
 	};
 
 	try {

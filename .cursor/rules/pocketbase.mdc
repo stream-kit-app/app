@@ -1,12 +1,20 @@
 ---
-description: PocketBase backend conventions for @stream-kit/site
-globs: site/**/*.{ts,svelte,js,mjs},site/pb/**/*
+description: PocketBase conventions for site catalog and desktop app auth
+globs: site/**/*.{ts,svelte,js,mjs},site/pb/**/*,packages/app/src/lib/core/auth/**
 alwaysApply: false
 ---
 
-# PocketBase (site backend)
+# PocketBase
 
-PocketBase backs `@stream-kit/site` only. All backend code lives under `site/` — never in `packages/app` or plugin packages.
+PocketBase is the shared backend for the public site catalog and Stream Kit account auth.
+
+| Consumer | Allowed use |
+| --- | --- |
+| `@stream-kit/site` | Server-side services for catalog, reviews, file URLs |
+| `@stream-kit/app` (`packages/app/src/lib/core/auth`, `user-files`, `config-sync`) | Public JS client for `users` auth, `user_files`, and config sync collections |
+| Plugins | Via `app.auth` only — never import `pocketbase` directly |
+
+Do **not** put catalog CRUD, admin/superuser clients, or migrations in `packages/app` or plugins.
 
 ## Layout
 
@@ -16,11 +24,18 @@ PocketBase backs `@stream-kit/site` only. All backend code lives under `site/` �
 | `site/pb/pb_hooks/` | JS hooks (committed) |
 | `site/pb/pb_data/` | Local DB + uploads (gitignored) |
 | `site/pb/pocketbase(.exe)` | Downloaded binary (gitignored) |
-| `site/scripts/setup-pocketbase.mjs` | Downloads binary (`POCKETBASE_VERSION`) |
+| `site/pb/PB_VERSION` | PocketBase binary version (shared by local setup + Docker) |
+| `site/pb/package.json` | `@stream-kit/pocketbase` — changeset-versioned image package |
+| `site/pb/Dockerfile` | Production image (binary + hooks + migrations) |
+| `site/pb/docker-compose.yml` | Dockhand / Compose example with `pb_data` volume |
+| `site/scripts/setup-pocketbase.mjs` | Downloads binary from `PB_VERSION` |
 | `site/scripts/run-pocketbase.mjs` | Serves on `http://127.0.0.1:8090` |
 | `site/scripts/seed-plugins.mjs` | Seeds plugins + uploads release zips to `files` |
+| `packages/app/src/lib/core/auth/` | Desktop app auth service (`PUBLIC_POCKETBASE_URL`) |
 
 Dev: `pnpm --filter @stream-kit/site dev` (PocketBase + SvelteKit). Admin UI: `http://127.0.0.1:8090/_/`.
+
+App local env: set `PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090` in `packages/app/.env` (see `.env.example`).
 
 ## Schema changes
 
@@ -32,11 +47,18 @@ Dev: `pnpm --filter @stream-kit/site dev` (PocketBase + SvelteKit). Admin UI: `h
 
 ### Collections
 
-- **`plugins`** — stable identity: `key` (unique), `name` (unique), `description`, `icon`, `author` → `_pb_users_auth_`.
+- **`users`** — default PocketBase auth collection (`avatar`, `name`, `email`, `password`, …). Shared by the desktop app and site marketplace.
+- **`plugins`** — stable identity: `key` (unique), `name` (unique), `description`, `icon`, `author` → `_pb_users_auth_`, marketplace fields: `content` (markdown README), `category` (select), `tags` (multi-select), `averageRating`, `ratingCount`.
 - **`files`** — release zips: `file` (upload), `mimeType`, `size`, `sha256`, `originalName` (metadata filled by `files.pb.js` hook).
 - **`plugin_versions`** — releases linked to `plugins` (cascade delete): `version`, `streamKitVersion`, `entry`, `file` → `files`, `changelog`, `isLatest`, `publishedAt`. Unique on `(plugin, version)`.
+- **`plugin_reviews`** — user ratings/comments: `plugin` → `plugins` (cascade), `user` → `users`, `rating` (1–5), `body`. Unique on `(plugin, user)`. Public read; create/update/delete requires auth and `user = @request.auth.id`.
+- **`subscriptions`** — admin catalog of plans that unlock cloud features: `key` (unique), `name`, `description`, `icon`, `enabled`, `bullets` (JSON string array for plan card benefits), `maxFileBytes`, `maxStorageBytes`. Public list/view when `enabled = true`; write is superuser-only.
+- **`user_subscriptions`** — membership history: `user` → `users`, `subscription` → `subscriptions`, `purchasedAt`, `cancelledAt`, `status` (`active` \| `cancelled` \| `expired`). Users can list/view own rows; create/delete are superuser-only until purchase flows exist. Owners may cancel an active row (`status` → `cancelled`). Current plan = latest row with `status = "active"`.
+- **`user_files`** — per-user cloud media: `user` → `users`, `file` (upload), `mimeType`, `size`, `originalName`. Owner-only CRUD. Create hook fills metadata and enforces the active plan’s `maxFileBytes` / `maxStorageBytes`. Marketplace release zips stay on **`files`**.
+- **`user_action_queues`** — cloud sync of action queues: `user`, `name`, `concurrency`, `maxLength`, `sortOrder`, `clientUpdatedAt`, `deletedAt`. Owner CRUD; create/update require an active subscription (hook).
+- **`user_actions`** — cloud sync of actions: `user`, `name`, `group`, `groupSortOrder`, `sortOrder`, `triggers`/`handlers` (JSON), `enabled`, `queueSyncId`, `ownerPluginKey`, `clientUpdatedAt`, `deletedAt`. Owner CRUD; create/update require an active subscription (hook). Desktop keeps local SQLite as offline runtime store and syncs LWW via `app.configSync`.
 
-## SvelteKit integration
+## SvelteKit integration (site)
 
 - Talk to PocketBase **server-side only** via `site/src/lib/server/services/` (e.g. `PluginsService`).
 - Wire services through `event.locals.services` in `site/src/lib/server/hooks/services.ts`.
@@ -54,12 +76,34 @@ export const load = async ({ locals }) => {
 // ❌ Never import PocketBase admin client from +page.svelte or client code
 ```
 
+## Desktop app auth
+
+- Implement auth in `packages/app/src/lib/core/auth` with the public PocketBase SDK and `PUBLIC_POCKETBASE_URL` (`$env/static/public`, build-time).
+- Persist the session with PocketBase `AsyncAuthStore` backed by the Tauri store (`app.auth.json`) — not `localStorage` (plugins share the same window origin).
+- Email changes use `requestEmailChange` (confirmation link); do not update `email` via the regular profile `update` call.
+- After a password change, re-authenticate with `authWithPassword` because PocketBase rotates `tokenKey`.
+- Expose `app.auth` to plugins (public profile: `id`, `name`, `avatarUrl`, `verified`, optional `subscription` `{ key, name }`).
+- Never use `_superusers` or admin credentials from the app.
+
 ## Hooks
 
 Place hook scripts in `site/pb/pb_hooks/`. Keep hooks focused; use migrations for schema, hooks for request/record lifecycle logic.
 
 - **`files.pb.js`** — on create/update of `files`, sets `mimeType`, `size`, `sha256`, and `originalName` from the uploaded file.
+- **`user_files.pb.js`** — on create/update of `user_files`, sets metadata and enforces plan quotas.
+- **`user_config_sync.pb.js`** — on create/update of `user_actions` / `user_action_queues`, requires auth + active subscription and forces `user` to the auth id.
+- **`plugin_reviews.pb.js`** — after create/update/delete of `plugin_reviews`, recalculates `averageRating` and `ratingCount` on the parent plugin.
 
 ## Version bumps
 
-When upgrading PocketBase, update `POCKETBASE_VERSION` in `site/scripts/setup-pocketbase.mjs`, delete the old binary, and re-run `pnpm --filter @stream-kit/site pb:setup`.
+When upgrading the PocketBase **binary**, update `site/pb/PB_VERSION`, delete the old local binary, and re-run `pnpm --filter @stream-kit/site pb:setup`. Bump `@stream-kit/pocketbase` via changesets so the Docker image rebuilds with the new binary.
+
+When changing **hooks or migrations**, add a changeset for `@stream-kit/pocketbase` (`pnpm changeset`). After the version PR merges on `main`, `release.yml` triggers `publish-pocketbase.yml`, which pushes `ghcr.io/stream-kit-app/pocketbase` tagged with the package version (`0.1.1`, `v0.1.1`, `latest`). The workflow skips if that version tag already exists on GHCR.
+
+### Production (Docker / Dockhand)
+
+- Image: `ghcr.io/stream-kit-app/pocketbase` (hooks + migrations baked in; **not** `pb_data`)
+- Persist `/pb/pb_data` as a volume (see `site/pb/docker-compose.yml`)
+- Dockhand: add GHCR (`https://ghcr.io`) with a PAT that has `read:packages` if the package is private
+- Point the Cloudflare Tunnel at the container HTTP port (`8090`)
+- First boot: create a superuser via admin installer logs or `pocketbase superuser create`

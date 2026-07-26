@@ -1,5 +1,5 @@
 import { Nn as e } from "../../chunks/client-xxWnFgeR.js";
-import { t } from "../../chunks/tooltip-C_5s9rd7.js";
+import { t } from "../../chunks/tooltip-BnaOsZw-.js";
 //#region ../ui/src/lib/attachments/tooltip-content.ts
 function n(e, t) {
 	return arguments.length === 1 ? {
@@ -87,7 +87,13 @@ function u(n, r) {
 		};
 		return !i.hasAttribute("tabindex") && !c(i) && !i.hasAttribute("disabled") && i.setAttribute("tabindex", "0"), i.addEventListener("pointerenter", b), i.addEventListener("pointerleave", x), i.addEventListener("focus", S), i.addEventListener("blur", C), () => {
 			_(), i.removeEventListener("pointerenter", b), i.removeEventListener("pointerleave", x), i.removeEventListener("focus", S), i.removeEventListener("blur", C), l(() => {
-				p && t.state.registry.unregister(s);
+				if (!p) return;
+				let e = t.state.root;
+				if (e) {
+					e.unregisterTrigger(s);
+					return;
+				}
+				t.state.registry.unregister(s);
 			});
 		};
 	};

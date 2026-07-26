@@ -71,4 +71,27 @@ export class RankedUser {
 			});
 		}
 	}
+
+	async ignore(): Promise<void> {
+		const rankings = getRankingsService();
+		const app = rankings.requireApp();
+
+		try {
+			await rankings.ignoreUser(this.userId);
+			app.toast.create({
+				title: app.i18n.translate('User ignored'),
+				description: app.i18n.translate('{name} will no longer earn rankings points.', {
+					name: this.username
+				}),
+				variant: 'success'
+			});
+			this.close();
+		} catch (error) {
+			app.toast.create({
+				title: app.i18n.translate('Could not ignore user'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'warning'
+			});
+		}
+	}
 }

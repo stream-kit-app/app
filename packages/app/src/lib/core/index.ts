@@ -13,6 +13,15 @@ export type {
 export { Plugins, RegisteredPlugin } from './plugins';
 export type { OAuthStartOptions } from './oauth';
 export { OAuth } from './oauth';
+export type {
+	AuthAccount,
+	AuthLoginInput,
+	AuthPublicUser,
+	AuthRegisterInput,
+	AuthUpdatePasswordInput,
+	AuthUpdateProfileInput
+} from './auth';
+export { Auth } from './auth';
 export { Opener } from './opener';
 export { BaseDirectory, Filesystem, SeekMode } from './filesystem';
 export type {
@@ -44,6 +53,13 @@ export type {
 	WriteFileOptions
 } from './filesystem';
 export { Audio } from './audio';
+export { UserFiles, isCloudFileUrl } from './user-files';
+export type {
+	UserFileRecord,
+	UserFilesListOptions,
+	UserFilesQuota,
+	UserFilesUploadOptions
+} from './user-files';
 export { AppLifecycle } from './lifecycle';
 export type { AppLifecycleContext, AppLifecycleEvent } from './lifecycle';
 export { ProcessWatcher } from './process';

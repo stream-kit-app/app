@@ -21,7 +21,7 @@ Open **Rankings** in the sidebar:
 | --- | --- |
 | **Overview** | Stats (including total watch time), top users, tier distribution |
 | **Tiers & Ranks** | Create tiers and rank milestones (global point thresholds). Click a rank to edit its name, points, or custom icon. |
-| **Leaderboard** | Search users, adjust points manually, and remove users from rankings |
+| **Leaderboard** | Search users, adjust points manually, remove users, or ignore them so they stop earning points |
 
 ## Progression
 
@@ -47,6 +47,17 @@ When **Watch time rewards** is enabled (plugin settings), the plugin tracks acti
 | Points per minute | `1` | Points earned per full minute watched |
 | Award interval (seconds) | `60` | How often active chatters are evaluated |
 | Leaderboard size | `10` | Default size for leaderboard commands |
+
+## Remove vs ignore
+
+On **Leaderboard** (or a user’s detail modal):
+
+| Action | Effect |
+| --- | --- |
+| **Remove** | Deletes the user’s points and history. They can reappear when they earn points again (watch time or Actions). |
+| **Ignore** | Deletes their points and history **and** adds them to an ignore list. They will not earn points from watch time or handlers until you **Un-ignore** them on the Leaderboard. |
+
+Ignored users start from zero again after you un-ignore them.
 
 ## Default commands (disabled)
 
@@ -101,6 +112,23 @@ Every point change carries a **source** label (why the points changed). Rankings
 - **Rank changed** / **Tier advanced** — optional filter if you only want celebrations for certain origins (for example a sub or raid, not minute-by-minute watch time). For most setups, leave Source empty so every rank/tier change fires.
 
 Source also appears in point history and in the trigger context for handlers that follow the trigger.
+
+### Rank / tier message templates
+
+Rankings triggers expose **string** variables for chat messages (not JSON objects):
+
+| Variable | Meaning |
+| --- | --- |
+| `{username}` | User display name |
+| `{rank}` / `{currentRank}` | Current rank name |
+| `{tier}` / `{currentTier}` | Current tier name |
+| `{previousRank}` / `{previousTier}` | Previous rank / tier name |
+| `{points}` | Total points after the change |
+| `{source}` | Why points changed (`follow`, `manual`, …) |
+
+Example: `🏅 {username} ranked up to {currentRank} ({currentTier})`
+
+Triggers also include `channel` and `broadcasterId` from your connected Twitch account so Send Message / As bot works even when the event did not come from chat.
 
 ### Get user rank
 

@@ -15,6 +15,7 @@ import {
 	type TwitchBotAccountApi,
 	type TwitchBotAccountController
 } from './bot-account';
+import { chunkTwitchChatMessages } from './chat-message';
 import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
 import { clearBadgeCache, refreshBadgeCache } from './badge-cache';
 import { describeOAuthError, parseImplicitOAuthCallback } from './oauth-callback';
@@ -163,6 +164,12 @@ export function createTwitchPluginApi(
 			authProvider,
 			requestMembershipEvents: true
 		});
+		const originalSay = chat.say.bind(chat);
+		chat.say = async (channel, message) => {
+			for (const chunk of chunkTwitchChatMessages(message)) {
+				await originalSay(channel, chunk);
+			}
+		};
 		await chat.connect();
 
 		eventSub = new TwurpleEventSubWsListener({ apiClient: client });

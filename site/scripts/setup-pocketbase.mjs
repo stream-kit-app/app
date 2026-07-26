@@ -1,15 +1,15 @@
 import { execSync } from 'node:child_process';
-import { createWriteStream } from 'node:fs';
-import { chmod, mkdir, stat } from 'node:fs/promises';
+import { createWriteStream, readFileSync } from 'node:fs';
+import { chmod, mkdir, rm, stat, unlink } from 'node:fs/promises';
 import { arch, platform } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
 
-const POCKETBASE_VERSION = '0.39.4';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pbDir = join(__dirname, '..', 'pb');
+const POCKETBASE_VERSION = readFileSync(join(pbDir, 'PB_VERSION'), 'utf8').trim();
 
 function getPlatformAsset() {
 	const os = platform();
@@ -91,6 +91,10 @@ export async function ensurePocketBase() {
 
 	console.log('Extracting PocketBase...');
 	extractZip(zipPath, pbDir);
+
+	await unlink(zipPath).catch(() => {});
+	// Upstream zip ships CHANGELOG.md; keep the package changelog owned by changesets.
+	await rm(join(pbDir, 'CHANGELOG.md'), { force: true });
 
 	if (platform() !== 'win32') {
 		await chmod(binaryPath, 0o755);

@@ -27,16 +27,41 @@
 			await rankedUser.delete();
 		}
 	}
+
+	async function handleIgnore() {
+		const confirmed = await app.confirm.ask({
+			title: t('Ignore user from rankings?'),
+			description: t(
+				'Are you sure you want to ignore {name}? Their points and history will be deleted, and they will not earn points until you un-ignore them.',
+				{ name: rankedUser.username }
+			),
+			confirmLabel: t('Ignore')
+		});
+
+		if (confirmed) {
+			await rankedUser.ignore();
+		}
+	}
 </script>
 
 <div class="flex flex-wrap items-center justify-between gap-2">
-	<Button
-		variant="destructive"
-		type="button"
-		onclick={() => void handleDelete()}
-		icon="ri:delete-bin-line"
-	>
-		{t('Remove user')}
-	</Button>
+	<div class="flex flex-wrap items-center gap-2">
+		<Button
+			variant="outline"
+			type="button"
+			onclick={() => void handleIgnore()}
+			icon="ri:eye-off-line"
+		>
+			{t('Ignore user')}
+		</Button>
+		<Button
+			variant="destructive"
+			type="button"
+			onclick={() => void handleDelete()}
+			icon="ri:delete-bin-line"
+		>
+			{t('Remove user')}
+		</Button>
+	</div>
 	<Button variant="ghost" type="button" onclick={() => rankedUser.close()}>{t('Close')}</Button>
 </div>

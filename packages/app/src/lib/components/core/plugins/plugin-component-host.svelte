@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
 
+	import { ensurePluginHostTooltipProvider } from '$lib/core/plugins/plugin-host-tooltip';
 	import { importPluginHostSvelte } from '$lib/core/plugins/plugin-host-url';
 
 	type Props = {
@@ -36,7 +37,15 @@
 		let mounted: Record<string, unknown> | undefined;
 		let active = true;
 
-		void importPluginHostSvelte().then(({ mount }) => {
+		void (async () => {
+			await ensurePluginHostTooltipProvider();
+
+			if (!active) {
+				return;
+			}
+
+			const { mount } = await importPluginHostSvelte();
+
 			if (!active) {
 				return;
 			}
@@ -45,7 +54,7 @@
 				target: element,
 				props: hostProps
 			});
-		});
+		})();
 
 		return () => {
 			active = false;

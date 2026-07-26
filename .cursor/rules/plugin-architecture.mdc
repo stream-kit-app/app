@@ -56,3 +56,7 @@ Use `app.fs` for logs/assets when needed. Keep domain logic out of Svelte compon
 ## Build
 
 Use shared `plugins/create-vite-build-config.js`. Host modules (`@stream-kit/plugin`, `@stream-kit/core`, `svelte`, `@stream-kit/ui`, …) are **externalized** via `isPluginHostExternal` — never bundle them into the plugin dist.
+
+## Runtime
+
+Plugin UI mounts in a **separate Svelte runtime** (plugin-host). See `plugin-host-runtime.mdc` before debugging or changing plugin UI / shared host modules.

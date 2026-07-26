@@ -3,7 +3,7 @@ import "../../chunks/disclose-version-YhYaTdgb.js";
 import { t as S } from "../../chunks/utils-DJt177zd.js";
 import { t as C } from "../../chunks/alert-Xl0et5iT.js";
 import { t as w } from "../../chunks/badge-DWgt6sX1.js";
-import { t as T } from "../../chunks/container-CXvttRa1.js";
+import { t as T } from "../../chunks/container-S4G5SQr5.js";
 import { t as E } from "../../chunks/heading-DkoXAyj9.js";
 import { t as D } from "../../chunks/button-C7Vln2y_.js";
 //#region ../ui/src/lib/blocks/alert/alert-block.svelte

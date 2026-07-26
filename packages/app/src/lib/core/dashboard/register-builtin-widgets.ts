@@ -6,7 +6,7 @@ import RunningActionsWidget from '$lib/components/core/dashboard/widgets/running
 import StatActionsWidget from '$lib/components/core/dashboard/widgets/stat-actions-widget.svelte';
 import StatPluginsWidget from '$lib/components/core/dashboard/widgets/stat-plugins-widget.svelte';
 
-import { app } from '../app-init';
+import { getApp } from '../registry';
 
 const builtinDashboardWidgets: BuiltinWidgetDefinition[] = [
 	{
@@ -48,5 +48,5 @@ const builtinDashboardWidgets: BuiltinWidgetDefinition[] = [
 ];
 
 export function registerBuiltinDashboardWidgets(): void {
-	app.dashboard.registerBuiltin(builtinDashboardWidgets);
+	getApp().dashboard.registerBuiltin(builtinDashboardWidgets);
 }

@@ -24,6 +24,7 @@ export function bootApp(): Promise<void> {
 async function runBoot(): Promise<void> {
 	await initDb();
 	registerBuiltinDashboardWidgets();
+	await app.auth.boot();
 
 	if (import.meta.env.DEV) {
 		await linkWorkspaceDevPlugins(import.meta.env.VITE_STREAM_KIT_WORKSPACE_ROOT);
@@ -45,6 +46,10 @@ async function runBoot(): Promise<void> {
 	await app.apiServer.init(app);
 	app.lifecycle.emitStarted();
 	await app.settings.load();
+
+	const { startCloudFileMigration } = await import('./user-files/cloud-file-migration');
+	startCloudFileMigration(app);
+	app.configSync.start();
 
 	if (app.settings.checkPluginUpdatesOnStartup) {
 		const { pluginUpdates } = await import('./plugins/plugin-updates.svelte');

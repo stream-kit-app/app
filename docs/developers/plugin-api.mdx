@@ -354,6 +354,63 @@ app.api.unregisterMethods(); // onDisable / host also clears on disable
 
 Remote clients call `plugin:your-key:getLeaderboard` and can subscribe to `plugin:your-key.*`.
 
+### Stream Kit account (`app.auth`)
+
+Read the signed-in public profile and authenticate with email/password. Profile updates stay in the app UI; plugins get public fields only (`id`, `name`, `avatarUrl`, `verified`, optional `subscription` `{ key, name, maxFileBytes, maxStorageBytes }`).
+
+```ts
+const user = app.auth.user; // AuthPublicUser | null
+if (app.auth.isAuthenticated) {
+  console.log(user?.name, user?.avatarUrl, user?.subscription?.name);
+}
+
+const stop = app.auth.onChange((next) => {
+  console.log('auth changed', next?.id ?? null);
+});
+
+await app.auth.login({ email: 'you@example.com', password: 'secret' });
+await app.auth.register({
+  email: 'you@example.com',
+  password: 'secret',
+  passwordConfirm: 'secret',
+  name: 'You'
+});
+await app.auth.logout();
+stop();
+```
+
+| Member | Description |
+| --- | --- |
+| `user` | Public profile, or `null` when logged out |
+| `isAuthenticated` | Whether a session is active |
+| `login` / `register` / `logout` | Session helpers (throw on failure) |
+| `onChange` | Subscribe to auth changes (fires immediately) |
+
+See [Stream Kit account](/docs/get-started/account) for the in-app UI and `PUBLIC_POCKETBASE_URL`.
+
+### Cloud user files (`app.userFiles`)
+
+Authenticated media library backed by PocketBase `user_files`. Requires a signed-in user with an active subscription. Handler file fields (default `storage: 'cloud'`) upload or browse here and store a file URL. When a plan becomes active, the app migrates existing local paths on those fields in the background (same path uploaded once and reused). **Upload to cloud** still migrates a single field manually.
+
+```ts
+if (app.userFiles.isCloudUrl(value)) {
+  const blob = await app.userFiles.fetchBlob(value);
+  await app.audio.play(blob);
+}
+
+const uploaded = await app.userFiles.upload(file, { originalName: 'alert.mp3' });
+const picked = await app.userFiles.pick({ mimePrefix: 'audio/' });
+const quota = await app.userFiles.getQuota();
+```
+
+| Member | Description |
+| --- | --- |
+| `isCloudUrl` | Whether a field value looks like an `http(s)` URL |
+| `list` / `upload` / `remove` | Manage the signed-in user’s files |
+| `getQuota` | Used / max storage and max file size for the active plan |
+| `fetchBlob` | Authenticated download for playback or display |
+| `pick` | Open the app cloud file picker modal |
+
 ### Chat commands (`app.commands`)
 
 Requires the [Bot](/docs/plugins/bot) plugin. Create, update, and delete chat command records from lifecycle hooks or handlers:

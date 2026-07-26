@@ -8,7 +8,8 @@ export function getRankIconKind(icon: string | undefined | null): RankIconKind {
 		return 'empty';
 	}
 
-	if (icon.trim().startsWith('data:image/')) {
+	const trimmed = icon.trim();
+	if (trimmed.startsWith('data:image/') || /^https?:\/\//i.test(trimmed)) {
 		return 'image';
 	}
 
@@ -81,4 +82,9 @@ async function resizeImageToMax(
 export async function fileBytesToRankIcon(bytes: Uint8Array, path: string): Promise<string> {
 	const mime = guessMimeFromPath(path);
 	return resizeImageToMax(bytes, mime);
+}
+
+export async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+	const response = await fetch(dataUrl);
+	return response.blob();
 }

@@ -19,6 +19,12 @@ export function configureAudioPlayback(app: PluginAppApi): void {
 }
 
 export async function playAudioFile(app: PluginAppApi, path: string, volume = 1): Promise<void> {
+	if (app.userFiles.isCloudUrl(path)) {
+		const blob = await app.userFiles.fetchBlob(path);
+		await app.audio.play(blob, volume);
+		return;
+	}
+
 	await app.audio.playFile(path, volume);
 }
 

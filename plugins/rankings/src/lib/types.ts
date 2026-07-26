@@ -26,6 +26,13 @@ export type UserRankingRecord = {
 	updatedAt: string;
 };
 
+export type IgnoredUserRecord = {
+	userId: string;
+	username: string;
+	platform: RankingsPlatform;
+	ignoredAt: string;
+};
+
 export type PointHistoryKind = 'add' | 'remove' | 'set' | 'watch-time';
 
 export type PointHistoryEntry = {

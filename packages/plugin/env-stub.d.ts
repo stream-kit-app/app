@@ -8,11 +8,30 @@ declare module '$lib/locales/nl.json' {
 	export default dictionary;
 }
 
-interface ImportMetaEnv {
-	readonly DEV: boolean;
-	readonly VITE_STREAM_KIT_WORKSPACE_ROOT?: string;
+declare module '$env/dynamic/public' {
+	export const env: {
+		readonly PUBLIC_POCKETBASE_URL?: string;
+		readonly [key: string]: string | undefined;
+	};
 }
 
-interface ImportMeta {
-	readonly env: ImportMetaEnv;
+declare module '$env/static/public' {
+	export const PUBLIC_POCKETBASE_URL: string | undefined;
+}
+
+export {};
+
+declare global {
+	interface ImportMetaEnv {
+		readonly DEV: boolean;
+		readonly PROD: boolean;
+		readonly MODE: string;
+		readonly SSR: boolean;
+		readonly VITE_STREAM_KIT_WORKSPACE_ROOT?: string;
+		readonly [key: string]: string | boolean | undefined;
+	}
+
+	interface ImportMeta {
+		readonly env: ImportMetaEnv;
+	}
 }

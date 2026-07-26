@@ -43,6 +43,11 @@ export type ModalProps = {
 	 * `props` as `content`.
 	 */
 	footer?: Component<any>;
+	/**
+	 * When `false`, the body is not wrapped in the outer ScrollArea so content can
+	 * fill the modal height and manage its own scroll. Defaults to `true`.
+	 */
+	scrollBody?: boolean;
 	/** Props forwarded to the `content`, `header`, and `footer` components. */
 	props?: Record<string, unknown>;
 	/**
@@ -64,6 +69,7 @@ export class Modal {
 	public content: Component;
 	public header?: Component;
 	public footer?: Component;
+	public scrollBody: boolean;
 	public props: Record<string, unknown>;
 	public contentHost: 'app' | 'plugin';
 	public onClose?: () => void;
@@ -76,6 +82,7 @@ export class Modal {
 		this.content = props.content;
 		this.header = props.header;
 		this.footer = props.footer;
+		this.scrollBody = props.scrollBody !== false;
 		this.props = props.props ?? {};
 		this.contentHost = props.contentHost ?? 'app';
 		this.onClose = props.onClose;

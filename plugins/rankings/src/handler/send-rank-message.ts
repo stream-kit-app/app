@@ -3,11 +3,7 @@ import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 import type { RankingsService } from '../app/lib/rankings.svelte';
 import { resolveUserIdentity } from '../lib/extract-user';
 import { getFieldValue, resolveFieldText } from '../lib/get-field-value';
-
-type TwitchPluginApi = {
-	chat?: { say(channel: string, message: string): void };
-	sendChatMessageAsBot?: (broadcasterId: string, message: string) => Promise<void>;
-};
+import { sendTwitchChatMessage } from '../lib/twitch-chat-target';
 
 export function createSendRankMessageHandler(app: PluginAppApi, rankings: RankingsService) {
 	return {
@@ -28,9 +24,6 @@ export function createSendRankMessageHandler(app: PluginAppApi, rankings: Rankin
 		execute: async (_action, handler, context, next) => {
 			const identity = resolveUserIdentity(context.data);
 			const data = context.data as Record<string, unknown> | undefined;
-			const channel = typeof data?.channel === 'string' ? data.channel : undefined;
-			const broadcasterId =
-				typeof data?.broadcasterId === 'string' ? data.broadcasterId : undefined;
 			const templateValue = getFieldValue(handler.fields, 'message');
 			const template = typeof templateValue === 'string' ? templateValue : '';
 			const asBot = getFieldValue(handler.fields, 'as-bot') === true;
@@ -45,12 +38,15 @@ export function createSendRankMessageHandler(app: PluginAppApi, rankings: Rankin
 			const message = rankings.formatRankMessage(identity.userId, template.trim(), {
 				username: identity.username
 			});
-			const twitch = app.plugins.tryGet<TwitchPluginApi>('twitch');
 
-			if (asBot && broadcasterId && twitch?.sendChatMessageAsBot) {
-				void twitch.sendChatMessageAsBot(broadcasterId, message);
-			} else if (channel && twitch?.chat) {
-				twitch.chat.say(channel, message);
+			const sent = await sendTwitchChatMessage(app, message, { asBot, data });
+
+			if (!sent) {
+				app.toast.create({
+					title: 'Send rank message failed',
+					description: 'Twitch is not connected, or no channel is available to send to.',
+					variant: 'warning'
+				});
 			}
 
 			next();
@@ -75,19 +71,19 @@ export function createLeaderboardMessageHandler(app: PluginAppApi, rankings: Ran
 		],
 		execute: async (_action, handler, context, next) => {
 			const data = context.data as Record<string, unknown> | undefined;
-			const channel = typeof data?.channel === 'string' ? data.channel : undefined;
-			const broadcasterId =
-				typeof data?.broadcasterId === 'string' ? data.broadcasterId : undefined;
 			const prefix = resolveFieldText(handler.fields, 'prefix', context.data).trim();
 			const asBot = getFieldValue(handler.fields, 'as-bot') === true;
 			const leaderboard = rankings.formatLeaderboardMessage();
 			const message = prefix ? `${prefix} ${leaderboard}` : leaderboard;
-			const twitch = app.plugins.tryGet<TwitchPluginApi>('twitch');
 
-			if (asBot && broadcasterId && twitch?.sendChatMessageAsBot) {
-				void twitch.sendChatMessageAsBot(broadcasterId, message);
-			} else if (channel && twitch?.chat) {
-				twitch.chat.say(channel, message);
+			const sent = await sendTwitchChatMessage(app, message, { asBot, data });
+
+			if (!sent) {
+				app.toast.create({
+					title: 'Send leaderboard message failed',
+					description: 'Twitch is not connected, or no channel is available to send to.',
+					variant: 'warning'
+				});
 			}
 
 			next();

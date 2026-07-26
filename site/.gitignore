@@ -21,3 +21,4 @@ vite.config.ts.timestamp-*
 /pb/pocketbase.exe
 /pb/pb_data
 /pb/*.zip
+/pb/LICENSE.md

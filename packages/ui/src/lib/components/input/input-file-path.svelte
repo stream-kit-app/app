@@ -16,6 +16,12 @@
 		browseLabel?: string;
 		emptyFileLabel?: string;
 		emptyFolderLabel?: string;
+		/** When set, show an Upload button (local pick → caller uploads). */
+		onUpload?: () => Promise<string | null | undefined>;
+		uploadLabel?: string;
+		/** When set, show a Cloud button (browse remote library). */
+		onCloudBrowse?: () => Promise<string | null | undefined>;
+		cloudLabel?: string;
 	};
 
 	let {
@@ -29,53 +35,81 @@
 		onBrowse,
 		browseLabel = 'Browse',
 		emptyFileLabel = 'No file selected',
-		emptyFolderLabel = 'No folder selected'
+		emptyFolderLabel = 'No folder selected',
+		onUpload,
+		uploadLabel = 'Upload',
+		onCloudBrowse,
+		cloudLabel = 'Cloud'
 	}: Props = $props();
 
-	let isBrowsing = $state(false);
+	let isBusy = $state(false);
 
-	async function browse(): Promise<void> {
-		if (isBrowsing) {
+	async function runPicker(
+		picker: () => Promise<string | null | undefined>
+	): Promise<void> {
+		if (isBusy) {
 			return;
 		}
 
-		isBrowsing = true;
-
+		isBusy = true;
 		try {
-			const selected = await onBrowse();
-
+			const selected = await picker();
 			if (!selected) {
 				return;
 			}
-
 			onValueChange?.(selected);
 		} finally {
-			isBrowsing = false;
+			isBusy = false;
 		}
 	}
 </script>
 
 <div class="grid gap-2">
-	<div class="flex items-end gap-2">
-		<div class="min-w-0 flex-1">
-			<InputText
-				{label}
-				placeholder={placeholder ?? (mode === 'folder' ? emptyFolderLabel : emptyFileLabel)}
-				{required}
-				{error}
-				readonly
-				value={value}
-			/>
-		</div>
-		<Button
-			type="button"
-			variant="outline"
-			onclick={browse}
-			disabled={isBrowsing}
-			isLoading={isBrowsing}
-			icon="ri:folder-open-line"
-		>
-			{browseLabel}
-		</Button>
+	<InputText
+		{label}
+		placeholder={placeholder ?? (mode === 'folder' ? emptyFolderLabel : emptyFileLabel)}
+		{required}
+		{error}
+		readonly
+		value={value}
+	/>
+
+	<div class="flex flex-wrap items-center gap-2">
+		{#if onUpload}
+			<Button
+				type="button"
+				variant="outline"
+				onclick={() => void runPicker(onUpload)}
+				disabled={isBusy}
+				isLoading={isBusy}
+				icon="ri:upload-2-line"
+			>
+				{uploadLabel}
+			</Button>
+		{/if}
+		{#if onCloudBrowse}
+			<Button
+				type="button"
+				variant="outline"
+				onclick={() => void runPicker(onCloudBrowse)}
+				disabled={isBusy}
+				isLoading={isBusy}
+				icon="ri:cloud-line"
+			>
+				{cloudLabel}
+			</Button>
+		{/if}
+		{#if !onUpload && !onCloudBrowse}
+			<Button
+				type="button"
+				variant="outline"
+				onclick={() => void runPicker(onBrowse)}
+				disabled={isBusy}
+				isLoading={isBusy}
+				icon="ri:folder-open-line"
+			>
+				{browseLabel}
+			</Button>
+		{/if}
 	</div>
 </div>

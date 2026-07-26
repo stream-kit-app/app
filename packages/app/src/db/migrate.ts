@@ -459,4 +459,58 @@ export async function migrate(sqlite: Database): Promise<void> {
 	await assignUnqueuedActionsToDefault(sqlite);
 	await migrateDashboardWidgetsTable(sqlite);
 	await migrateMapsToCollections(sqlite);
+	await migrateConfigSyncIds(sqlite);
+	await createConfigSyncTombstonesTable(sqlite);
+}
+
+async function migrateConfigSyncIds(sqlite: Database): Promise<void> {
+	const { createSyncId } = await import('./sync-id');
+
+	const actionColumns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(actions)'
+	);
+	if (actionColumns.length > 0 && !actionColumns.some((column) => column.name === 'sync_id')) {
+		await sqlite.execute(`ALTER TABLE actions ADD COLUMN sync_id TEXT`);
+		const rows = await sqlite.select<Array<{ id: number }>>('SELECT id FROM actions');
+		for (const row of rows) {
+			await sqlite.execute('UPDATE actions SET sync_id = $1 WHERE id = $2', [
+				createSyncId(),
+				row.id
+			]);
+		}
+		await sqlite.execute(
+			`CREATE UNIQUE INDEX IF NOT EXISTS idx_actions_sync_id ON actions (sync_id)`
+		);
+	}
+
+	const queueColumns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(action_queues)'
+	);
+	if (
+		queueColumns.length > 0 &&
+		!queueColumns.some((column) => column.name === 'sync_id')
+	) {
+		await sqlite.execute(`ALTER TABLE action_queues ADD COLUMN sync_id TEXT`);
+		const rows = await sqlite.select<Array<{ id: number }>>('SELECT id FROM action_queues');
+		for (const row of rows) {
+			await sqlite.execute('UPDATE action_queues SET sync_id = $1 WHERE id = $2', [
+				createSyncId(),
+				row.id
+			]);
+		}
+		await sqlite.execute(
+			`CREATE UNIQUE INDEX IF NOT EXISTS idx_action_queues_sync_id ON action_queues (sync_id)`
+		);
+	}
+}
+
+async function createConfigSyncTombstonesTable(sqlite: Database): Promise<void> {
+	await sqlite.execute(`
+		CREATE TABLE IF NOT EXISTS config_sync_tombstones (
+			entity_type TEXT NOT NULL,
+			sync_id TEXT NOT NULL,
+			deleted_at INTEGER NOT NULL,
+			PRIMARY KEY (entity_type, sync_id)
+		)
+	`);
 }

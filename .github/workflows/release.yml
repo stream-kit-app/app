@@ -78,3 +78,9 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: gh workflow run publish-plugins.yml --ref main -f tag="${{ env.RELEASE_TAG }}"
+
+            - name: Trigger Publish PocketBase
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: gh workflow run publish-pocketbase.yml --ref main

@@ -13,8 +13,8 @@
 	import { app } from '$lib/core';
 	import { setPluginDevMode } from '$lib/core/plugins/plugin-dev-watcher';
 	import { uninstallInstalledPlugin } from '$lib/core/plugins/plugin-loader';
-	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
 	import { canApplyPluginUpdates } from '$lib/core/plugins/plugin-update';
+	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
@@ -293,7 +293,7 @@
 			{#if plugin.hasSettings}
 				<Button
 					size="sm"
-					variant={pendingUpdate ? 'outline' : 'default'}
+					variant={pendingUpdate ? 'ghost' : 'outline'}
 					class="min-w-0 flex-1"
 					icon="ri:settings-3-line"
 					onclick={openSettings}

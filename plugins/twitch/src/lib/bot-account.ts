@@ -12,6 +12,7 @@ import { StaticAuthProvider } from '@twurple/auth';
 
 import { TWITCH_CLIENT_ID } from '../config';
 
+import { chunkTwitchChatMessages } from './chat-message';
 import { describeOAuthError, parseImplicitOAuthCallback } from './oauth-callback';
 
 
@@ -349,89 +350,50 @@ export function createTwitchBotAccountApi(
 		},
 
 		async sendChatMessage(broadcasterId, message) {
-
-			const trimmed = message.trim();
-
+			const chunks = chunkTwitchChatMessages(message);
 			const targetBroadcasterId = broadcasterId.trim() || getMainUserId();
 
-
-
-			if (!trimmed || !isConnected || !client || !userId) {
-
+			if (chunks.length === 0 || !isConnected || !client || !userId) {
 				return;
-
 			}
-
-
 
 			if (!targetBroadcasterId) {
-
 				app.toast.create({
-
 					title: 'Twitch channel unavailable',
-
 					description: 'Connect your main Twitch account before sending bot messages.',
-
 					variant: 'warning'
-
 				});
-
 				return;
-
 			}
-
-
 
 			try {
+				for (const chunk of chunks) {
+					const result = await client.asUser(userId, (ctx) =>
+						ctx.chat.sendChatMessage(targetBroadcasterId, chunk)
+					);
 
-				const result = await client.asUser(userId, (ctx) =>
-
-					ctx.chat.sendChatMessage(targetBroadcasterId, trimmed)
-
-				);
-
-
-
-				if (!result.isSent) {
-
-					app.toast.create({
-
-						title: 'Message not sent',
-
-						description:
-
-							result.dropReasonMessage ??
-
-							'Twitch rejected the bot message. Mod the bot account in your channel, then try again.',
-
-						variant: 'warning'
-
-					});
-
+					if (!result.isSent) {
+						app.toast.create({
+							title: 'Message not sent',
+							description:
+								result.dropReasonMessage ??
+								'Twitch rejected the bot message. Mod the bot account in your channel, then try again.',
+							variant: 'warning'
+						});
+						return;
+					}
 				}
-
 			} catch (error) {
-
 				console.error(error);
-
 				app.toast.create({
-
 					title: 'Failed to send bot message',
-
 					description:
-
 						error instanceof Error
-
 							? error.message
-
 							: 'Could not send the message via the bot account.',
-
 					variant: 'error'
-
 				});
-
 			}
-
 		},
 
 		async boot() {

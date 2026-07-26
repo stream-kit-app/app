@@ -1,5 +1,5 @@
 import type { ModalProps } from './modal/modal.svelte';
-import type { Plugin } from './plugins';
+import type { Plugin } from './plugins/types';
 import type { RegisterPluginOptions } from './plugins/installed-plugin';
 
 import { SvelteMap } from 'svelte/reactivity';
@@ -9,6 +9,7 @@ import { translate } from '$lib/i18n';
 import { Actions } from './action/action.svelte';
 import { ActionQueues } from './action-queue/action-queues.svelte';
 import { Audio } from './audio';
+import { Auth } from './auth';
 import { Bootable } from './bootable.svelte';
 import { Confirm } from './confirm';
 import { Dashboard } from './dashboard';
@@ -22,14 +23,16 @@ import { OAuth } from './oauth';
 import { Opener } from './opener';
 import { ApiServerService } from './api-server';
 import { OverlayService } from './overlay/overlay-service.svelte';
-import { Plugins } from './plugins';
 import { createPluginAppApi } from './plugins/app-api';
 import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
+import { Plugins } from './plugins/plugins.svelte';
 import { ProcessWatcher } from './process';
 import { HotkeyManager } from './hotkeys';
 import { Settings } from './settings';
 import { Toast } from './toast';
 import { LocalTts } from './tts';
+import { UserFiles } from './user-files';
+import { ConfigSync } from './config-sync';
 
 export class App extends Bootable {
 	public menu = new Menu();
@@ -39,6 +42,9 @@ export class App extends Bootable {
 	public actionQueues = new ActionQueues();
 	public dashboard = new Dashboard();
 	public settings = new Settings();
+	public auth = new Auth();
+	public userFiles = new UserFiles(this.auth);
+	public configSync = new ConfigSync(this);
 	public oauth = new OAuth();
 	public opener = new Opener();
 	public fs = new Filesystem();
@@ -76,6 +82,7 @@ export class App extends Bootable {
 			content: props.content,
 			header: props.header,
 			footer: props.footer,
+			scrollBody: props.scrollBody,
 			props: props.props,
 			size: props.size,
 			contentHost: props.contentHost,

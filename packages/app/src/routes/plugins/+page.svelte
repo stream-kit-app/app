@@ -67,7 +67,7 @@
 		<PluginInstallButton />
 	</EmptyState>
 {:else}
-	<Container class="px-6 py-6" size="md">
+	<Container class="px-6 py-6">
 		{#if pluginUpdates.availableCount > 0}
 			<Alert
 				variant="warning"
@@ -78,7 +78,7 @@
 				})}
 			/>
 		{/if}
-		<div class="grid gap-5 md:grid-cols-2">
+		<div class="grid grid-cols-3 gap-5 2xl:grid-cols-4">
 			{#each app.plugins.items as plugin (plugin.key)}
 				<PluginCard {plugin} />
 			{/each}

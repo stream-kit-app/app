@@ -20,6 +20,8 @@
 	"dependencies": {
 		"@iconify/svelte": "^5.2.1",
 		"@stream-kit/ui": "workspace:*",
+		"isomorphic-dompurify": "^3.19.0",
+		"marked": "^18.0.6",
 		"neverthrow": "^8.2.0",
 		"pocketbase": "^0.27.0",
 		"zod": "^4.4.3"

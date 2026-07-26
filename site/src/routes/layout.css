@@ -200,6 +200,36 @@
 		@apply text-cap;
 	}
 
+	:where(
+		a[href],
+		area[href],
+		button:not(:disabled),
+		[data-button-root]:not([disabled]):not([aria-disabled='true']),
+		[role='button']:not([aria-disabled='true']),
+		[role='link'][href],
+		summary,
+		label[for],
+		select:not(:disabled),
+		input[type='checkbox']:not(:disabled),
+		input[type='radio']:not(:disabled),
+		input[type='file']:not(:disabled),
+		input[type='reset']:not(:disabled),
+		input[type='submit']:not(:disabled)
+	) {
+		cursor: pointer;
+	}
+
+	:where(
+		button:disabled,
+		[data-button-root][disabled],
+		[data-button-root][aria-disabled='true'],
+		[role='button'][aria-disabled='true'],
+		select:disabled,
+		input:disabled
+	) {
+		cursor: not-allowed;
+	}
+
 	.boot-ambient {
 		position: absolute;
 		inset: -20%;

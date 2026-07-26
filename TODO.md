@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: 17 juli 2026 (docs API-catalogus)
+> Versie 0.1.0 — laatst bijgewerkt: 26 juli 2026 (cloud sync actions/queues via PocketBase)
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -26,6 +26,9 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Dashboard (`/`) — stat cards, verbindingen, pluginstatus, running-actions widget
 - [x] i18n (NL + EN)
 - [x] Inbound WebSocket API server (remote control; plugin-extensible via `app.api`)
+- [x] Stream Kit account (PocketBase login/register/profile + `app.auth` voor plugins)
+- [x] Cloud user files (`user_files` + `app.userFiles`, plan quota, handler Upload/Cloud, rankings icons)
+- [x] Cloud sync actions/queues (`user_actions` / `user_action_queues` + `app.configSync`, offline-first LWW, profile status)
 
 ---
 
@@ -92,14 +95,15 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 ### Monetisatie & engagement
 
 - [ ] Donatie-integraties (PayPal, Stripe, etc.)
-- [~] Loyalty / punten-systeem — Rankings plugin MVP klaar; SE-achtige store/redeems nog open
+- [~] Loyalty / punten-systeem — Rankings plugin MVP klaar (incl. ignore list); SE-achtige store/redeems nog open
 - [ ] Channel points store UI (eigen rewards, niet alleen Twitch events)
 - [ ] Tip goals & progress tracking
 
 ### Hosting & ecosysteem
 
 - [ ] Optionele cloud-hosted overlays (SE-achtige URL)
-- [ ] Cloud file uploads — `InputFile` (`@stream-kit/ui`) ondersteunt nu lokale browse; later uploads naar cloud storage (rank/tier icons, media, etc.)
+- [x] Cloud file uploads — `user_files` + handler Upload/Cloud; auto-migratie van lokale paden bij actieve subscription; rankings icons
+- [x] Cloud sync of actions/settings — actions + action queues via PocketBase (`app.configSync`); overlays/plugin-store sync nog open
 - [ ] Widget marketplace / community templates
 - [ ] Volledige StreamElements API-koppeling (niet alleen TTS)
 
@@ -107,7 +111,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 ## P3 — Ecosysteem & power features
 
-- [ ] Community plugin marketplace
+- [~] Community plugin marketplace — site `/plugins` marketplace UI (sidebar filters, detail Overview/Reviews, ratings schema); desktop Stream Kit account auth klaar (`app.auth`); site cookie-auth + echte community uploads nog open
 - [ ] Action templates & delen
 - [~] Remote control / companion app — inbound WebSocket API server (actions/commands/vars/collections/queues/overlays + plugin `app.api`); dedicated companion app nog open
 - [ ] Speaker.bot / Meld Studio integratie

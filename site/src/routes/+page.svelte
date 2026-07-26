@@ -125,13 +125,8 @@
 </svelte:head>
 
 <!-- Hero -->
-<section class="relative">
-	<div
-		class="pointer-events-none absolute inset-x-0 -top-40 -z-10 mx-auto h-150 max-w-5xl rounded-full bg-primary-500/20 blur-[120px]"
-		aria-hidden="true"
-	></div>
-
-	<Container center size="lg" class="pt-20 pb-12 sm:pt-28">
+<section>
+	<Container center size="lg" class="px-6 pt-16 pb-12 sm:pt-20">
 		<div class="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
 			<Badge size="lg" variant="secondary">
 				<Icon icon="mdi:sparkles" />
@@ -139,14 +134,9 @@
 			</Badge>
 
 			<h1
-				class="font-outfit text-5xl leading-[1.05] font-bold tracking-tight text-balance sm:text-6xl"
+				class="font-outfit text-5xl leading-[1.05] font-bold tracking-tight text-balance text-foreground sm:text-6xl"
 			>
-				Run your stream on
-				<span
-					class="bg-gradient-to-r from-primary-100 via-primary-200 to-secondary bg-clip-text text-transparent"
-				>
-					autopilot
-				</span>
+				Run your stream on autopilot
 			</h1>
 
 			<p class="max-w-2xl text-lg text-balance text-muted-foreground">
@@ -169,19 +159,15 @@
 			</p>
 		</div>
 
-		<div class="relative mt-16">
-			<div
-				class="pointer-events-none absolute inset-x-8 top-8 -z-10 h-full rounded-3xl bg-primary-500/25 blur-3xl"
-				aria-hidden="true"
-			></div>
+		<div class="mt-16">
 			<AppMock />
 		</div>
 	</Container>
 </section>
 
 <!-- Features -->
-<section id="features" class="scroll-mt-32">
-	<Container center size="lg" class="py-20">
+<section id="features" class="scroll-mt-20">
+	<Container center size="lg" class="px-6 py-16">
 		<div class="mx-auto mb-12 max-w-2xl text-center">
 			<h2 class="font-outfit text-3xl font-bold tracking-tight text-balance sm:text-4xl">
 				Everything your stream needs, nothing it doesn't
@@ -195,10 +181,10 @@
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			{#each features as feature (feature.title)}
 				<article
-					class="group rounded-xl border border-dark-600 bg-dark-800/60 p-6 transition-colors hover:border-primary-400/40 hover:bg-dark-800"
+					class="rounded-xl border border-dark-600 bg-dark-800 p-6 transition-colors hover:border-dark-500"
 				>
 					<div
-						class="mb-4 flex size-11 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary"
+						class="mb-4 flex size-10 items-center justify-center rounded-lg bg-dark-700 text-primary"
 					>
 						<Icon icon={feature.icon} class="size-5" />
 					</div>
@@ -213,9 +199,9 @@
 </section>
 
 <!-- Plugins -->
-<section id="plugins" class="scroll-mt-32">
-	<Container center size="lg" class="py-20">
-		<div class="rounded-2xl border border-dark-600 bg-dark-900/70 p-8 sm:p-12">
+<section id="plugins" class="scroll-mt-20">
+	<Container center size="lg" class="px-6 py-16">
+		<div class="rounded-xl border border-dark-600 bg-dark-800 p-8 sm:p-12">
 			<div class="mx-auto mb-10 max-w-2xl text-center">
 				<Badge variant="default" class="mb-4">
 					<Icon icon="mdi:puzzle-outline" />
@@ -233,9 +219,13 @@
 			<div class="flex flex-wrap justify-center gap-3">
 				{#each plugins as plugin (plugin.name)}
 					<div
-						class="flex items-center gap-3 rounded-xl border border-dark-600 bg-dark-800 px-4 py-3"
+						class="flex items-center gap-3 rounded-xl border border-dark-600 bg-dark-900 px-4 py-3 transition-colors hover:border-dark-500"
 					>
-						<Icon icon={plugin.icon} class="size-5 text-primary" />
+						<div
+							class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+						>
+							<Icon icon={plugin.icon} class="size-4" />
+						</div>
 						<div>
 							<p class="text-sm font-semibold">{plugin.name}</p>
 							<p class="text-xs text-muted-foreground">{plugin.description}</p>
@@ -248,8 +238,8 @@
 </section>
 
 <!-- How it works -->
-<section id="how-it-works" class="scroll-mt-32">
-	<Container center size="lg" class="py-20">
+<section id="how-it-works" class="scroll-mt-20">
+	<Container center size="lg" class="px-6 py-16">
 		<div class="mx-auto mb-12 max-w-2xl text-center">
 			<h2 class="font-outfit text-3xl font-bold tracking-tight text-balance sm:text-4xl">
 				Live in four steps
@@ -261,7 +251,7 @@
 
 		<ol class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			{#each steps as step, index (step.title)}
-				<li class="relative rounded-xl border border-dark-600 bg-dark-800/60 p-6">
+				<li class="rounded-xl border border-dark-600 bg-dark-800 p-6">
 					<span
 						class="font-outfit mb-4 inline-flex size-9 items-center justify-center rounded-lg bg-brand text-sm font-bold text-brand-foreground"
 					>
@@ -278,8 +268,8 @@
 </section>
 
 <!-- FAQ -->
-<section id="faq" class="scroll-mt-32">
-	<Container center size="md" class="py-20">
+<section id="faq" class="scroll-mt-20">
+	<Container center size="md" class="px-6 py-16">
 		<div class="mx-auto mb-12 max-w-2xl text-center">
 			<h2 class="font-outfit text-3xl font-bold tracking-tight text-balance sm:text-4xl">
 				Frequently asked questions
@@ -288,9 +278,7 @@
 
 		<div class="flex flex-col gap-3">
 			{#each faqs as faq (faq.question)}
-				<details
-					class="group rounded-xl border border-dark-600 bg-dark-800/60 open:bg-dark-800"
-				>
+				<details class="group rounded-xl border border-dark-600 bg-dark-800">
 					<summary
 						class="flex cursor-pointer items-center justify-between gap-4 p-5 font-semibold select-none [&::-webkit-details-marker]:hidden"
 					>
@@ -310,17 +298,10 @@
 </section>
 
 <!-- CTA -->
-<section id="download" class="scroll-mt-32">
-	<Container center size="lg" class="py-20">
-		<div
-			class="relative overflow-hidden rounded-2xl border border-primary-400/30 bg-dark-900 p-10 text-center sm:p-16"
-		>
-			<div
-				class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,oklch(0.38_0.16_255/0.35),transparent_60%)]"
-				aria-hidden="true"
-			></div>
-
-			<div class="relative flex flex-col items-center gap-6">
+<section id="download" class="scroll-mt-20">
+	<Container center size="lg" class="px-6 py-16">
+		<div class="rounded-xl border border-dark-600 bg-dark-800 p-10 text-center sm:p-16">
+			<div class="flex flex-col items-center gap-6">
 				<h2 class="font-outfit text-3xl font-bold tracking-tight text-balance sm:text-4xl">
 					Ready to put your stream on autopilot?
 				</h2>
@@ -341,8 +322,8 @@
 </section>
 
 <!-- Footer -->
-<footer class="border-t border-dark-700">
-	<Container center size="lg" class="py-10">
+<footer class="border-t border-dark-600">
+	<Container center size="lg" class="px-6 py-10">
 		<div class="flex flex-col items-center justify-between gap-6 sm:flex-row">
 			<p class="text-sm text-muted-foreground">© {year} Stream Kit. All rights reserved.</p>
 			<nav class="flex gap-6 text-sm">

@@ -9,6 +9,8 @@ declare global {
 		interface Locals {
 			services: Services;
 			pocketbase: TypedPocketBase;
+			/** Set by auth hook when wired; null until then. */
+			user: { id: string; name?: string; email?: string } | null;
 		}
 		interface PageData {}
 		// interface PageState {}

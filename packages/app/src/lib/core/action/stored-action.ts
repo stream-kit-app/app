@@ -22,6 +22,7 @@ export const DEFAULT_ACTION_QUEUE_NAME = 'default';
 
 export type ActionRecord = {
 	id: number;
+	syncId: string;
 	name: string;
 	group: string;
 	groupSortOrder: number;
@@ -37,6 +38,7 @@ export type ActionRecord = {
 
 export type NewActionRecord = {
 	id?: number;
+	syncId?: string;
 	name: string;
 	group?: string;
 	groupSortOrder?: number;

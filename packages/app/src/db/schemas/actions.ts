@@ -16,6 +16,8 @@ export {
 /** User-configured actions saved to the local database. */
 export const actions = sqliteTable('actions', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
+	/** Stable id shared with PocketBase `user_actions` (15-char [a-z0-9]). */
+	syncId: text('sync_id').notNull().unique(),
 	name: text('name').notNull(),
 	group: text('group').notNull().default(DEFAULT_ACTION_GROUP),
 	groupSortOrder: integer('group_sort_order').notNull().default(0),

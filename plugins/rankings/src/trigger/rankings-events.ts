@@ -8,6 +8,7 @@ import {
 	createOnTest,
 	evaluateWith
 } from '../lib/trigger-helpers';
+import { resolveTwitchChatTarget } from '../lib/twitch-chat-target';
 
 function sourceCondition() {
 	return {
@@ -56,20 +57,30 @@ function validateRankingsEvent(conditions: ConditionGroupNode, context: unknown)
 
 function createTestContext(rankings: RankingsService): RankingsEventContext {
 	const user = rankings.getLeaderboard(1)[0];
-	const progress = rankings.getProgressForPoints(user?.totalPoints ?? 100);
+	const currentPoints = user?.totalPoints ?? 100;
+	const previousProgress = rankings.getProgressForPoints(Math.max(0, currentPoints - 50));
+	const currentProgress = rankings.getProgressForPoints(currentPoints);
+	const chat = rankings.isReady
+		? resolveTwitchChatTarget(rankings.requireApp())
+		: {};
 
 	return {
 		userId: user?.userId ?? 'twitch:testviewer',
 		username: user?.username ?? 'TestViewer',
 		platform: user?.platform ?? 'twitch',
-		totalPoints: user?.totalPoints ?? 100,
+		totalPoints: currentPoints,
+		points: currentPoints,
 		watchTimeSeconds: user?.watchTimeSeconds ?? 600,
 		source: 'manual',
-		amount: 10,
-		previousRank: progress.rank,
-		currentRank: progress.rank,
-		previousTier: progress.tier,
-		currentTier: progress.tier
+		amount: 50,
+		rank: currentProgress.rank?.name ?? 'None',
+		tier: currentProgress.tier?.name ?? 'None',
+		previousRank: previousProgress.rank?.name ?? 'None',
+		currentRank: currentProgress.rank?.name ?? 'None',
+		previousTier: previousProgress.tier?.name ?? 'None',
+		currentTier: currentProgress.tier?.name ?? 'None',
+		channel: chat.channel,
+		broadcasterId: chat.broadcasterId
 	};
 }
 

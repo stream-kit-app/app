@@ -12,8 +12,12 @@ export const Collections = {
 	Otps: "_otps",
 	Superusers: "_superusers",
 	Files: "files",
+	PluginReviews: "plugin_reviews",
 	PluginVersions: "plugin_versions",
 	Plugins: "plugins",
+	Subscriptions: "subscriptions",
+	UserFiles: "user_files",
+	UserSubscriptions: "user_subscriptions",
 	Users: "users",
 } as const
 export type Collections = typeof Collections[keyof typeof Collections]
@@ -107,6 +111,16 @@ export type FilesRecord = {
 	updatedAt: IsoAutoDateString
 }
 
+export type PluginReviewsRecord = {
+	body?: string
+	createdAt: IsoAutoDateString
+	id: string
+	plugin: RecordIdString
+	rating: number
+	updatedAt: IsoAutoDateString
+	user: RecordIdString
+}
+
 export type PluginVersionsRecord = {
 	changelog?: HTMLString
 	createdAt: IsoAutoDateString
@@ -121,15 +135,85 @@ export type PluginVersionsRecord = {
 	version: string
 }
 
+export const PluginsCategoryOptions = {
+	"core": "core",
+	"platform": "platform",
+	"streaming": "streaming",
+	"chat": "chat",
+	"audio": "audio",
+	"hardware": "hardware",
+	"utility": "utility",
+} as const
+export type PluginsCategoryOptions = typeof PluginsCategoryOptions[keyof typeof PluginsCategoryOptions]
+
+export const PluginsTagsOptions = {
+	"twitch": "twitch",
+	"youtube": "youtube",
+	"discord": "discord",
+	"obs": "obs",
+	"bot": "bot",
+	"tts": "tts",
+	"overlay": "overlay",
+	"moderation": "moderation",
+	"automation": "automation",
+} as const
+export type PluginsTagsOptions = typeof PluginsTagsOptions[keyof typeof PluginsTagsOptions]
 export type PluginsRecord = {
 	author: RecordIdString
+	averageRating?: number
+	category?: PluginsCategoryOptions
+	content?: string
 	createdAt: IsoAutoDateString
 	description: string
 	icon: string
 	id: string
 	key: string
 	name: string
+	ratingCount?: number
+	tags?: PluginsTagsOptions[]
 	updatedAt: IsoAutoDateString
+}
+
+export type SubscriptionsRecord<Tbullets = unknown> = {
+	bullets?: null | Tbullets
+	createdAt: IsoAutoDateString
+	description: string
+	enabled?: boolean
+	icon: string
+	id: string
+	key: string
+	maxFileBytes: number
+	maxStorageBytes: number
+	name: string
+	updatedAt: IsoAutoDateString
+}
+
+export type UserFilesRecord = {
+	createdAt: IsoAutoDateString
+	file: FileNameString
+	id: string
+	mimeType?: string
+	originalName?: string
+	size?: number
+	updatedAt: IsoAutoDateString
+	user: RecordIdString
+}
+
+export const UserSubscriptionsStatusOptions = {
+	"active": "active",
+	"cancelled": "cancelled",
+	"expired": "expired",
+} as const
+export type UserSubscriptionsStatusOptions = typeof UserSubscriptionsStatusOptions[keyof typeof UserSubscriptionsStatusOptions]
+export type UserSubscriptionsRecord = {
+	cancelledAt?: IsoDateString
+	createdAt: IsoAutoDateString
+	id: string
+	purchasedAt: IsoDateString
+	status: UserSubscriptionsStatusOptions
+	subscription: RecordIdString
+	updatedAt: IsoAutoDateString
+	user: RecordIdString
 }
 
 export type UsersRecord = {
@@ -152,8 +236,12 @@ export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemF
 export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
 export type FilesResponse<Texpand = unknown> = Required<FilesRecord> & BaseSystemFields<Texpand>
+export type PluginReviewsResponse<Texpand = unknown> = Required<PluginReviewsRecord> & BaseSystemFields<Texpand>
 export type PluginVersionsResponse<Texpand = unknown> = Required<PluginVersionsRecord> & BaseSystemFields<Texpand>
 export type PluginsResponse<Texpand = unknown> = Required<PluginsRecord> & BaseSystemFields<Texpand>
+export type SubscriptionsResponse<Tbullets = unknown, Texpand = unknown> = Required<SubscriptionsRecord<Tbullets>> & BaseSystemFields<Texpand>
+export type UserFilesResponse<Texpand = unknown> = Required<UserFilesRecord> & BaseSystemFields<Texpand>
+export type UserSubscriptionsResponse<Texpand = unknown> = Required<UserSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
@@ -165,8 +253,12 @@ export type CollectionRecords = {
 	_otps: OtpsRecord
 	_superusers: SuperusersRecord
 	files: FilesRecord
+	plugin_reviews: PluginReviewsRecord
 	plugin_versions: PluginVersionsRecord
 	plugins: PluginsRecord
+	subscriptions: SubscriptionsRecord
+	user_files: UserFilesRecord
+	user_subscriptions: UserSubscriptionsRecord
 	users: UsersRecord
 }
 
@@ -177,8 +269,12 @@ export type CollectionResponses = {
 	_otps: OtpsResponse
 	_superusers: SuperusersResponse
 	files: FilesResponse
+	plugin_reviews: PluginReviewsResponse
 	plugin_versions: PluginVersionsResponse
 	plugins: PluginsResponse
+	subscriptions: SubscriptionsResponse
+	user_files: UserFilesResponse
+	user_subscriptions: UserSubscriptionsResponse
 	users: UsersResponse
 }
 

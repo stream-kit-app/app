@@ -22,6 +22,12 @@
 	} from '$lib/core/action/handler/field';
 	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
 	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
+	import {
+		isLocalFilePath,
+		pickCloudFileUrl,
+		uploadLocalFileToCloud,
+		usesCloudFileStorage
+	} from '$lib/components/core/user-files/cloud-file-actions';
 	import { resolveApp } from './resolve-app';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 
@@ -167,15 +173,20 @@
 		{error}
 	/>
 {:else if config.type === 'select-file-or-folder'}
+	{@const cloudStorage = usesCloudFileStorage(config)}
+	{@const fileValue = String(scalarValue ?? '')}
+	{@const hasLocalPath = cloudStorage && isLocalFilePath(fileValue)}
 	<InputFilePath
 		label={config.name}
 		placeholder={config.placeholder}
 		required={config.required}
 		mode={config.mode}
 		filters={config.filters}
-		value={String(scalarValue ?? '')}
+		value={fileValue}
 		onValueChange={(next) => onValueChange(next)}
 		browseLabel={t('Browse')}
+		uploadLabel={hasLocalPath ? t('Upload to cloud') : t('Upload')}
+		cloudLabel={t('Cloud')}
 		emptyFileLabel={t('No file selected')}
 		emptyFolderLabel={t('No folder selected')}
 		onBrowse={() =>
@@ -183,6 +194,10 @@
 				type: config.mode,
 				filters: config.filters
 			})}
+		onUpload={
+			cloudStorage ? () => uploadLocalFileToCloud(config.filters, fileValue) : undefined
+		}
+		onCloudBrowse={cloudStorage ? () => pickCloudFileUrl(config.filters) : undefined}
 		{error}
 	/>
 {:else if config.type === 'code'}

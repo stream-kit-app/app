@@ -159,10 +159,22 @@ function createAttachment(
 			element.removeEventListener('focus', onFocus);
 			element.removeEventListener('blur', onBlur);
 
+			// Close via the root when this trigger is active. Plain registry.unregister
+			// clears the payload while leaving `open` true, which tears down Content
+			// mid-dismiss and crashes bits-ui floating layers.
 			syncRegistry(() => {
-				if (registered) {
-					tether.state.registry.unregister(id);
+				if (!registered) {
+					return;
 				}
+
+				const root = tether.state.root;
+
+				if (root) {
+					root.unregisterTrigger(id);
+					return;
+				}
+
+				tether.state.registry.unregister(id);
 			});
 		};
 	};

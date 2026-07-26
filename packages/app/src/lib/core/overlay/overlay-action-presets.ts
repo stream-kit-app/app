@@ -7,7 +7,6 @@ import type {
 	OverlayManifest
 } from './overlay-manifest';
 
-import { Action } from '../action/action.svelte';
 import { resolveHandlerDefinition, resolveTriggerDefinition } from '../action/definition-id';
 import { saveAction } from '$db/repositories/actions';
 import { saveOverlayInstalledActionKeys } from '$db/repositories/overlays';
@@ -188,6 +187,7 @@ export async function installActionPresets(
 				throw new Error(translate('Action could not be saved.'));
 			}
 
+			const { Action } = await import('../action/action.svelte');
 			const action = Action.fromRecord(row);
 
 			app.actions.add(action);

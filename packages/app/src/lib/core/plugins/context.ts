@@ -1,6 +1,6 @@
-import type { SettingsFieldValue } from '../settings';
-import type { PluginAppApi } from './app-api';
+import type { PluginAppApi } from './plugin-app-api.types';
 import type { PluginStore } from './store';
+import type { SettingsFieldValue } from '../settings';
 
 /**
  * Context passed to plugin lifecycle callbacks and `isConfigured`.

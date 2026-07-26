@@ -4,7 +4,11 @@
 	import { InputFile, InputOneOf, InputText } from '@stream-kit/ui/input';
 	import { watch } from 'runed';
 
-	import { fileBytesToRankIcon, getRankIconKind } from '../../lib/rank-icon';
+	import {
+		dataUrlToBlob,
+		fileBytesToRankIcon,
+		getRankIconKind
+	} from '../../lib/rank-icon';
 	import { getRankingsService } from '../lib/get-rankings';
 	import RankIcon from './rank-icon.svelte';
 
@@ -20,6 +24,13 @@
 	let { rank }: Props = $props();
 	const app = getRankingsService().requireApp();
 	const t = app.i18n.t;
+
+	const IMAGE_FILTERS = [
+		{
+			name: t('Images'),
+			extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg']
+		}
+	];
 
 	const iconVariants = $derived([
 		{ id: 'iconify', label: t('Iconify') },
@@ -43,7 +54,12 @@
 					file: kind === 'image' ? (rank.icon ?? '') : ''
 				}
 			};
-			fileDisplayName = kind === 'image' ? t('Custom image') : '';
+			fileDisplayName =
+				kind === 'image'
+					? rank.icon?.startsWith('data:image/')
+						? t('Custom image')
+						: rank.icon?.split('/').pop()?.split('?')[0] || t('Cloud image')
+					: '';
 		}
 	);
 
@@ -61,36 +77,62 @@
 		}
 	);
 
-	async function browseIcon(): Promise<string | null> {
+	async function uploadIcon(): Promise<string | null> {
 		try {
-			const path = await app.fs.select({
-				type: 'file',
-				filters: [
-					{
-						name: t('Images'),
-						extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg']
-					}
-				]
-			});
-
-			if (!path) {
+			if (!app.auth.isAuthenticated) {
+				app.toast.create({
+					title: t('Sign in required'),
+					description: t('Log in to upload or browse cloud files.'),
+					variant: 'warning'
+				});
+				return null;
+			}
+			if (!app.auth.user?.subscription) {
+				app.toast.create({
+					title: t('Subscription required'),
+					description: t('An active subscription is required to use cloud files.'),
+					variant: 'warning'
+				});
 				return null;
 			}
 
-			const bytes = await app.fs.readFile(path);
-			const dataUrl = await fileBytesToRankIcon(bytes, path);
-			const name = path.split(/[/\\]/).pop() || t('Custom image');
+			const existing = String(iconOneOf.values.file ?? '').trim();
+			let blob: Blob;
+			let originalName: string;
+
+			if (existing.startsWith('data:image/')) {
+				blob = await dataUrlToBlob(existing);
+				originalName = 'icon.png';
+			} else {
+				const path = await app.fs.select({
+					type: 'file',
+					filters: IMAGE_FILTERS
+				});
+
+				if (!path) {
+					return null;
+				}
+
+				const bytes = await app.fs.readFile(path);
+				const dataUrl = await fileBytesToRankIcon(bytes, path);
+				blob = await dataUrlToBlob(dataUrl);
+				const baseName = path.split(/[/\\]/).pop() || 'icon.png';
+				originalName = baseName.replace(/\.\w+$/, '.png');
+			}
+
+			const uploaded = await app.userFiles.upload(blob, { originalName });
 
 			iconOneOf = {
 				variant: 'file',
 				values: {
 					...iconOneOf.values,
-					file: dataUrl
+					file: uploaded.url
 				}
 			};
-			rank.icon = dataUrl;
+			rank.icon = uploaded.url;
+			fileDisplayName = uploaded.originalName;
 
-			return name;
+			return uploaded.originalName;
 		} catch (error) {
 			app.toast.create({
 				title: t('Could not load icon'),
@@ -98,6 +140,45 @@
 				variant: 'warning'
 			});
 
+			return null;
+		}
+	}
+
+	async function pickCloudIcon(): Promise<string | null> {
+		try {
+			if (!app.auth.isAuthenticated || !app.auth.user?.subscription) {
+				app.toast.create({
+					title: t('Sign in required'),
+					description: t('Log in with an active subscription to use cloud files.'),
+					variant: 'warning'
+				});
+				return null;
+			}
+
+			const selected = await app.userFiles.pick({
+				mimePrefix: 'image/',
+				extensions: IMAGE_FILTERS[0]!.extensions
+			});
+			if (!selected) {
+				return null;
+			}
+
+			iconOneOf = {
+				variant: 'file',
+				values: {
+					...iconOneOf.values,
+					file: selected.url
+				}
+			};
+			rank.icon = selected.url;
+			fileDisplayName = selected.originalName;
+			return selected.originalName;
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not load icon'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'warning'
+			});
 			return null;
 		}
 	}
@@ -142,9 +223,9 @@
 		}}
 	/>
 
-	<div class="flex items-start gap-3">
+	<div class="flex flex-col items-start gap-4 sm:flex-row">
 		<RankIcon icon={rank.icon} />
-		<div class="min-w-0 flex-1">
+		<div class="min-w-0 w-full flex-1">
 			<InputOneOf label={t('Icon')} variants={iconVariants} bind:value={iconOneOf}>
 				{#snippet panel({ variantId, value, setValue })}
 					{#if variantId === 'iconify'}
@@ -162,9 +243,15 @@
 							label={t('Image file')}
 							value={fileDisplayName}
 							emptyLabel={t('No file selected')}
-							browseLabel={t('Browse')}
+							browseLabel={
+								String(iconOneOf.values.file ?? '').startsWith('data:image/')
+									? t('Upload to cloud')
+									: t('Upload')
+							}
+							cloudLabel={t('Cloud')}
 							clearLabel={t('Clear')}
-							onBrowse={browseIcon}
+							onBrowse={uploadIcon}
+							onCloudBrowse={pickCloudIcon}
 							onValueChange={(name) => {
 								fileDisplayName = name;
 							}}

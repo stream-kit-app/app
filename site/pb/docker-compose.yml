@@ -1,0 +1,11 @@
+services:
+  pocketbase:
+    image: ghcr.io/stream-kit-app/pocketbase:latest
+    ports:
+      - '8090:8090'
+    volumes:
+      - pb_data:/pb/pb_data
+    restart: unless-stopped
+
+volumes:
+  pb_data:

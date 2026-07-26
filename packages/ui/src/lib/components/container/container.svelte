@@ -19,7 +19,7 @@
 			'mx-auto': center,
 			'max-w-3xl': size === 'sm',
 			'max-w-5xl': size === 'md',
-			'max-w-7xl': size === 'lg',
+			'max-w-screen-2xl': size === 'lg',
 			'max-w-full': size === 'full'
 		},
 		props.class

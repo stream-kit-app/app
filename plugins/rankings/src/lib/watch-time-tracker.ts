@@ -109,6 +109,21 @@ export class WatchTimeTracker {
 
 	private markPresent(username: string, userId?: string): void {
 		const key = username.toLowerCase();
+		const platformUserId = userId
+			? formatPlatformUserId('twitch', userId)
+			: formatPlatformUserId('twitch', key);
+
+		if (
+			this.rankings.isIgnored({
+				userId: platformUserId,
+				username,
+				platform: 'twitch'
+			})
+		) {
+			this.activeViewers.delete(key);
+			return;
+		}
+
 		const existing = this.activeViewers.get(key);
 
 		if (existing) {
@@ -278,6 +293,17 @@ export class WatchTimeTracker {
 			this.activeViewers.set(key, viewer);
 
 			const userId = this.resolveViewerUserId(viewer);
+
+			if (
+				this.rankings.isIgnored({
+					userId,
+					username: viewer.username,
+					platform: 'twitch'
+				})
+			) {
+				this.activeViewers.delete(key);
+				continue;
+			}
 
 			await this.rankings.addWatchTime({
 				userId,

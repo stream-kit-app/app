@@ -13,6 +13,7 @@ export async function createPluginViteBuildConfig(options = {}) {
 
 	const workspaceRoot = path.resolve(root, '../..');
 	const appRoot = path.resolve(workspaceRoot, 'packages/app/src');
+	const pluginStubs = path.resolve(workspaceRoot, 'packages/plugin/stubs');
 
 	return {
 		plugins: [
@@ -25,6 +26,8 @@ export async function createPluginViteBuildConfig(options = {}) {
 		resolve: {
 			alias: {
 				'$lib': path.resolve(appRoot, 'lib'),
+				'$env/static/public': path.resolve(pluginStubs, 'env-static-public.ts'),
+				'$env/dynamic/public': path.resolve(pluginStubs, 'env-dynamic-public.ts'),
 				'@stream-kit/plugin/action-ui': path.resolve(
 					appRoot,
 					'lib/components/core/action'

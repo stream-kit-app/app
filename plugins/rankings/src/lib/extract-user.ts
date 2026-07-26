@@ -136,10 +136,12 @@ export function usernamesMatch(left: string, right: string): boolean {
 	return left.trim().toLowerCase() === right.trim().toLowerCase();
 }
 
-export function findUserByIdentity(
-	users: UserRankingRecord[],
+export function findUserByIdentity<
+	T extends { userId: string; username: string; platform: RankingsPlatform }
+>(
+	users: T[],
 	input: { userId: string; username?: string; platform?: RankingsPlatform }
-): UserRankingRecord | undefined {
+): T | undefined {
 	const direct = users.find((user) => user.userId === input.userId);
 
 	if (direct) {

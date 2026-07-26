@@ -1,0 +1,108 @@
+import { openCloudFilePicker } from './open-cloud-file-picker';
+
+import { openLoginModal } from '$lib/components/core/auth/open-auth-modals';
+import { getApp } from '$lib/core/registry';
+import { isLocalFilePath, usesCloudFileStorage } from '$lib/core/user-files/cloud-file-path';
+import { translate } from '$lib/i18n';
+
+export { isLocalFilePath, usesCloudFileStorage } from '$lib/core/user-files/cloud-file-path';
+
+type FileFilter = { name: string; extensions: string[] };
+
+function requireCloudAccess(): boolean {
+	const app = getApp();
+
+	if (!app.auth.isConfigured) {
+		app.toast.create({
+			title: translate('Cloud files'),
+			description: translate('PocketBase URL is not configured. Set PUBLIC_POCKETBASE_URL.'),
+			variant: 'warning'
+		});
+		return false;
+	}
+
+	if (!app.auth.isAuthenticated) {
+		app.toast.create({
+			title: translate('Sign in required'),
+			description: translate('Log in to upload or browse cloud files.'),
+			variant: 'warning'
+		});
+		openLoginModal();
+		return false;
+	}
+
+	if (!app.auth.user?.subscription) {
+		app.toast.create({
+			title: translate('Subscription required'),
+			description: translate('An active subscription is required to use cloud files.'),
+			variant: 'warning'
+		});
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Upload a file to `user_files`.
+ * When `existingPath` is a local filesystem path, uploads that file (no OS picker).
+ * Otherwise opens a local file picker, then uploads.
+ */
+export async function uploadLocalFileToCloud(
+	filters?: FileFilter[],
+	existingPath?: string | null
+): Promise<string | null> {
+	if (!requireCloudAccess()) {
+		return null;
+	}
+
+	const app = getApp();
+	let path = isLocalFilePath(existingPath) ? existingPath!.trim() : '';
+
+	if (!path) {
+		const selected = await app.fs.select({
+			type: 'file',
+			filters
+		});
+		if (!selected) {
+			return null;
+		}
+		path = selected;
+	}
+
+	try {
+		const bytes = await app.fs.readFile(path);
+		const originalName = path.split(/[/\\]/).pop() || 'upload.bin';
+		const uploaded = await app.userFiles.upload(new Blob([Uint8Array.from(bytes)]), {
+			originalName
+		});
+		return uploaded.url;
+	} catch (error) {
+		getApp().toast.create({
+			title: translate('Upload failed'),
+			description: error instanceof Error ? error.message : translate('Could not upload file.'),
+			variant: 'error'
+		});
+		return null;
+	}
+}
+
+/** Browse existing `user_files` → returns cloud URL. */
+export async function pickCloudFileUrl(filters?: FileFilter[]): Promise<string | null> {
+	if (!requireCloudAccess()) {
+		return null;
+	}
+
+	try {
+		const selected = await openCloudFilePicker({ filters });
+		return selected?.url ?? null;
+	} catch (error) {
+		getApp().toast.create({
+			title: translate('Cloud files'),
+			description:
+				error instanceof Error ? error.message : translate('Could not load cloud files.'),
+			variant: 'error'
+		});
+		return null;
+	}
+}

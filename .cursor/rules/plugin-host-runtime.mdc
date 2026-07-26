@@ -1,0 +1,38 @@
+---
+description: Plugin UI runs in a separate Svelte runtime (plugin-host) — critical when debugging or changing plugin UI, shared UI, or host mount code
+alwaysApply: true
+---
+
+# Plugin-host Svelte runtime
+
+Plugin custom views, modals, widgets, and dashboard widgets are **not** rendered by the app Vite Svelte tree. `PluginComponentHost` mounts them with the **plugin-host** Svelte runtime (`/plugin-host/svelte.js` + import map for `svelte`, `@stream-kit/ui`, etc.).
+
+The app shell (`+layout.svelte`, `$lib`, routes) uses a **different** Svelte module instance.
+
+Treat “plugin bug” / “plugin UI crash” as a **two-runtime** problem until proven otherwise.
+
+## Boundary
+
+| Same runtime | Cross-runtime (unsafe unless designed for it) |
+| --- | --- |
+| Plugin view ↔ plugin-host `@stream-kit/ui` / `svelte` | Passing Svelte **snippets**, **components**, or compiler internals from plugin → app (or reverse) and rendering them |
+| App routes / `$lib` ↔ app Vite `svelte` / `@stream-kit/ui` | Assuming one Bits UI provider, portal root, or module singleton serves both trees |
+| Plain data via `app.*` (strings, numbers, JSON, callbacks that only use platform APIs) | Sharing reactive Svelte state objects across the boundary |
+
+Typical symptoms: `Cannot read properties of null (reading 'nodes')`, `derived_inert`, stacks that mix **plugin-host** `client-*.js` with **app** layout providers.
+
+## When changing code
+
+1. Ask: is this UI mounted via `PluginComponentHost` / the plugin-host import map?
+2. Keep Svelte-owned values (snippets, component instances, attachment payloads that embed them) **inside** that runtime.
+3. Host-level singletons that plugins need (e.g. a provider mounted for the plugin-host tree) belong in plugin-host setup — not only in app `+layout`.
+4. After changing `@stream-kit/ui` (or other host modules) consumed by plugins, rebuild: `pnpm --filter @stream-kit/app run build:plugin-host`.
+
+## Examples (not exhaustive)
+
+- **Tooltips**: `tooltipSnippet(...)` in a plugin must render under a plugin-host tooltip root; do not rely on the app layout provider to `{@render}` that snippet.
+- **Any future portal / provider / floating UI**: same rule — provider and consumer must share a runtime.
+- **Debugging**: a fix that only touches app layout may leave plugin pages broken (and the reverse).
+
+
+🎖️{username} ranked up, new rank {currentRank}

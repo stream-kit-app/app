@@ -1,0 +1,88 @@
+name: Publish PocketBase
+
+on:
+    workflow_dispatch:
+        inputs:
+            force:
+                description: 'Rebuild and push even if the version tag already exists on GHCR'
+                required: false
+                type: boolean
+                default: false
+
+permissions:
+    contents: read
+    packages: write
+
+concurrency:
+    group: publish-pocketbase
+    cancel-in-progress: false
+
+env:
+    IMAGE_NAME: ghcr.io/stream-kit-app/pocketbase
+
+jobs:
+    publish:
+        name: Build and push PocketBase image
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Read package version
+              id: version
+              run: |
+                  VERSION="$(node -p "require('./site/pb/package.json').version")"
+                  PB_VERSION="$(tr -d '[:space:]' < site/pb/PB_VERSION)"
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "pb_version=${PB_VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "Publishing @stream-kit/pocketbase@${VERSION} (PocketBase ${PB_VERSION})"
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Check if image tag exists
+              id: exists
+              env:
+                  FORCE: ${{ github.event.inputs.force || 'false' }}
+                  IMAGE_TAG: ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+              run: |
+                  if [ "$FORCE" = "true" ]; then
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                    echo "Force rebuild requested"
+                    exit 0
+                  fi
+
+                  if docker manifest inspect "$IMAGE_TAG" >/dev/null 2>&1; then
+                    echo "exists=true" >> "$GITHUB_OUTPUT"
+                    echo "Image ${IMAGE_TAG} already exists — skipping publish"
+                  else
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                    echo "Image ${IMAGE_TAG} not found — will build and push"
+                  fi
+
+            - name: Set up Docker Buildx
+              if: steps.exists.outputs.exists != 'true'
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build and push
+              if: steps.exists.outputs.exists != 'true'
+              uses: docker/build-push-action@v6
+              with:
+                  context: site/pb
+                  push: true
+                  tags: |
+                      ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+                      ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+                      ${{ env.IMAGE_NAME }}:latest
+                  labels: |
+                      org.opencontainers.image.title=Stream Kit PocketBase
+                      org.opencontainers.image.description=PocketBase with Stream Kit hooks and migrations
+                      org.opencontainers.image.version=${{ steps.version.outputs.version }}
+                      org.opencontainers.image.source=https://github.com/stream-kit-app/app
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max

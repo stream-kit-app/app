@@ -41,6 +41,8 @@ The plugin reports **configured** when OAuth completes and the connection is hea
 | **Interactive** | Polls, predictions, hype train |
 | **Actions** | Send message, announcement, shoutout, clips, commercials, raids, VIP/mod, get user info |
 
+Twitch chat messages are limited to **500 characters**. Stream Kit splits longer outgoing messages (bot Helix API and IRC) into multiple chat lines so they still send instead of failing with HTTP 422.
+
 ## Triggers and handlers
 
 - [Twitch triggers](/docs/api/triggers/twitch) — chat, EventSub, engagement

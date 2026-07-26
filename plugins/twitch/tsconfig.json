@@ -16,5 +16,6 @@
 			"$lib/*": ["../../packages/app/src/lib/*"]
 		}
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"exclude": ["src/**/*.test.ts"]
 }

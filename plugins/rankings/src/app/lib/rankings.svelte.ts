@@ -16,11 +16,13 @@ import {
 } from '../../lib/extract-user';
 import {
 	ensureDefaultConfig,
+	loadIgnoredUsers,
 	loadPointHistory,
 	loadRanks,
 	loadSettings,
 	loadTiers,
 	loadUsers,
+	saveIgnoredUsers,
 	savePointHistory,
 	saveRanks,
 	saveSettings,
@@ -28,7 +30,9 @@ import {
 	saveUsers
 } from '../../lib/rankings-store';
 import { appendPointHistoryEntry, getUserPointHistory } from '../../lib/point-history';
+import { resolveTwitchChatTarget } from '../../lib/twitch-chat-target';
 import type {
+	IgnoredUserRecord,
 	PointHistoryEntry,
 	PointHistoryKind,
 	PointsMutationResult,
@@ -44,6 +48,7 @@ export class RankingsService {
 	tiers: TierRecord[] = $state([]);
 	ranks: RankRecord[] = $state([]);
 	users: UserRankingRecord[] = $state([]);
+	ignoredUsers: IgnoredUserRecord[] = $state([]);
 	pointHistory: PointHistoryEntry[] = $state([]);
 	settings: RankingsSettings = $state({
 		watchTimeEnabled: true,
@@ -115,10 +120,11 @@ export class RankingsService {
 		const { store } = this.requireContext();
 		await ensureDefaultConfig(store);
 
-		const [tiers, ranks, users, settings, pointHistory] = await Promise.all([
+		const [tiers, ranks, users, ignoredUsers, settings, pointHistory] = await Promise.all([
 			loadTiers(store),
 			loadRanks(store),
 			loadUsers(store),
+			loadIgnoredUsers(store),
 			loadSettings(store),
 			loadPointHistory(store)
 		]);
@@ -126,6 +132,7 @@ export class RankingsService {
 		this.tiers = tiers;
 		this.ranks = ranks;
 		this.users = users;
+		this.ignoredUsers = ignoredUsers;
 		this.settings = settings;
 		this.pointHistory = pointHistory;
 	}
@@ -138,6 +145,11 @@ export class RankingsService {
 	async persistUsers(): Promise<void> {
 		const { store } = this.requireContext();
 		await saveUsers(store, this.users);
+	}
+
+	async persistIgnoredUsers(): Promise<void> {
+		const { store } = this.requireContext();
+		await saveIgnoredUsers(store, this.ignoredUsers);
 	}
 
 	async persistTiersAndRanks(): Promise<void> {
@@ -164,6 +176,62 @@ export class RankingsService {
 		platform?: RankingsPlatform;
 	}): UserRankingRecord | undefined {
 		return findUserByIdentity(this.users, input);
+	}
+
+	isIgnored(input: {
+		userId: string;
+		username?: string;
+		platform?: RankingsPlatform;
+	}): boolean {
+		return findUserByIdentity(this.ignoredUsers, input) != null;
+	}
+
+	async ignoreUser(userId: string): Promise<void> {
+		const existing = this.getUser(userId);
+
+		if (!existing) {
+			throw new Error(`User "${userId}" not found`);
+		}
+
+		const ignoredAt = new Date().toISOString();
+		const record: IgnoredUserRecord = {
+			userId: existing.userId,
+			username: existing.username,
+			platform: existing.platform,
+			ignoredAt
+		};
+		const match = findUserByIdentity(this.ignoredUsers, {
+			userId: existing.userId,
+			username: existing.username,
+			platform: existing.platform
+		});
+
+		if (match) {
+			this.ignoredUsers = this.ignoredUsers.map((entry) =>
+				entry.userId === match.userId
+					? {
+							...record,
+							ignoredAt: match.ignoredAt
+						}
+					: entry
+			);
+		} else {
+			this.ignoredUsers = [...this.ignoredUsers, record];
+		}
+
+		await this.persistIgnoredUsers();
+		await this.deleteUser(existing.userId);
+	}
+
+	async unignoreUser(userId: string): Promise<void> {
+		const existing = findUserByIdentity(this.ignoredUsers, { userId });
+
+		if (!existing) {
+			throw new Error(`Ignored user "${userId}" not found`);
+		}
+
+		this.ignoredUsers = this.ignoredUsers.filter((entry) => entry.userId !== existing.userId);
+		await this.persistIgnoredUsers();
 	}
 
 	async canonicalizeUserIdentity(input: {
@@ -405,6 +473,14 @@ export class RankingsService {
 		return created;
 	}
 
+	private resolveTwitchChatFields(): { channel?: string; broadcasterId?: string } {
+		if (!this.app) {
+			return {};
+		}
+
+		return resolveTwitchChatTarget(this.app);
+	}
+
 	private buildEventContext(
 		user: UserRankingRecord,
 		amount: number,
@@ -412,18 +488,25 @@ export class RankingsService {
 		previousProgress: RankProgress,
 		currentProgress: RankProgress
 	): RankingsEventContext {
+		const { channel, broadcasterId } = this.resolveTwitchChatFields();
+
 		return {
 			userId: user.userId,
 			username: user.username,
 			platform: user.platform,
 			totalPoints: user.totalPoints,
+			points: user.totalPoints,
 			watchTimeSeconds: user.watchTimeSeconds,
 			source,
 			amount,
-			previousRank: previousProgress.rank,
-			currentRank: currentProgress.rank,
-			previousTier: previousProgress.tier,
-			currentTier: currentProgress.tier
+			rank: currentProgress.rank?.name ?? 'None',
+			tier: currentProgress.tier?.name ?? 'None',
+			previousRank: previousProgress.rank?.name ?? 'None',
+			currentRank: currentProgress.rank?.name ?? 'None',
+			previousTier: previousProgress.tier?.name ?? 'None',
+			currentTier: currentProgress.tier?.name ?? 'None',
+			channel,
+			broadcasterId
 		};
 	}
 
@@ -495,7 +578,11 @@ export class RankingsService {
 		platform: RankingsPlatform;
 		amount: number;
 		source: string;
-	}): Promise<PointsMutationResult> {
+	}): Promise<PointsMutationResult | null> {
+		if (this.isIgnored(input)) {
+			return null;
+		}
+
 		const user = this.upsertUser(input);
 		const result = this.applyPointsMutation(
 			user,
@@ -515,7 +602,11 @@ export class RankingsService {
 		platform: RankingsPlatform;
 		amount: number;
 		source: string;
-	}): Promise<PointsMutationResult> {
+	}): Promise<PointsMutationResult | null> {
+		if (this.isIgnored(input)) {
+			return null;
+		}
+
 		const user = this.upsertUser(input);
 		const amount = clampPoints(input.amount) - user.totalPoints;
 		const result = this.applyPointsMutation(
@@ -563,6 +654,10 @@ export class RankingsService {
 		platform: RankingsPlatform;
 		seconds: number;
 	}): Promise<void> {
+		if (this.isIgnored(input)) {
+			return;
+		}
+
 		const user = this.upsertUser(input);
 		const watchTimeSeconds = user.watchTimeSeconds + Math.max(0, Math.floor(input.seconds));
 		const updated: UserRankingRecord = {

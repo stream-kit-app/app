@@ -8,7 +8,6 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { Action } from '$lib/core/action/action.svelte';
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
@@ -45,7 +44,7 @@
 
 	function handleClone(event: MouseEvent): void {
 		event.stopPropagation();
-		Action.createFrom(action).open();
+		action.clone().open();
 	}
 </script>
 
