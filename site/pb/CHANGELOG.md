@@ -1,5 +1,21 @@
 # @stream-kit/pocketbase
 
+## 0.2.0-alpha.4
+
+### Minor Changes
+
+- [`ee186f9`](https://github.com/stream-kit-app/app/commit/ee186f99f178557cd2119229fa30638b221a197a) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Multi-PC Pro cloud sync: generic ConfigSync adapters, `app.records` / `user_plugin_records`, overlay project + dashboard sync, settings account/device split, and restore flow.
+
+- [`ee186f9`](https://github.com/stream-kit-app/app/commit/ee186f99f178557cd2119229fa30638b221a197a) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - feat; cloud features, design updates and much more
+
+### Patch Changes
+
+- [`fd9558d`](https://github.com/stream-kit-app/app/commit/fd9558d95834c054a5a50733f09c2149970ddbcd) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Add `revision` to user config sync collections; protect `user_files` and tighten mime allowlist.
+
+- [`fd9558d`](https://github.com/stream-kit-app/app/commit/fd9558d95834c054a5a50733f09c2149970ddbcd) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Fix `ReferenceError` in PocketBase hooks: handlers run in isolated runtimes, so entitlement, `user_files`, and plugin rating helpers now live in `pb_hooks/shared/*` and are loaded with `require()` inside each handler.
+
+- [`fd9558d`](https://github.com/stream-kit-app/app/commit/fd9558d95834c054a5a50733f09c2149970ddbcd) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Add `user_overlays` for cloud-hosted overlay browser sources (published dist zip + config).
+
 ## 0.1.1-alpha.3
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # @stream-kit/plugin
 
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- [`ee186f9`](https://github.com/stream-kit-app/app/commit/ee186f99f178557cd2119229fa30638b221a197a) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Multi-PC Pro cloud sync: generic ConfigSync adapters, `app.records` / `user_plugin_records`, overlay project + dashboard sync, settings account/device split, and restore flow.
+
+- [`ee186f9`](https://github.com/stream-kit-app/app/commit/ee186f99f178557cd2119229fa30638b221a197a) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - feat; cloud features, design updates and much more
+
+### Patch Changes
+
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.4
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes

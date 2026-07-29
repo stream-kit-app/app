@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/plugin-quotes",
-	"version": "0.1.0-alpha.1",
+	"version": "0.1.0-alpha.2",
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE",
 	"exports": {
