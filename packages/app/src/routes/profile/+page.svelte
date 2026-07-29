@@ -52,6 +52,8 @@
 	const configSyncStatus = $derived(app.configSync.status);
 	const configSyncLabel = $derived.by(() => {
 		switch (configSyncStatus) {
+			case 'restoring':
+				return t('Restoring from cloud…');
 			case 'syncing':
 				return t('Syncing…');
 			case 'synced': {
@@ -68,7 +70,9 @@
 				return t('Waiting to sync');
 		}
 	});
-
+	const configSyncBusy = $derived(
+		configSyncStatus === 'syncing' || configSyncStatus === 'restoring'
+	);
 	const displayAvatarUrl = $derived(
 		removeAvatar ? null : (avatarPreviewUrl ?? user?.avatarUrl ?? null)
 	);
@@ -488,7 +492,7 @@
 							{/if}
 							<p class="mt-0.5 text-sm text-dark-400">
 								{t(
-									'Actions and queues sync to your Stream Kit account while your plan is active.'
+									'Actions, queues, plugin data, overlays, and dashboard layout sync while your plan is active. Platform logins stay on this PC.'
 								)}
 							</p>
 						</div>
@@ -496,10 +500,10 @@
 					<Button
 						size="sm"
 						class="shrink-0 self-start sm:self-center"
-						disabled={configSyncStatus === 'syncing'}
+						disabled={configSyncBusy}
 						onclick={() => void app.configSync.sync()}
 					>
-						{t('Sync now')}
+						{configSyncStatus === 'restoring' ? t('Restoring…') : t('Sync now')}
 					</Button>
 				</div>
 			{/if}

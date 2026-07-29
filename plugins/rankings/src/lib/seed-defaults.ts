@@ -100,7 +100,7 @@ export async function seedRankingsDefaults(
 	pluginKey: string,
 	store: PluginStore
 ): Promise<void> {
-	const seedVersion = await loadSeedVersion(store);
+	const seedVersion = await loadSeedVersion(app);
 
 	if (seedVersion >= CURRENT_SEED_VERSION) {
 		return;
@@ -184,5 +184,5 @@ export async function seedRankingsDefaults(
 		}
 	}
 
-	await saveSeedVersion(store, CURRENT_SEED_VERSION);
+	await saveSeedVersion(app, CURRENT_SEED_VERSION);
 }

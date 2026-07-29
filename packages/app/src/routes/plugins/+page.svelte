@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Alert } from '@stream-kit/ui/alert';
+	import { Cell, CellGrid } from '@stream-kit/ui/blueprint';
 	import { Container } from '@stream-kit/ui/container';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
@@ -78,10 +79,12 @@
 				})}
 			/>
 		{/if}
-		<div class="grid grid-cols-3 gap-5 2xl:grid-cols-4">
+		<CellGrid cols={4} class="border-rule">
 			{#each app.plugins.items as plugin (plugin.key)}
-				<PluginCard {plugin} />
+				<Cell class="p-0 [&>article]:border-0 [&>article]:bg-transparent">
+					<PluginCard {plugin} />
+				</Cell>
 			{/each}
-		</div>
+		</CellGrid>
 	</Container>
 {/if}

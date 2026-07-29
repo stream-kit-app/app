@@ -28,7 +28,9 @@ let pending = false;
  * - normalize absolute PocketBase file URLs to host-independent /api/files paths
  * - upload local file values on cloud-capable action handler fields
  *
- * Bot/rankings auto-migrate waits on plugin-store sync; use manual Upload on those UIs.
+ * Plugin-record file fields (bot/rankings) are covered once those values use
+ * host-independent cloud paths via `app.userFiles`; absolute hosts are normalized
+ * on action handlers after each config sync.
  */
 export function startCloudFileMigration(app: App): void {
 	if (started) {

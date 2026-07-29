@@ -3,7 +3,7 @@ import "../../chunks/disclose-version-YhYaTdgb.js";
 import { t as _ } from "../../chunks/utils-DJt177zd.js";
 import { t as v } from "../../chunks/scroll-area-BdFM74vQ.js";
 //#region ../ui/src/lib/components/data-table/data-table.svelte
-var y = g("<div class=\"border-b border-dark-700/80 px-4 py-3\"><h3 class=\"text-base font-semibold text-dark-50\"> </h3></div>"), b = g("<th> </th>"), x = g("<td><!></td>"), S = g("<tr class=\"transition-colors hover:bg-dark-700/40\"></tr>"), C = g("<table class=\"min-w-full text-sm\"><thead class=\"sticky top-0 z-10 border-b border-dark-600 bg-dark-900\"><tr></tr></thead><tbody class=\"divide-y divide-dark-700/80\"></tbody></table>"), w = g("<div class=\"bg-dark-900/50\"><!></div>"), T = g("<p class=\"mt-1 text-sm text-dark-400\"> </p>"), E = g("<div class=\"bg-dark-900/50 px-4 py-10 text-center\"><p class=\"text-sm font-medium text-dark-300\"> </p> <!></div>"), D = g("<section><!> <!></section>");
+var y = g("<div class=\"border-b border-rule px-4 py-3\"><h3 class=\"text-base font-semibold text-dark-50\"> </h3></div>"), b = g("<th> </th>"), x = g("<td><!></td>"), S = g("<tr class=\"transition-colors hover:bg-dark-700/40\"></tr>"), C = g("<table class=\"min-w-full text-sm\"><thead class=\"sticky top-0 z-10 border-b border-rule bg-dark-900\"><tr></tr></thead><tbody class=\"divide-y divide-dark-700/80\"></tbody></table>"), w = g("<div class=\"bg-dark-900/50\"><!></div>"), T = g("<p class=\"mt-1 text-sm text-dark-400\"> </p>"), E = g("<div class=\"bg-dark-900/50 px-4 py-10 text-center\"><p class=\"text-sm font-medium text-dark-300\"> </p> <!></div>"), D = g("<section><!> <!></section>");
 function O(g, O) {
 	n(O, !0);
 	let k = l(O, "maxHeight", 3, "max-h-96");
@@ -61,7 +61,7 @@ function O(g, O) {
 	};
 	f(P, (e) => {
 		O.data.length > 0 ? e(F) : e(I, -1);
-	}), i(j), s((e) => d(j, 1, e), [() => h(_("overflow-hidden rounded-xl border border-dark-600 bg-dark-800", O.class))]), u(g, j), o();
+	}), i(j), s((e) => d(j, 1, e), [() => h(_("overflow-hidden rounded-none border border-rule bg-dark-800", O.class))]), u(g, j), o();
 }
 //#endregion
 export { O as DataTable };

@@ -170,7 +170,7 @@
 			placeholder: resolvedItems.loading ? resolvedLoadingPlaceholder : resolvedPlaceholder,
 			autocomplete: 'off',
 			class: cn(
-				'min-w-0 w-full truncate rounded-l-xl border border-r-0 outline-none',
+				'min-w-0 w-full truncate rounded-l-lg border border-r-0 outline-none',
 				inputFieldSurface,
 				inputFieldDisabled,
 				inputSizeClasses.md,
@@ -234,7 +234,7 @@
 	>
 		<div
 			class={cn(
-				'flex w-full min-w-0 items-stretch rounded-xl',
+				'flex w-full min-w-0 items-stretch rounded-lg',
 				inputFieldGroup,
 				inputFieldFocusRing(error)
 			)}
@@ -250,7 +250,7 @@
 				disabled={!!props.disabled}
 				onclick={handleTriggerClick}
 				class={cn(
-					'flex shrink-0 cursor-pointer items-center justify-center rounded-r-xl border outline-none',
+					'flex shrink-0 cursor-pointer items-center justify-center rounded-r-lg border outline-none',
 					inputFieldSurface,
 					inputFieldDisabled,
 					inputSizeClasses.md,
@@ -267,7 +267,7 @@
 				sideOffset={contentProps?.sideOffset ?? 4}
 				class={cn(
 					'z-[100] max-h-84 min-w-(--bits-combobox-anchor-width)',
-					'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
+					'rounded-lg border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 					contentProps?.class
 				)}
 			>

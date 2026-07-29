@@ -9,7 +9,10 @@
 	import { Button } from '@stream-kit/ui/button';
 
 	import CollectionCreateForm from './collection-create-form.svelte';
+	import CollectionCreateFormFooter from './collection-create-form-footer.svelte';
+	import { CollectionCreateForm as CollectionCreateFormModel } from './collection-create.svelte';
 	import CollectionEditorForm from './collection-editor-form.svelte';
+	import CollectionEditorFormFooter from './collection-editor-form-footer.svelte';
 
 	let { app }: PluginWidgetProps = $props();
 
@@ -60,18 +63,27 @@
 	}
 
 	function openCreateCollection(): void {
-		const modal =
-			app.modal.get('collection-create') ??
-			app.modal.create({
-				id: 'collection-create',
+		const modalId = 'collection-create';
+		const existing = app.modal.get(modalId);
+
+		if (existing) {
+			existing.open();
+			return;
+		}
+
+		const form = new CollectionCreateFormModel(app, modalId);
+
+		app.modal
+			.create({
+				id: modalId,
 				title: t('Create collection'),
 				description: t('Create a collection to store key-value data for your actions.'),
 				content: CollectionCreateForm,
-				props: { app, modalId: 'collection-create' },
+				footer: CollectionCreateFormFooter,
+				props: { form },
 				size: 'md'
-			});
-
-		modal.open();
+			})
+			.open();
 	}
 
 	function openEditor(collectionName: string): void {
@@ -83,6 +95,7 @@
 				id: modalId,
 				title: t('Edit collection'),
 				content: CollectionEditorForm,
+				footer: CollectionEditorFormFooter,
 				props: { app, collectionName, modalId },
 				size: 'lg'
 			});

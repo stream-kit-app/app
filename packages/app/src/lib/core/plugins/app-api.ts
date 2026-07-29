@@ -197,6 +197,18 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 				});
 			}
 		},
+		records: {
+			open: (collection: string) => {
+				const pluginKey = scope?.pluginKey;
+				if (!pluginKey) {
+					throw new Error(
+						'app.records.open() requires a plugin scope (use inside plugin lifecycle or views)'
+					);
+				}
+				return app.records.open(pluginKey, collection);
+			}
+		},
+		waitForConfigSync: () => app.configSync.firstSyncComplete,
 		media: {
 			getFileDurationMs: getVideoFileDurationMs
 		},

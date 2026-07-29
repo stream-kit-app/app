@@ -1560,7 +1560,7 @@ function Gt(e, t) {
 	let n = D(t, Wt);
 	var i = C(), a = u(i);
 	{
-		let e = A(() => N("flex w-full flex-col divide-y divide-dark-600 overflow-hidden rounded-xl border border-dark-600 bg-dark-800 shadow-md", t.class));
+		let e = A(() => N("flex w-full flex-col divide-y divide-dark-600 overflow-hidden rounded-none border border-dark-600 bg-dark-800 shadow-md", t.class));
 		r(a, () => Le, (r, i) => {
 			i(r, j(() => n, {
 				get class() {

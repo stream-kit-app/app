@@ -250,7 +250,7 @@
 	<div class="flex items-center gap-3">
 		<div
 			class={cn(
-				'relative grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-xl',
+				'relative grid min-w-0 flex-1 grid-cols-[1fr_120px_1fr] rounded-lg',
 				inputFieldGroup,
 				inputFieldFocusRing(error)
 			)}
@@ -262,7 +262,7 @@
 			bind:value={value.path}
 			class={cn(
 				'min-w-0 flex-1 truncate border border-r outline-none',
-				'rounded-l-xl',
+				'rounded-l-lg',
 				inputFieldSurface,
 				inputFieldDisabled,
 				inputSizeClasses.md,
@@ -312,7 +312,7 @@
 					sideOffset={contentProps?.sideOffset ?? 4}
 					class={cn(
 						'z-[100] max-h-(--bits-select-content-available-height) min-w-(--bits-select-anchor-width)',
-						'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
+						'rounded-lg border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 						contentProps?.class
 					)}
 				>
@@ -361,7 +361,7 @@
 		{#if isValuelessOperator}
 			<div
 				class={cn(
-					'flex min-w-0 items-center rounded-r-xl border border-l-0 px-3 text-dark-500 select-none',
+					'flex min-w-0 items-center rounded-r-lg border border-l-0 px-3 text-dark-500 select-none',
 					inputFieldSurface,
 					inputSizeClasses.md,
 					segmentBorder
@@ -376,7 +376,7 @@
 				placeholder={valuePlaceholder}
 				bind:value={value.value}
 				class={cn(
-					'min-w-0 flex-1 truncate rounded-r-xl border outline-none',
+					'min-w-0 flex-1 truncate rounded-r-lg border outline-none',
 					inputFieldSurface,
 					inputFieldDisabled,
 					inputSizeClasses.md,
@@ -405,7 +405,7 @@
 		{#if showSuggestions && filteredVariables.length > 0}
 			<ul
 				id={`${id}-listbox`}
-				class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
+				class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-dark-600 bg-dark-800 p-1 shadow-md"
 				role="listbox"
 			>
 				{#each filteredVariables as variable, index (variable.key)}

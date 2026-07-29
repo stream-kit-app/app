@@ -14,25 +14,29 @@ In `@stream-kit/app`, use the **built-in modal system** (`app.createModal` / `ap
 ```ts
 import { app } from '$lib/core';
 import MyForm from './my-form.svelte';
+import MyFormFooter from './my-form-footer.svelte';
 
 app.createModal({
   id: 'unique-modal-id',
   title: t('Modal title'),
   description: t('Optional subtitle'),
   content: MyForm,
-  props: { /* forwarded to MyForm */ },
+  footer: MyFormFooter,
+  props: { /* forwarded to MyForm and MyFormFooter */ },
   size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'full'
 }).open();
 ```
 
-Modals are rendered globally in `+layout.svelte` from `app.modals`.
+Modals are rendered globally in `+layout.svelte` from `app.modals`. Plugins use `app.modal.create` with the same shape (`contentHost: 'plugin'` is set automatically).
 
-## Modal content components
+## Modal content vs footer
 
-- Render **body content only** — no `Dialog.Root`, overlay, or title markup.
-- Title and description come from `createModal`.
-- Close with `getApp().modals.get(modalId)?.close()` (pass `modalId` as a prop when needed).
-- Follow existing examples: `ActionForm`, `PluginSettingsForm`, `CollectionCreateForm`, `CollectionEditorForm`.
+- **`content`** — body only (fields, lists, inline row actions). No `Dialog.Root`, overlay, or title markup. Title and description come from `createModal`.
+- **`footer`** — sticky bar for modal-level actions (Delete / Clear / Cancel / Close / Save / Create). Do **not** put those buttons in `content`.
+- Close with `app.modal.get(modalId)?.close()` (or `getApp().modals.get(modalId)?.close()` in the app layer). Pass `modalId` (or a form model that closes) via `props`.
+- Share state between content and footer via `props` (often a small reactive `.svelte.ts` model class).
+
+Follow existing examples: `ActionForm` + `ActionFormFooter`, `QuoteForm` + `QuoteFormFooter`, `CollectionEditorForm` + `CollectionEditorFormFooter`.
 
 ## When not to use app modals
 

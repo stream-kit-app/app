@@ -30,6 +30,18 @@ Design tokens live in the consumer `@theme` blocks:
 
 Use `border-rule` / `bg-rule` for schematic chrome. Keep `border-border` for interactive UI (inputs, menus, dialogs).
 
+## Radius scale (hybrid)
+
+Keep app and site `layout.css` radius tokens identical. Structural surfaces use `rounded-none` in components; the theme scale is tightened so any leftover `rounded-xl` still reads sharp:
+
+| Token | Value | Typical use |
+| --- | --- | --- |
+| `--radius-md` / `--radius-lg` / `--radius-xl` | `0.25rem` | Controls (`rounded-lg`) |
+| `--radius-2xl` | `0.375rem` | Slightly larger control chrome |
+| Structural frames | `rounded-none` | `Panel`, cell grids, tables, empty states |
+
+Do not bump these back up without updating both `layout.css` files.
+
 ## Anti-patterns
 
 ```svelte

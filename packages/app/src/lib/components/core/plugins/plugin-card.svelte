@@ -5,6 +5,7 @@
 	import Icon from '@iconify/svelte';
 	import { invoke } from '@tauri-apps/api/core';
 
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
@@ -189,15 +190,15 @@
 
 <article
 	class={cn(
-		'group/card flex flex-col overflow-hidden rounded-xl border transition-colors',
+		'group/card flex flex-col overflow-hidden rounded-none border transition-colors',
 		hasDependencyIssues
-			? 'border-dark-700 bg-dark-900/70 opacity-80 hover:border-dark-600'
-			: 'border-dark-600 bg-dark-800 hover:border-dark-500'
+			? 'border-rule bg-dark-900/70 opacity-80 hover:bg-dark-900/80'
+			: 'border-rule bg-dark-800 hover:bg-dark-900/60'
 	)}
 >
 	<div class="flex items-start gap-3 p-4 pb-3">
 		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+			class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 			aria-hidden="true"
 		>
 			<Icon icon={plugin.icon ?? 'ri:plug-line'} class="size-5" />
@@ -233,10 +234,8 @@
 		/>
 	</div>
 
-	<div class="border-t border-dark-700/80 bg-dark-900/50 px-4 py-3">
-		<p class="mb-2 text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
-			{t('Status')}
-		</p>
+	<div class="border-t border-rule bg-dark-900/50 px-4 py-3">
+		<Eyebrow class="mb-2">{t('Status')}</Eyebrow>
 		<div class="flex flex-wrap items-center gap-1.5">
 			<Badge variant={isConfigured ? 'success' : 'default'} size="sm">
 				{isConfigured ? t('Configured') : t('Not configured')}
@@ -274,7 +273,7 @@
 	</div>
 
 	{#if showFooter}
-		<div class="mt-auto flex items-center gap-2 border-t border-dark-700 p-3">
+		<div class="mt-auto flex items-center gap-2 border-t border-rule p-3">
 			{#if pendingUpdate}
 				<Button
 					size="sm"

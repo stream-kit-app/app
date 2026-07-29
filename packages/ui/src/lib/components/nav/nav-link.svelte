@@ -15,9 +15,10 @@
 	{...props}
 	data-active={isActive}
 	class={cn(
-		'flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm font-medium text-dark-200',
-		'hover:bg-dark-900 hover:text-dark-100',
-		isActive && 'bg-dark-800 text-foreground hover:bg-dark-800 hover:text-foreground',
+		'relative flex items-center gap-2.5 rounded-none px-3 py-1.5 text-sm font-medium text-dark-200',
+		'hover:bg-dark-900/60 hover:text-dark-100',
+		isActive &&
+			'bg-dark-900 text-foreground before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-primary hover:bg-dark-900 hover:text-foreground',
 		props.class
 	)}
 >

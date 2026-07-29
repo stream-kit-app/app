@@ -7,6 +7,7 @@
 	import { onMount, tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 
+	import { Crosshair } from '@stream-kit/ui/blueprint';
 	import { Logo } from '@stream-kit/ui/logo';
 	import * as Nav from '@stream-kit/ui/nav';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
@@ -103,9 +104,12 @@
 	>
 		<TooltipProvider>
 			<div class="flex h-full w-full overflow-hidden">
-				<aside class="flex h-full w-64 shrink-0 flex-col border-r border-dark-600 py-4">
-					<section class="flex h-14 shrink-0 items-center px-4">
-						<Logo />
+				<aside class="relative flex h-full w-64 shrink-0 flex-col border-r border-rule">
+					<section class="relative flex h-14 shrink-0 items-center border-b border-rule px-4">
+						<Crosshair position="top-right" size="sm" />
+						<span class="[&>span]:grid-cols-[28px_auto] [&>span]:gap-1.5 [&_svg]:h-7 [&_svg]:w-7 [&>span>span]:text-sm">
+							<Logo />
+						</span>
 					</section>
 					<section class="flex min-h-0 flex-1 flex-col px-2.5 py-2">
 						<ScrollArea
@@ -121,7 +125,7 @@
 						</ScrollArea>
 					</section>
 				</aside>
-				<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+				<div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
 					<AppPageHeader />
 					<AppToolbar />
 					<main class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">

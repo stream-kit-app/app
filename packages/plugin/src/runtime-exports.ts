@@ -28,3 +28,9 @@ export {
 	resolveOneOfFieldText,
 	splitCronParts
 } from '@stream-kit/core';
+
+export {
+	isRecordsSyncId,
+	migrateStoreArrayToRecords,
+	migrateStoreSingletonToRecord
+} from './records-migration';

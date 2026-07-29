@@ -673,6 +673,47 @@ interface PluginAppUserFilesApi {
 	pick(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord | null>;
 }
 
+type PluginAppRecordChange =
+	| { type: 'create' | 'update'; collection: string; id: string; data: Record<string, unknown> }
+	| { type: 'delete'; collection: string; id: string };
+
+/**
+ * Synced per-record collection for a single plugin domain (commands, quotes, …).
+ * Backed by local SQLite and cloud-synced for entitled accounts.
+ */
+interface PluginAppRecordCollectionApi {
+	list<T extends Record<string, unknown> = Record<string, unknown>>(): Promise<
+		Array<T & { id: string }>
+	>;
+	get<T extends Record<string, unknown> = Record<string, unknown>>(
+		id: string
+	): Promise<(T & { id: string }) | undefined>;
+	create<T extends Record<string, unknown> = Record<string, unknown>>(
+		data: T & { id?: string }
+	): Promise<T & { id: string }>;
+	update<T extends Record<string, unknown> = Record<string, unknown>>(
+		id: string,
+		data: Partial<T>
+	): Promise<T & { id: string }>;
+	delete(id: string): Promise<void>;
+	onChange(listener: (change: PluginAppRecordChange) => void): () => void;
+}
+
+interface PluginAppRecordsApi {
+	/**
+	 * Open a named collection scoped to the calling plugin.
+	 *
+	 * @example
+	 * \`\`\`ts
+	 * const commands = app.records.open<CommandRecord>('commands');
+	 * await commands.create({ name: 'Hello', … });
+	 * \`\`\`
+	 */
+	open<T extends Record<string, unknown> = Record<string, unknown>>(
+		collection: string
+	): PluginAppRecordCollectionApi;
+}
+
 /**
  * App-owned bridge to the local (Piper) TTS runtime. Keeps Tauri command
  * invocation in the app layer so plugins stay platform-agnostic.
@@ -1059,6 +1100,15 @@ interface PluginAppApi {
 
 	/** Authenticated cloud user media library (\`user_files\`). */
 	userFiles: PluginAppUserFilesApi;
+
+	/**
+	 * Synced per-record collections for plugin domain data (commands, rankings, …).
+	 * Requires a scoped plugin key (always available inside plugin lifecycle / views).
+	 */
+	records: PluginAppRecordsApi;
+
+	/** Resolves after first entitled config sync (or immediately if not entitled). */
+	waitForConfigSync(): Promise<void>;
 
 	/** Probe local media files (for example video duration). */
 	media: PluginAppMediaApi;

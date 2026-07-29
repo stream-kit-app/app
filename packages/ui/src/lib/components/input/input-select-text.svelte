@@ -196,7 +196,7 @@
 	{/if}
 	<div
 		class={cn(
-			'flex w-full min-w-0 items-stretch rounded-xl',
+			'flex w-full min-w-0 items-stretch rounded-lg',
 			inputFieldGroup,
 			inputFieldFocusRing(error)
 		)}
@@ -204,7 +204,7 @@
 		<Select.Root type="single" items={resolvedItems.items} bind:value={value.type}>
 			<Select.Trigger
 				class={cn(
-					'flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-xl border border-r-0 outline-none',
+					'flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-l-lg border border-r-0 outline-none',
 					inputFieldSurface,
 					inputFieldDisabled,
 					inputSizeClasses.md,
@@ -224,7 +224,7 @@
 					sideOffset={contentProps?.sideOffset ?? 4}
 					class={cn(
 						'z-[100] max-h-(--bits-select-content-available-height) min-w-(--bits-select-anchor-width)',
-						'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
+						'rounded-lg border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 						contentProps?.class
 					)}
 				>
@@ -272,7 +272,7 @@
 				{placeholder}
 				bind:value={value.value}
 				class={cn(
-					'min-w-0 w-full truncate rounded-r-xl border outline-none',
+					'min-w-0 w-full truncate rounded-r-lg border outline-none',
 					inputFieldSurface,
 					inputFieldDisabled,
 					inputSizeClasses.md,
@@ -289,7 +289,7 @@
 
 			{#if showSuggestions && filteredVariables.length > 0}
 				<ul
-					class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
+					class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-dark-600 bg-dark-800 p-1 shadow-md"
 					role="listbox"
 				>
 					{#each filteredVariables as variable, index (variable.key)}

@@ -1,37 +1,22 @@
-import type { RecordModel } from 'pocketbase';
-
 import type { App } from '../app.svelte';
 import type { AuthPublicUser } from '../auth/types';
-import type {
-	StoredActionHandler,
-	StoredActionTrigger
-} from '../action/stored-action';
+import type { SyncAdapter } from './adapter';
 
 import {
-	deleteActionBySyncId,
-	getActions,
-	upsertActionFromSync
-} from '$db/repositories/actions';
-import {
-	getActionQueues,
-	isDefaultActionQueue,
-	replaceActionQueueSyncId,
-	upsertActionQueueFromSync
-} from '$db/repositories/action-queues';
-import {
-	clearConfigSyncTombstone,
-	listConfigSyncTombstones
-} from '$db/repositories/config-sync-tombstones';
-import {
-	snapshotActionQueueToTrash,
-	snapshotActionToTrash
-} from '$db/repositories/config-sync-trash';
-import { DEFAULT_ACTION_QUEUE_NAME } from '../action/stored-action';
-import { isPocketBaseAutoCancelled, isPocketBaseNotFound, pocketBaseErrorMessage } from '../auth/auth-utils';
+	isPocketBaseAutoCancelled,
+	isPocketBaseNotFound,
+	pocketBaseErrorMessage
+} from '../auth/auth-utils';
+import type { SyncUpsertRemoteOptions } from './adapter';
 import { translate } from '$lib/i18n';
 import { setConfigSyncLocalChangeHandler } from '$db/config-sync-notify';
-import { normalizeCloudFileRefsInHandlers } from '../user-files/normalize-cloud-file-refs';
-import { remoteWinsLww, toLwwSide } from './lww';
+
+import { createActionAdapter } from './adapters/actions';
+import { createActionQueueAdapter } from './adapters/action-queues';
+import { createDashboardWidgetsAdapter } from './adapters/dashboard-widgets';
+import { createOverlayProjectsAdapter } from './adapters/overlays';
+import { createPluginRecordsAdapter } from './adapters/plugin-records';
+import { runSyncAdapter } from './sync-loop';
 
 export type ConfigSyncStatus =
 	| 'idle'
@@ -39,122 +24,18 @@ export type ConfigSyncStatus =
 	| 'syncing'
 	| 'synced'
 	| 'offline'
-	| 'error';
-
-type RemoteQueue = {
-	id: string;
-	name: string;
-	concurrency: number;
-	maxLength: number | null;
-	sortOrder: number;
-	revision: number;
-	clientUpdatedAt: number;
-	deletedAt: number | null;
-};
-
-type RemoteAction = {
-	id: string;
-	name: string;
-	group: string;
-	groupSortOrder: number;
-	sortOrder: number;
-	triggers: StoredActionTrigger[];
-	handlers: StoredActionHandler[];
-	enabled: boolean;
-	queueSyncId: string | null;
-	ownerPluginKey: string | null;
-	revision: number;
-	clientUpdatedAt: number;
-	deletedAt: number | null;
-};
+	| 'error'
+	| 'restoring';
 
 const SYNC_DEBOUNCE_MS = 1500;
 const RETRY_BASE_MS = 1000;
 const RETRY_MAX_MS = 5 * 60 * 1000;
-
-function toEpochMs(value: Date | number | null | undefined): number {
-	if (value instanceof Date) {
-		return value.getTime();
-	}
-	if (typeof value === 'number' && Number.isFinite(value)) {
-		return value;
-	}
-	return 0;
-}
-
-/** Missing remote revision → 1 to match SQLite DEFAULT 1 (avoid upgrade skew). */
-function readRevision(value: unknown): number {
-	if (value == null || value === '') {
-		return 1;
-	}
-	const n = Number(value);
-	return Number.isFinite(n) ? n : 1;
-}
-
-function parseJsonArray<T>(value: unknown, fallback: T[]): T[] {
-	if (Array.isArray(value)) {
-		return value as T[];
-	}
-	if (typeof value === 'string') {
-		try {
-			const parsed = JSON.parse(value) as unknown;
-			return Array.isArray(parsed) ? (parsed as T[]) : fallback;
-		} catch {
-			return fallback;
-		}
-	}
-	return fallback;
-}
-
-function mapRemoteQueue(record: RecordModel): RemoteQueue {
-	return {
-		id: record.id,
-		name: typeof record.name === 'string' ? record.name : '',
-		concurrency: Number(record.concurrency) || 1,
-		maxLength:
-			record.maxLength == null || record.maxLength === ''
-				? null
-				: Number(record.maxLength) || null,
-		sortOrder: Number(record.sortOrder) || 0,
-		revision: readRevision(record.revision),
-		clientUpdatedAt: Number(record.clientUpdatedAt) || 0,
-		deletedAt:
-			record.deletedAt == null || record.deletedAt === ''
-				? null
-				: Number(record.deletedAt) || null
-	};
-}
-
-function mapRemoteAction(record: RecordModel): RemoteAction {
-	return {
-		id: record.id,
-		name: typeof record.name === 'string' ? record.name : '',
-		group: typeof record.group === 'string' ? record.group : 'default',
-		groupSortOrder: Number(record.groupSortOrder) || 0,
-		sortOrder: Number(record.sortOrder) || 0,
-		triggers: parseJsonArray<StoredActionTrigger>(record.triggers, []),
-		handlers: parseJsonArray<StoredActionHandler>(record.handlers, []),
-		enabled: Boolean(record.enabled),
-		queueSyncId:
-			typeof record.queueSyncId === 'string' && record.queueSyncId.trim()
-				? record.queueSyncId.trim()
-				: null,
-		ownerPluginKey:
-			typeof record.ownerPluginKey === 'string' && record.ownerPluginKey.trim()
-				? record.ownerPluginKey.trim()
-				: null,
-		revision: readRevision(record.revision),
-		clientUpdatedAt: Number(record.clientUpdatedAt) || 0,
-		deletedAt:
-			record.deletedAt == null || record.deletedAt === ''
-				? null
-				: Number(record.deletedAt) || null
-	};
-}
+/** Cap how long boot waits for the first cloud restore pass. */
+const FIRST_SYNC_TIMEOUT_MS = 20_000;
 
 /**
- * Offline-first sync of actions + action queues to PocketBase
- * (`user_actions`, `user_action_queues`). Local SQLite remains the runtime store.
+ * Offline-first sync orchestrator. Local SQLite remains the runtime store;
+ * PocketBase is the cloud replica. Per-entity logic lives in SyncAdapters.
  */
 export class ConfigSync {
 	#app: App;
@@ -166,6 +47,9 @@ export class ConfigSync {
 	#retryAttempt = 0;
 	#retryTimer: ReturnType<typeof setTimeout> | null = null;
 	#onOnline: (() => void) | null = null;
+	#adapters: SyncAdapter[] = [];
+	#firstSyncResolve: (() => void) | null = null;
+	#firstSyncComplete: Promise<void>;
 
 	status = $state<ConfigSyncStatus>('idle');
 	lastSyncedAt = $state<Date | null>(null);
@@ -173,6 +57,21 @@ export class ConfigSync {
 
 	constructor(app: App) {
 		this.#app = app;
+		this.#firstSyncComplete = new Promise((resolve) => {
+			this.#firstSyncResolve = resolve;
+		});
+	}
+
+	/** Resolves after the first successful entitled sync (or immediately if not entitled). */
+	get firstSyncComplete(): Promise<void> {
+		return this.#firstSyncComplete;
+	}
+
+	registerAdapter(adapter: SyncAdapter): void {
+		if (this.#adapters.some((entry) => entry.entityType === adapter.entityType)) {
+			return;
+		}
+		this.#adapters.push(adapter);
 	}
 
 	start(): void {
@@ -180,6 +79,12 @@ export class ConfigSync {
 			return;
 		}
 		this.#started = true;
+
+		this.registerAdapter(createActionQueueAdapter(this.#app));
+		this.registerAdapter(createActionAdapter(this.#app));
+		this.registerAdapter(createPluginRecordsAdapter(this.#app));
+		this.registerAdapter(createOverlayProjectsAdapter(this.#app));
+		this.registerAdapter(createDashboardWidgetsAdapter(this.#app));
 
 		setConfigSyncLocalChangeHandler(() => this.scheduleSync());
 
@@ -191,6 +96,57 @@ export class ConfigSync {
 		this.#app.auth.onChange((user) => {
 			void this.#onAuthChange(user);
 		});
+
+		void this.#bootstrapFirstSync();
+	}
+
+	/**
+	 * Wait for entitlement, run the first restore (or skip if not Pro), then
+	 * unblock `firstSyncComplete` so plugin onLoad can continue.
+	 */
+	async #bootstrapFirstSync(): Promise<void> {
+		const timeout = new Promise<void>((resolve) => {
+			setTimeout(() => {
+				if (this.#firstSyncResolve) {
+					console.warn('Config sync first pass timed out; continuing boot offline-first.');
+					this.#resolveFirstSync();
+				}
+				resolve();
+			}, FIRST_SYNC_TIMEOUT_MS);
+		});
+
+		try {
+			await Promise.race([this.#runFirstSyncBootstrap(), timeout]);
+		} catch (error) {
+			console.warn('Config sync bootstrap failed', error);
+			this.#resolveFirstSync();
+		}
+	}
+
+	async #runFirstSyncBootstrap(): Promise<void> {
+		if (!this.#app.auth.isConfigured || !this.#app.auth.isAuthenticated) {
+			this.status = 'idle';
+			this.#resolveFirstSync();
+			return;
+		}
+
+		await this.#app.auth.waitForEntitlement();
+
+		if (!this.#canSync()) {
+			this.status = 'disabled';
+			this.#resolveFirstSync();
+			return;
+		}
+
+		// Auth onChange may already have started sync when subscription arrived.
+		if (this.lastSyncedAt) {
+			this.#resolveFirstSync();
+			return;
+		}
+
+		await this.sync();
+		// If sync was already in flight, `sync()` returns early — wait for it.
+		await this.#firstSyncComplete;
 	}
 
 	scheduleSync(): void {
@@ -216,31 +172,46 @@ export class ConfigSync {
 
 		if (!this.#canSync()) {
 			this.status = this.#app.auth.user ? 'disabled' : 'idle';
+			this.#resolveFirstSync();
 			return;
 		}
 
 		this.#running = true;
 		this.#pending = false;
 		const previousStatus = this.status;
-		this.status = 'syncing';
+		const isFirst = !this.lastSyncedAt;
+		this.status = isFirst ? 'restoring' : 'syncing';
 		this.lastError = null;
 		this.#suppressSchedule = true;
 
+		const userId = this.#app.auth.user!.id;
+		const ctx = {
+			userId,
+			upsertRemote: (
+				collection: string,
+				body: Record<string, unknown>,
+				options?: SyncUpsertRemoteOptions
+			) => this.#upsertRemoteRecord(collection, body, options)
+		};
+
 		try {
-			await this.#syncQueues();
-			await this.#syncActions();
+			for (const adapter of this.#adapters) {
+				await runSyncAdapter(adapter, ctx);
+			}
 			this.lastSyncedAt = new Date();
 			this.status = 'synced';
 			this.#clearRetry();
 			await this.#reloadRuntime();
+			this.#resolveFirstSync();
 		} catch (error) {
 			if (isPocketBaseAutoCancelled(error)) {
 				this.status =
-					previousStatus === 'syncing' || previousStatus === 'idle'
+					previousStatus === 'syncing' || previousStatus === 'idle' || previousStatus === 'restoring'
 						? this.lastSyncedAt
 							? 'synced'
 							: 'idle'
 						: previousStatus;
+				this.#scheduleRetry();
 				return;
 			}
 
@@ -255,21 +226,48 @@ export class ConfigSync {
 					: 'error';
 			console.warn('Config sync failed', error);
 			this.#scheduleRetry();
+			// Never block app boot on a failed first restore.
+			this.#resolveFirstSync();
 		} finally {
-			this.#suppressSchedule = false;
 			this.#running = false;
 		}
 
 		if (this.status === 'synced') {
-			const { migrateCloudFilesAfterSync } = await import(
-				'../user-files/cloud-file-migration'
-			);
-			await migrateCloudFilesAfterSync(this.#app);
+			try {
+				this.#suppressSchedule = true;
+				const { migrateCloudFilesAfterSync } = await import(
+					'../user-files/cloud-file-migration'
+				);
+				await migrateCloudFilesAfterSync(this.#app);
+				const { syncOverlayProjectBundles } = await import('./overlay-bundle-sync');
+				await syncOverlayProjectBundles(this.#app).catch((error) => {
+					console.warn('Overlay bundle sync failed', error);
+				});
+				const {
+					publishInstalledPluginsCatalog,
+					restoreMissingInstalledPlugins
+				} = await import('./installed-plugins-sync');
+				await publishInstalledPluginsCatalog(this.#app).catch((error) => {
+					console.warn('Installed plugins catalog publish failed', error);
+				});
+				await restoreMissingInstalledPlugins(this.#app).catch((error) => {
+					console.warn('Installed plugins restore failed', error);
+				});
+			} finally {
+				this.#suppressSchedule = false;
+			}
 		}
 
 		if (this.#pending && this.#canSync()) {
 			this.#pending = false;
 			void this.sync();
+		}
+	}
+
+	#resolveFirstSync(): void {
+		if (this.#firstSyncResolve) {
+			this.#firstSyncResolve();
+			this.#firstSyncResolve = null;
 		}
 	}
 
@@ -285,6 +283,12 @@ export class ConfigSync {
 		if (!user?.subscription) {
 			this.#clearRetry();
 			this.status = user ? 'disabled' : 'idle';
+			// Signed out: unblock waiters. Signed in without sub: wait until
+			// entitlement is known (bootstrap resolves), so we don't mark "done"
+			// while the subscription fetch is still in flight.
+			if (!user || this.#app.auth.entitlementReady) {
+				this.#resolveFirstSync();
+			}
 			return;
 		}
 
@@ -292,12 +296,14 @@ export class ConfigSync {
 	}
 
 	async #reloadRuntime(): Promise<void> {
-		if (this.#app.actionQueues.hasBusyQueues()) {
-			console.warn('Skipping config sync runtime reload: action queues are busy');
+		// First sync runs before plugins.boot(); reloading actions that early activates
+		// triggers against plugins that are not enabled yet (e.g. WebSocket).
+		if (!this.#app.lifecycle.started) {
 			return;
 		}
-		await this.#app.actionQueues.load();
-		await this.#app.actions.load();
+		for (const adapter of this.#adapters) {
+			await adapter.reload?.();
+		}
 	}
 
 	#clearRetry(): void {
@@ -321,328 +327,10 @@ export class ConfigSync {
 		}, delay);
 	}
 
-	async #syncQueues(): Promise<void> {
-		const pb = this.#app.auth.client;
-		const userId = this.#app.auth.user!.id;
-		const localQueues = await getActionQueues();
-		const tombs = await listConfigSyncTombstones('action_queue');
-		const remoteRows = await pb.collection('user_action_queues').getFullList({
-			filter: pb.filter('user={:id}', { id: userId }),
-			requestKey: null
-		});
-		const remotes = remoteRows.map(mapRemoteQueue);
-		const remoteById = new Map(remotes.map((row) => [row.id, row]));
-		const localById = new Map(localQueues.map((row) => [row.syncId, row]));
-		const tombById = new Map(tombs.map((row) => [row.syncId, row]));
-
-		const ids = new Set<string>([
-			...localById.keys(),
-			...remoteById.keys(),
-			...tombById.keys()
-		]);
-
-		for (const syncId of ids) {
-			const local = localById.get(syncId);
-			const remote = remoteById.get(syncId);
-			const tomb = tombById.get(syncId);
-
-			if (
-				local &&
-				remote &&
-				!tomb &&
-				local.revision === remote.revision &&
-				remote.deletedAt == null
-			) {
-				continue;
-			}
-
-			const localSide = tomb
-				? toLwwSide({
-						revision: tomb.revision,
-						clientUpdatedAt: toEpochMs(tomb.deletedAt),
-						present: false
-					})
-				: local
-					? toLwwSide({
-							revision: local.revision,
-							clientUpdatedAt: toEpochMs(local.updatedAt),
-							present: true
-						})
-					: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
-
-			const remoteSide = remote
-				? toLwwSide({
-						revision: remote.revision,
-						clientUpdatedAt: remote.clientUpdatedAt,
-						present: remote.deletedAt == null
-					})
-				: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
-
-			const remoteWins = remoteWinsLww(localSide, remoteSide);
-
-			if (remoteWins && remote) {
-				if (remote.deletedAt != null) {
-					if (local && !isDefaultActionQueue(local)) {
-						await snapshotActionQueueToTrash(syncId);
-						const { deleteActionQueue } = await import(
-							'$db/repositories/action-queues'
-						);
-						await deleteActionQueue(local.id);
-					}
-					await clearConfigSyncTombstone('action_queue', syncId);
-				} else {
-					await upsertActionQueueFromSync({
-						syncId: remote.id,
-						name: remote.name,
-						concurrency: remote.concurrency,
-						maxLength: remote.maxLength,
-						sortOrder: remote.sortOrder,
-						revision: remote.revision || 1,
-						updatedAt: new Date(remote.clientUpdatedAt || Date.now())
-					});
-					await clearConfigSyncTombstone('action_queue', syncId);
-				}
-				continue;
-			}
-
-			if (tomb) {
-				await this.#upsertRemoteQueue({
-					id: syncId,
-					user: userId,
-					name: local?.name ?? DEFAULT_ACTION_QUEUE_NAME,
-					concurrency: local?.concurrency ?? 1,
-					maxLength: local?.maxLength ?? undefined,
-					sortOrder: local?.sortOrder ?? 0,
-					revision: tomb.revision ?? (local?.revision ?? 0) + 1,
-					clientUpdatedAt: toEpochMs(tomb.deletedAt),
-					deletedAt: toEpochMs(tomb.deletedAt)
-				});
-				await clearConfigSyncTombstone('action_queue', syncId);
-				continue;
-			}
-
-			if (local) {
-				await this.#upsertRemoteQueue({
-					id: local.syncId,
-					user: userId,
-					name: local.name,
-					concurrency: local.concurrency,
-					maxLength: local.maxLength ?? undefined,
-					sortOrder: local.sortOrder,
-					revision: local.revision,
-					clientUpdatedAt: toEpochMs(local.updatedAt)
-				});
-			}
-		}
-
-		await this.#reconcileDefaultQueues(userId);
-	}
-
-	async #reconcileDefaultQueues(userId: string): Promise<void> {
-		const pb = this.#app.auth.client;
-		const localQueues = await getActionQueues();
-		const localDefault = localQueues.find((queue) => isDefaultActionQueue(queue));
-		if (!localDefault) {
-			return;
-		}
-
-		const remoteRows = await pb.collection('user_action_queues').getFullList({
-			filter: pb.filter('user={:id}', { id: userId }),
-			requestKey: null
-		});
-		const activeDefaults = remoteRows
-			.map(mapRemoteQueue)
-			.filter(
-				(row) => row.deletedAt == null && row.name === DEFAULT_ACTION_QUEUE_NAME
-			)
-			.sort((a, b) => b.clientUpdatedAt - a.clientUpdatedAt);
-
-		if (activeDefaults.length === 0) {
-			return;
-		}
-
-		const canonical = activeDefaults[0]!;
-		for (const duplicate of activeDefaults.slice(1)) {
-			await this.#upsertRemoteQueue({
-				id: duplicate.id,
-				user: userId,
-				name: duplicate.name,
-				concurrency: duplicate.concurrency,
-				maxLength: duplicate.maxLength,
-				sortOrder: duplicate.sortOrder,
-				revision: (duplicate.revision || 0) + 1,
-				clientUpdatedAt: Date.now(),
-				deletedAt: Date.now()
-			});
-		}
-
-		if (localDefault.syncId !== canonical.id) {
-			const previousSyncId = localDefault.syncId;
-			await replaceActionQueueSyncId(localDefault.id, canonical.id);
-			await this.#upsertRemoteQueue({
-				id: previousSyncId,
-				user: userId,
-				name: localDefault.name,
-				concurrency: localDefault.concurrency,
-				maxLength: localDefault.maxLength,
-				sortOrder: localDefault.sortOrder,
-				revision: (localDefault.revision || 0) + 1,
-				clientUpdatedAt: Date.now(),
-				deletedAt: Date.now()
-			});
-			await clearConfigSyncTombstone('action_queue', previousSyncId);
-		}
-	}
-
-	async #syncActions(): Promise<void> {
-		const pb = this.#app.auth.client;
-		const userId = this.#app.auth.user!.id;
-		const localActions = await getActions();
-		const queues = await getActionQueues();
-		const queueIdBySyncId = new Map(queues.map((queue) => [queue.syncId, queue.id]));
-		const queueSyncIdById = new Map(queues.map((queue) => [queue.id, queue.syncId]));
-		const tombs = await listConfigSyncTombstones('action');
-		const remoteRows = await pb.collection('user_actions').getFullList({
-			filter: pb.filter('user={:id}', { id: userId }),
-			requestKey: null
-		});
-		const remotes = remoteRows.map(mapRemoteAction);
-		const remoteById = new Map(remotes.map((row) => [row.id, row]));
-		const localById = new Map(localActions.map((row) => [row.syncId, row]));
-		const tombById = new Map(tombs.map((row) => [row.syncId, row]));
-
-		const ids = new Set<string>([
-			...localById.keys(),
-			...remoteById.keys(),
-			...tombById.keys()
-		]);
-
-		for (const syncId of ids) {
-			const local = localById.get(syncId);
-			const remote = remoteById.get(syncId);
-			const tomb = tombById.get(syncId);
-
-			if (
-				local &&
-				remote &&
-				!tomb &&
-				local.revision === remote.revision &&
-				remote.deletedAt == null
-			) {
-				continue;
-			}
-
-			const localSide = tomb
-				? toLwwSide({
-						revision: tomb.revision,
-						clientUpdatedAt: toEpochMs(tomb.deletedAt),
-						present: false
-					})
-				: local
-					? toLwwSide({
-							revision: local.revision,
-							clientUpdatedAt: toEpochMs(local.updatedAt),
-							present: true
-						})
-					: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
-
-			const remoteSide = remote
-				? toLwwSide({
-						revision: remote.revision,
-						clientUpdatedAt: remote.clientUpdatedAt,
-						present: remote.deletedAt == null
-					})
-				: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
-
-			const remoteWins = remoteWinsLww(localSide, remoteSide);
-
-			if (remoteWins && remote) {
-				if (remote.deletedAt != null) {
-					await snapshotActionToTrash(syncId);
-					await deleteActionBySyncId(syncId);
-					await clearConfigSyncTombstone('action', syncId);
-				} else {
-					const queueId = remote.queueSyncId
-						? (queueIdBySyncId.get(remote.queueSyncId) ?? null)
-						: null;
-					await upsertActionFromSync({
-						syncId: remote.id,
-						name: remote.name,
-						group: remote.group,
-						groupSortOrder: remote.groupSortOrder,
-						sortOrder: remote.sortOrder,
-						enabled: remote.enabled,
-						queueId,
-						ownerPluginKey: remote.ownerPluginKey,
-						triggers: remote.triggers,
-						handlers: normalizeCloudFileRefsInHandlers(remote.handlers).handlers,
-						revision: remote.revision || 1,
-						updatedAt: new Date(remote.clientUpdatedAt || Date.now())
-					});
-					await clearConfigSyncTombstone('action', syncId);
-				}
-				continue;
-			}
-
-			if (tomb) {
-				await this.#upsertRemoteAction({
-					id: syncId,
-					user: userId,
-					name: local?.name ?? 'Deleted action',
-					group: local?.group ?? 'default',
-					groupSortOrder: local?.groupSortOrder ?? 0,
-					sortOrder: local?.sortOrder ?? 0,
-					triggers: local?.triggers ?? [],
-					handlers: local?.handlers ?? [],
-					enabled: local?.enabled ?? false,
-					queueSyncId:
-						local?.queueId != null
-							? (queueSyncIdById.get(local.queueId) ?? undefined)
-							: undefined,
-					ownerPluginKey: local?.ownerPluginKey ?? undefined,
-					revision: tomb.revision ?? (local?.revision ?? 0) + 1,
-					clientUpdatedAt: toEpochMs(tomb.deletedAt),
-					deletedAt: toEpochMs(tomb.deletedAt)
-				});
-				await clearConfigSyncTombstone('action', syncId);
-				continue;
-			}
-
-			if (local) {
-				const handlers = normalizeCloudFileRefsInHandlers(local.handlers).handlers;
-				await this.#upsertRemoteAction({
-					id: local.syncId,
-					user: userId,
-					name: local.name,
-					group: local.group,
-					groupSortOrder: local.groupSortOrder,
-					sortOrder: local.sortOrder,
-					triggers: local.triggers,
-					handlers,
-					enabled: local.enabled,
-					queueSyncId:
-						local.queueId != null
-							? (queueSyncIdById.get(local.queueId) ?? undefined)
-							: undefined,
-					ownerPluginKey: local.ownerPluginKey ?? undefined,
-					revision: local.revision,
-					clientUpdatedAt: toEpochMs(local.updatedAt)
-				});
-			}
-		}
-	}
-
-	async #upsertRemoteQueue(body: Record<string, unknown>): Promise<void> {
-		await this.#upsertRemoteRecord('user_action_queues', body);
-	}
-
-	async #upsertRemoteAction(body: Record<string, unknown>): Promise<void> {
-		await this.#upsertRemoteRecord('user_actions', body);
-	}
-
 	async #upsertRemoteRecord(
-		collection: 'user_action_queues' | 'user_actions',
-		body: Record<string, unknown>
+		collection: string,
+		body: Record<string, unknown>,
+		options?: SyncUpsertRemoteOptions
 	): Promise<void> {
 		const pb = this.#app.auth.client;
 		const authId = pb.authStore.record?.id ?? this.#app.auth.user?.id;
@@ -656,22 +344,65 @@ export class ConfigSync {
 			user: authId
 		});
 
-		try {
-			await pb.collection(collection).getOne(id, { requestKey: null });
-			await pb.collection(collection).update(id, payload, { requestKey: null });
-			return;
-		} catch (error) {
-			if (!isPocketBaseNotFound(error)) {
-				throw enrichPocketBaseError(error);
+		// Prefer create/update based on listRemote — never probe with getOne (404 spam).
+		if (options?.exists === true) {
+			try {
+				await pb.collection(collection).update(id, payload, { requestKey: null });
+				return;
+			} catch (error) {
+				if (!isPocketBaseNotFound(error)) {
+					throw enrichPocketBaseError(error);
+				}
 			}
 		}
 
 		try {
 			await pb.collection(collection).create(payload, { requestKey: null });
+			return;
 		} catch (createError) {
-			throw enrichPocketBaseError(createError);
+			if (!isPocketBaseRecordConflict(createError)) {
+				throw enrichPocketBaseError(createError);
+			}
+		}
+
+		try {
+			await pb.collection(collection).update(id, payload, { requestKey: null });
+		} catch (updateError) {
+			throw enrichPocketBaseError(updateError);
 		}
 	}
+}
+
+function isPocketBaseRecordConflict(error: unknown): boolean {
+	if (!error || typeof error !== 'object') {
+		return false;
+	}
+	const status = (error as { status?: unknown }).status;
+	if (status !== 400 && status !== 409) {
+		return false;
+	}
+	const response = (error as { response?: { data?: Record<string, unknown>; message?: string } })
+		.response;
+	const message = String(
+		response?.message ?? (error as { message?: string }).message ?? ''
+	).toLowerCase();
+	if (message.includes('already exists') || message.includes('duplicate')) {
+		return true;
+	}
+	const data = response?.data;
+	if (data && typeof data === 'object') {
+		for (const field of Object.values(data)) {
+			if (
+				field &&
+				typeof field === 'object' &&
+				'code' in field &&
+				String((field as { code?: string }).code).includes('unique')
+			) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /** PocketBase rejects explicit `null` on most fields — omit instead. */

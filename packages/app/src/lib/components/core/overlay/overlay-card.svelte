@@ -7,6 +7,7 @@
 	import { useId } from 'bits-ui';
 	import { tick } from 'svelte';
 
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
@@ -254,15 +255,15 @@
 
 <article
 	class={cn(
-		'group/card flex flex-col overflow-hidden rounded-xl border transition-colors',
+		'group/card flex flex-col overflow-hidden rounded-none border transition-colors',
 		hasDependencyIssues
-			? 'border-dark-700 bg-dark-900/70 opacity-80 hover:border-dark-600'
-			: 'border-dark-600 bg-dark-800 hover:border-dark-500'
+			? 'border-rule bg-dark-900/70 opacity-80 hover:bg-dark-900/80'
+			: 'border-rule bg-dark-800 hover:bg-dark-900/60'
 	)}
 >
 	<div class="flex items-start gap-3 p-4 pb-3">
 		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+			class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 		>
 			<Icon icon={getOverlayFrameworkIcon(framework)} class="size-5" />
 		</div>
@@ -336,10 +337,8 @@
 		</div>
 	</div>
 
-	<div class="border-t border-dark-700/80 bg-dark-900/50 px-4 py-3">
-		<p class="mb-2 text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
-			{t('Browser source URL')}
-		</p>
+	<div class="border-t border-rule bg-dark-900/50 px-4 py-3">
+		<Eyebrow class="mb-2">{t('Browser source URL')}</Eyebrow>
 		<div class="min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
 			<InputText
 				copyable
@@ -353,7 +352,7 @@
 		</div>
 	</div>
 
-	<div class="mt-auto flex items-center gap-2 border-t border-dark-700 p-3">
+	<div class="mt-auto flex items-center gap-2 border-t border-rule p-3">
 		<Button
 			size="sm"
 			variant="default"

@@ -5,7 +5,7 @@ import { t as f } from "./dist-DLhOqhSg.js";
 //#region ../ui/src/lib/components/badge/badge-variants.ts
 var p = f({
 	base: [
-		"inline-flex w-fit shrink-0 items-center justify-center gap-1 rounded-lg border border-transparent",
+		"inline-flex w-fit shrink-0 items-center justify-center gap-1 rounded-md border border-transparent",
 		"font-semibold whitespace-nowrap transition-[color,background-color,border-color] duration-150",
 		"[&_svg]:pointer-events-none [&_svg]:shrink-0"
 	],

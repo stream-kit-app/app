@@ -23,6 +23,8 @@
 	import { Command } from '../lib/command.svelte';
 	import { tryGetCommandsService } from '../lib/get-commands';
 	import CommandBulkEditForm from './command-bulk-edit-form.svelte';
+	import CommandBulkEditFormFooter from './command-bulk-edit-form-footer.svelte';
+	import { CommandBulkEditForm as CommandBulkEditFormModel } from './command-bulk-edit.svelte';
 	import { collapsedGroups, setCommandGroupCollapsed } from './command-group-collapse.svelte';
 	import CommandSortableItem from './command-sortable-item.svelte';
 
@@ -147,17 +149,18 @@
 
 		const app = commands.requireApp();
 		const modalId = 'command-bulk-edit';
-		const modalProps = {
-			selectedIds: ids,
+		const form = new CommandBulkEditFormModel(
+			ids,
 			groupOrder,
-			onClose: () => app.modal.get(modalId)?.close(),
-			onApplied: () => {
+			() => {
 				selection.clearSelection();
 				if (!commands) return;
 				layout = buildDndLayout(commands.items);
 				groupOrder = getGroupOrder(layout);
-			}
-		};
+			},
+			() => app.modal.get(modalId)?.close()
+		);
+		const modalProps = { form };
 
 		const existing = app.modal.get(modalId);
 
@@ -172,6 +175,7 @@
 				id: modalId,
 				title: app.i18n.translate('Edit selected commands'),
 				content: CommandBulkEditForm,
+				footer: CommandBulkEditFormFooter,
 				props: modalProps
 			})
 			.open();

@@ -233,7 +233,7 @@
 	<Dialog.Root bind:open onOpenChange={handleOpenChange}>
 		<div
 			class={cn(
-				'relative flex w-full min-w-0 items-center rounded-xl',
+				'relative flex w-full min-w-0 items-center rounded-lg',
 				inputFieldGroup,
 				inputFieldFocusRing(error)
 			)}
@@ -255,7 +255,7 @@
 				{#if prependIcon}
 					<span
 						class={cn(
-							'grid h-full min-w-10 place-items-center rounded-l-xl border border-r-0 text-dark-50 transition-colors',
+							'grid h-full min-w-10 place-items-center rounded-l-lg border border-r-0 text-dark-50 transition-colors',
 							inputFieldBorder(error)
 						)}
 					>
@@ -269,8 +269,8 @@
 						inputSizeClasses.md,
 						inputFieldBorder(error),
 						{
-							'rounded-l-none rounded-r-xl border-l-0': prependIcon,
-							'rounded-xl': !prependIcon
+							'rounded-l-none rounded-r-lg border-l-0': prependIcon,
+							'rounded-lg': !prependIcon
 						}
 					)}
 				>

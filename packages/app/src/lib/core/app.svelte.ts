@@ -33,6 +33,7 @@ import { Toast } from './toast';
 import { LocalTts } from './tts';
 import { UserFiles } from './user-files';
 import { ConfigSync } from './config-sync';
+import { PluginRecordsService } from './plugin-records';
 
 export class App extends Bootable {
 	public menu = new Menu();
@@ -44,6 +45,7 @@ export class App extends Bootable {
 	public settings = new Settings();
 	public auth = new Auth();
 	public userFiles = new UserFiles(this.auth);
+	public records = new PluginRecordsService();
 	public configSync = new ConfigSync(this);
 	public oauth = new OAuth();
 	public opener = new Opener();
@@ -99,7 +101,11 @@ export class App extends Bootable {
 
 	public async use(plugin: Plugin, options: RegisterPluginOptions = {}): Promise<void> {
 		try {
-			const registration = await plugin(createPluginAppApi(this));
+			// Scope records/API to the install key so factory-captured `app` works in
+			// triggers/handlers and lifecycle code that closes over the plugin factory arg.
+			const registration = await plugin(
+				createPluginAppApi(this, { pluginKey: options.key })
+			);
 			this.plugins.register(registration, options);
 		} catch (error) {
 			console.warn('Failed to load plugin', error);

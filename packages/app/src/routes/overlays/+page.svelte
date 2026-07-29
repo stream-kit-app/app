@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 
 	import { Button } from '@stream-kit/ui/button';
+	import { Cell, CellGrid } from '@stream-kit/ui/blueprint';
 	import { Container } from '@stream-kit/ui/container';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
@@ -47,10 +48,12 @@
 	</EmptyState>
 {:else}
 	<Container class="px-6 py-6" size="md">
-		<div class="grid gap-5 md:grid-cols-2">
+		<CellGrid cols={2}>
 			{#each app.overlay.items as overlay (overlay.id)}
-				<OverlayCard {overlay} />
+				<Cell class="p-0 [&>article]:border-0 [&>article]:bg-transparent">
+					<OverlayCard {overlay} />
+				</Cell>
 			{/each}
-		</div>
+		</CellGrid>
 	</Container>
 {/if}

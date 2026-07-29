@@ -1,7 +1,9 @@
-import type { PluginStore } from '@stream-kit/plugin';
+import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
+import { migrateStoreArrayToRecords } from '@stream-kit/plugin';
 import type { ModRuleRecord } from '../moderation/app/lib/stored-mod-rule';
 
 export const MOD_RULES_STORE_KEY = 'modRules';
+export const MOD_RULES_COLLECTION = 'modRules';
 
 type StoredModRuleRecord = Omit<ModRuleRecord, 'createdAt' | 'updatedAt'> & {
 	createdAt: string;
@@ -24,19 +26,42 @@ function deserialize(raw: StoredModRuleRecord): ModRuleRecord {
 	};
 }
 
-export async function loadModRules(store: PluginStore): Promise<ModRuleRecord[]> {
-	const stored = await store.get<StoredModRuleRecord[]>(MOD_RULES_STORE_KEY);
+export async function migrateModRulesToRecords(
+	app: PluginAppApi,
+	store: PluginStore
+): Promise<void> {
+	await migrateStoreArrayToRecords(app, store, {
+		collection: MOD_RULES_COLLECTION,
+		storeKey: MOD_RULES_STORE_KEY,
+		mapItem: (item) => serialize(deserialize(item as StoredModRuleRecord)) as Record<string, unknown>
+	});
+}
 
-	if (!Array.isArray(stored)) {
-		return [];
-	}
+export async function loadModRules(app: PluginAppApi): Promise<ModRuleRecord[]> {
+	const rows = await app.records.open(MOD_RULES_COLLECTION).list();
 
-	return stored.map(deserialize);
+	return rows.map((row) => deserialize(row as StoredModRuleRecord));
 }
 
 export async function saveModRules(
-	store: PluginStore,
+	app: PluginAppApi,
 	rules: ModRuleRecord[]
 ): Promise<void> {
-	await store.set(MOD_RULES_STORE_KEY, rules.map(serialize));
+	const records = app.records.open(MOD_RULES_COLLECTION);
+	const existing = await records.list();
+
+	for (const rule of rules) {
+		const { id, ...data } = serialize(rule);
+		if (await records.get(id)) {
+			await records.update(id, data);
+		} else {
+			const created = await records.create({ ...data, id });
+			rule.id = created.id;
+		}
+	}
+
+	const currentIds = new Set(rules.map((rule) => rule.id));
+	await Promise.all(
+		existing.filter((record) => !currentIds.has(record.id)).map((record) => records.delete(record.id))
+	);
 }

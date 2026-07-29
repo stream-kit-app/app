@@ -8,6 +8,10 @@ import { translate } from '$lib/i18n';
 
 import { reloadInstalledPlugin } from './plugin-loader';
 
+function isViteDev(): boolean {
+	return Boolean((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV);
+}
+
 export type RemotePluginManifest = {
 	key: string;
 	name: string;
@@ -36,7 +40,7 @@ export function canCheckForUpdates(manifest: InstalledPluginManifest): boolean {
 }
 
 export function canApplyPluginUpdates(): boolean {
-	return !import.meta.env.DEV;
+	return !isViteDev();
 }
 
 export function isUpdateAvailable(installedVersion: string, remoteVersion: string): boolean {
@@ -108,7 +112,7 @@ export async function checkAllPluginUpdates(
 
 	for (const manifest of installed) {
 		if (!canCheckForUpdates(manifest)) {
-			if (import.meta.env.DEV) {
+			if (isViteDev()) {
 				console.debug(
 					`Skipped update check for ${manifest.key}: missing updateManifestUrl`
 				);
@@ -121,7 +125,7 @@ export async function checkAllPluginUpdates(
 
 			if (update) {
 				updates.push(update);
-			} else if (import.meta.env.DEV) {
+			} else if (isViteDev()) {
 				console.debug(
 					`No update for ${manifest.key}: installed v${manifest.version} is current`
 				);

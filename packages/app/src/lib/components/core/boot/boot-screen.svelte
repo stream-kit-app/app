@@ -26,7 +26,7 @@
 		aria-label={error ? t('Could not start Stream Kit') : t('Loading…')}
 		out:fade={{ duration: 150 }}
 	>
-		<div class="boot-grid" aria-hidden="true"></div>
+		<div class="blueprint-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true"></div>
 
 		<div class="relative z-10 flex flex-col items-center gap-8 px-6">
 			<Logo />

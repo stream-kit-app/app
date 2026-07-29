@@ -236,24 +236,31 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'text',
+				key: 'host',
 				name: 'Host',
 				placeholder: '127.0.0.1',
 				defaultValue: '127.0.0.1',
-				required: true
+				required: true,
+				sync: 'device'
 			},
 			{
 				type: 'text',
+				key: 'port',
 				name: 'Port',
 				placeholder: '4455',
 				defaultValue: '4455',
-				required: true
+				required: true,
+				sync: 'device'
 			},
 			{
 				type: 'text',
+				key: 'password',
 				inputType: 'password',
 				name: 'Password',
 				placeholder: 'OBS WebSocket password',
-				required: true
+				required: true,
+				secret: true,
+				sync: 'device'
 			},
 			{
 				type: 'button',

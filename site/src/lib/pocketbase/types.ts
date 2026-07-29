@@ -18,8 +18,11 @@ export const Collections = {
 	Subscriptions: "subscriptions",
 	UserActionQueues: "user_action_queues",
 	UserActions: "user_actions",
+	UserDashboardWidgets: "user_dashboard_widgets",
 	UserFiles: "user_files",
+	UserOverlayProjects: "user_overlay_projects",
 	UserOverlays: "user_overlays",
+	UserPluginRecords: "user_plugin_records",
 	UserSubscriptions: "user_subscriptions",
 	Users: "users",
 } as const
@@ -224,6 +227,19 @@ export type UserActionsRecord<Thandlers = unknown, Ttriggers = unknown> = {
 	user: RecordIdString
 }
 
+export type UserDashboardWidgetsRecord = {
+	clientUpdatedAt?: number
+	columns?: number
+	created: IsoAutoDateString
+	definitionId: string
+	deletedAt?: number
+	id: string
+	revision?: number
+	sortOrder?: number
+	updated: IsoAutoDateString
+	user: RecordIdString
+}
+
 export type UserFilesRecord = {
 	createdAt: IsoAutoDateString
 	file: FileNameString
@@ -233,6 +249,26 @@ export type UserFilesRecord = {
 	size?: number
 	updatedAt: IsoAutoDateString
 	user: RecordIdString
+}
+
+export type UserOverlayProjectsRecord<Tconfig = unknown, TexpectedEvents = unknown, TinstalledActionKeys = unknown, TrequiredPlugins = unknown> = {
+	clientUpdatedAt?: number
+	config?: null | Tconfig
+	created: IsoAutoDateString
+	deletedAt?: number
+	expectedEvents?: null | TexpectedEvents
+	id: string
+	installedActionKeys?: null | TinstalledActionKeys
+	name: string
+	overlayId: string
+	requiredPlugins?: null | TrequiredPlugins
+	revision?: number
+	source?: FileNameString
+	sourceHash?: string
+	template?: string
+	updated: IsoAutoDateString
+	user: RecordIdString
+	version?: number
 }
 
 export type UserOverlaysRecord<Tconfig = unknown> = {
@@ -246,6 +282,20 @@ export type UserOverlaysRecord<Tconfig = unknown> = {
 	published?: boolean
 	revision?: number
 	updatedAt: IsoAutoDateString
+	user: RecordIdString
+}
+
+export type UserPluginRecordsRecord<Tpayload = unknown> = {
+	clientUpdatedAt?: number
+	collection: string
+	created: IsoAutoDateString
+	deletedAt?: number
+	id: string
+	payload?: null | Tpayload
+	pluginKey: string
+	revision?: number
+	sortOrder?: number
+	updated: IsoAutoDateString
 	user: RecordIdString
 }
 
@@ -293,8 +343,11 @@ export type PluginsResponse<Texpand = unknown> = Required<PluginsRecord> & BaseS
 export type SubscriptionsResponse<Tbullets = unknown, Texpand = unknown> = Required<SubscriptionsRecord<Tbullets>> & BaseSystemFields<Texpand>
 export type UserActionQueuesResponse<Texpand = unknown> = Required<UserActionQueuesRecord> & BaseSystemFields<Texpand>
 export type UserActionsResponse<Thandlers = unknown, Ttriggers = unknown, Texpand = unknown> = Required<UserActionsRecord<Thandlers, Ttriggers>> & BaseSystemFields<Texpand>
+export type UserDashboardWidgetsResponse<Texpand = unknown> = Required<UserDashboardWidgetsRecord> & BaseSystemFields<Texpand>
 export type UserFilesResponse<Texpand = unknown> = Required<UserFilesRecord> & BaseSystemFields<Texpand>
+export type UserOverlayProjectsResponse<Tconfig = unknown, TexpectedEvents = unknown, TinstalledActionKeys = unknown, TrequiredPlugins = unknown, Texpand = unknown> = Required<UserOverlayProjectsRecord<Tconfig, TexpectedEvents, TinstalledActionKeys, TrequiredPlugins>> & BaseSystemFields<Texpand>
 export type UserOverlaysResponse<Tconfig = unknown, Texpand = unknown> = Required<UserOverlaysRecord<Tconfig>> & BaseSystemFields<Texpand>
+export type UserPluginRecordsResponse<Tpayload = unknown, Texpand = unknown> = Required<UserPluginRecordsRecord<Tpayload>> & BaseSystemFields<Texpand>
 export type UserSubscriptionsResponse<Texpand = unknown> = Required<UserSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
@@ -313,8 +366,11 @@ export type CollectionRecords = {
 	subscriptions: SubscriptionsRecord
 	user_action_queues: UserActionQueuesRecord
 	user_actions: UserActionsRecord
+	user_dashboard_widgets: UserDashboardWidgetsRecord
 	user_files: UserFilesRecord
+	user_overlay_projects: UserOverlayProjectsRecord
 	user_overlays: UserOverlaysRecord
+	user_plugin_records: UserPluginRecordsRecord
 	user_subscriptions: UserSubscriptionsRecord
 	users: UsersRecord
 }
@@ -332,8 +388,11 @@ export type CollectionResponses = {
 	subscriptions: SubscriptionsResponse
 	user_action_queues: UserActionQueuesResponse
 	user_actions: UserActionsResponse
+	user_dashboard_widgets: UserDashboardWidgetsResponse
 	user_files: UserFilesResponse
+	user_overlay_projects: UserOverlayProjectsResponse
 	user_overlays: UserOverlaysResponse
+	user_plugin_records: UserPluginRecordsResponse
 	user_subscriptions: UserSubscriptionsResponse
 	users: UsersResponse
 }

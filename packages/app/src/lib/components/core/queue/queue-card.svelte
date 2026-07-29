@@ -64,11 +64,11 @@
 </script>
 
 <article
-	class="group/card flex flex-col overflow-hidden rounded-xl border border-dark-600 bg-dark-800 transition-colors hover:border-dark-500"
+	class="group/card flex flex-col overflow-hidden rounded-none border border-rule bg-dark-800 transition-colors hover:bg-dark-900/60"
 >
 	<div class="flex items-start gap-3 p-4 pb-3">
 		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+			class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 			aria-hidden="true"
 		>
 			<Icon icon="ri:list-ordered" class="size-5" />
@@ -110,7 +110,7 @@
 		</div>
 	</div>
 
-	<div class="border-t border-dark-700/80 bg-dark-900/50 px-4 py-3">
+	<div class="border-t border-rule bg-dark-900/50 px-4 py-3">
 		<div class="grid items-start gap-4 md:grid-cols-2">
 			<QueueActionEntries
 				title={t('Running')}
@@ -127,7 +127,7 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-between gap-2 border-t border-dark-700 p-3">
+	<div class="flex items-center justify-between gap-2 border-t border-rule p-3">
 		<div class="flex flex-wrap items-center gap-2">
 			<Button
 				size="sm"

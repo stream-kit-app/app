@@ -66,15 +66,15 @@
 <section
 	{@attach ref}
 	class={cn(
-		'overflow-hidden rounded-xl',
+		'overflow-hidden rounded-none',
 		isOverlay
-			? 'border border-dark-600 bg-dark-800 shadow-2xl ring-1 ring-white/10'
-			: 'border border-dark-600 bg-dark-800'
+			? 'border border-rule bg-dark-800 shadow-2xl ring-1 ring-white/10'
+			: 'border border-rule bg-dark-800'
 	)}
 >
 	<div
 		class={cn(
-			'group/head flex items-stretch border-dark-700/80',
+			'group/head flex items-stretch border-rule',
 			(!collapsed || isOverlay) && 'border-b'
 		)}
 	>

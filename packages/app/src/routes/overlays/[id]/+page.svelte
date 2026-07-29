@@ -5,6 +5,7 @@
 
 	import { Alert } from '@stream-kit/ui/alert';
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { Heading } from '@stream-kit/ui/heading';
@@ -419,7 +420,7 @@
 
 		<div class="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
 			<section
-				class="sticky top-4 flex h-[28rem] max-h-[70vh] flex-col self-start overflow-hidden rounded-xl border border-dark-600 bg-dark-900 lg:h-[min(36rem,70vh)]"
+				class="sticky top-4 flex h-[28rem] max-h-[70vh] flex-col self-start overflow-hidden rounded-none border border-rule bg-dark-900 lg:h-[min(36rem,70vh)]"
 			>
 				<div class="flex shrink-0 items-center justify-between border-b border-dark-700 px-4 py-3">
 					<p class="text-sm font-medium text-dark-100">{t('Preview')}</p>
@@ -453,7 +454,7 @@
 
 			<aside class="space-y-6">
 				{#if hasRecommendedActions}
-					<section class="rounded-xl border border-dark-600 bg-dark-800 p-4">
+					<section class="rounded-none border border-rule bg-dark-800 p-4">
 						<Heading level="3" class="mb-2">{t('Recommended actions')}</Heading>
 						<p class="mb-4 text-sm text-dark-300">
 							{t('Install ready-made actions that connect triggers to this overlay.')}
@@ -520,10 +521,8 @@
 					</section>
 				{/if}
 
-				<section class="rounded-xl border border-dark-600 bg-dark-800 p-4">
-					<p class="mb-2 text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
-						{t('Browser source URL')}
-					</p>
+				<section class="rounded-none border border-rule bg-dark-800 p-4">
+					<Eyebrow class="mb-2">{t('Browser source URL')}</Eyebrow>
 					<div class="min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
 						<InputText
 							copyable
@@ -537,10 +536,8 @@
 					</div>
 				</section>
 
-				<section class="rounded-xl border border-dark-600 bg-dark-800 p-4">
-					<p class="mb-2 text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
-						{t('Cloud browser source')}
-					</p>
+				<section class="rounded-none border border-rule bg-dark-800 p-4">
+					<Eyebrow class="mb-2">{t('Cloud browser source')}</Eyebrow>
 					{#if cloudUrl && isCloudPublished}
 						<div class="mb-3 min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
 							<InputText
@@ -593,14 +590,14 @@
 				</section>
 
 				{#if settings?.hasSettings}
-					<section class="rounded-xl border border-dark-600 bg-dark-800 p-4">
+					<section class="rounded-none border border-rule bg-dark-800 p-4">
 						<Heading level="3" class="mb-4">{t('Settings')}</Heading>
 						{#key `${settings.overlayId}:${settings.versionSnapshot}`}
 							<OverlaySettingsForm bind:this={settingsForm} {settings} />
 						{/key}
 					</section>
 				{:else if settings}
-					<section class="rounded-xl border border-dashed border-dark-600 bg-dark-900/50 p-4">
+					<section class="rounded-none border border-dashed border-rule bg-dark-900/50 p-4">
 						<p class="text-sm text-dark-300">
 							{t('This overlay has no configurable settings. Add a settings array to manifest.json in the overlay project.')}
 						</p>
@@ -608,7 +605,7 @@
 				{/if}
 
 				{#if settings && settings.testHandlers.length > 0}
-					<section class="rounded-xl border border-dark-600 bg-dark-800 p-4">
+					<section class="rounded-none border border-rule bg-dark-800 p-4">
 						<Heading level="3" class="mb-2">{t('Test mode')}</Heading>
 						<p class="mb-4 text-sm text-dark-300">
 							{t('Trigger sample events to preview overlay behavior without going live.')}

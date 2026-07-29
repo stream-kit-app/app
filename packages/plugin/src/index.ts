@@ -96,6 +96,11 @@ export type {
 } from '../../app/src/lib/core/auth/types';
 export type { PluginAppAuthApi } from '../../app/src/lib/core/plugins/plugin-app-api.types';
 export type {
+	PluginAppRecordChange,
+	PluginAppRecordCollectionApi,
+	PluginAppRecordsApi
+} from '../../app/src/lib/core/plugins/plugin-app-api.types';
+export type {
 	CopyFileOptions,
 	CreateOptions,
 	DebouncedWatchOptions,
@@ -167,3 +172,8 @@ export type {
 export type { CronFieldKey, CronPreset } from '@stream-kit/core';
 export type { PluginDbClient } from '../../app/src/lib/core/plugins/plugin-app-api.types';
 export type { FileHandle } from '../../app/src/lib/core/filesystem/file-handle';
+export {
+	isRecordsSyncId,
+	migrateStoreArrayToRecords,
+	migrateStoreSingletonToRecord
+} from './records-migration';

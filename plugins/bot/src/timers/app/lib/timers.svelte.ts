@@ -1,7 +1,12 @@
 import type { HandlerTriggerContext, PluginAppApi, PluginStore } from '@stream-kit/plugin';
 import type { TimerRecord } from './stored-timer';
 
-import { loadTimers, saveTimers } from '../../../lib/timers-store';
+import {
+	loadTimers,
+	migrateTimersToRecords,
+	saveTimers,
+	TIMERS_COLLECTION
+} from '../../../lib/timers-store';
 
 import { Timer } from './timer.svelte';
 
@@ -9,10 +14,19 @@ export class Timers {
 	items: Timer[] = $state.raw([]);
 	private store?: PluginStore;
 	private app?: PluginAppApi;
+	private unsubscribeRecords?: () => void;
 
 	bind(store: PluginStore, app: PluginAppApi): void {
+		if (this.store === store && this.app === app) {
+			return;
+		}
+
+		this.unsubscribeRecords?.();
 		this.store = store;
 		this.app = app;
+		this.unsubscribeRecords = app.records.open(TIMERS_COLLECTION).onChange(() => {
+			void this.refreshDefinitionBindings();
+		});
 	}
 
 	private requireContext(): { store: PluginStore; app: PluginAppApi } {
@@ -63,14 +77,16 @@ export class Timers {
 
 	async load(): Promise<void> {
 		const { store, app } = this.requireContext();
-		const rows = await loadTimers(store);
+		await migrateTimersToRecords(app, store);
+		await app.waitForConfigSync();
+		const rows = await loadTimers(app);
 
 		this.items = rows.map((row) => Timer.fromRecord(row, app));
 	}
 
 	async refreshDefinitionBindings(): Promise<void> {
-		const { store, app } = this.requireContext();
-		const rows = await loadTimers(store);
+		const { app } = this.requireContext();
+		const rows = await loadTimers(app);
 		const openById = new Map(
 			this.items
 				.filter((timer): timer is Timer & { id: string } => timer.isFormOpen && timer.id != null)
@@ -81,23 +97,28 @@ export class Timers {
 	}
 
 	async persist(): Promise<void> {
-		const { store } = this.requireContext();
-		await saveTimers(store, this.getSnapshot());
+		const { app } = this.requireContext();
+		await saveTimers(app, this.getSnapshot());
 	}
 
 	async upsert(timer: Timer): Promise<void> {
 		const wasNew = timer.id == null || !this.items.some((item) => item.id === timer.id);
-
-		if (timer.id == null) {
-			timer.id = crypto.randomUUID();
-		}
 
 		const now = new Date();
 
 		if (wasNew) {
 			timer.createdAt = now;
 			timer.updatedAt = now;
+			const record = timer.toRecord();
+			const { id: _id, ...payload } = record;
+			const created = await this.requireApp().records.open(TIMERS_COLLECTION).create({
+				...payload,
+				createdAt: record.createdAt.toISOString(),
+				updatedAt: record.updatedAt.toISOString()
+			});
+			timer.id = created.id;
 			this.add(timer);
+			return;
 		} else {
 			timer.updatedAt = now;
 			this.items = this.items.map((item) => (item.id === timer.id ? timer : item));

@@ -37,7 +37,7 @@
 
 <div
 	class={cn(
-		'inline-flex w-fit rounded-xl border border-dark-600/80 bg-dark-900/50 p-1 shadow-inner',
+		'inline-flex w-fit rounded-none border border-rule bg-dark-900/50 p-1 shadow-inner',
 		className
 	)}
 	role="group"

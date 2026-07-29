@@ -46,12 +46,21 @@ export class Auth {
 	#refreshTimer: ReturnType<typeof setInterval> | null = null;
 	#subscriptionDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 	#sendRefreshing = false;
+	#entitlementReady = false;
+	#entitlementWaiters = new Set<() => void>();
 
 	user = $state.raw<AuthPublicUser | null>(null);
 	account = $state.raw<AuthAccount | null>(null);
 	isAuthenticated = $derived(this.user != null);
 	/** False when `PUBLIC_POCKETBASE_URL` is missing. */
 	isConfigured = $state(false);
+	/**
+	 * True after the first subscription fetch finishes for the signed-in user,
+	 * or immediately when signed out / auth is disabled.
+	 */
+	get entitlementReady(): boolean {
+		return this.#entitlementReady;
+	}
 
 	get client(): PocketBase {
 		if (!this.#pb) {
@@ -71,6 +80,7 @@ export class Auth {
 		if (!url) {
 			console.warn('PUBLIC_POCKETBASE_URL is not set; Stream Kit account auth is disabled.');
 			this.isConfigured = false;
+			this.#setEntitlementReady(true);
 			return this;
 		}
 
@@ -111,6 +121,21 @@ export class Auth {
 		this.isConfigured = false;
 		this.user = null;
 		this.account = null;
+		this.#setEntitlementReady(true);
+	}
+
+	/**
+	 * Resolves once subscription entitlement is known for the current auth state
+	 * (active / none / signed out). Used by ConfigSync before the first restore pass.
+	 */
+	waitForEntitlement(): Promise<void> {
+		if (this.#entitlementReady) {
+			return Promise.resolve();
+		}
+
+		return new Promise((resolve) => {
+			this.#entitlementWaiters.add(resolve);
+		});
 	}
 
 	async login(input: AuthLoginInput): Promise<void> {
@@ -393,6 +418,18 @@ export class Auth {
 		};
 	}
 
+	#setEntitlementReady(ready: boolean): void {
+		this.#entitlementReady = ready;
+		if (!ready) {
+			return;
+		}
+
+		for (const resolve of this.#entitlementWaiters) {
+			resolve();
+		}
+		this.#entitlementWaiters.clear();
+	}
+
 	#syncFromStore(): void {
 		const pb = this.#pb;
 		if (!pb) {
@@ -401,6 +438,7 @@ export class Auth {
 			this.#activeMembershipId = null;
 			this.user = null;
 			this.account = null;
+			this.#setEntitlementReady(true);
 			this.#emit();
 			return;
 		}
@@ -425,6 +463,14 @@ export class Auth {
 
 		this.user = toPublicUser(getFileUrl, record, keepSubscription);
 		this.account = toAccount(getFileUrl, record, keepSubscription);
+
+		if (!record?.id) {
+			this.#setEntitlementReady(true);
+		} else if (!keepSubscription) {
+			// Subscription fetch is pending — ConfigSync must wait.
+			this.#setEntitlementReady(false);
+		}
+
 		this.#emit();
 		this.#scheduleRefreshSubscription(record?.id ?? null);
 	}
@@ -449,6 +495,7 @@ export class Auth {
 	async #refreshSubscription(userId: string | null): Promise<void> {
 		const requestId = ++this.#subscriptionRequestId;
 		if (!userId || !this.#pb) {
+			this.#setEntitlementReady(true);
 			return;
 		}
 
@@ -462,6 +509,7 @@ export class Auth {
 			if (this.account?.id === userId) {
 				this.account = { ...this.account, subscription };
 			}
+			this.#setEntitlementReady(true);
 			this.#emit();
 		} catch (error) {
 			if (requestId !== this.#subscriptionRequestId) {
@@ -471,6 +519,7 @@ export class Auth {
 				return;
 			}
 			console.warn('Failed to load Stream Kit account subscription', error);
+			this.#setEntitlementReady(true);
 		}
 	}
 

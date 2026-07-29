@@ -195,7 +195,9 @@ export function botPlugin(
 			timersService.bind(store, pluginApp);
 			moderationService.bind(store, pluginApp);
 			rolesService.bind(store, pluginApp);
-			await settings.load(store);
+			settings.bind(store, pluginApp);
+			await pluginApp.waitForConfigSync();
+			await settings.load();
 			await Promise.all([
 				commandsService.load(),
 				timersService.load(),
@@ -224,8 +226,8 @@ export function botPlugin(
 			deactivateRuntime();
 			timerScheduler = undefined;
 		},
-		onSave: async ({ store }) => {
-			await settings.save(store);
+		onSave: async () => {
+			await settings.save();
 		}
 	});
 }

@@ -3,6 +3,7 @@
 
 	import Icon from '@iconify/svelte';
 
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { tooltip, tooltipSnippet } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
@@ -50,9 +51,7 @@
 
 {#snippet definitionList({ title, definitions }: { title: string; definitions: Definition[] })}
 	<div class="flex flex-col gap-1.5">
-		<span class="text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
-			{title} · {definitions.length}
-		</span>
+		<Eyebrow>{title} · {definitions.length}</Eyebrow>
 		<ul class="flex flex-col gap-1">
 			{#each definitions as { id, name, isAvailable } (id)}
 				<li class="flex items-center gap-2">
@@ -106,9 +105,9 @@
 	</div>
 
 	<div
-		class={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', {
-			'bg-destructive-900 text-destructive-200': isUnavailable,
-			'bg-success-900 text-success-200': isRunning && !isUnavailable,
+		class={cn('flex size-10 shrink-0 items-center justify-center border border-rule', {
+			'border-destructive-600 bg-destructive-900 text-destructive-200': isUnavailable,
+			'border-success-600 bg-success-900 text-success-200': isRunning && !isUnavailable,
 			'bg-dark-700 text-dark-400': !action.enabled && !isUnavailable && !isRunning,
 			'bg-dark-700 text-primary': action.enabled && !isUnavailable && !isRunning
 		})}

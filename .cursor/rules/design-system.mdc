@@ -20,7 +20,7 @@ Use `@stream-kit/ui/blueprint` primitives — do not reinvent rails, crosshairs,
 | `SectionRule` | Full-width horizontal hairline between sections (optional crosshairs) |
 | `Crosshair` | `+` markers at rail/rule intersections and panel corners |
 | `CellGrid` / `Cell` | Collapsed-border schematic grids (shared borders, no card gaps) |
-| `Panel` | Sharp-cornered bordered surface; optional header rule + corner crosshairs |
+| `Panel` | Sharp-cornered bordered surface; optional header rule + corner crosshairs. Tone: `default` (marketing), `solid` (app cards), `flush` (nested) |
 | `Eyebrow` | Mono uppercase label with optional index (`01 / FEATURES`) |
 
 Utilities (from `packages/ui/src/styles/blueprint.css`, imported via app/site `layout.css`):
@@ -30,12 +30,18 @@ Utilities (from `packages/ui/src/styles/blueprint.css`, imported via app/site `l
 - `blueprint-ticks` — ruler tick marks along a rule
 - `blueprint-rule-x` / `blueprint-rule-y` — full-bleed escape rules
 
+## Radius (hybrid)
+
+- **Structural surfaces** (`Panel`, cell grids, data-table, empty-state, floating menus, alerts, nav items): `rounded-none`.
+- **Controls** (buttons, inputs, badges): keep a small radius (`rounded-lg` / `rounded-md`). The theme `--radius-xl` is tightened so leftover `rounded-xl` classes still read sharp.
+- Do not reintroduce `rounded-xl border border-dark-600 bg-dark-800` floating cards — use `Panel tone="solid"`.
+
 ## Rules
 
-1. **Rails once** — draw vertical rails via a single `GridFrame` in the layout, never per section.
-2. **Hairlines vs UI borders** — schematic lines use `border-rule` / `bg-rule` / `text-rule-strong`. Interactive UI chrome (inputs, buttons, dialogs) keeps `border-border`.
-3. **Sharp structure** — structural frames (`Panel`, cell grids, section frames) use `rounded-none`. Radius stays on controls (`Button`, inputs, badges).
-4. **Collapsed grids over gapped cards** — prefer `CellGrid` + `Cell` over `gap-4` floating `rounded-xl` cards for feature matrices and marketplace grids.
+1. **Rails once** — draw vertical rails via a single `GridFrame` in the marketing layout, never per section. App shell uses a left-nav rail instead.
+2. **Hairlines vs UI borders** — schematic lines use `border-rule` / `bg-rule` / `text-rule-strong`. Interactive UI chrome (inputs, buttons, dialogs) keeps `border-border`. Floating menus keep `border-dark-600` for readable edges above content.
+3. **Sharp structure** — structural frames use `rounded-none`. Radius stays on controls.
+4. **Collapsed grids over gapped cards** — prefer `CellGrid` + `Cell` over `gap-4` floating cards for feature matrices and marketplace grids. Exception: drag-and-drop dashboard grids stay gapped.
 5. **Eyebrow anatomy** — section intros: `Eyebrow` (optional index) → `h2` in `font-outfit` → muted lede → content.
 6. **No decorative gradients** outside ambient backgrounds (`blueprint-grid`, `boot-ambient`). Do not add purple/blue glow blobs on marketing sections.
 7. **Prefer tokens** — never hardcode hex/oklch for rules; use `--color-rule` / `--color-rule-strong`.

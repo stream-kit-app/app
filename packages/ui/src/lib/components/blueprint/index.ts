@@ -15,4 +15,5 @@ export {
 	type CrosshairPosition,
 	type CrosshairSize
 } from './crosshair-variants';
+export { panelVariants, type PanelTone } from './panel-variants';
 export { Cell, CellGrid, Crosshair, Eyebrow, GridFrame, Panel, SectionRule };

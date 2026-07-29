@@ -1,19 +1,23 @@
 <script lang="ts">
+	import type { PanelTone } from './panel-variants';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import type { Snippet } from 'svelte';
 
 	import { cn } from '../../utils';
 
 	import Crosshair from './crosshair.svelte';
+	import { panelVariants } from './panel-variants';
 
 	type Props = HTMLAttributes<HTMLDivElement> & {
 		children?: Snippet;
 		header?: Snippet;
 		crosshairs?: boolean;
+		tone?: PanelTone;
 	};
 
 	let {
 		crosshairs = false,
+		tone = 'default',
 		header,
 		class: className,
 		children,
@@ -21,10 +25,7 @@
 	}: Props = $props();
 </script>
 
-<div
-	class={cn('relative rounded-none border border-rule bg-dark-900/40', className)}
-	{...restProps}
->
+<div class={cn(panelVariants({ tone }), className)} {...restProps}>
 	{#if crosshairs}
 		<Crosshair position="top-left" size="sm" />
 		<Crosshair position="top-right" size="sm" />

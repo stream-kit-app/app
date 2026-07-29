@@ -67,7 +67,9 @@ export function activateConnectionStateTrigger<TContext = WsConnectionStateConte
 	}
 
 	if (ensureConnected) {
-		void ws.ensureConnected(connectionId);
+		void ws.ensureConnected(connectionId).catch((error) => {
+			console.warn(`WebSocket ensureConnected failed for ${connectionId}`, error);
+		});
 	}
 }
 

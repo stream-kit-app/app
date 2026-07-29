@@ -75,7 +75,7 @@
 
 	<div
 		class={cn(
-			'inline-flex w-fit gap-0.5 rounded-xl border border-border bg-dark-800 p-1',
+			'inline-flex w-fit gap-0.5 rounded-lg border border-border bg-dark-800 p-1',
 			error && inputFieldBorderError
 		)}
 		role="tablist"

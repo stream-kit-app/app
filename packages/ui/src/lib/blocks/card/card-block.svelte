@@ -2,6 +2,7 @@
 	import type { PageBlock } from '../types';
 	import type { Snippet } from 'svelte';
 
+	import { Panel } from '../../components/blueprint';
 	import { Heading } from '../../components/heading';
 
 	type Props = {
@@ -12,7 +13,7 @@
 	let { block, renderBlock }: Props = $props();
 </script>
 
-<section class="rounded-lg border border-dark-600 bg-dark-800 p-5">
+<Panel tone="solid" class="p-5">
 	{#if block.title || block.description}
 		<header class="mb-4 flex flex-col gap-1">
 			{#if block.title}
@@ -28,4 +29,4 @@
 			{@render renderBlock(child)}
 		{/each}
 	</div>
-</section>
+</Panel>

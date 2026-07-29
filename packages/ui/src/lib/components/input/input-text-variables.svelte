@@ -186,7 +186,7 @@
 	{/if}
 	<div
 		class={cn(
-			'relative flex w-full min-w-0 items-center rounded-xl',
+			'relative flex w-full min-w-0 items-center rounded-lg',
 			inputFieldFocusWithinRing(error)
 		)}
 	>
@@ -196,7 +196,7 @@
 			{placeholder}
 			bind:value
 			class={cn(
-				'min-w-0 w-full truncate rounded-xl border outline-none',
+				'min-w-0 w-full truncate rounded-lg border outline-none',
 				inputFieldSurface,
 				inputFieldDisabled,
 				inputSizeClasses.md,
@@ -221,7 +221,7 @@
 		{#if showSuggestions && filteredVariables.length > 0}
 			<ul
 				id={`${id}-listbox`}
-				class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-dark-600 bg-dark-800 p-1 shadow-md"
+				class="absolute top-full left-0 z-[100] mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-dark-600 bg-dark-800 p-1 shadow-md"
 				role="listbox"
 			>
 				{#each filteredVariables as variable, index (variable.key)}

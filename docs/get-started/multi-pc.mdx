@@ -1,0 +1,34 @@
+---
+title: Using multiple PCs
+description: Keep your Pro Stream Kit setup in sync across machines.
+---
+
+# Using multiple PCs
+
+With an active (or grace-period) Stream Kit plan, sign in on a second PC and your cloud-synced setup is restored automatically. You only need to reconnect platform integrations on that machine.
+
+## First launch on a new PC
+
+1. Install Stream Kit and sign in with the same account.
+2. Wait for **Restoring from cloud…** on Profile (or the first sync after login).
+3. Reconnect Twitch, YouTube, Discord, and OBS (credentials are never synced).
+4. Rebuild overlay projects if the UI shows they need a build (`dist/` missing after restore).
+
+## What stays in sync
+
+| Area | Notes |
+| --- | --- |
+| Actions & queues | Full LWW sync |
+| Bot / rankings / quotes / variables / collections | Per-record sync via `app.records` |
+| Account-scoped plugin settings | Synced; passwords and host/port stay local |
+| Overlay projects | Metadata + source zip; publish URLs remain separate |
+| Dashboard widgets | Layout sync |
+| Installed zip plugins | Catalog sync; restored when a manifest URL is available |
+
+## What you redo per PC
+
+- OAuth logins (Twitch broadcaster/bot, YouTube)
+- Discord bot token, OBS connection, TTS API keys
+- Localhost websocket URLs and API server bind/port
+
+Open **Profile → Cloud sync → Sync now** if a machine was offline for a while.

@@ -36,6 +36,11 @@ async function runBoot(): Promise<void> {
 	// every plugin has been loaded and before any plugin touches the database.
 	await runRegisteredPluginMigrations();
 
+	// Cloud restore must finish (or be skipped) before plugin onLoad awaits
+	// waitForConfigSync — otherwise boot hangs forever on firstSyncComplete.
+	app.configSync.start();
+	await app.configSync.firstSyncComplete;
+
 	await app.plugins.load(app);
 	await app.dashboard.load();
 	await app.boot();
@@ -59,7 +64,6 @@ async function runBoot(): Promise<void> {
 	if (app.auth.isAuthenticated) {
 		void app.userFiles.ensureFileToken().catch(() => undefined);
 	}
-	app.configSync.start();
 
 	if (app.settings.checkPluginUpdatesOnStartup) {
 		const { pluginUpdates } = await import('./plugins/plugin-updates.svelte');

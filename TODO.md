@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: 29 juli 2026 (turbo `pnpm dev` + PocketBase/site bootstrap)
+> Versie 0.1.0 — laatst bijgewerkt: 29 juli 2026 (multi-PC cloud sync)
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -20,6 +20,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Overlays — lokale browser-source server + ready-made widget templates
 - [~] Cloud-hosted overlays — publish dist+config naar `user_overlays`, publieke site-URL `/app/overlays/[uuid]/` + desktop↔site WS-bridge; multi-instance WS / `/app` dashboard / public media later
 - [x] Marketing site blueprint UI — Cloudflare-achtige rails/rules/crosshairs via `@stream-kit/ui/blueprint`; homepage + `/plugins` herontwerp; design foundation voor toekomstig `/app` dashboard
+- [x] Desktop app blueprint alignment — shell chrome (sidebar rail, page header, toolbar), shared UI surfaces/controls, app cards → `Panel tone="solid"`; plugin-local cards later
 - [x] Rankings plugin (punten, tiers, watch-time, leaderboard, overlay)
 - [x] Quotes plugin (opgeslagen quotes, UI, seeded chat commands)
 - [x] Stream Deck plugin (triggers, feedback handlers, Elgato companion via API Server)
@@ -29,9 +30,9 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] i18n (NL + EN)
 - [x] Inbound WebSocket API server (remote control; plugin-extensible via `app.api`)
 - [x] Stream Kit account (PocketBase login/register/profile, password reset, email verificatie-UI, account delete + `app.auth` voor plugins)
-- [x] Cloud user files (`user_files` + `app.userFiles`, plan quota, profile file manager, protected files + token URLs, handler Upload/Cloud; auto-migrate **actions only** — bot/rankings wacht op plugin-store sync)
+- [x] Cloud user files (`user_files` + `app.userFiles`, plan quota, profile file manager, protected files + token URLs, handler Upload/Cloud; auto-migrate actions)
 - [x] Cloud sync actions/queues (`user_actions` / `user_action_queues` + `app.configSync`, revision LWW, offline retry/backoff, 30-dagen cancel grace, profile status)
-- [x] Account & cloud hardening — FASE 1–5 (tombstones/LWW revision, protected files, password reset/delete/verificatie-UI, cancel grace, file manager, token refresh, sync retry); plugin-store sync (en daarna bot/rankings auto-migrate) nog open
+- [x] Account & cloud hardening — FASE 1–5 + multi-PC sync: plugin records (`app.records` / `user_plugin_records`), overlay project sync (`user_overlay_projects`), dashboard widgets, installed-plugin catalog restore, settings account/device/secret split; platform credentials blijven per PC
 
 ---
 
@@ -105,8 +106,8 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 ### Hosting & ecosysteem
 
 - [~] Optionele cloud-hosted overlays (SE-achtige URL) — publish + site host + WS-bridge klaar; multi-instance / dashboard `/app` / public cloud media nog open
-- [x] Cloud file uploads — `user_files` + handler Upload/Cloud; auto-migratie van lokale paden op **actions** bij actieve subscription (bot/rankings: handmatig tot plugin-store sync)
-- [x] Cloud sync of actions/settings — actions + action queues via PocketBase (`app.configSync`, revision LWW + local trash + offline retry); overlays/plugin-store sync nog open
+- [x] Cloud file uploads — `user_files` + handler Upload/Cloud; auto-migratie van lokale paden op **actions** bij actieve subscription
+- [x] Cloud sync of actions/settings — actions + queues + plugin records + overlay projects + dashboard via PocketBase (`app.configSync` adapters, revision LWW + local trash + offline retry); credentials blijven device-local
 - [ ] Widget marketplace / community templates
 - [ ] Volledige StreamElements API-koppeling (niet alleen TTS)
 

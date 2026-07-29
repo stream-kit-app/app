@@ -12,10 +12,19 @@ export class Roles {
 	roles: RoleRecord[] = $state([]);
 	private store?: PluginStore;
 	private app?: PluginAppApi;
+	private unsubscribeRecords?: () => void;
 
 	bind(store: PluginStore, app: PluginAppApi): void {
+		if (this.store === store && this.app === app) {
+			return;
+		}
+
+		this.unsubscribeRecords?.();
 		this.store = store;
 		this.app = app;
+		this.unsubscribeRecords = app.records.open('roles').onChange(() => {
+			void this.load();
+		});
 	}
 
 	get isReady(): boolean {
@@ -35,13 +44,14 @@ export class Roles {
 	}
 
 	async load(): Promise<void> {
-		const { store } = this.requireContext();
-		this.roles = await loadRoles(store);
+		const { store, app } = this.requireContext();
+		await app.waitForConfigSync();
+		this.roles = await loadRoles(store, app);
 	}
 
 	async persist(): Promise<void> {
-		const { store } = this.requireContext();
-		await saveRoles(store, this.roles);
+		const { app } = this.requireContext();
+		await saveRoles(app, this.roles);
 	}
 
 	create(name: string): RoleRecord {
@@ -53,7 +63,7 @@ export class Roles {
 
 		const now = new Date().toISOString();
 		const role: RoleRecord = {
-			id: crypto.randomUUID(),
+			id: crypto.randomUUID().replaceAll('-', '').slice(0, 15),
 			name: trimmed,
 			memberIds: [],
 			memberNames: {},

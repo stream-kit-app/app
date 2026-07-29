@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Crosshair } from '@stream-kit/ui/blueprint';
+
 	import { page } from '$app/state';
 
 	import { AuthHeaderControls } from '$lib/components/core/auth';
@@ -16,12 +18,13 @@
 </script>
 
 <header
-	class="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-dark-600 bg-background px-6"
+	class="relative flex h-14 shrink-0 items-center justify-between gap-4 border-b border-rule bg-background px-6"
 >
+	<Crosshair position="bottom-left" size="sm" class="left-0" />
 	<nav aria-label="Page title" class="flex min-w-0 items-center gap-2 text-sm">
 		{#each displaySegments as segment (segment)}
-			<span class="truncate text-dark-200">{segment}</span>
-			<span class="text-dark-500" aria-hidden="true">/</span>
+			<span class="truncate text-muted-foreground">{segment}</span>
+			<span class="font-mono text-rule-strong" aria-hidden="true">/</span>
 		{/each}
 		<span class="truncate font-medium text-foreground">{displayTitle}</span>
 	</nav>

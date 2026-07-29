@@ -82,7 +82,7 @@
 	{/if}
 	<div
 		class={cn(
-			'relative flex w-full min-w-0 items-stretch rounded-xl',
+			'relative flex w-full min-w-0 items-stretch rounded-lg',
 			inputFieldGroup,
 			inputShellSizeClasses[size],
 			!isCopyableReadonly && inputFieldFocusRing(error)
@@ -91,7 +91,7 @@
 		{#if prependIcon}
 			<span
 				class={cn(
-					'grid h-full place-items-center rounded-l-xl border text-dark-50 transition-colors',
+					'grid h-full place-items-center rounded-l-lg border text-dark-50 transition-colors',
 					inputFieldAdornmentBorder(error),
 					inputFieldSurface,
 					inputAdornmentSizeClasses[size]
@@ -114,10 +114,10 @@
 				inputPaddingClasses[size],
 				inputFieldBorder(error),
 				{
-					'rounded-l-none rounded-r-xl border-l-0': prependIcon && !hasRightAdornment,
+					'rounded-l-none rounded-r-lg border-l-0': prependIcon && !hasRightAdornment,
 					'rounded-l-none border-l-0': prependIcon && hasRightAdornment,
-					'rounded-l-xl rounded-r-none border-r-0': !prependIcon && hasRightAdornment,
-					'rounded-xl': !prependIcon && !hasRightAdornment
+					'rounded-l-lg rounded-r-none border-r-0': !prependIcon && hasRightAdornment,
+					'rounded-lg': !prependIcon && !hasRightAdornment
 				}
 			)}
 			type={isPasswordField ? (showPassword ? 'text' : 'password') : props.type}
@@ -129,7 +129,7 @@
 					inputAdornmentSizeClasses[size],
 					isPasswordField || copyable
 						? cn('border-y border-r-0 border-l', inputFieldAdornmentBorder(error))
-						: cn('rounded-r-xl border border-l-0', inputFieldAdornmentBorder(error))
+						: cn('rounded-r-lg border border-l-0', inputFieldAdornmentBorder(error))
 				)}
 			>
 				<Icon icon={appendIcon} class={inputIconSizeClasses[size]} />
@@ -139,7 +139,7 @@
 			<button
 				type="button"
 				class={cn(
-					'grid h-full place-items-center rounded-r-xl border transition-colors',
+					'grid h-full place-items-center rounded-r-lg border transition-colors',
 					inputFieldAdornmentBorder(error),
 					inputFieldSurface,
 					copied ? 'text-success' : 'text-dark-50',
@@ -158,7 +158,7 @@
 			<button
 				type="button"
 				class={cn(
-					'grid h-full place-items-center rounded-r-xl border text-dark-50 transition-colors',
+					'grid h-full place-items-center rounded-r-lg border text-dark-50 transition-colors',
 					inputFieldAdornmentBorder(error),
 					inputFieldSurface,
 					inputAdornmentSizeClasses[size]

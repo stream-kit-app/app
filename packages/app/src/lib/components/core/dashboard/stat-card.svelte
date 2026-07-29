@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 
+	import { Panel } from '@stream-kit/ui/blueprint';
+
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -23,63 +25,46 @@
 		class: className
 	}: Props = $props();
 
-	const cardClass = $derived(
-		cn(
-			embedded
-				? cn('block text-sm', href && 'transition hover:opacity-90')
-				: cn(
-						'rounded-xl border border-dark-600 bg-dark-800 p-4 transition-colors',
-						href && 'hover:border-dark-500'
-					),
-			className
-		)
-	);
+	const bodyClass = $derived(cn('block text-sm', href && 'transition hover:opacity-90', className));
 </script>
 
-{#if href}
-	<a {href} class={cardClass}>
-		<div class="flex items-start gap-3">
-			{#if !embedded}
-				<div
-					class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
-				>
-					<Icon {icon} class="size-5" />
-				</div>
-			{/if}
-			<div class="min-w-0 flex-1">
-				<p class="text-2xl font-semibold text-dark-50">{value}</p>
-				{#if label && !embedded}
-					<p class="text-sm text-dark-100">{label}</p>
-				{/if}
-				{#if description}
-					<p class={cn('text-dark-300', embedded ? 'mt-1 text-xs' : 'mt-0.5 text-xs')}>
-						{description}
-					</p>
-				{/if}
+{#snippet content()}
+	<div class="flex items-start gap-3">
+		{#if !embedded}
+			<div
+				class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
+			>
+				<Icon {icon} class="size-5" />
 			</div>
-		</div>
-	</a>
-{:else}
-	<div class={cardClass}>
-		<div class="flex items-start gap-3">
-			{#if !embedded}
-				<div
-					class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
-				>
-					<Icon {icon} class="size-5" />
-				</div>
+		{/if}
+		<div class="min-w-0 flex-1">
+			<p class="font-mono text-2xl font-semibold tabular-nums text-dark-50">{value}</p>
+			{#if label && !embedded}
+				<p class="text-sm text-dark-100">{label}</p>
 			{/if}
-			<div class="min-w-0 flex-1">
-				<p class="text-2xl font-semibold text-dark-50">{value}</p>
-				{#if label && !embedded}
-					<p class="text-sm text-dark-100">{label}</p>
-				{/if}
-				{#if description}
-					<p class={cn('text-dark-300', embedded ? 'mt-1 text-xs' : 'mt-0.5 text-xs')}>
-						{description}
-					</p>
-				{/if}
-			</div>
+			{#if description}
+				<p class={cn('text-dark-300', embedded ? 'mt-1 text-xs' : 'mt-0.5 text-xs')}>
+					{description}
+				</p>
+			{/if}
 		</div>
 	</div>
+{/snippet}
+
+{#if embedded}
+	{#if href}
+		<a {href} class={bodyClass}>{@render content()}</a>
+	{:else}
+		<div class={bodyClass}>{@render content()}</div>
+	{/if}
+{:else if href}
+	<a {href} class={cn('block transition-colors hover:bg-dark-900/60', className)}>
+		<Panel tone="solid" class="p-4">
+			{@render content()}
+		</Panel>
+	</a>
+{:else}
+	<Panel tone="solid" class={cn('p-4', className)}>
+		{@render content()}
+	</Panel>
 {/if}

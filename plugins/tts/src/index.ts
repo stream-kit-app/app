@@ -92,7 +92,8 @@ const plugin: Plugin = (app) => {
 					localVoiceSelectSettingsField({
 						key: LOCAL_DEFAULT_VOICE_SETTING_KEY,
 						emptyLabel: 'Select a default voice',
-						visible: () => local.getInstalledVoices().length > 0
+						visible: () => local.getInstalledVoices().length > 0,
+						sync: 'device'
 					}),
 					{
 						key: LOCAL_VOLUME_SETTING_KEY,
@@ -171,7 +172,9 @@ const plugin: Plugin = (app) => {
 						type: 'text',
 						inputType: 'password',
 						name: 'API key',
-						placeholder: 'Paste your StreamElements overlay token'
+						placeholder: 'Paste your StreamElements overlay token',
+						secret: true,
+						sync: 'device'
 					},
 					{
 						type: 'button',
@@ -236,7 +239,9 @@ const plugin: Plugin = (app) => {
 						type: 'text',
 						inputType: 'password',
 						name: 'Elevenlabs API key',
-						placeholder: 'Paste your ElevenLabs API key'
+						placeholder: 'Paste your ElevenLabs API key',
+						secret: true,
+						sync: 'device'
 					},
 					{
 						type: 'button',

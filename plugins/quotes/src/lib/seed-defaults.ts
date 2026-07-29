@@ -1,7 +1,14 @@
 import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 import type { HandlerFieldInstance } from '@stream-kit/plugin';
 
-import { CURRENT_SEED_VERSION, loadSeedVersion, saveSeedVersion } from './quotes-store';
+import {
+	CURRENT_SEED_VERSION,
+	loadQuoteRecords,
+	loadSeedVersion,
+	migrateLegacySeedVersion,
+	saveSeedVersion,
+	waitForQuotesConfigSync
+} from './quotes-store';
 import { HANDLER_IDS, PLUGIN_GROUP } from './types';
 
 type SeedHandler = {
@@ -84,7 +91,13 @@ export async function seedQuotesDefaults(
 	_pluginKey: string,
 	store: PluginStore
 ): Promise<void> {
-	const seedVersion = await loadSeedVersion(store);
+	await migrateLegacySeedVersion(store, app);
+
+	if ((await loadQuoteRecords(app)).length === 0) {
+		await waitForQuotesConfigSync(app);
+	}
+
+	const seedVersion = await loadSeedVersion(app);
 
 	if (seedVersion >= CURRENT_SEED_VERSION) {
 		return;
@@ -118,5 +131,5 @@ export async function seedQuotesDefaults(
 		}
 	}
 
-	await saveSeedVersion(store, CURRENT_SEED_VERSION);
+	await saveSeedVersion(app, CURRENT_SEED_VERSION);
 }

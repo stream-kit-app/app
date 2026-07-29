@@ -131,10 +131,13 @@ const plugin: Plugin = (app) => {
 			},
 			{
 				type: 'text',
+				key: 'bot-token',
 				inputType: 'password',
 				name: 'Bot token',
 				placeholder: 'Paste your Discord bot token',
-				required: true
+				required: true,
+				secret: true,
+				sync: 'device'
 			},
 			{
 				type: 'button',

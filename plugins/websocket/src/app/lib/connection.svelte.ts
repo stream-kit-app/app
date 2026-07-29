@@ -211,7 +211,7 @@ export class Connection {
 			);
 		}
 
-		await saveConnections(connections.store, connections.items.map((item) => item.toRecord()));
+		await saveConnections(connections.requireApp(), connections.items.map((item) => item.toRecord()));
 		await connections.controller.syncConnections(connections.items.map((item) => item.toRecord()));
 
 		app.toast.create({

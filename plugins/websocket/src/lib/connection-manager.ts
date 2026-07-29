@@ -2,7 +2,6 @@ import type { PluginAppApi } from '@stream-kit/plugin';
 
 import type { WsConnectionStateContext, WsMessageContext } from '../contexts';
 import {
-	loadConnections,
 	normalizeWsUrl,
 	type WsConnection
 } from './connections';
@@ -55,7 +54,7 @@ export type WebSocketPluginApi = {
 };
 
 export type WebSocketPluginController = WebSocketPluginApi & {
-	boot(store: { get: <T>(key: string) => Promise<T | undefined> }): Promise<void>;
+	boot(): Promise<void>;
 	syncConnections(connections: WsConnection[]): Promise<void>;
 	disconnectAll(): Promise<void>;
 };
@@ -701,9 +700,8 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 		subscribeLogs(listener) {
 			return logStore.subscribe(listener);
 		},
-		async boot(store) {
+		async boot() {
 			setupLogSubscriptions();
-			connections = await loadConnections(store as Parameters<typeof loadConnections>[0]);
 			rebuildPool();
 			notify();
 		},

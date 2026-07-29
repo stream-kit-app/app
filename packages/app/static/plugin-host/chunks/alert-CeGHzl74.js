@@ -5,7 +5,7 @@ import { t as b } from "./utils-DJt177zd.js";
 import { t as x } from "./dist-DLhOqhSg.js";
 //#region ../ui/src/lib/components/alert/alert-variants.ts
 var S = x({
-	base: "flex items-start gap-3 rounded-lg border p-4 text-sm",
+	base: "flex items-start gap-3 rounded-none border p-4 text-sm",
 	variants: { variant: {
 		default: "border-border bg-dark-900 text-foreground",
 		success: "border-success-600 bg-success-900 text-success-50",

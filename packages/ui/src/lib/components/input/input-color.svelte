@@ -93,7 +93,7 @@
 	{/if}
 	<div
 		class={cn(
-			'relative flex w-full min-w-0 items-stretch rounded-xl',
+			'relative flex w-full min-w-0 items-stretch rounded-lg',
 			inputFieldGroup,
 			inputShellSizeClasses.md,
 			inputFieldFocusRing(error)
@@ -101,7 +101,7 @@
 	>
 		<div
 			class={cn(
-				'color-picker-slot grid h-full place-items-center rounded-l-xl border transition-colors',
+				'color-picker-slot grid h-full place-items-center rounded-l-lg border transition-colors',
 				inputFieldAdornmentBorder(error),
 				inputFieldSurface,
 				inputAdornmentSizeClasses.md
@@ -137,7 +137,7 @@
 			oninput={handleTextInput}
 			class={cn(
 				'box-border h-full min-h-0 min-w-0 w-full appearance-none truncate border border-l-0 outline-none transition-colors',
-				'rounded-l-none rounded-r-xl',
+				'rounded-l-none rounded-r-lg',
 				inputFieldSurface,
 				inputFieldDisabled,
 				inputPaddingClasses.md,
@@ -162,6 +162,6 @@
 	}
 
 	.input-color :global(.wrapper) {
-		border-radius: 0.75rem;
+		border-radius: 0.25rem;
 	}
 </style>

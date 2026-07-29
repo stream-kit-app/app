@@ -3,6 +3,7 @@ import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 import {
 	findDuplicateUrl,
 	loadConnections,
+	migrateConnections,
 	saveConnections
 } from '../../lib/connections';
 import type { ConnectionStatus, WebSocketPluginController } from '../../lib/connection-manager';
@@ -16,16 +17,19 @@ export class Connections {
 	readonly controller: WebSocketPluginController;
 	private unsubscribeController: (() => void) | undefined;
 	private unsubscribeLogs: (() => void) | undefined;
+	private unsubscribeRecords: (() => void) | undefined;
+	private readonly app: PluginAppApi;
 	revision = $state(0);
 	logsRevision = $state(0);
 
 	constructor(
 		store: PluginStore,
 		controller: WebSocketPluginController,
-		private readonly app: PluginAppApi
+		app: PluginAppApi
 	) {
 		this.store = store;
 		this.controller = controller;
+		this.app = app;
 
 		this.unsubscribeController = this.controller.subscribe(() => {
 			this.revision += 1;
@@ -41,7 +45,17 @@ export class Connections {
 	}
 
 	async load(): Promise<void> {
-		const records = await loadConnections(this.store);
+		await migrateConnections(this.app, this.store);
+		const records = await loadConnections(this.app);
+		this.items = records.map((record) => Connection.fromRecord(record));
+		await this.controller.syncConnections(records);
+		this.unsubscribeRecords = this.app.records.open('connections').onChange(() => {
+			void this.reloadFromRecords();
+		});
+	}
+
+	private async reloadFromRecords(): Promise<void> {
+		const records = await loadConnections(this.app);
 		this.items = records.map((record) => Connection.fromRecord(record));
 		await this.controller.syncConnections(records);
 	}
@@ -51,6 +65,8 @@ export class Connections {
 		this.unsubscribeController = undefined;
 		this.unsubscribeLogs?.();
 		this.unsubscribeLogs = undefined;
+		this.unsubscribeRecords?.();
+		this.unsubscribeRecords = undefined;
 	}
 
 	getStatus(id: string): ConnectionStatus {
@@ -104,7 +120,7 @@ export class Connections {
 		this.items = this.items.filter((item) => item.id !== id);
 		this.controller.clearLogs(id);
 		const records = this.items.map((item) => item.toRecord());
-		await saveConnections(this.store, records);
+		await saveConnections(this.app, records);
 		await this.controller.syncConnections(records);
 
 		this.app.toast.create({

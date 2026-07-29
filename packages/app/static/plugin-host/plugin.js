@@ -1050,6 +1050,60 @@ function enrichChatMessageWithCommand(context, conditions, prefix = "!") {
     args: {}
   };
 }
+
+// ../plugin/src/records-migration.ts
+var SYNC_ID_RE = /^[a-z0-9]{15}$/;
+function isRecordsSyncId(value) {
+  return typeof value === "string" && SYNC_ID_RE.test(value);
+}
+async function migrateStoreArrayToRecords(app, store, options) {
+  const markerKey = options.markerKey ?? `__records_migrated_${options.collection}_v1`;
+  if (await store.get(markerKey)) {
+    return;
+  }
+  const records = app.records.open(options.collection);
+  const existing = await records.list();
+  if (existing.length > 0) {
+    await store.set(markerKey, true);
+    await store.delete(options.storeKey);
+    return;
+  }
+  const legacy = await store.get(options.storeKey);
+  if (Array.isArray(legacy) && legacy.length > 0) {
+    for (const item of legacy) {
+      const mapped = options.mapItem ? options.mapItem(item) : { ...item };
+      const { id, ...rest } = mapped;
+      const data = id && isRecordsSyncId(id) ? { ...rest, id } : rest;
+      await records.create(data);
+    }
+  }
+  await store.set(markerKey, true);
+  await store.delete(options.storeKey);
+}
+async function migrateStoreSingletonToRecord(app, store, options) {
+  if (!isRecordsSyncId(options.syncId)) {
+    throw new Error(`syncId must be a 15-char [a-z0-9] id, got "${options.syncId}"`);
+  }
+  const markerKey = options.markerKey ?? `__records_migrated_${options.collection}_v1`;
+  if (await store.get(markerKey)) {
+    return;
+  }
+  const records = app.records.open(options.collection);
+  const existing = await records.get(options.syncId);
+  if (existing) {
+    await store.set(markerKey, true);
+    await store.delete(options.storeKey);
+    return;
+  }
+  const legacy = await store.get(options.storeKey);
+  if (legacy && typeof legacy === "object") {
+    const mapped = options.mapItem ? options.mapItem(legacy) : { ...legacy };
+    const { id: _id, ...rest } = mapped;
+    await records.create({ ...rest, id: options.syncId });
+  }
+  await store.set(markerKey, true);
+  await store.delete(options.storeKey);
+}
 export {
   BaseDirectory,
   CRON_FIELD_COUNT,
@@ -1070,8 +1124,11 @@ export {
   hasCommandArgPlaceholders,
   interpolateVariables,
   isOneOfFieldValue,
+  isRecordsSyncId,
   isValidCronExpression,
   matchCommandPattern,
+  migrateStoreArrayToRecords,
+  migrateStoreSingletonToRecord,
   normalizeCronExpression,
   parseCommand,
   parseCommandMessage,

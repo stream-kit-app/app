@@ -9,7 +9,14 @@ export const configSyncTombstones = sqliteTable('config_sync_tombstones', {
 	revision: integer('revision')
 });
 
-export type ConfigSyncEntityType = 'action' | 'action_queue';
+/** Known entity types; string allows new adapters without a schema migration. */
+export type ConfigSyncEntityType =
+	| 'action'
+	| 'action_queue'
+	| 'plugin_record'
+	| 'overlay'
+	| 'dashboard_widget'
+	| (string & {});
 
 export type ConfigSyncTombstoneRecord = {
 	entityType: ConfigSyncEntityType;

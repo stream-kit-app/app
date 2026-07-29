@@ -125,18 +125,18 @@
 	--color-ring: var(--color-primary-200);
 
 	/* Blueprint hairlines — weaker than --color-border for schematic rules/rails */
-	--color-rule: oklch(0.98 0.002 264 / 0.08);
-	--color-rule-strong: oklch(0.98 0.002 264 / 0.16);
+	--color-rule: oklch(0.98 0.002 264 / 0.1);
+	--color-rule-strong: oklch(0.98 0.002 264 / 0.18);
 
-	/* Border radius — one step tighter than Tailwind defaults across the app */
+	/* Border radius — hybrid: controls use lg/md; structural surfaces use rounded-none */
 	--radius-xs: 0.125rem;
 	--radius-sm: 0.125rem;
 	--radius-md: 0.25rem;
-	--radius-lg: 0.375rem;
-	--radius-xl: 0.5rem;
-	--radius-2xl: 0.625rem;
-	--radius-3xl: 0.75rem;
-	--radius-4xl: 1rem;
+	--radius-lg: 0.25rem;
+	--radius-xl: 0.25rem;
+	--radius-2xl: 0.375rem;
+	--radius-3xl: 0.5rem;
+	--radius-4xl: 0.625rem;
 
 	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;

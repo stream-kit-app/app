@@ -26,7 +26,7 @@ function E(v, y) {
 		role: "group",
 		"aria-label": y.ariaLabel,
 		...O
-	}), [() => S("inline-flex w-fit rounded-xl border border-dark-600/80 bg-dark-900/50 p-1 shadow-inner", y.class)]), n(A, 21, () => y.items, (e) => e.value, (n, r) => {
+	}), [() => S("inline-flex w-fit rounded-none border border-rule bg-dark-900/50 p-1 shadow-inner", y.class)]), n(A, 21, () => y.items, (e) => e.value, (n, r) => {
 		let o = g(() => E() === i(r).value);
 		var c = w(), u = l(c), m = (e) => {
 			{

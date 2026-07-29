@@ -87,7 +87,7 @@
 	}
 </script>
 
-<div class="overflow-hidden rounded-xl border border-border bg-dark-800/40 transition-all duration-200 focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/20">
+<div class="overflow-hidden rounded-lg border border-border bg-dark-800/40 transition-all duration-200 focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/20">
 	<div class="grid grid-cols-5 border-b border-dark-600/80 bg-dark-900/40 px-2 py-1.5">
 		{#each CRON_FIELD_KEYS as field, index (field)}
 			<div class={cn('px-1 text-center', index < 4 && 'border-r border-dark-700/50')}>

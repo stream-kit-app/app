@@ -89,7 +89,7 @@
 					{...props}
 					aria-label={editAriaLabel}
 					class={cn(
-						'flex w-full items-center gap-2 rounded-xl border text-left outline-none transition-all',
+						'flex w-full items-center gap-2 rounded-lg border text-left outline-none transition-all',
 						inputFieldSurface,
 						inputSizeClasses.md,
 						'focus-visible:ring-2',

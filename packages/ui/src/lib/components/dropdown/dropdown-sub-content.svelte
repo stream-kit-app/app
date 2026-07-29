@@ -13,7 +13,7 @@
 		{...props}
 		class={cn(
 			'z-[100] min-w-(--bits-floating-anchor-width)',
-			'rounded-xl bg-dark-800 p-[5px] shadow-lg',
+			'rounded-none bg-dark-800 p-[5px] shadow-lg',
 			'border border-dark-600',
 			className
 		)}

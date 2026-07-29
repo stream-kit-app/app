@@ -1,4 +1,5 @@
 import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 
 import type { RankingsEventContext, RankingsEventMap, RankingsStats } from '../../lib/contexts';
 import {
@@ -22,6 +23,8 @@ import {
 	loadSettings,
 	loadTiers,
 	loadUsers,
+	migrateRankingsRecords,
+	RANKINGS_RECORD_COLLECTIONS,
 	saveIgnoredUsers,
 	savePointHistory,
 	saveRanks,
@@ -44,6 +47,13 @@ import type {
 	UserRankingRecord
 } from '../../lib/types';
 
+function createRecordId(): string {
+	const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+	const bytes = crypto.getRandomValues(new Uint8Array(15));
+
+	return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
+}
+
 export class RankingsService {
 	tiers: TierRecord[] = $state([]);
 	ranks: RankRecord[] = $state([]);
@@ -59,11 +69,17 @@ export class RankingsService {
 
 	private store?: PluginStore;
 	private app?: PluginAppApi;
-	private listeners = new Map<keyof RankingsEventMap, Set<(context: RankingsEventContext) => void>>();
+	private listeners = new SvelteMap<
+		keyof RankingsEventMap,
+		SvelteSet<(context: RankingsEventContext) => void>
+	>();
+	private recordUnsubscribers: Array<() => void> = [];
+	private isPersistingRecords = false;
 
 	bind(store: PluginStore, app: PluginAppApi): void {
 		this.store = store;
 		this.app = app;
+		this.subscribeToRecordChanges();
 	}
 
 	requireApp(): PluginAppApi {
@@ -89,7 +105,7 @@ export class RankingsService {
 		let handlers = this.listeners.get(event);
 
 		if (!handlers) {
-			handlers = new Set();
+			handlers = new SvelteSet();
 			this.listeners.set(event, handlers);
 		}
 
@@ -116,16 +132,64 @@ export class RankingsService {
 		return orderRanks(this.tiers, this.ranks);
 	}
 
+	private subscribeToRecordChanges(): void {
+		if (!this.app || this.recordUnsubscribers.length > 0) {
+			return;
+		}
+
+		for (const name of Object.values(RANKINGS_RECORD_COLLECTIONS)) {
+			const records = this.app.records.open(name);
+			this.recordUnsubscribers.push(
+				records.onChange(() => {
+					if (!this.isPersistingRecords) {
+						void this.refreshRecords();
+					}
+				})
+			);
+		}
+	}
+
+	private async refreshRecords(): Promise<void> {
+		if (!this.app) {
+			return;
+		}
+
+		const [tiers, ranks, users, ignoredUsers, settings] = await Promise.all([
+			loadTiers(this.app),
+			loadRanks(this.app),
+			loadUsers(this.app),
+			loadIgnoredUsers(this.app),
+			loadSettings(this.app)
+		]);
+		this.tiers = tiers;
+		this.ranks = ranks;
+		this.users = users;
+		this.ignoredUsers = ignoredUsers;
+		this.settings = settings;
+	}
+
+	private async persistRecords(operation: () => Promise<void>): Promise<void> {
+		this.isPersistingRecords = true;
+
+		try {
+			await operation();
+		} finally {
+			this.isPersistingRecords = false;
+		}
+	}
+
 	async load(): Promise<void> {
-		const { store } = this.requireContext();
-		await ensureDefaultConfig(store);
+		const { store, app } = this.requireContext();
+		await app.waitForConfigSync();
+		await this.persistRecords(() => migrateRankingsRecords(store, app));
+		await this.persistRecords(() => ensureDefaultConfig(app));
 
 		const [tiers, ranks, users, ignoredUsers, settings, pointHistory] = await Promise.all([
-			loadTiers(store),
-			loadRanks(store),
-			loadUsers(store),
-			loadIgnoredUsers(store),
-			loadSettings(store),
+			loadTiers(app),
+			loadRanks(app),
+			loadUsers(app),
+			loadIgnoredUsers(app),
+			loadSettings(app),
 			loadPointHistory(store)
 		]);
 
@@ -143,23 +207,32 @@ export class RankingsService {
 	}
 
 	async persistUsers(): Promise<void> {
-		const { store } = this.requireContext();
-		await saveUsers(store, this.users);
+		const { app } = this.requireContext();
+		await this.persistRecords(() => saveUsers(app, this.users));
 	}
 
 	async persistIgnoredUsers(): Promise<void> {
-		const { store } = this.requireContext();
-		await saveIgnoredUsers(store, this.ignoredUsers);
+		const { app } = this.requireContext();
+		await this.persistRecords(() => saveIgnoredUsers(app, this.ignoredUsers));
 	}
 
 	async persistTiersAndRanks(): Promise<void> {
-		const { store } = this.requireContext();
-		await Promise.all([saveTiers(store, this.tiers), saveRanks(store, this.ranks)]);
+		const { app } = this.requireContext();
+		await this.persistRecords(async () => {
+			const savedTiers = await saveTiers(app, this.tiers);
+			const tierIds = new Map(this.tiers.map((tier, index) => [tier.id, savedTiers[index].id]));
+			this.tiers = savedTiers;
+			this.ranks = this.ranks.map((rank) => ({
+				...rank,
+				tierId: tierIds.get(rank.tierId) ?? rank.tierId
+			}));
+			this.ranks = await saveRanks(app, this.ranks);
+		});
 	}
 
 	async persistSettings(): Promise<void> {
-		const { store } = this.requireContext();
-		await saveSettings(store, this.settings);
+		const { app } = this.requireContext();
+		await this.persistRecords(() => saveSettings(app, this.settings));
 	}
 
 	getProgressForPoints(totalPoints: number): RankProgress {
@@ -672,7 +745,7 @@ export class RankingsService {
 
 	async createTier(input: Omit<TierRecord, 'id' | 'sortOrder'> & { sortOrder?: number }): Promise<TierRecord> {
 		const tier: TierRecord = {
-			id: crypto.randomUUID(),
+			id: createRecordId(),
 			name: input.name.trim(),
 			sortOrder: input.sortOrder ?? this.tiers.length,
 			icon: input.icon
@@ -716,7 +789,7 @@ export class RankingsService {
 		input: Omit<RankRecord, 'id' | 'sortOrder'> & { sortOrder?: number }
 	): Promise<RankRecord> {
 		const rank: RankRecord = {
-			id: crypto.randomUUID(),
+			id: createRecordId(),
 			tierId: input.tierId,
 			name: input.name.trim(),
 			pointsRequired: clampPoints(input.pointsRequired),

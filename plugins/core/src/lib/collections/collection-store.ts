@@ -1,4 +1,8 @@
-import type { PluginStore } from '@stream-kit/plugin';
+import type {
+	PluginAppApi,
+	PluginAppRecordCollectionApi,
+	PluginStore
+} from '@stream-kit/plugin';
 
 import type {
 	CollectionChangedContext,
@@ -15,8 +19,11 @@ import type {
 
 const PERSISTENT_COLLECTIONS_KEY = 'collections';
 const LEGACY_PERSISTENT_MAPS_KEY = 'maps';
+const RECORDS_COLLECTION = 'collections';
+const MIGRATION_KEY = '__records_migrated_collections_v1';
 
 type CollectionRegistry = Record<string, CollectionData>;
+type PersistentCollectionRecord = { name: string; data: Record<string, string> };
 
 type ResolvedCollection = {
 	lifetime: CollectionLifetime;
@@ -29,15 +36,18 @@ type DeletedListener = (context: CollectionDeletedContext) => void;
 
 export class CollectionStore {
 	private store?: PluginStore;
+	private app?: PluginAppApi;
 	private sessionCollections: CollectionRegistry = {};
 	private persistentCollections: CollectionRegistry = {};
 	private loaded = false;
+	private unsubscribeRecords?: () => void;
 	private createdListeners = new Set<CreatedListener>();
 	private changedListeners = new Set<ChangedListener>();
 	private deletedListeners = new Set<DeletedListener>();
 
-	bindStore(store: PluginStore): void {
+	bindStore(store: PluginStore, app: PluginAppApi): void {
 		this.store = store;
+		this.app = app;
 	}
 
 	private getStore(): PluginStore {
@@ -48,26 +58,78 @@ export class CollectionStore {
 		return this.store;
 	}
 
+	private getApp(): PluginAppApi {
+		if (!this.app) {
+			throw new Error('CollectionStore is not initialized');
+		}
+
+		return this.app;
+	}
+
+	private records(): PluginAppRecordCollectionApi {
+		return this.getApp().records.open<PersistentCollectionRecord>(RECORDS_COLLECTION);
+	}
+
+	private async migrate(): Promise<void> {
+		const store = this.getStore();
+		const legacy =
+			(await store.get<CollectionRegistry>(PERSISTENT_COLLECTIONS_KEY)) ??
+			(await store.get<CollectionRegistry>(LEGACY_PERSISTENT_MAPS_KEY)) ??
+			null;
+		const alreadyMigrated = await store.get<boolean>(MIGRATION_KEY);
+
+		// Remigrate when the LazyStore still holds collections (e.g. a previous
+		// migrate attempt failed before writing records / clearing the store).
+		if (alreadyMigrated && (!legacy || Object.keys(legacy).length === 0)) {
+			return;
+		}
+
+		const collections = legacy ?? {};
+		const records = this.records();
+		const existing = await records.list<PersistentCollectionRecord>();
+
+		for (const [name, data] of Object.entries(collections)) {
+			if (!existing.some((record) => record.name === name)) {
+				await records.create({ name, data: { ...data } });
+			}
+		}
+
+		await store.set(MIGRATION_KEY, true);
+		await store.delete(PERSISTENT_COLLECTIONS_KEY);
+		await store.delete(LEGACY_PERSISTENT_MAPS_KEY);
+	}
+
+	private async reloadPersistentCollections(notify = false): Promise<void> {
+		const records = await this.records().list<PersistentCollectionRecord>();
+		const next = Object.fromEntries(
+			records.map(({ name, data }) => [name, { ...data }])
+		) as CollectionRegistry;
+
+		this.persistentCollections = next;
+
+		if (notify) {
+			for (const collectionName of Object.keys(next)) {
+				this.emitChanged({
+					collectionName,
+					lifetime: 'persistent',
+					key: '',
+					value: '',
+					changeType: 'clear'
+				});
+			}
+		}
+	}
+
 	async load(): Promise<void> {
 		if (this.loaded) {
 			return;
 		}
 
-		const store = this.getStore();
-		const existing = await store.get<CollectionRegistry>(PERSISTENT_COLLECTIONS_KEY);
-
-		if (existing) {
-			this.persistentCollections = existing;
-		} else {
-			const legacy = await store.get<CollectionRegistry>(LEGACY_PERSISTENT_MAPS_KEY);
-
-			if (legacy) {
-				this.persistentCollections = legacy;
-				await store.set(PERSISTENT_COLLECTIONS_KEY, legacy);
-				await store.delete(LEGACY_PERSISTENT_MAPS_KEY);
-			}
-		}
-
+		await this.migrate();
+		await this.reloadPersistentCollections();
+		this.unsubscribeRecords = this.records().onChange(() => {
+			void this.reloadPersistentCollections(true);
+		});
 		this.loaded = true;
 	}
 
@@ -177,8 +239,24 @@ export class CollectionStore {
 			return;
 		}
 
-		const store = this.getStore();
-		await store.set(PERSISTENT_COLLECTIONS_KEY, this.persistentCollections);
+		const records = this.records();
+		const existing = await records.list<PersistentCollectionRecord>();
+
+		for (const [name, data] of Object.entries(this.persistentCollections)) {
+			const record = existing.find((item) => item.name === name);
+
+			if (record) {
+				await records.update<PersistentCollectionRecord>(record.id, { data: { ...data } });
+			} else {
+				await records.create({ name, data: { ...data } });
+			}
+		}
+
+		for (const record of existing) {
+			if (!Object.hasOwn(this.persistentCollections, record.name)) {
+				await records.delete(record.id);
+			}
+		}
 	}
 
 	private emitCreated(context: CollectionCreatedContext): void {

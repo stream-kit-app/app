@@ -18,6 +18,7 @@ import {
 	createSettingsFields,
 	flattenSettingsFieldItems,
 	getSettingsFieldDefinition,
+	getSettingsFieldSyncScope,
 	getSettingsFieldValue,
 	isPersistedSettingsField,
 	withGeneratedSettingsKeys
@@ -27,7 +28,10 @@ import { createPluginAppApi } from './app-api';
 import { createPluginStore } from './store';
 
 const ENABLED_KEY = '__enabled';
-
+const SETTINGS_COLLECTION = 'settings';
+/** Fixed 15-char syncId for the account-scoped settings document per plugin. */
+const ACCOUNT_SETTINGS_SYNC_ID = 'accountsettings';
+const SETTINGS_KEY_MIGRATION = '__settings_stable_keys_v1';
 export class RegisteredPlugin<TApi = PluginPublicApi> {
 	key: string;
 	name: string;
@@ -237,12 +241,17 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.removeDefinitions(app);
 	}
 
+	private isDeviceScoped(definition: SettingsFieldDefinition): boolean {
+		return getSettingsFieldSyncScope(definition) === 'device';
+	}
+
 	async load(app: App): Promise<void> {
 		if (this.hasLoaded) {
 			return;
 		}
 
 		await this.loadEnabledState();
+		await this.migrateStableSettingsKeys();
 
 		this.registerWidgetDefinitions(app);
 
@@ -251,15 +260,28 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		}
 
 		const stored: SettingsFieldInstance[] = [];
+		const accountValues = await this.loadAccountSettings(app);
 
 		for (const definition of this.persistedDefinitions) {
-			let value = await this.store.get<SettingsFieldInstance['value']>(definition.key);
+			const deviceScoped = this.isDeviceScoped(definition);
+			let value: SettingsFieldInstance['value'] | undefined;
 
-			if (value === undefined || value === null) {
-				value = await this.getLegacyValue(definition.key);
-
-				if (value !== undefined && value !== null) {
-					await this.store.set(definition.key, value);
+			if (deviceScoped) {
+				value = await this.store.get<SettingsFieldInstance['value']>(definition.key);
+				if (value === undefined || value === null) {
+					value = await this.getLegacyValue(definition.key);
+					if (value !== undefined && value !== null) {
+						await this.store.set(definition.key, value);
+					}
+				}
+			} else {
+				value = accountValues[definition.key];
+				if (value === undefined || value === null) {
+					value = await this.store.get<SettingsFieldInstance['value']>(definition.key);
+					if (value !== undefined && value !== null) {
+						accountValues[definition.key] = value;
+						await this.store.delete(definition.key);
+					}
 				}
 			}
 
@@ -272,9 +294,74 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 			}
 		}
 
+		if (Object.keys(accountValues).length > 0) {
+			await this.saveAccountSettings(app, accountValues);
+		}
+
 		this.fields = createSettingsFields(this.fieldItems, stored);
 		await this.onLoad?.(this.createContext(app));
 		this.hasLoaded = true;
+	}
+
+	/** Copy values from obsolete indexed keys (obs-4.host) onto stable keys (obs.host). */
+	private async migrateStableSettingsKeys(): Promise<void> {
+		if (await this.store.get<boolean>(SETTINGS_KEY_MIGRATION)) {
+			return;
+		}
+
+		const entries = await this.storeFacade.entries();
+		for (const definition of this.persistedDefinitions) {
+			const stableKey = definition.key;
+			const existing = await this.store.get(stableKey);
+			if (existing !== undefined && existing !== null) {
+				continue;
+			}
+
+			const nameSegment = stableKey.includes('.')
+				? stableKey.slice(stableKey.lastIndexOf('.') + 1)
+				: stableKey;
+
+			for (const [key, value] of Object.entries(entries)) {
+				if (key === ENABLED_KEY || key.startsWith('__')) {
+					continue;
+				}
+				if (key === stableKey) {
+					continue;
+				}
+				const legacyName = key.includes('.') ? key.slice(key.lastIndexOf('.') + 1) : key;
+				if (legacyName === nameSegment && value !== undefined && value !== null) {
+					await this.store.set(stableKey, value as SettingsFieldInstance['value']);
+					break;
+				}
+			}
+		}
+
+		await this.store.set(SETTINGS_KEY_MIGRATION, true);
+	}
+
+	private async loadAccountSettings(app: App): Promise<Record<string, SettingsFieldInstance['value']>> {
+		try {
+			const records = app.records.open(this.key, SETTINGS_COLLECTION);
+			const row = await records.get<{ values?: Record<string, SettingsFieldInstance['value']> }>(
+				ACCOUNT_SETTINGS_SYNC_ID
+			);
+			return row?.values && typeof row.values === 'object' ? { ...row.values } : {};
+		} catch {
+			return {};
+		}
+	}
+
+	private async saveAccountSettings(
+		app: App,
+		values: Record<string, SettingsFieldInstance['value']>
+	): Promise<void> {
+		const records = app.records.open(this.key, SETTINGS_COLLECTION);
+		const existing = await records.get(ACCOUNT_SETTINGS_SYNC_ID);
+		if (existing) {
+			await records.update(ACCOUNT_SETTINGS_SYNC_ID, { values });
+		} else {
+			await records.create({ id: ACCOUNT_SETTINGS_SYNC_ID, values });
+		}
 	}
 
 	async loadEnabledState(): Promise<void> {
@@ -357,21 +444,36 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 			return false;
 		}
 
-		for (const field of this.fields) {
-			await this.store.set(field.key, field.value);
-		}
-
+		await this.persistFields(app, this.fields);
 		await this.onSave?.(this.createContext(app));
 
 		return true;
 	}
 
 	async saveFieldInstances(app: App, fields: SettingsFieldInstance[]): Promise<void> {
+		await this.persistFields(app, fields);
+		await this.onSave?.(this.createContext(app));
+	}
+
+	private async persistFields(app: App, fields: SettingsFieldInstance[]): Promise<void> {
+		const accountValues: Record<string, SettingsFieldInstance['value']> = {
+			...(await this.loadAccountSettings(app))
+		};
+
 		for (const field of fields) {
-			await this.store.set(field.key, field.value);
+			const definition = getSettingsFieldDefinition(this.fieldItems, field.key);
+			if (!definition || !isPersistedSettingsField(definition)) {
+				continue;
+			}
+
+			if (this.isDeviceScoped(definition)) {
+				await this.store.set(field.key, field.value);
+			} else {
+				accountValues[field.key] = field.value;
+			}
 		}
 
-		await this.onSave?.(this.createContext(app));
+		await this.saveAccountSettings(app, accountValues);
 	}
 
 	validate(app: App): boolean {

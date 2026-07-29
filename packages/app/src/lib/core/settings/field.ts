@@ -141,10 +141,20 @@ export type SettingsFieldInstance = {
 };
 
 type SettingsFieldBase = {
+	/** Stable storage key. Prefer an explicit key; otherwise derived from `name` (no index). */
 	key: string;
 	name: string;
 	placeholder?: string;
 	defaultValue?: SettingsFieldValue;
 	required?: boolean;
 	visible?: (context: SettingsContext) => boolean;
+	/**
+	 * Where the value is stored for multi-PC sync.
+	 * - `account` (default): synced via plugin records
+	 * - `device`: stays in the local PluginStore (host/port, local paths, …)
+	 * Password fields default to `device` + `secret`.
+	 */
+	sync?: 'account' | 'device';
+	/** Never sync; always device-local. Implied by `inputType: 'password'`. */
+	secret?: boolean;
 };

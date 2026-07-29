@@ -74,6 +74,7 @@ export function localVoiceSelectSettingsField(
 		name?: string;
 		emptyLabel?: string;
 		required?: boolean;
+		sync?: 'account' | 'device';
 		visible?: (context: SettingsVisibilityContext) => boolean;
 	} = {}
 ): PluginSettingsFieldDefinition {
@@ -84,6 +85,7 @@ export function localVoiceSelectSettingsField(
 		placeholder: options.emptyLabel ?? 'Select a default voice',
 		loadingPlaceholder: 'Loading voices…',
 		required: options.required,
+		sync: options.sync,
 		visible: options.visible,
 		items: localVoiceSelectSettingsItems(),
 		itemsReload: () => local.getInstalledVoices().length

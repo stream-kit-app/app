@@ -3,7 +3,7 @@ import type { VariantProps } from 'tailwind-variants';
 import { tv } from 'tailwind-variants';
 
 export const toastVariants = tv({
-	base: 'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-4 shadow-lg',
+	base: 'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-none border p-4 shadow-lg',
 	variants: {
 		variant: {
 			default: 'border-border bg-dark-900 text-foreground',

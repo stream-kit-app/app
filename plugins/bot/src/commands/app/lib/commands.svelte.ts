@@ -1,8 +1,14 @@
 import type { HandlerTriggerContext, PluginAppApi, PluginStore } from '@stream-kit/plugin';
+import { isRecordsSyncId } from '@stream-kit/plugin';
 import type { SelectItem } from '@stream-kit/ui/types';
 import type { CommandLayoutUpdate, CommandRecord, NewCommandRecord } from './stored-command';
 
-import { loadCommands, saveCommands } from '../../../lib/commands-store';
+import {
+	COMMANDS_COLLECTION,
+	loadCommands,
+	migrateCommandsToRecords,
+	saveCommands
+} from '../../../lib/commands-store';
 import { getOwnedCommandIds } from '../../lib/owned-command-ids';
 import {
 	mergeCommandRecord,
@@ -22,6 +28,16 @@ import {
 import { exportedCommandToNewRecord, parseCommandsExport } from './command-import';
 import { Command } from './command.svelte';
 
+function serializeForCreate(command: Command): Record<string, unknown> {
+	const record = command.toRecord();
+	const { id, ...rest } = record;
+	return {
+		...rest,
+		...(id && isRecordsSyncId(id) ? { id } : {}),
+		createdAt: record.createdAt.toISOString(),
+		updatedAt: record.updatedAt.toISOString()
+	};
+}
 export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
 
 export type CommandRecordOptions = {
@@ -34,10 +50,19 @@ export class Commands {
 	private runtimeFactory: CommandRuntimeFactory | null = null;
 	private store?: PluginStore;
 	private app?: PluginAppApi;
+	private unsubscribeRecords?: () => void;
 
 	bind(store: PluginStore, app: PluginAppApi): void {
+		if (this.store === store && this.app === app) {
+			return;
+		}
+
+		this.unsubscribeRecords?.();
 		this.store = store;
 		this.app = app;
+		this.unsubscribeRecords = app.records.open(COMMANDS_COLLECTION).onChange(() => {
+			void this.refreshDefinitionBindings();
+		});
 	}
 
 	private requireContext(): { store: PluginStore; app: PluginAppApi } {
@@ -180,9 +205,10 @@ export class Commands {
 		options?: CommandRecordOptions
 	): Promise<CommandRecord> {
 		const { app } = this.requireContext();
-		const id = input.id ?? crypto.randomUUID();
+		const id =
+			input.id && isRecordsSyncId(input.id) ? input.id : undefined;
 
-		if (this.items.some((command) => command.id === id)) {
+		if (id && this.items.some((command) => command.id === id)) {
 			throw new Error(`Command with id "${id}" already exists`);
 		}
 
@@ -259,14 +285,15 @@ export class Commands {
 
 	async load(): Promise<void> {
 		const { store, app } = this.requireContext();
-		const rows = await loadCommands(store);
-
+		await migrateCommandsToRecords(app, store);
+		await app.waitForConfigSync();
+		const rows = await loadCommands(app);
 		this.items = rows.map((row) => Command.fromRecord(row, app));
 	}
 
 	async refreshDefinitionBindings(): Promise<void> {
-		const { store, app } = this.requireContext();
-		const rows = await loadCommands(store);
+		const { app } = this.requireContext();
+		const rows = await loadCommands(app);
 		const openById = new Map(
 			this.items
 				.filter((command): command is Command & { id: string } => command.isFormOpen && command.id != null)
@@ -277,28 +304,28 @@ export class Commands {
 	}
 
 	async persist(): Promise<void> {
-		const { store } = this.requireContext();
-		await saveCommands(store, this.getSnapshot());
+		const { app } = this.requireContext();
+		await saveCommands(app, this.getSnapshot());
 	}
 
 	async upsert(command: Command): Promise<void> {
 		const wasNew = command.id == null || !this.items.some((item) => item.id === command.id);
-
-		if (command.id == null) {
-			command.id = crypto.randomUUID();
-		}
-
 		const now = new Date();
 
 		if (wasNew) {
 			command.createdAt = now;
 			command.updatedAt = now;
+			const { app } = this.requireContext();
+			const created = await app.records.open(COMMANDS_COLLECTION).create(
+				serializeForCreate(command)
+			);
+			command.id = created.id;
 			this.add(command);
-		} else {
-			command.updatedAt = now;
-			this.items = this.items.map((item) => (item.id === command.id ? command : item));
+			return;
 		}
 
+		command.updatedAt = now;
+		this.items = this.items.map((item) => (item.id === command.id ? command : item));
 		await this.persist();
 	}
 

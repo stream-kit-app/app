@@ -30,11 +30,15 @@ If your account has an active plan, your avatar shows a primary ring (header and
 
 Active (or grace-period) plans also unlock **cloud files** (`user_files`): upload or browse media from handler file fields (for example Play audio file) and rankings icons. Manage stored files from the **Cloud files** section on Profile (list, quota bar, delete). Each plan defines a max file size and total storage quota. Stored values are **host-independent** paths such as `/api/files/...`; the UI and runtime resolve them against the current `PUBLIC_POCKETBASE_URL` with short-lived file tokens (files are protected). Absolute PocketBase URLs from older builds are normalized to relative paths on load when a plan is active.
 
-When a plan becomes active, Stream Kit automatically uploads existing local files from **cloud-capable action handler fields** in the background. Bot commands/timers and rankings icons are not auto-migrated until plugin-store sync exists; use **Upload to cloud** on those UIs manually. Local paths keep working for playback until they are migrated.
+When a plan becomes active, Stream Kit automatically uploads existing local files from **cloud-capable action handler fields** in the background. Prefer cloud file refs (`/api/files/...`) so media works on every PC. Local paths keep working for playback until they are migrated.
 
-Active (or grace-period) plans also enable **cloud sync** for actions and action queues: your local SQLite database stays the offline runtime store, and changes sync to PocketBase (`user_actions`, `user_action_queues`) while you are signed in with an entitled plan. Conflicts use last-write-wins on a monotone **revision** per record (not wall-clock alone). Sync retries automatically when you come back online. Open **Profile** to see sync status or tap **Sync now**.
+Active (or grace-period) plans also enable **cloud sync** for your Stream Kit setup: your local SQLite database stays the offline runtime store, and changes sync to PocketBase while you are signed in with an entitled plan. Conflicts use last-write-wins on a monotone **revision** per record. Sync retries automatically when you come back online. Open **Profile** to see sync status or tap **Sync now**. See [Using multiple PCs](/docs/get-started/multi-pc).
 
-Active plans also unlock **cloud overlays**: publish a built overlay from the overlay configure page to get a public browser-source URL on the site (`/app/overlays/{id}/`). Live events still require the desktop app online.
+**What syncs (Pro):** actions and queues; plugin domain data (bot, rankings, quotes, variables, collections, websocket connection metadata); account-scoped plugin settings; overlay projects (metadata + source zip); dashboard layout; installed zip-plugin catalog (restored via manifest URL when available).
+
+**What stays on each PC:** Twitch/YouTube OAuth tokens, Discord bot token, OBS host/port/password, TTS API keys, and other device-local settings (API server bind/port, developer modes, local TTS voice ids).
+
+Active plans also unlock **cloud overlays**: publish a built overlay from the overlay configure page to get a public browser-source URL on the site (`/app/overlays/{id}/`). Live events still require the desktop app online. Authoring projects themselves also sync for Pro accounts (see multi-PC guide).
 
 ## Developers / local setup
 

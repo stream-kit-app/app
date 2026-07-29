@@ -3,6 +3,9 @@ description: Dashboard UI mix of marketing blueprint chrome and dense Cloudflare
 globs:
   - site/src/routes/app/**
   - packages/app/src/lib/components/core/dashboard/**
+  - packages/app/src/routes/+layout.svelte
+  - packages/app/src/lib/components/core/page-header/**
+  - packages/app/src/lib/components/core/toolbar/**
 ---
 
 # Dashboard UI
@@ -15,10 +18,21 @@ Reuse `@stream-kit/ui/blueprint` — do not invent parallel card/rail systems:
 
 | Pattern | Use |
 | --- | --- |
-| Content panels | `Panel` with optional header snippet (header rule, not a second card border) |
+| Content panels | `Panel tone="solid"` with optional header snippet (header rule, not a second card border) |
 | Metric / feature matrices | `CellGrid` / `Cell` or dense `@stream-kit/ui/data-table` |
 | Page / section labels | `Eyebrow` or mono uppercase labels |
 | Hairlines | `border-rule` for schematic dividers; `border-border` for interactive chrome |
+| Icon wells | `border border-rule` squares, not `rounded-lg bg-dark-700` blobs |
+
+## Desktop app shell
+
+The desktop chrome lives in `packages/app/src/routes/+layout.svelte` (left nav + content column). Do **not** wrap it in marketing `GridFrame`.
+
+1. **Sidebar** — `w-64`, `border-r border-rule`, logo row separated by a hairline, `Crosshair` at the rail/header join.
+2. **Nav** — rail active indicator (left primary hairline), not pill backgrounds. Section labels: mono uppercase. Item labels stay sentence case.
+3. **Page header** — `border-b border-rule`, breadcrumb separators as mono `/` in `text-rule-strong`.
+4. **Toolbar** — hairline rows via `border-rule`.
+5. **Cards** — app list cards (`stat-card`, `plugin-card`, `overlay-card`, `queue-card`, `dashboard-widget-card`, `action-group-section`) use `Panel tone="solid"` / `border-rule` + hover via background shift, not `hover:border-dark-500`.
 
 ## Layout expectations (cloud `/app`)
 
@@ -29,13 +43,12 @@ When building `site/src/routes/app/**` (beyond overlay hosting):
 3. **Main content** — `Panel`s and tables, not floating gapped marketing cards.
 4. **No marketing footer / download CTA** inside `/app`.
 
-Desktop dashboard widgets under `packages/app/.../dashboard/` should gradually align: prefer `Panel`-like sharp frames and hairline dividers when touching widget chrome.
-
 ## Density
 
 - Prefer compact rows, tabular numerals for metrics (`font-mono` or `tabular-nums`).
 - Empty lists use `@stream-kit/ui/empty-state`.
 - Prefer `@stream-kit/ui` controls (`Button`, `Badge`, `Input`, `DataTable`) over custom markup.
+- **Keep DnD grids gapped** (`dashboard-grid`) — collapsed borders destroy drop affordances. Convert static card matrices (plugins, overlays list) to `CellGrid`.
 
 ## Anti-patterns
 
@@ -46,9 +59,7 @@ Desktop dashboard widgets under `packages/app/.../dashboard/` should gradually a
 </div>
 
 <!-- ✅ Schematic or Panel-based -->
-<CellGrid cols={3}>
-  <Cell>…</Cell>
-</CellGrid>
+<Panel tone="solid" class="p-4">…</Panel>
 ```
 
-Do not apply full-page marketing `GridFrame` hatched gutters inside dense app dashboards unless the shell intentionally mirrors the marketing frame (e.g. a public marketing-adjacent landing inside `/app`). Prefer a left-nav + content rail layout instead.
+Do not apply full-page marketing `GridFrame` hatched gutters inside dense app dashboards unless the shell intentionally mirrors the marketing frame. Prefer a left-nav + content rail layout instead.

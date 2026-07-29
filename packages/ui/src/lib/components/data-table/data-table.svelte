@@ -33,9 +33,9 @@
 	}
 </script>
 
-<section class={cn('overflow-hidden rounded-xl border border-dark-600 bg-dark-800', className)}>
+<section class={cn('overflow-hidden rounded-none border border-rule bg-dark-800', className)}>
 	{#if title}
-		<div class="border-b border-dark-700/80 px-4 py-3">
+		<div class="border-b border-rule px-4 py-3">
 			<h3 class="text-base font-semibold text-dark-50">{title}</h3>
 		</div>
 	{/if}
@@ -48,7 +48,7 @@
 				viewportClasses={cn('w-full overflow-hidden', maxHeight)}
 			>
 				<table class="min-w-full text-sm">
-					<thead class="sticky top-0 z-10 border-b border-dark-600 bg-dark-900">
+					<thead class="sticky top-0 z-10 border-b border-rule bg-dark-900">
 						<tr>
 							{#each columns as column (column.id)}
 								<th

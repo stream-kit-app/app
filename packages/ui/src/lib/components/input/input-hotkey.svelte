@@ -160,7 +160,7 @@
 		{id}
 		type="button"
 		class={cn(
-			'flex h-10 w-full items-center gap-2 rounded-xl border px-4 text-left text-sm',
+			'flex h-10 w-full items-center gap-2 rounded-lg border px-4 text-left text-sm',
 			'bg-dark-800 focus:ring-2 focus:ring-ring focus:outline-none',
 			capturing && 'ring-2 ring-ring',
 			inputFieldBorder(error)

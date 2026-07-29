@@ -62,7 +62,7 @@
 		cn(
 			'group/card @container/widget relative flex min-w-0 flex-col overflow-hidden',
 			columnSpanClass[instance.columns],
-			'rounded-xl border border-dark-600 bg-dark-800 transition-colors hover:border-dark-500',
+			'rounded-none border border-rule bg-dark-800 transition-colors hover:bg-dark-900/60',
 			isOverlay && 'shadow-lg',
 			className
 		)
@@ -72,12 +72,12 @@
 <article class={shellClass} {@attach rootRef}>
 	{#if editMode}
 		<div
-			class="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2 gap-y-2 border-b border-dark-700 p-4 pb-3 @min-[24rem]/widget:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
+			class="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2 gap-y-2 border-b border-rule p-4 pb-3 @min-[24rem]/widget:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
 		>
 			{#if !isOverlay}
 				<button
 					type="button"
-					class="col-start-1 row-start-1 flex size-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-dark-300 transition hover:bg-dark-700 hover:text-dark-100 active:cursor-grabbing"
+					class="col-start-1 row-start-1 flex size-8 shrink-0 cursor-grab items-center justify-center text-dark-300 transition hover:bg-dark-700 hover:text-dark-100 active:cursor-grabbing"
 					{@attach handleRef}
 					aria-label={t('Drag to reorder {name}', { name: displayTitle })}
 					onclick={(event) => event.stopPropagation()}
@@ -91,7 +91,7 @@
 			<div class="col-start-2 row-start-1 flex min-w-0 items-center gap-2">
 				{#if definition?.icon}
 					<div
-						class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+						class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 					>
 						<Icon icon={definition.icon} class="size-4" />
 					</div>
@@ -120,7 +120,7 @@
 		<div class="flex items-start gap-3 p-4 pb-3">
 			{#if definition.icon}
 				<div
-					class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+					class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 				>
 					<Icon icon={definition.icon} class="size-5" />
 				</div>
@@ -134,7 +134,7 @@
 		</div>
 	{/if}
 
-	<div class="min-w-0 flex-1 border-t border-dark-700/80 bg-dark-900/50 px-4 py-3">
+	<div class="min-w-0 flex-1 border-t border-rule bg-dark-900/50 px-4 py-3">
 		{#if definition}
 			<DashboardWidgetHost {definition} {unavailable} />
 		{:else}

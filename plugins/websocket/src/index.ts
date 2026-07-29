@@ -68,7 +68,7 @@ const plugin: Plugin = (app) => {
 		},
 		ensureConnected(id) {
 			if (!controller) {
-				return Promise.reject(new Error('WebSocket plugin is not loaded'));
+				return Promise.resolve();
 			}
 
 			return controller.ensureConnected(id);
@@ -133,11 +133,11 @@ const plugin: Plugin = (app) => {
 				children: [createSendMessageHandler(app)]
 			}
 		],
-		onEnable: async ({ store }) => {
-			controller = createWebSocketPluginController(app);
-			connectionsService = new Connections(store, controller, app);
+		onEnable: async ({ store, app: pluginApp }) => {
+			controller = createWebSocketPluginController(pluginApp);
+			connectionsService = new Connections(store, controller, pluginApp);
 			setConnectionsService(connectionsService);
-			await controller.boot(store);
+			await controller.boot();
 			await connectionsService.load();
 			await controller.connectAutoConnect();
 		},
@@ -147,12 +147,12 @@ const plugin: Plugin = (app) => {
 		onDisable: async () => {
 			await controller?.disconnectAll();
 		},
-		onSave: async ({ store }) => {
+		onSave: async ({ app: pluginApp }) => {
 			if (!connectionsService) {
 				return;
 			}
 
-			const saved = await loadConnections(store);
+			const saved = await loadConnections(pluginApp);
 			await controller?.syncConnections(saved);
 			connectionsService.items = saved.map((record) => Connection.fromRecord(record));
 		}

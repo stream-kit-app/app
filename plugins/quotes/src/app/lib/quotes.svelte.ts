@@ -1,7 +1,13 @@
 import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
+import { SvelteDate, SvelteMap } from 'svelte/reactivity';
 
 import { interpolateTemplate } from '../../lib/get-field-value';
-import { loadQuotes, saveQuotes } from '../../lib/quotes-store';
+import {
+	loadQuoteRecords,
+	migrateLegacyQuotes,
+	openQuotesRecords,
+	type QuotesRecordCollection
+} from '../../lib/quotes-store';
 import type { CreateQuoteInput, QuoteRecord, QuoteSource, UpdateQuoteInput } from '../../lib/types';
 
 export class QuotesService {
@@ -9,10 +15,22 @@ export class QuotesService {
 
 	private store?: PluginStore;
 	private app?: PluginAppApi;
+	private records?: QuotesRecordCollection;
+	private storageIdByQuoteId = new SvelteMap<number, string>();
+	private unsubscribeRecords?: () => void;
 
 	bind(store: PluginStore, app: PluginAppApi): void {
+		if (this.store === store && this.app === app) {
+			return;
+		}
+
+		this.unsubscribeRecords?.();
 		this.store = store;
 		this.app = app;
+		this.records = openQuotesRecords(app);
+		this.unsubscribeRecords = this.records.onChange(() => {
+			void this.load();
+		});
 	}
 
 	requireApp(): PluginAppApi {
@@ -32,13 +50,12 @@ export class QuotesService {
 	}
 
 	async load(): Promise<void> {
-		const { store } = this.requireContext();
-		this.quotes = await loadQuotes(store);
-	}
+		const { store, app } = this.requireContext();
+		await migrateLegacyQuotes(store, app);
+		const records = await loadQuoteRecords(app);
 
-	private async persist(): Promise<void> {
-		const { store } = this.requireContext();
-		await saveQuotes(store, this.quotes);
+		this.storageIdByQuoteId = new SvelteMap(records.map((record) => [record.quote.id, record.id]));
+		this.quotes = records.map((record) => record.quote);
 	}
 
 	list(): QuoteRecord[] {
@@ -78,12 +95,14 @@ export class QuotesService {
 			text,
 			addedBy: input.addedBy.trim() || this.requireApp().i18n.translate('Manual'),
 			addedByUserId: input.addedByUserId,
-			createdAt: new Date().toISOString(),
+			createdAt: new SvelteDate().toISOString(),
 			source: input.source ?? 'manual'
 		};
 
+		const records = this.requireRecords();
+		const stored = await records.create({ quote: record });
 		this.quotes = [...this.quotes, record];
-		await this.persist();
+		this.storageIdByQuoteId.set(record.id, stored.id);
 
 		return record;
 	}
@@ -108,8 +127,9 @@ export class QuotesService {
 			addedBy: input.addedBy?.trim() || existing.addedBy
 		};
 
+		const storageId = this.requireStorageId(id);
+		await this.requireRecords().update(storageId, { quote: updated });
 		this.quotes = this.quotes.map((quote) => (quote.id === id ? updated : quote));
-		await this.persist();
 
 		return updated;
 	}
@@ -121,10 +141,29 @@ export class QuotesService {
 			return undefined;
 		}
 
+		await this.requireRecords().delete(this.requireStorageId(id));
 		this.quotes = this.quotes.filter((quote) => quote.id !== id);
-		await this.persist();
+		this.storageIdByQuoteId.delete(id);
 
 		return existing;
+	}
+
+	private requireRecords(): QuotesRecordCollection {
+		if (!this.records) {
+			throw new Error('Quotes service has not been bound to a records collection');
+		}
+
+		return this.records;
+	}
+
+	private requireStorageId(quoteId: number): string {
+		const storageId = this.storageIdByQuoteId.get(quoteId);
+
+		if (!storageId) {
+			throw new Error(this.requireApp().i18n.translate('Quote #{id} not found', { id: quoteId }));
+		}
+
+		return storageId;
 	}
 
 	formatQuoteMessage(

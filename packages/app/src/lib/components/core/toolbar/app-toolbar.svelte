@@ -40,7 +40,7 @@
 </script>
 
 {#if toolbar.hasToolbarRow}
-	<div class="shrink-0 border-b border-dark-600 bg-background px-6 py-3">
+	<div class="shrink-0 border-b border-rule bg-background px-6 py-3">
 		<div class="flex flex-wrap items-center justify-between gap-4">
 			{#if hasBulkSection}
 				<div class="flex min-w-0 flex-wrap items-center gap-4">
@@ -75,7 +75,7 @@
 				<div
 					class={cn(
 						'ml-auto flex flex-wrap items-center gap-2',
-						hasBulkSection && 'border-l border-dark-700 pl-4'
+						hasBulkSection && 'border-l border-rule pl-4'
 					)}
 				>
 					{#each toolbar.primaryActions as action (action.id)}
@@ -99,11 +99,11 @@
 {/if}
 
 {#if toolbar.meta.length > 0}
-	<div class="shrink-0 border-b border-dark-600 bg-background px-6 py-3">
+	<div class="shrink-0 border-b border-rule bg-background px-6 py-3">
 		<div class="flex flex-wrap items-center gap-2 text-xs font-medium text-dark-300">
 			{#each toolbar.meta as item (item.label)}
 				<span
-					class="inline-flex items-center gap-1.5 rounded-lg border border-dark-700/50 px-2.5 py-1"
+					class="inline-flex items-center gap-1.5 border border-rule px-2.5 py-1 font-mono text-[11px] tracking-wide uppercase"
 				>
 					{#if item.icon}
 						<Icon icon={item.icon} class="size-3.5 text-dark-400" aria-hidden="true" />

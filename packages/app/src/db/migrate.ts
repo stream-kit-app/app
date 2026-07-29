@@ -464,6 +464,95 @@ export async function migrate(sqlite: Database): Promise<void> {
 	await migrateAddRevisionColumns(sqlite);
 	await migrateAddTombstoneRevisionColumn(sqlite);
 	await createConfigSyncTrashTable(sqlite);
+	await createPluginRecordsTable(sqlite);
+	await migrateOverlaysSyncColumns(sqlite);
+	await migrateDashboardWidgetsSyncColumns(sqlite);
+}
+
+async function migrateOverlaysSyncColumns(sqlite: Database): Promise<void> {
+	const { createSyncId } = await import('./sync-id');
+	const columns = await sqlite.select<Array<{ name: string }>>('PRAGMA table_info(overlays)');
+	if (columns.length === 0) {
+		return;
+	}
+
+	if (!columns.some((column) => column.name === 'sync_id')) {
+		await sqlite.execute('ALTER TABLE overlays ADD COLUMN sync_id TEXT');
+		const rows = await sqlite.select<Array<{ id: string }>>('SELECT id FROM overlays');
+		for (const row of rows) {
+			await sqlite.execute('UPDATE overlays SET sync_id = $1 WHERE id = $2', [
+				createSyncId(),
+				row.id
+			]);
+		}
+		await sqlite.execute(
+			'CREATE UNIQUE INDEX IF NOT EXISTS idx_overlays_sync_id ON overlays (sync_id)'
+		);
+	}
+
+	if (!columns.some((column) => column.name === 'revision')) {
+		await sqlite.execute(
+			'ALTER TABLE overlays ADD COLUMN revision INTEGER NOT NULL DEFAULT 1'
+		);
+	}
+
+	if (!columns.some((column) => column.name === 'source_hash')) {
+		await sqlite.execute(
+			`ALTER TABLE overlays ADD COLUMN source_hash TEXT NOT NULL DEFAULT ''`
+		);
+	}
+}
+
+async function migrateDashboardWidgetsSyncColumns(sqlite: Database): Promise<void> {
+	const { createSyncId } = await import('./sync-id');
+	const columns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(dashboard_widgets)'
+	);
+	if (columns.length === 0) {
+		return;
+	}
+
+	if (!columns.some((column) => column.name === 'sync_id')) {
+		await sqlite.execute('ALTER TABLE dashboard_widgets ADD COLUMN sync_id TEXT');
+		const rows = await sqlite.select<Array<{ id: number }>>(
+			'SELECT id FROM dashboard_widgets'
+		);
+		for (const row of rows) {
+			await sqlite.execute('UPDATE dashboard_widgets SET sync_id = $1 WHERE id = $2', [
+				createSyncId(),
+				row.id
+			]);
+		}
+		await sqlite.execute(
+			'CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboard_widgets_sync_id ON dashboard_widgets (sync_id)'
+		);
+	}
+
+	if (!columns.some((column) => column.name === 'revision')) {
+		await sqlite.execute(
+			'ALTER TABLE dashboard_widgets ADD COLUMN revision INTEGER NOT NULL DEFAULT 1'
+		);
+	}
+}
+
+async function createPluginRecordsTable(sqlite: Database): Promise<void> {
+	await sqlite.execute(`
+		CREATE TABLE IF NOT EXISTS plugin_records (
+			id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+			plugin_key TEXT NOT NULL,
+			collection TEXT NOT NULL,
+			sync_id TEXT NOT NULL UNIQUE,
+			payload TEXT NOT NULL,
+			sort_order INTEGER NOT NULL DEFAULT 0,
+			revision INTEGER NOT NULL DEFAULT 1,
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL
+		)
+	`);
+	await sqlite.execute(`
+		CREATE INDEX IF NOT EXISTS idx_plugin_records_plugin_collection
+		ON plugin_records (plugin_key, collection)
+	`);
 }
 
 async function migrateAddRevisionColumns(sqlite: Database): Promise<void> {

@@ -509,23 +509,14 @@ const plugin = (app: PluginAppApi) => {
 		],
 
 		onEnable: async (context: PluginSettingsContext) => {
-
-			const { store } = context;
-
-			variables.bindStore(store);
-
-			collections.bindStore(store);
-
-			configureAudioPlayback(app);
-
+			const { store, app: pluginApp } = context;
+			variables.bindStore(store, pluginApp);
+			collections.bindStore(store, pluginApp);
+			configureAudioPlayback(pluginApp);
 			await variables.load();
-
 			await collections.load();
-
-			await logs.load(app.fs);
-
+			await logs.load(pluginApp.fs);
 			await syncSchedulesFromContext(context);
-
 		},
 
 		onReady: syncWatcherFromContext,

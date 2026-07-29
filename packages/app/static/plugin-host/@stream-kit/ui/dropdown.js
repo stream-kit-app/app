@@ -11,7 +11,7 @@ import { t as z } from "../../chunks/portal-BFSsRkE3.js";
 import { a as B, n as te, r as V, t as H } from "../../chunks/popper-layer-force-mount-C0Qq7_vt.js";
 import { t as U } from "../../chunks/floating-layer-anchor-DbwYuEbg.js";
 import { t as W } from "../../chunks/scroll-area-BdFM74vQ.js";
-import { t as G } from "../../chunks/button-C7Vln2y_.js";
+import { t as G } from "../../chunks/button-B-E_J8cg.js";
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_a5a66d84ac7409b4078304c79e393e2b/node_modules/bits-ui/dist/bits/menu/components/menu-sub.svelte
 function K(e, t) {
 	n(t, !0);
@@ -515,7 +515,7 @@ function fe(e, a) {
 			children: (e, n) => {
 				var s = g(), l = i(s);
 				{
-					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width)", "rounded-xl bg-dark-800 p-[5px] shadow-lg", "border border-dark-600", a.class));
+					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width)", "rounded-none bg-dark-800 p-[5px] shadow-lg", "border border-dark-600", a.class));
 					t(l, () => se, (t, n) => {
 						n(t, S(() => c, {
 							get class() {
@@ -590,7 +590,7 @@ function ge(e, a) {
 			children: (e, n) => {
 				var s = g(), l = i(s);
 				{
-					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width)", "rounded-xl bg-dark-800 p-[5px] shadow-lg", "border border-dark-600", a.class));
+					let e = x(() => T("z-[100] min-w-(--bits-floating-anchor-width)", "rounded-none bg-dark-800 p-[5px] shadow-lg", "border border-dark-600", a.class));
 					t(l, () => Z, (t, n) => {
 						n(t, S(() => c, {
 							get class() {

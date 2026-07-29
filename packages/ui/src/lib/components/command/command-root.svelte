@@ -11,7 +11,7 @@
 <Command.Root
 	{...props}
 	class={cn(
-		'flex w-full flex-col divide-y divide-dark-600 overflow-hidden rounded-xl border border-dark-600 bg-dark-800 shadow-md',
+		'flex w-full flex-col divide-y divide-dark-600 overflow-hidden rounded-none border border-dark-600 bg-dark-800 shadow-md',
 		className
 	)}
 >

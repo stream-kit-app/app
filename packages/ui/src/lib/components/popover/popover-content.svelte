@@ -12,7 +12,7 @@
 <Popover.Content
 	{...props}
 	class={cn(
-		'z-[100] w-72 rounded-xl border border-dark-600 bg-dark-800 p-3 shadow-md outline-none',
+		'z-[100] w-72 rounded-none border border-dark-600 bg-dark-800 p-3 shadow-md outline-none',
 		className
 	)}
 	sideOffset={4}

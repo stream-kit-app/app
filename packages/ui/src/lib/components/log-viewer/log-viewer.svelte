@@ -303,7 +303,7 @@
 
 	<ScrollArea
 		orientation="vertical"
-		class="h-full min-h-0 overflow-hidden rounded-lg border border-dark-600 bg-dark-900 font-mono text-sm leading-normal shadow-inner"
+		class="h-full min-h-0 overflow-hidden rounded-none border border-rule bg-dark-900 font-mono text-sm leading-normal shadow-inner"
 		viewportClasses="h-full"
 	>
 		{#if entries.length === 0}

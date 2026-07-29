@@ -20,6 +20,9 @@ Without rate limits, credential stuffing and account spam are trivial. Local/dev
 | `subscriptions` / `user_subscriptions` | Plan catalog + membership (`status`, optional `endsAt` grace) |
 | `user_files` | Protected media uploads; clients use `pb.files.getToken()` |
 | `user_actions` / `user_action_queues` | Config sync; monotone `revision` + LWW |
+| `user_plugin_records` | Generic per-record plugin data sync (`pluginKey` + `collection` + JSON `payload`); entitlement via `user_config_sync.pb.js` |
+| `user_overlay_projects` | Full overlay authoring sync (metadata + protected `source` zip + `sourceHash`); distinct from public `user_overlays` publish |
+| `user_dashboard_widgets` | Dashboard widget layout sync |
 | `user_overlays` | Published overlay browser sources: `overlayId` = local overlay UUID (unique), PB `id` is auto 15-char, `bundle` (zip of `dist/`, public, max 25MB), `config` JSON, `published`. Public list/view when `published = true`; owner CRUD + entitlement hook (`user_overlays.pb.js`). Served by the site at `/app/overlays/[uuid]/`, not as PocketBase UI routes. |
 
 Prefer `pb.filter('user={:id}', { id })` on the JS SDK when building filters with dynamic values.

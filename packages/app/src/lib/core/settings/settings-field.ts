@@ -256,22 +256,60 @@ function withGeneratedSettingsFieldKey(
 ): SettingsFieldDefinition {
 	const definition = field as Record<string, unknown>;
 	const explicitKey = typeof definition.key === 'string' ? definition.key.trim() : '';
+	const isPassword =
+		definition.type === 'text' && definition.inputType === 'password';
+	const sync =
+		definition.sync === 'account' || definition.sync === 'device'
+			? definition.sync
+			: isPassword || definition.secret === true
+				? 'device'
+				: 'account';
+	const secret = definition.secret === true || isPassword;
 
 	if (explicitKey) {
 		uniqueSlug(explicitKey, used, explicitKey);
 
 		return {
 			...definition,
-			key: explicitKey
+			key: explicitKey,
+			sync,
+			secret
 		} as SettingsFieldDefinition;
 	}
 
+	// Stable key from field name only (no settings-array index) so multi-PC sync
+	// does not accumulate stale obs-4.host / obs-5.host keys across edits.
+	const nameSlug = uniqueSlug(String(definition.name ?? 'field'), used);
+	const pluginScope = scope.split('.')[0] ?? scope;
+
 	return {
 		...definition,
-		key: `${createSettingsKeyPrefix(scope)}${uniqueSlug(String(definition.name ?? scope), used)}`
+		key: `${slugify(pluginScope)}.${nameSlug}`,
+		sync,
+		secret
 	} as SettingsFieldDefinition;
 }
 
-function createSettingsKeyPrefix(scope: string): string {
-	return scope.includes('.') ? `${slugify(scope)}.` : '';
+/** Resolve sync scope for a persisted settings field definition. */
+export function getSettingsFieldSyncScope(
+	definition: SettingsFieldDefinition
+): 'account' | 'device' {
+	if (
+		definition.type === 'alert' ||
+		definition.type === 'button' ||
+		definition.type === 'select-values' ||
+		definition.type === 'table'
+	) {
+		return 'device';
+	}
+
+	if (definition.secret === true) {
+		return 'device';
+	}
+
+	if (definition.type === 'text' && definition.inputType === 'password') {
+		return 'device';
+	}
+
+	return definition.sync ?? 'account';
 }

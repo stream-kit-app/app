@@ -172,3 +172,56 @@ export const userOverlaysSchema = z.object({
     updatedAt: z.string().regex(DATETIME_REGEX).optional(),
 })
 
+export const userPluginRecordsSchema = z.object({
+    collectionId: z.literal('pbc_8940203850').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    pluginKey: z.string().min(1).max(200),
+    collection: z.string().min(1).max(200),
+    payload: z.unknown(),
+    sortOrder: z.number().int().min(0).optional(),
+    revision: z.number().int().min(0).optional(),
+    clientUpdatedAt: z.number().optional(),
+    deletedAt: z.number().optional(),
+    created: z.string().regex(DATETIME_REGEX).optional(),
+    updated: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const userOverlayProjectsSchema = z.object({
+    collectionId: z.literal('pbc_8950203850').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    overlayId: z.string().min(1).max(64),
+    name: z.string().min(1).max(5000),
+    template: z.string().max(200).optional(),
+    config: z.unknown(),
+    version: z.number().int().min(0).optional(),
+    expectedEvents: z.unknown().optional(),
+    requiredPlugins: z.unknown().optional(),
+    installedActionKeys: z.unknown().optional(),
+    source: z.string().optional(),
+    sourceHash: z.string().max(128).optional(),
+    revision: z.number().int().min(0).optional(),
+    clientUpdatedAt: z.number().optional(),
+    deletedAt: z.number().optional(),
+    created: z.string().regex(DATETIME_REGEX).optional(),
+    updated: z.string().regex(DATETIME_REGEX).optional(),
+})
+
+export const userDashboardWidgetsSchema = z.object({
+    collectionId: z.literal('pbc_8960203850').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    definitionId: z.string().min(1).max(500),
+    columns: z.number().int().min(1).optional(),
+    sortOrder: z.number().int().min(0).optional(),
+    revision: z.number().int().min(0).optional(),
+    clientUpdatedAt: z.number().optional(),
+    deletedAt: z.number().optional(),
+    created: z.string().regex(DATETIME_REGEX).optional(),
+    updated: z.string().regex(DATETIME_REGEX).optional(),
+})
+

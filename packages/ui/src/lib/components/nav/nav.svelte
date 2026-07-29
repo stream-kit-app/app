@@ -60,8 +60,8 @@
 			type="button"
 			onclick={item.onClick}
 			class={cn(
-				'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-sm font-medium text-dark-200',
-				'hover:bg-dark-900 hover:text-dark-100',
+				'relative flex w-full cursor-pointer items-center gap-2.5 rounded-none px-3 py-1.5 text-left text-sm font-medium text-dark-200',
+				'hover:bg-dark-900/60 hover:text-dark-100',
 				className
 			)}
 		>
@@ -80,9 +80,10 @@
 		onclick={() => toggleExpanded(item.path)}
 		aria-expanded={isExpanded(item)}
 		class={cn(
-			'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-sm font-medium text-dark-200',
-			'hover:bg-dark-900 hover:text-dark-100',
-			hasActiveChild(item) && 'bg-dark-800 text-foreground'
+			'relative flex w-full cursor-pointer items-center gap-2.5 rounded-none px-3 py-1.5 text-left text-sm font-medium text-dark-200',
+			'hover:bg-dark-900/60 hover:text-dark-100',
+			hasActiveChild(item) &&
+				'bg-dark-900 text-foreground before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-primary'
 		)}
 	>
 		{@render label(item, true)}
@@ -101,7 +102,7 @@
 
 {#snippet sectionLabel(item: NavItem)}
 	<div
-		class="px-3 pt-3 pb-1 text-xs font-extrabold tracking-wide text-dark-400 uppercase"
+		class="px-3 pt-3 pb-1 font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase"
 		role="presentation"
 	>
 		{getTitle(item)}

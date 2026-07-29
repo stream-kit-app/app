@@ -1,3 +1,6 @@
+import { createSyncId } from '$db/sync-id';
+import { notifyConfigLocalChange } from '$db/config-sync-notify';
+import { recordConfigSyncTombstone } from './config-sync-tombstones';
 import type { PluginWidgetColumns } from '$lib/core/plugins/types';
 import type { DashboardWidgetLayoutUpdate } from '$lib/core/dashboard/types';
 
@@ -17,28 +20,28 @@ export async function getDashboardWidgets() {
 
 async function getNextSortOrder(): Promise<number> {
 	const [row] = await db.select({ value: max(dashboardWidgets.sortOrder) }).from(dashboardWidgets);
-
 	return (row?.value ?? -1) + 1;
 }
 
 export async function seedDefaultDashboardLayout(): Promise<void> {
 	const existing = await getDashboardWidgets();
-
 	if (existing.length > 0) {
 		return;
 	}
 
 	const now = new Date();
-
 	for (const [index, seed] of DEFAULT_DASHBOARD_LAYOUT.entries()) {
 		await db.insert(dashboardWidgets).values({
+			syncId: createSyncId(),
 			definitionId: seed.definitionId,
 			columns: seed.columns,
 			sortOrder: index,
+			revision: 1,
 			createdAt: now,
 			updatedAt: now
 		});
 	}
+	notifyConfigLocalChange();
 }
 
 export async function addDashboardWidget(
@@ -51,9 +54,11 @@ export async function addDashboardWidget(
 	const [row] = await db
 		.insert(dashboardWidgets)
 		.values({
+			syncId: createSyncId(),
 			definitionId,
 			columns,
 			sortOrder,
+			revision: 1,
 			createdAt: now,
 			updatedAt: now
 		})
@@ -63,21 +68,49 @@ export async function addDashboardWidget(
 		throw new Error('Failed to add dashboard widget');
 	}
 
+	notifyConfigLocalChange();
 	return row.id;
 }
 
 export async function removeDashboardWidget(id: number): Promise<void> {
+	const [existing] = await db
+		.select()
+		.from(dashboardWidgets)
+		.where(eq(dashboardWidgets.id, id))
+		.limit(1);
+
 	await db.delete(dashboardWidgets).where(eq(dashboardWidgets.id, id));
+
+	if (existing?.syncId) {
+		await recordConfigSyncTombstone(
+			'dashboard_widget',
+			existing.syncId,
+			new Date(),
+			(existing.revision ?? 1) + 1
+		);
+	}
+	notifyConfigLocalChange();
 }
 
 export async function updateDashboardWidgetColumns(
 	id: number,
 	columns: PluginWidgetColumns
 ): Promise<void> {
+	const [existing] = await db
+		.select()
+		.from(dashboardWidgets)
+		.where(eq(dashboardWidgets.id, id))
+		.limit(1);
+
 	await db
 		.update(dashboardWidgets)
-		.set({ columns, updatedAt: new Date() })
+		.set({
+			columns,
+			revision: (existing?.revision ?? 1) + 1,
+			updatedAt: new Date()
+		})
 		.where(eq(dashboardWidgets.id, id));
+	notifyConfigLocalChange();
 }
 
 export async function reorderDashboardLayout(updates: DashboardWidgetLayoutUpdate[]): Promise<void> {
@@ -104,7 +137,52 @@ export async function reorderDashboardLayout(updates: DashboardWidgetLayoutUpdat
 		UPDATE ${dashboardWidgets} SET
 			sort_order = CASE ${dashboardWidgets.id} ${sortCase} END,
 			columns = CASE ${dashboardWidgets.id} ${columnsCase} END,
+			revision = revision + 1,
 			updated_at = ${now}
 		WHERE ${dashboardWidgets.id} IN (${idList})
 	`);
+	notifyConfigLocalChange();
+}
+
+export async function upsertDashboardWidgetFromSync(input: {
+	syncId: string;
+	definitionId: string;
+	columns: number;
+	sortOrder: number;
+	revision: number;
+	updatedAt: Date;
+}): Promise<void> {
+	const [existing] = await db
+		.select()
+		.from(dashboardWidgets)
+		.where(eq(dashboardWidgets.syncId, input.syncId))
+		.limit(1);
+
+	if (existing) {
+		await db
+			.update(dashboardWidgets)
+			.set({
+				definitionId: input.definitionId,
+				columns: input.columns,
+				sortOrder: input.sortOrder,
+				revision: input.revision,
+				updatedAt: input.updatedAt
+			})
+			.where(eq(dashboardWidgets.id, existing.id));
+		return;
+	}
+
+	await db.insert(dashboardWidgets).values({
+		syncId: input.syncId,
+		definitionId: input.definitionId,
+		columns: input.columns,
+		sortOrder: input.sortOrder,
+		revision: input.revision,
+		createdAt: input.updatedAt,
+		updatedAt: input.updatedAt
+	});
+}
+
+export async function deleteDashboardWidgetBySyncIdFromSync(syncId: string): Promise<void> {
+	await db.delete(dashboardWidgets).where(eq(dashboardWidgets.syncId, syncId));
 }

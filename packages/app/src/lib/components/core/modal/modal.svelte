@@ -77,14 +77,14 @@
 			onInteractOutside={ignoreFloatingLayerDismiss}
 			onFocusOutside={ignoreFloatingLayerDismiss}
 			class={cn(
-				'fixed inset-y-0 right-0 z-51 flex h-full flex-col overflow-hidden border-l border-dark-600 bg-dark-800 shadow-2xl outline-none duration-[120ms]',
+				'fixed inset-y-0 right-0 z-51 flex h-full flex-col overflow-hidden border-l border-rule bg-dark-800 shadow-2xl outline-none duration-[120ms]',
 				'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right',
 				'data-[state=open]:animate-in data-[state=open]:slide-in-from-right'
 			)}
 			style="width: {targetWidth}"
 		>
 			<div class="flex h-full min-h-0 flex-col" style:width={targetWidth}>
-				<div class="shrink-0 border-b border-dark-600 px-8 pt-8 pb-6">
+				<div class="shrink-0 border-b border-rule px-8 pt-8 pb-6">
 					<div class="flex items-start gap-3">
 						<Dialog.Close
 							aria-label={t('Close')}
@@ -133,7 +133,7 @@
 				{/if}
 
 				{#if modal.footer}
-					<div class="shrink-0 border-t border-dark-600 bg-dark-800 px-8 py-4">
+					<div class="shrink-0 border-t border-rule bg-dark-800 px-8 py-4">
 						{#if modal.contentHost === 'plugin'}
 							<PluginComponentHost component={modal.footer} props={modal.props} />
 						{:else}

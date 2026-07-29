@@ -19,7 +19,7 @@ function j(e, t) {
 		...n,
 		"data-active": i(a),
 		class: e
-	}), [() => O("flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm font-medium text-dark-200", "hover:bg-dark-900 hover:text-dark-100", i(a) && "bg-dark-800 text-foreground hover:bg-dark-800 hover:text-foreground", t.class)]), s(d(l), () => t.children ?? _), o(l), f(e, l), c();
+	}), [() => O("relative flex items-center gap-2.5 rounded-none px-3 py-1.5 text-sm font-medium text-dark-200", "hover:bg-dark-900/60 hover:text-dark-100", i(a) && "bg-dark-900 text-foreground before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-primary hover:bg-dark-900 hover:text-foreground", t.class)]), s(d(l), () => t.children ?? _), o(l), f(e, l), c();
 }
 //#endregion
 //#region ../ui/src/lib/components/nav/nav.svelte
@@ -31,7 +31,7 @@ var M = new Set([
 	"activePath",
 	"translateTitle",
 	"children"
-]), N = C("<!> <span class=\"truncate\"> </span>", 1), P = C("<button type=\"button\"><!></button>"), F = C("<button type=\"button\"><!> <!></button>"), I = C("<li><!></li>"), L = C("<div class=\"px-3 pt-3 pb-1 text-xs font-extrabold tracking-wide text-dark-400 uppercase\" role=\"presentation\"> </div>"), R = C("<ul class=\"mt-0.5 flex flex-col gap-0.5\"></ul>"), z = C("<!> <!>", 1), B = C("<div class=\"flex flex-col gap-0.5\"><!></div>"), V = C("<nav><!></nav>");
+]), N = C("<!> <span class=\"truncate\"> </span>", 1), P = C("<button type=\"button\"><!></button>"), F = C("<button type=\"button\"><!> <!></button>"), I = C("<li><!></li>"), L = C("<div class=\"px-3 pt-3 pb-1 font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase\" role=\"presentation\"> </div>"), R = C("<ul class=\"mt-0.5 flex flex-col gap-0.5\"></ul>"), z = C("<!> <!>", 1), B = C("<div class=\"flex flex-col gap-0.5\"><!></div>"), V = C("<nav><!></nav>");
 function H(C, w) {
 	r(w, !0);
 	let k = (e, n = _, r) => {
@@ -54,7 +54,7 @@ function H(C, w) {
 		let s = m(() => S(r?.(), !1));
 		var c = g(), u = a(c), v = (e) => {
 			var r = P();
-			k(d(r), t, () => i(s)), o(r), l((e) => p(r, 1, e), [() => x(O("flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-sm font-medium text-dark-200", "hover:bg-dark-900 hover:text-dark-100", n()))]), T("click", r, function(...e) {
+			k(d(r), t, () => i(s)), o(r), l((e) => p(r, 1, e), [() => x(O("relative flex w-full cursor-pointer items-center gap-2.5 rounded-none px-3 py-1.5 text-left text-sm font-medium text-dark-200", "hover:bg-dark-900/60 hover:text-dark-100", n()))]), T("click", r, function(...e) {
 				t().onClick?.apply(this, e);
 			}), f(e, r);
 		}, y = (e) => {
@@ -95,7 +95,7 @@ function H(C, w) {
 		}
 		o(a), l((t, n) => {
 			e(a, "aria-expanded", t), p(a, 1, n);
-		}, [() => X(r()), () => x(O("flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-sm font-medium text-dark-200", "hover:bg-dark-900 hover:text-dark-100", Y(r()) && "bg-dark-800 text-foreground"))]), T("click", a, () => Z(r().path)), f(n, a);
+		}, [() => X(r()), () => x(O("relative flex w-full cursor-pointer items-center gap-2.5 rounded-none px-3 py-1.5 text-left text-sm font-medium text-dark-200", "hover:bg-dark-900/60 hover:text-dark-100", Y(r()) && "bg-dark-900 text-foreground before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-primary"))]), T("click", a, () => Z(r().path)), f(n, a);
 	}, U = (e, t = _) => {
 		var n = I();
 		A(d(n), t, () => "ps-10 font-normal"), o(n), f(e, n);
