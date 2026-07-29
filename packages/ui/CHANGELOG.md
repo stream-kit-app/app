@@ -1,5 +1,20 @@
 # @stream-kit/ui
 
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- [`ee186f9`](https://github.com/stream-kit-app/app/commit/ee186f99f178557cd2119229fa30638b221a197a) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Align shared UI with the blueprint design system: hybrid radius (sharp surfaces, lightly rounded controls), Panel `tone` variants, rail-style nav, and sharper structural surfaces (data-table, empty-state, menus, alerts, card blocks).
+
+- [`fd9558d`](https://github.com/stream-kit-app/app/commit/fd9558d95834c054a5a50733f09c2149970ddbcd) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Add `@stream-kit/ui/blueprint` primitives (GridFrame, SectionRule, Crosshair, CellGrid, Panel, Eyebrow) and shared blueprint CSS utilities for the Cloudflare-style schematic design system.
+
+- [`ee186f9`](https://github.com/stream-kit-app/app/commit/ee186f99f178557cd2119229fa30638b221a197a) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - feat; cloud features, design updates and much more
+
+### Patch Changes
+
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.4
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes
