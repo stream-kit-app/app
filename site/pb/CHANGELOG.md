@@ -1,5 +1,11 @@
 # @stream-kit/pocketbase
 
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- [`82a8d3d`](https://github.com/stream-kit-app/app/commit/82a8d3dbecfa10d6435b08c329ba0f0b366840e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - fix; null error in pocketbase
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes

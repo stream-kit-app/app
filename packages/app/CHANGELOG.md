@@ -1,5 +1,15 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.16
+
+### Patch Changes
+
+- [`82a8d3d`](https://github.com/stream-kit-app/app/commit/82a8d3dbecfa10d6435b08c329ba0f0b366840e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - fix; null error in pocketbase
+
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.4
+    - @stream-kit/plugin@0.2.0-alpha.7
+
 ## 0.1.0-alpha.15
 
 ### Patch Changes
