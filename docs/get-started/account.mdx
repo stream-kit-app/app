@@ -5,13 +5,14 @@ description: Create and manage your Stream Kit account in the desktop app.
 
 # Stream Kit account
 
-Stream Kit accounts are optional. You can use the app without signing in. An account lets you manage a profile (name, email, avatar) and enables future marketplace features that require identity.
+Stream Kit accounts are optional. You can use the app without signing in. An account lets you manage a profile (name, email, avatar) and enables cloud features that require identity.
 
 ## Sign in or create an account
 
 1. Click **Log in** in the top-right of the app header.
 2. Enter your email and password, or choose **Create account**.
-3. After you sign in, the header shows your avatar. Open the menu for **Profile** or **Log out**.
+3. Use **Forgot password?** on the login form to request a reset email.
+4. After you sign in, the header shows your avatar. Open the menu for **Profile** or **Log out**.
 
 ## Profile
 
@@ -21,29 +22,39 @@ Open **Profile** from the avatar menu to update:
 - Display name
 - Email (sends a confirmation link to the new address; your login email updates after you confirm)
 - Password (current password required; you stay signed in on this device)
+- Account deletion (confirm with your password; permanently removes your profile and cloud data)
 
-If your account has an active plan, your avatar shows a primary ring (header and profile) and the plan appears in a **Subscription** card on the profile page. You can cancel an active plan from that card.
+If your email is not verified yet, the profile page shows an **Unverified** badge and a **Resend verification email** button. Verification is informational only and does not block app features.
 
-Active plans also unlock **cloud files** (`user_files`): upload or browse media from handler file fields (for example Play audio file) and rankings icons. Each plan defines a max file size and total storage quota.
+If your account has an active plan, your avatar shows a primary ring (header and profile) and the plan appears in a **Subscription** card on the profile page. You can cancel an active plan from that card. After cancellation, cloud features stay available for **30 days** (grace period); the profile shows the end date. When the grace period ends, the plan no longer unlocks cloud access.
 
-File URLs are stored as absolute PocketBase links. Cloud **actions** sync (`user_actions`) is separate from **file blobs** (`user_files`): syncing actions does not copy media. If you change `PUBLIC_POCKETBASE_URL`, Stream Kit downloads each `/api/files/...` URL referenced by actions (trying the URL as stored, the current host, then common local origins such as `http://127.0.0.1:8090`) and **re-uploads** the blob into `user_files` on the current server. The previous PocketBase must still be running for that download; open **Profile → Migrate cloud files** after starting it, or re-select and upload files manually. Restart the desktop app after changing the env var (`PUBLIC_*` values are baked in at Vite startup).
+Active (or grace-period) plans also unlock **cloud files** (`user_files`): upload or browse media from handler file fields (for example Play audio file) and rankings icons. Manage stored files from the **Cloud files** section on Profile (list, quota bar, delete). Each plan defines a max file size and total storage quota. Stored values are **host-independent** paths such as `/api/files/...`; the UI and runtime resolve them against the current `PUBLIC_POCKETBASE_URL` with short-lived file tokens (files are protected). Absolute PocketBase URLs from older builds are normalized to relative paths on load when a plan is active.
 
-When a plan becomes active, Stream Kit automatically uploads existing local files from cloud-capable fields (actions, bot commands/timers, and rankings image icons) in the background. You can still use **Upload to cloud** on a field to migrate a single path manually. Local paths keep working for playback until they are migrated.
+When a plan becomes active, Stream Kit automatically uploads existing local files from **cloud-capable action handler fields** in the background. Bot commands/timers and rankings icons are not auto-migrated until plugin-store sync exists; use **Upload to cloud** on those UIs manually. Local paths keep working for playback until they are migrated.
 
-Active plans also enable **cloud sync** for actions and action queues: your local SQLite database stays the offline runtime store, and changes sync to PocketBase (`user_actions`, `user_action_queues`) while you are signed in with an active plan. Conflicts use last-write-wins on timestamps. Open **Profile** to see sync status or tap **Sync now**.
+Active (or grace-period) plans also enable **cloud sync** for actions and action queues: your local SQLite database stays the offline runtime store, and changes sync to PocketBase (`user_actions`, `user_action_queues`) while you are signed in with an entitled plan. Conflicts use last-write-wins on a monotone **revision** per record (not wall-clock alone). Sync retries automatically when you come back online. Open **Profile** to see sync status or tap **Sync now**.
+
+Active plans also unlock **cloud overlays**: publish a built overlay from the overlay configure page to get a public browser-source URL on the site (`/app/overlays/{id}/`). Live events still require the desktop app online.
 
 ## Developers / local setup
 
-The desktop app talks to PocketBase using `PUBLIC_POCKETBASE_URL` from `$env/static/public` (baked in at build time).
+The desktop app talks to PocketBase using `PUBLIC_POCKETBASE_URL` from `$env/static/public` (baked in at build time). Cloud overlays also need `PUBLIC_SITE_URL` (the marketing site origin).
 
-1. Run PocketBase locally (for example via `@stream-kit/site`: `pnpm --filter @stream-kit/site pb:setup` then start the site/PB stack).
-2. Copy `packages/app/.env.example` to `packages/app/.env`.
-3. Set:
+Root `pnpm dev` bootstraps this automatically:
+
+1. Creates `packages/app/.env` and `site/.env` from their `.env.example` files when missing
+2. Starts PocketBase on `http://127.0.0.1:8090` (localhost only) with a local superuser (`admin@stream-kit.local` / `stream-kit-dev` by default — override with `POCKETBASE_ADMIN_EMAIL` / `POCKETBASE_ADMIN_PASSWORD`)
+3. Seeds a `pro` plan if missing and grants active memberships to users without an entitled plan (`SK_DEV_SEED=plan` for plan only, `SK_DEV_SEED=0` to skip)
+
+Dev seed and the PocketBase task refuse non-localhost `PUBLIC_POCKETBASE_URL` values so a remote/production instance cannot be seeded by accident.
+
+Example app env:
 
 ```env
 PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090
+PUBLIC_SITE_URL=http://localhost:5173
 ```
 
-For release builds, set `PUBLIC_POCKETBASE_URL` in CI at build time so the packaged app points at the production PocketBase.
+For release builds, set `PUBLIC_POCKETBASE_URL` (and `PUBLIC_SITE_URL` when needed) in CI at build time so the packaged app points at production.
 
-Plugins can read the signed-in public profile and call login/logout via `app.auth` — see [Plugin Authoring API](/docs/developers/plugin-api).
+Plugins can read the signed-in public profile and call login/logout via `app.auth` — see [Plugin Authoring API](/docs/developers/plugin-api). Subscription objects may include optional `endsAt` during the post-cancel grace period.

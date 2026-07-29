@@ -24,6 +24,7 @@
 	const { t } = useI18n();
 
 	let loading = $state(true);
+	let deletingId = $state<string | null>(null);
 	let files = $state<UserFileRecord[]>([]);
 	let quota = $state<UserFilesQuota | null>(null);
 	let error = $state<string | null>(null);
@@ -82,6 +83,45 @@
 			quota = null;
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function deleteFile(event: MouseEvent, file: UserFileRecord): Promise<void> {
+		event.stopPropagation();
+		event.preventDefault();
+
+		const app = getApp();
+		const confirmed = await app.confirm.ask({
+			title: t('Delete cloud file?'),
+			description: t(
+				'Delete "{name}"? Actions that still reference this file may stop working.',
+				{ name: file.originalName }
+			),
+			confirmLabel: t('Delete'),
+			cancelLabel: t('Cancel')
+		});
+		if (!confirmed) {
+			return;
+		}
+
+		deletingId = file.id;
+		try {
+			await app.userFiles.remove(file.id);
+			files = files.filter((item) => item.id !== file.id);
+			quota = await app.userFiles.getQuota();
+			app.toast.create({
+				title: t('File deleted'),
+				description: t('The cloud file was removed.'),
+				variant: 'success'
+			});
+		} catch (err) {
+			app.toast.create({
+				title: t('Delete failed'),
+				description: err instanceof Error ? err.message : t('Could not delete file.'),
+				variant: 'error'
+			});
+		} finally {
+			deletingId = null;
 		}
 	}
 
@@ -190,10 +230,10 @@
 			<ScrollArea orientation="vertical" class="min-h-0 flex-1" viewportClasses="h-full w-full">
 				<ul class="divide-y divide-dark-700 rounded-xl border border-dark-600">
 					{#each filteredFiles as file (file.id)}
-						<li>
+						<li class="flex items-center gap-1 pr-2">
 							<button
 								type="button"
-								class="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-dark-700/60"
+								class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-dark-700/60"
 								onclick={() => onSelect(file)}
 							>
 								<span
@@ -202,7 +242,7 @@
 								>
 									{#if file.mimeType.startsWith('image/') && !failedThumbIds.has(file.id)}
 										<img
-											src={file.url}
+											src={getApp().userFiles.resolveUrl(file.url)}
 											alt=""
 											class="size-9 rounded-lg object-cover"
 											onerror={() => failedThumbIds.add(file.id)}
@@ -219,6 +259,15 @@
 										{formatBytes(file.size)} · {file.mimeType}
 									</span>
 								</span>
+							</button>
+							<button
+								type="button"
+								class="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-dark-300 hover:bg-destructive-800/60 hover:text-destructive-50 disabled:cursor-not-allowed disabled:opacity-50"
+								disabled={deletingId === file.id}
+								aria-label={t('Delete')}
+								onclick={(event) => void deleteFile(event, file)}
+							>
+								<Icon icon="ri:delete-bin-line" class="size-4" />
 							</button>
 						</li>
 					{/each}

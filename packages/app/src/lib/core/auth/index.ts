@@ -5,6 +5,8 @@ export {
 	AUTH_AVATAR_MIME_TYPES,
 	AUTH_MEMBERSHIP_EXPAND,
 	isPocketBaseAutoCancelled,
+	isPocketBaseNotFound,
+	isPocketBaseUnauthorized,
 	pocketBaseErrorMessage,
 	resolvePocketBaseUrl,
 	toAccount,
@@ -13,6 +15,12 @@ export {
 	toPublicUser,
 	validateAvatarFile
 } from './auth-utils';
+export {
+	SUBSCRIPTION_GRACE_MS,
+	formatEndsAtIso,
+	isMembershipEntitled,
+	parsePbDateToMs
+} from './subscription-entitlement';
 export type {
 	AuthAccount,
 	AuthLoginInput,

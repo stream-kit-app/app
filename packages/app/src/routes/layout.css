@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '../../../ui/src/styles/blueprint.css';
 
 @source '../../../ui/src';
 @source '../../**/*.{svelte,ts,js}';
@@ -129,6 +130,10 @@
 	--color-border: var(--color-dark-600);
 	--color-ring: var(--color-primary-200);
 
+	/* Blueprint hairlines — weaker than --color-border for schematic rules/rails */
+	--color-rule: oklch(0.98 0.002 264 / 0.08);
+	--color-rule-strong: oklch(0.98 0.002 264 / 0.16);
+
 	/* Border radius — one step tighter than Tailwind defaults across the app */
 	--radius-xs: 0.125rem;
 	--radius-sm: 0.125rem;
@@ -141,6 +146,7 @@
 
 	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 @utility text-cap {
@@ -318,8 +324,8 @@
 		position: absolute;
 		inset: 0;
 		background-image:
-			linear-gradient(oklch(0.98 0.002 264 / 0.08) 1px, transparent 1px),
-			linear-gradient(90deg, oklch(0.98 0.002 264 / 0.08) 1px, transparent 1px);
+			linear-gradient(var(--color-rule) 1px, transparent 1px),
+			linear-gradient(90deg, var(--color-rule) 1px, transparent 1px);
 		background-size: 48px 48px;
 		mask-image: radial-gradient(circle at center, black 100%, transparent 72%);
 	}

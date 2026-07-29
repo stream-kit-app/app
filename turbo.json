@@ -1,0 +1,129 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"ui": "stream",
+	"concurrency": "20",
+	"globalDependencies": ["packages/app/.env", "site/.env"],
+	"globalEnv": ["PUBLIC_POCKETBASE_URL", "PUBLIC_SITE_URL", "TAURI_DEV_HOST"],
+	"tasks": {
+		"//#bootstrap": {
+			"cache": false
+		},
+		"//#codegen": {
+			"inputs": [
+				"scripts/generate-script-api-types.mjs",
+				"scripts/lib/**",
+				"packages/app/src/lib/core/plugins/plugin-app-api.types.ts",
+				"packages/app/src/lib/core/overlay/**",
+				"packages/core/src/twitch-chat-message.ts",
+				"plugins/*/src/**",
+				"plugins/*/manifest.json"
+			],
+			"outputs": [
+				"packages/script-api/src/index.d.ts",
+				"packages/script-api/src/plugin-app-api.d.ts",
+				"packages/script-api/src/trigger-data.d.ts",
+				"packages/script-api/src/trigger-map.json",
+				"packages/script-api/src/runtime.generated.ts"
+			]
+		},
+		"@stream-kit/core#build": {
+			"inputs": ["src/**", "tsconfig*.json", "package.json"],
+			"outputs": ["dist/**"]
+		},
+		"@stream-kit/ui#build": {
+			"dependsOn": ["@stream-kit/core#build"],
+			"inputs": ["src/**", "tsconfig*.json", "package.json"],
+			"outputs": []
+		},
+		"@stream-kit/plugin#build": {
+			"dependsOn": ["//#codegen", "@stream-kit/core#build"],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"stubs/**",
+				"dts-bundle.json",
+				"tsconfig*.json",
+				"package.json",
+				"../app/src/lib/**"
+			],
+			"outputs": ["dist/**"]
+		},
+		"build": {
+			"dependsOn": [
+				"@stream-kit/core#build",
+				"@stream-kit/plugin#build",
+				"@stream-kit/ui#build"
+			],
+			"inputs": [
+				"src/**",
+				"manifest.json",
+				"vite.build.config.js",
+				"package.json",
+				"tsconfig*.json"
+			],
+			"outputs": ["dist/**"]
+		},
+		"@stream-kit/app#build:plugin-host": {
+			"dependsOn": ["@stream-kit/ui#build", "@stream-kit/plugin#build"],
+			"inputs": [
+				"scripts/build-plugin-host.mjs",
+				"scripts/sync-plugin-host-modules.mjs",
+				"plugin-host-config.mjs",
+				"vite.plugin-host.config.js",
+				"src/lib/core/plugins/host/**",
+				"../plugin/src/runtime.ts",
+				"../ui/src/**",
+				"../../plugins/*/manifest.json"
+			],
+			"outputs": ["static/plugin-host/**"]
+		},
+		"dev": {
+			"dependsOn": [
+				"@stream-kit/core#build",
+				"@stream-kit/plugin#build",
+				"@stream-kit/ui#build"
+			],
+			"cache": false,
+			"persistent": true
+		},
+		"@stream-kit/core#dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"@stream-kit/plugin#dev": {
+			"dependsOn": ["//#codegen", "@stream-kit/core#build"],
+			"cache": false,
+			"persistent": true
+		},
+		"@stream-kit/ui#dev": {
+			"dependsOn": ["@stream-kit/core#build"],
+			"cache": false,
+			"persistent": true
+		},
+		"@stream-kit/app#dev": {
+			"dependsOn": [
+				"//#bootstrap",
+				"@stream-kit/app#build:plugin-host",
+				"@stream-kit/core#build",
+				"@stream-kit/plugin#build",
+				"@stream-kit/ui#build"
+			],
+			"cache": false,
+			"persistent": true
+		},
+		"@stream-kit/pocketbase#dev": {
+			"dependsOn": ["//#bootstrap"],
+			"cache": false,
+			"persistent": true
+		},
+		"@stream-kit/site#dev": {
+			"dependsOn": ["//#bootstrap", "@stream-kit/ui#build"],
+			"cache": false,
+			"persistent": true
+		},
+		"@stream-kit/docs#dev": {
+			"cache": false,
+			"persistent": true
+		}
+	}
+}

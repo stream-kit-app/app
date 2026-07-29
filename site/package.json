@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "concurrently --kill-others-on-fail --continue-on-error -n pb,typegen,site -c blue,yellow,green \"node scripts/run-pocketbase.mjs\" \"pnpm pb:typegen:watch\" \"vite dev\"",
+		"dev": "concurrently --kill-others-on-fail --continue-on-error -n typegen,site -c yellow,green \"pnpm pb:typegen:watch\" \"vite dev\"",
 		"dev:site": "vite dev",
 		"pb:setup": "node scripts/setup-pocketbase.mjs",
 		"pb:serve": "node scripts/run-pocketbase.mjs",
@@ -13,6 +13,7 @@
 		"pb:typegen:watch": "nodemon --config nodemon.typegen.json",
 		"build": "vite build",
 		"preview": "vite preview",
+		"start": "node server.js",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
@@ -20,10 +21,12 @@
 	"dependencies": {
 		"@iconify/svelte": "^5.2.1",
 		"@stream-kit/ui": "workspace:*",
+		"fflate": "0.8.3",
 		"isomorphic-dompurify": "^3.19.0",
 		"marked": "^18.0.6",
 		"neverthrow": "^8.2.0",
 		"pocketbase": "^0.27.0",
+		"ws": "8.18.0",
 		"zod": "^4.4.3"
 	},
 	"peerDependencies": {
@@ -34,6 +37,7 @@
 		"@sveltejs/kit": "next",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
+		"@types/ws": "8.18.0",
 		"concurrently": "^9.2.1",
 		"nodemon": "^3.1.10",
 		"pocketbase-typegen": "^1.5.0",

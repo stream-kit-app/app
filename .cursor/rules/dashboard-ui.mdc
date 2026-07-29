@@ -1,0 +1,54 @@
+---
+description: Dashboard UI mix of marketing blueprint chrome and dense Cloudflare-style app chrome
+globs:
+  - site/src/routes/app/**
+  - packages/app/src/lib/components/core/dashboard/**
+---
+
+# Dashboard UI
+
+Dashboards (desktop home widgets and the future cloud `/app` shell) should feel like a **mix** of the marketing blueprint language and a dense Cloudflare-style admin UI.
+
+## Shared chrome
+
+Reuse `@stream-kit/ui/blueprint` — do not invent parallel card/rail systems:
+
+| Pattern | Use |
+| --- | --- |
+| Content panels | `Panel` with optional header snippet (header rule, not a second card border) |
+| Metric / feature matrices | `CellGrid` / `Cell` or dense `@stream-kit/ui/data-table` |
+| Page / section labels | `Eyebrow` or mono uppercase labels |
+| Hairlines | `border-rule` for schematic dividers; `border-border` for interactive chrome |
+
+## Layout expectations (cloud `/app`)
+
+When building `site/src/routes/app/**` (beyond overlay hosting):
+
+1. **Left nav rail** — sticky sidebar with mono/small labels; vertical rule on the content edge.
+2. **Page header block** — breadcrumb or eyebrow + page title + optional actions, separated by a hairline from the body.
+3. **Main content** — `Panel`s and tables, not floating gapped marketing cards.
+4. **No marketing footer / download CTA** inside `/app`.
+
+Desktop dashboard widgets under `packages/app/.../dashboard/` should gradually align: prefer `Panel`-like sharp frames and hairline dividers when touching widget chrome.
+
+## Density
+
+- Prefer compact rows, tabular numerals for metrics (`font-mono` or `tabular-nums`).
+- Empty lists use `@stream-kit/ui/empty-state`.
+- Prefer `@stream-kit/ui` controls (`Button`, `Badge`, `Input`, `DataTable`) over custom markup.
+
+## Anti-patterns
+
+```svelte
+<!-- ❌ Marketing-style floating cards inside dashboard body -->
+<div class="grid gap-4 sm:grid-cols-3">
+  <div class="rounded-xl border border-dark-600 bg-dark-800 p-6">Stat</div>
+</div>
+
+<!-- ✅ Schematic or Panel-based -->
+<CellGrid cols={3}>
+  <Cell>…</Cell>
+</CellGrid>
+```
+
+Do not apply full-page marketing `GridFrame` hatched gutters inside dense app dashboards unless the shell intentionally mirrors the marketing frame (e.g. a public marketing-adjacent landing inside `/app`). Prefer a left-nav + content rail layout instead.

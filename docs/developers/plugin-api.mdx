@@ -356,7 +356,7 @@ Remote clients call `plugin:your-key:getLeaderboard` and can subscribe to `plugi
 
 ### Stream Kit account (`app.auth`)
 
-Read the signed-in public profile and authenticate with email/password. Profile updates stay in the app UI; plugins get public fields only (`id`, `name`, `avatarUrl`, `verified`, optional `subscription` `{ key, name, maxFileBytes, maxStorageBytes }`).
+Read the signed-in public profile and authenticate with email/password. Profile updates stay in the app UI; plugins get public fields only (`id`, `name`, `avatarUrl`, `verified`, optional `subscription` `{ key, name, maxFileBytes, maxStorageBytes, endsAt? }`).
 
 ```ts
 const user = app.auth.user; // AuthPublicUser | null

@@ -42,7 +42,7 @@
 	});
 </script>
 
-<div {@attach ref} class="relative min-w-0 p-0.5">
+<div {@attach ref} class="relative min-w-0 p-2">
 	<div
 		class={cn(
 			'group/row flex min-w-0 items-center gap-1 rounded-lg px-2 py-1.5 transition-colors',

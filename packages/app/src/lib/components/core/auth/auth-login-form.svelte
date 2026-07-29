@@ -5,7 +5,7 @@
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
 
-	import { openRegisterModal } from './open-auth-modals';
+	import { openPasswordResetModal, openRegisterModal } from './open-auth-modals';
 
 	type Props = {
 		modalId?: string;
@@ -70,13 +70,22 @@
 		oninput={(event) => (password = event.currentTarget.value)}
 	/>
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<button
-			type="button"
-			class="cursor-pointer text-sm text-primary hover:underline"
-			onclick={() => openRegisterModal()}
-		>
-			{t('Create account')}
-		</button>
+		<div class="flex flex-col items-start gap-1">
+			<button
+				type="button"
+				class="cursor-pointer text-sm text-primary hover:underline"
+				onclick={() => openRegisterModal()}
+			>
+				{t('Create account')}
+			</button>
+			<button
+				type="button"
+				class="cursor-pointer text-sm text-primary hover:underline"
+				onclick={() => openPasswordResetModal()}
+			>
+				{t('Forgot password?')}
+			</button>
+		</div>
 		<div class="flex flex-wrap justify-end gap-2">
 			<Button variant="outline" disabled={submitting} onclick={closeModal}>{t('Cancel')}</Button>
 			<Button type="submit" disabled={!canSubmit}>{t('Log in')}</Button>

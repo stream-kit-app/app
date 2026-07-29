@@ -1,0 +1,50 @@
+---
+description: Theme tokens must live in layout.css; no hardcoded colors in components
+globs:
+  - "**/*.svelte"
+  - "**/*.css"
+---
+
+# Theme tokens
+
+Design tokens live in the consumer `@theme` blocks:
+
+- Desktop: `packages/app/src/routes/layout.css`
+- Marketing site: `site/src/routes/layout.css`
+
+`@stream-kit/ui` is token-based — components must use semantic classes (`bg-primary`, `border-rule`, `text-muted-foreground`), never raw hex/oklch (except rare boot-splash inline CSS that runs before tokens load).
+
+## When adding a token
+
+1. Add it to **both** `layout.css` files so site and app stay aligned.
+2. Prefer CSS variables under `@theme` so Tailwind v4 emits utilities (`bg-*`, `text-*`, `border-*`).
+3. For repeated decorative CSS (grids, hatches), add an `@utility` in `packages/ui/src/styles/blueprint.css` (or a sibling shared stylesheet) and import it from both `layout.css` files — do not copy `@keyframes` / background recipes into components.
+
+## Blueprint tokens
+
+| Token | Role |
+| --- | --- |
+| `--color-rule` | Default schematic hairline (weaker than `--color-border`) |
+| `--color-rule-strong` | Emphasized ticks / separators |
+| `--font-mono` | Eyebrows, indices, numeric readouts (`JetBrains Mono`) |
+
+Use `border-rule` / `bg-rule` for schematic chrome. Keep `border-border` for interactive UI (inputs, menus, dialogs).
+
+## Anti-patterns
+
+```svelte
+<!-- ❌ Hardcoded color in a component -->
+<div class="border-[oklch(0.98_0.002_264_/_0.08)]">
+
+<!-- ✅ Token utility -->
+<div class="border-rule">
+```
+
+```css
+/* ❌ One-off decorative CSS in a Svelte <style> block */
+.my-grid {
+  background-image: linear-gradient(...);
+}
+
+/* ✅ Shared @utility in packages/ui/src/styles/blueprint.css */
+```

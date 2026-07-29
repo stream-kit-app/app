@@ -354,6 +354,16 @@ export class ActionQueues {
 		};
 	}
 
+	/** True when any queue has pending or running jobs (skip disruptive reloads). */
+	hasBusyQueues(): boolean {
+		for (const runtime of this.runtimes.values()) {
+			if (runtime.pending > 0 || runtime.active > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private runtimeFor(definition: ActionQueueDefinition): QueueRuntime {
 		let runtime = this.runtimes.get(definition.id);
 

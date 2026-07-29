@@ -103,6 +103,7 @@ export const userSubscriptionsSchema = z.object({
     status: z.enum(['active', 'cancelled', 'expired']),
     createdAt: z.string().regex(DATETIME_REGEX).optional(),
     updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+    endsAt: z.string().regex(DATETIME_REGEX).optional(),
 })
 
 export const userFilesSchema = z.object({
@@ -124,13 +125,14 @@ export const userActionQueuesSchema = z.object({
     id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
     user: z.string().regex(/^[a-z0-9]+$/).length(15),
     name: z.string().min(1).max(5000),
-    concurrency: z.number().int().refine((n) => n !== 0),
+    concurrency: z.number().int().optional(),
     maxLength: z.number().int().optional(),
-    sortOrder: z.number().int().min(0).refine((n) => n !== 0),
-    clientUpdatedAt: z.number().int().min(0).refine((n) => n !== 0),
-    deletedAt: z.number().int().min(0).optional(),
+    sortOrder: z.number().int().min(0).optional(),
+    clientUpdatedAt: z.number().int().min(0).optional(),
+    deletedAt: z.number().int().optional(),
     createdAt: z.string().regex(DATETIME_REGEX).optional(),
     updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+    revision: z.number().int().min(0).optional(),
 })
 
 export const userActionsSchema = z.object({
@@ -140,15 +142,32 @@ export const userActionsSchema = z.object({
     user: z.string().regex(/^[a-z0-9]+$/).length(15),
     name: z.string().min(1).max(5000),
     group: z.string().min(1).max(5000),
-    groupSortOrder: z.number().int().min(0).refine((n) => n !== 0),
-    sortOrder: z.number().int().min(0).refine((n) => n !== 0),
+    groupSortOrder: z.number().int().min(0).optional(),
+    sortOrder: z.number().int().min(0).optional(),
     triggers: z.unknown(),
     handlers: z.unknown(),
     enabled: z.boolean().optional(),
     queueSyncId: z.string().regex(/^[a-z0-9]*$/).max(15).optional(),
     ownerPluginKey: z.string().max(5000).optional(),
-    clientUpdatedAt: z.number().int().min(0).refine((n) => n !== 0),
-    deletedAt: z.number().int().min(0).optional(),
+    clientUpdatedAt: z.number().int().min(0).optional(),
+    deletedAt: z.number().int().optional(),
+    createdAt: z.string().regex(DATETIME_REGEX).optional(),
+    updatedAt: z.string().regex(DATETIME_REGEX).optional(),
+    revision: z.number().int().min(0).optional(),
+})
+
+export const userOverlaysSchema = z.object({
+    collectionId: z.literal('pbc_8940103850').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    overlayId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/).length(36),
+    name: z.string().min(1).max(5000),
+    config: z.unknown().optional(),
+    bundle: z.string(),
+    published: z.boolean().optional(),
+    revision: z.number().int().min(0).optional(),
+    clientUpdatedAt: z.number().int().min(0).optional(),
     createdAt: z.string().regex(DATETIME_REGEX).optional(),
     updatedAt: z.string().regex(DATETIME_REGEX).optional(),
 })

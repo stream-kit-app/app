@@ -1,6 +1,6 @@
 import type { ActionQueueRecord, SaveActionQueueInput } from '../schemas/action-queues';
 
-import { asc, eq, max } from 'drizzle-orm';
+import { asc, eq, max, sql } from 'drizzle-orm';
 
 import { DEFAULT_ACTION_QUEUE_NAME } from '$lib/core/action/stored-action';
 import {
@@ -88,6 +88,7 @@ export async function ensureDefaultActionQueue(): Promise<ActionQueueRecord> {
 			concurrency: QUEUE_CONCURRENCY_BLOCKING,
 			maxLength: null,
 			sortOrder: 0,
+			revision: 1,
 			createdAt: now,
 			updatedAt: now
 		})
@@ -119,6 +120,7 @@ export async function saveActionQueue(
 				name: input.name,
 				concurrency,
 				maxLength,
+				revision: sql`${actionQueues.revision} + 1`,
 				updatedAt: now
 			})
 			.where(eq(actionQueues.id, id))
@@ -138,6 +140,7 @@ export async function saveActionQueue(
 			concurrency,
 			maxLength,
 			sortOrder,
+			revision: 1,
 			createdAt: now,
 			updatedAt: now
 		})
@@ -159,11 +162,20 @@ export async function deleteActionQueue(id: number): Promise<void> {
 	// Reassign actions to the default queue rather than leaving them unqueued.
 	await db
 		.update(actions)
-		.set({ queueId: defaultQueue.id, updatedAt: new Date() })
+		.set({
+			queueId: defaultQueue.id,
+			revision: sql`${actions.revision} + 1`,
+			updatedAt: new Date()
+		})
 		.where(eq(actions.queueId, id));
 
 	if (queue?.syncId) {
-		await recordConfigSyncTombstone('action_queue', queue.syncId);
+		await recordConfigSyncTombstone(
+			'action_queue',
+			queue.syncId,
+			new Date(),
+			(queue.revision ?? 1) + 1
+		);
 	}
 
 	await db.delete(actionQueues).where(eq(actionQueues.id, id));
@@ -188,11 +200,13 @@ export async function upsertActionQueueFromSync(input: {
 	concurrency: number;
 	maxLength: number | null;
 	sortOrder: number;
+	revision: number;
 	updatedAt: Date;
 }): Promise<ActionQueueRecord> {
 	const existing = await getActionQueueBySyncId(input.syncId);
 	const concurrency = normalizeConcurrency(input.concurrency);
 	const maxLength = normalizeMaxLength(input.maxLength);
+	const revision = Number(input.revision) || 1;
 
 	if (existing) {
 		const [row] = await db
@@ -202,6 +216,7 @@ export async function upsertActionQueueFromSync(input: {
 				concurrency,
 				maxLength,
 				sortOrder: input.sortOrder,
+				revision,
 				updatedAt: input.updatedAt
 			})
 			.where(eq(actionQueues.id, existing.id))
@@ -222,6 +237,7 @@ export async function upsertActionQueueFromSync(input: {
 			concurrency,
 			maxLength,
 			sortOrder: input.sortOrder,
+			revision,
 			createdAt: input.updatedAt,
 			updatedAt: input.updatedAt
 		})
@@ -255,13 +271,21 @@ export async function replaceActionQueueSyncId(
 	if (existing && existing.id !== id) {
 		await db
 			.update(actions)
-			.set({ queueId: id, updatedAt: new Date() })
+			.set({
+				queueId: id,
+				revision: sql`${actions.revision} + 1`,
+				updatedAt: new Date()
+			})
 			.where(eq(actions.queueId, existing.id));
 		await db.delete(actionQueues).where(eq(actionQueues.id, existing.id));
 	}
 
 	await db
 		.update(actionQueues)
-		.set({ syncId: nextSyncId, updatedAt: new Date() })
+		.set({
+			syncId: nextSyncId,
+			revision: sql`${actionQueues.revision} + 1`,
+			updatedAt: new Date()
+		})
 		.where(eq(actionQueues.id, id));
 }

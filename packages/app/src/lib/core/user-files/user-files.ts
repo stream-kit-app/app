@@ -5,13 +5,18 @@ import { translate } from '$lib/i18n';
 import type { Auth } from '../auth/auth.svelte';
 import { pocketBaseErrorMessage } from '../auth/auth-utils';
 
-import { extensionOf, mimeFromFileName } from './mime-from-name';
+import { extensionOf, mimeForCloudUpload, mimeFromFileName } from './mime-from-name';
 import type {
 	UserFileRecord,
 	UserFilesListOptions,
 	UserFilesQuota,
 	UserFilesUploadOptions
 } from './types';
+
+/** Refresh file tokens this many ms before assumed expiry. */
+const FILE_TOKEN_REFRESH_MARGIN_MS = 30_000;
+/** Conservative TTL when PocketBase does not expose expiry (tokens are short-lived). */
+const FILE_TOKEN_TTL_MS = 90_000;
 
 function matchesListFilters(record: UserFileRecord, options?: UserFilesListOptions): boolean {
 	if (options?.mimePrefix) {
@@ -31,137 +36,84 @@ function matchesListFilters(record: UserFileRecord, options?: UserFilesListOptio
 	return true;
 }
 
-/** Local PocketBase origins tried when a cloud file URL 404s on the current host. */
-const LEGACY_FILE_HOSTS = ['http://127.0.0.1:8090', 'http://localhost:8090'] as const;
-
-export function isCloudFileUrl(value: string | null | undefined): boolean {
-	if (typeof value !== 'string' || !value.trim()) {
-		return false;
-	}
-	return /^https?:\/\//i.test(value.trim());
-}
-
-export function isPocketBaseFileUrl(value: string | null | undefined): boolean {
-	if (!isCloudFileUrl(value)) {
-		return false;
-	}
-	try {
-		return new URL(value!.trim()).pathname.includes('/api/files/');
-	} catch {
-		return false;
-	}
-}
-
 /**
- * True when `value` is a PocketBase `/api/files/` URL whose origin differs from
- * the configured `PUBLIC_POCKETBASE_URL` — those blobs must be re-uploaded.
+ * Extract a host-independent PocketBase file path (`/api/files/...`) from a
+ * relative path or absolute URL. Returns `null` when the value is not a PB file.
  */
-export function needsCloudFileHostMigration(
-	value: string,
-	baseUrl: string | null | undefined
-): boolean {
+export function toRelativeCloudFilePath(value: string | null | undefined): string | null {
+	if (typeof value !== 'string' || !value.trim()) {
+		return null;
+	}
+
 	const trimmed = value.trim();
-	if (!baseUrl || !isPocketBaseFileUrl(trimmed)) {
-		return false;
-	}
 
-	let parsed: URL;
-	try {
-		parsed = new URL(trimmed);
-	} catch {
-		return false;
-	}
-
-	let base: URL;
-	try {
-		base = new URL(baseUrl);
-	} catch {
-		return false;
-	}
-
-	return parsed.origin !== base.origin;
-}
-
-function fileNameFromCloudUrl(url: string): string {
-	try {
-		const pathname = new URL(url).pathname;
-		const segment = pathname.split('/').filter(Boolean).pop();
-		return segment && segment.length > 0 ? decodeURIComponent(segment) : 'upload.bin';
-	} catch {
-		return 'upload.bin';
-	}
-}
-
-function candidateDownloadUrls(sourceUrl: string, currentBaseUrl: string | null | undefined): string[] {
-	let parsed: URL;
-	try {
-		parsed = new URL(sourceUrl.trim());
-	} catch {
-		return [sourceUrl.trim()];
-	}
-
-	const pathAndQuery = parsed.pathname + parsed.search;
-	const urls: string[] = [];
-
-	const push = (url: string) => {
-		if (!urls.includes(url)) {
-			urls.push(url);
-		}
-	};
-
-	// Prefer legacy local hosts first when the stored URL already points at the
-	// current (empty) host — avoids a guaranteed 404 before trying localhost.
-	if (currentBaseUrl) {
+	if (trimmed.startsWith('/api/files/')) {
 		try {
-			const currentOrigin = new URL(currentBaseUrl).origin;
-			if (parsed.origin === currentOrigin) {
-				for (const host of LEGACY_FILE_HOSTS) {
-					push(host + pathAndQuery);
-				}
-				push(sourceUrl.trim());
-				return urls;
-			}
+			const parsed = new URL(trimmed, 'http://pocketbase.local');
+			return parsed.pathname + parsed.search;
 		} catch {
-			// fall through
+			return trimmed.split(/[?#]/)[0] || null;
 		}
 	}
 
-	push(sourceUrl.trim());
-
-	if (currentBaseUrl) {
-		try {
-			push(new URL(currentBaseUrl).origin + pathAndQuery);
-		} catch {
-			// ignore invalid base
-		}
-	}
-
-	for (const host of LEGACY_FILE_HOSTS) {
-		push(host + pathAndQuery);
-	}
-
-	return urls;
-}
-
-async function tryDownloadBlob(url: string, authToken?: string | null): Promise<Blob | null> {
-	const headers: HeadersInit = {};
-	if (authToken) {
-		headers.Authorization = authToken;
+	if (!/^https?:\/\//i.test(trimmed)) {
+		return null;
 	}
 
 	try {
-		const response = await fetch(url, { headers });
-		if (!response.ok) {
+		const parsed = new URL(trimmed);
+		if (!parsed.pathname.includes('/api/files/')) {
 			return null;
 		}
-		return await response.blob();
+		return parsed.pathname + parsed.search;
 	} catch {
 		return null;
 	}
 }
 
+/** True for relative `/api/files/...` paths or absolute PocketBase file URLs. */
+export function isCloudFileUrl(value: string | null | undefined): boolean {
+	return toRelativeCloudFilePath(value) != null;
+}
+
+/**
+ * Resolve a stored cloud file ref to an absolute URL on `baseUrl`.
+ * Absolute non-PB URLs are returned unchanged.
+ */
+export function resolveCloudFileUrl(
+	value: string,
+	baseUrl: string | null | undefined
+): string {
+	const trimmed = value.trim();
+	const relative = toRelativeCloudFilePath(trimmed);
+	if (!relative || !baseUrl) {
+		return trimmed;
+	}
+
+	try {
+		const base = new URL(baseUrl);
+		return `${base.origin}${relative.split(/[?#]/)[0]}`;
+	} catch {
+		const origin = baseUrl.replace(/\/$/, '');
+		return `${origin}${relative.split(/[?#]/)[0]}`;
+	}
+}
+
+function appendFileToken(url: string, token: string): string {
+	try {
+		const parsed = new URL(url);
+		parsed.searchParams.set('token', token);
+		return parsed.toString();
+	} catch {
+		const sep = url.includes('?') ? '&' : '?';
+		return `${url}${sep}token=${encodeURIComponent(token)}`;
+	}
+}
+
 export class UserFiles {
 	#auth: Auth;
+	#fileToken: string | null = null;
+	#fileTokenExpiresAt = 0;
 
 	constructor(auth: Auth) {
 		this.#auth = auth;
@@ -171,12 +123,62 @@ export class UserFiles {
 		return isCloudFileUrl(value);
 	}
 
+	/**
+	 * Absolute URL for the current PocketBase host.
+	 * When a cached file token is available, appends `?token=` for protected files.
+	 */
+	resolveUrl(value: string): string {
+		const baseUrl = this.#auth.isConfigured ? this.#auth.client.baseUrl : null;
+		const absolute = resolveCloudFileUrl(value, baseUrl);
+		if (!isCloudFileUrl(absolute) && !isCloudFileUrl(value)) {
+			return absolute;
+		}
+		if (this.#fileToken && Date.now() < this.#fileTokenExpiresAt) {
+			return appendFileToken(absolute, this.#fileToken);
+		}
+		return absolute;
+	}
+
+	/** Absolute protected-file URL with a fresh (or cached) file token. */
+	async resolveAuthenticatedUrl(value: string): Promise<string> {
+		const baseUrl = this.#auth.isConfigured ? this.#auth.client.baseUrl : null;
+		const absolute = resolveCloudFileUrl(value, baseUrl);
+		if (!isCloudFileUrl(absolute) && !isCloudFileUrl(value)) {
+			return absolute;
+		}
+		const token = await this.ensureFileToken();
+		return appendFileToken(absolute, token);
+	}
+
+	/** Ensure a short-lived PocketBase file token is cached; returns it. */
+	async ensureFileToken(): Promise<string> {
+		const pb = this.#requireClient();
+		const now = Date.now();
+		if (
+			this.#fileToken &&
+			now < this.#fileTokenExpiresAt - FILE_TOKEN_REFRESH_MARGIN_MS
+		) {
+			return this.#fileToken;
+		}
+
+		const token = await pb.files.getToken();
+		this.#fileToken = token;
+		this.#fileTokenExpiresAt = now + FILE_TOKEN_TTL_MS;
+		return token;
+	}
+
+	clearFileToken(): void {
+		this.#fileToken = null;
+		this.#fileTokenExpiresAt = 0;
+	}
+
 	async list(options?: UserFilesListOptions): Promise<UserFileRecord[]> {
 		const pb = this.#requireClient();
 		const userId = this.#requireUserId();
+		await this.ensureFileToken().catch(() => undefined);
 
 		const result = await pb.collection('user_files').getFullList({
-			filter: `user="${userId}"`,
+			filter: pb.filter('user={:id}', { id: userId }),
 			sort: '-createdAt',
 			requestKey: null
 		});
@@ -201,14 +203,40 @@ export class UserFiles {
 		}
 
 		const originalName = options.originalName.trim() || 'upload.bin';
+		const allowedMime = mimeForCloudUpload(originalName);
+		if (!allowedMime) {
+			throw new Error(
+				translate('This file type is not allowed for cloud upload.')
+			);
+		}
+
+		const size = typeof file.size === 'number' ? file.size : 0;
+		const quota = await this.getQuota();
+		if (quota) {
+			if (quota.maxFileBytes > 0 && size > quota.maxFileBytes) {
+				throw new Error(
+					translate('This file exceeds the maximum upload size for your plan.')
+				);
+			}
+			if (
+				quota.maxStorageBytes > 0 &&
+				quota.usedBytes + size > quota.maxStorageBytes
+			) {
+				throw new Error(
+					translate('This upload would exceed your storage quota.')
+				);
+			}
+		}
+
 		const mimeType =
-			(file instanceof File && file.type) ||
-			(file.type && file.type !== 'application/octet-stream' ? file.type : '') ||
-			mimeFromFileName(originalName);
-		const uploadFile =
-			file instanceof File
-				? file
-				: new File([file], originalName, { type: mimeType || 'application/octet-stream' });
+			(typeof file.type === 'string' &&
+			file.type &&
+			file.type !== 'application/octet-stream'
+				? file.type
+				: '') || allowedMime;
+		const uploadFile = new File([file], originalName, {
+			type: mimeType
+		});
 
 		const body = new FormData();
 		body.set('user', userId);
@@ -220,6 +248,7 @@ export class UserFiles {
 			if (!record) {
 				throw new Error(translate('Could not upload file.'));
 			}
+			await this.ensureFileToken().catch(() => undefined);
 			return record;
 		} catch (error) {
 			throw new Error(pocketBaseErrorMessage(error, translate('Could not upload file.')));
@@ -254,7 +283,7 @@ export class UserFiles {
 		}
 
 		const files = await pb.collection('user_files').getFullList({
-			filter: `user="${userId}"`,
+			filter: pb.filter('user={:id}', { id: userId }),
 			fields: 'size',
 			requestKey: null
 		});
@@ -274,18 +303,13 @@ export class UserFiles {
 	}
 
 	async fetchBlob(url: string): Promise<Blob> {
-		const pb = this.#requireClient();
-		const trimmed = url.trim();
-		if (!isCloudFileUrl(trimmed)) {
+		this.#requireClient();
+		if (!isCloudFileUrl(url)) {
 			throw new Error(translate('Invalid cloud file URL.'));
 		}
 
-		const headers: HeadersInit = {};
-		if (pb.authStore.token) {
-			headers.Authorization = pb.authStore.token;
-		}
-
-		const response = await fetch(trimmed, { headers });
+		const absolute = await this.resolveAuthenticatedUrl(url);
+		const response = await fetch(absolute);
 		if (!response.ok) {
 			throw new Error(
 				translate('Could not download cloud file ({status}).', {
@@ -295,71 +319,6 @@ export class UserFiles {
 		}
 
 		return response.blob();
-	}
-
-	/**
-	 * True when a PocketBase file URL already resolves on the configured host.
-	 */
-	async isReachableOnCurrentHost(sourceUrl: string): Promise<boolean> {
-		const trimmed = sourceUrl.trim();
-		const baseUrl = this.#auth.client.baseUrl;
-		if (!isPocketBaseFileUrl(trimmed) || !baseUrl) {
-			return false;
-		}
-
-		let parsed: URL;
-		let base: URL;
-		try {
-			parsed = new URL(trimmed);
-			base = new URL(baseUrl);
-		} catch {
-			return false;
-		}
-
-		if (parsed.origin !== base.origin) {
-			return false;
-		}
-
-		const token = this.#auth.client.authStore.token;
-		const blob = await tryDownloadBlob(trimmed, token);
-		return blob != null && blob.size > 0;
-	}
-
-	/**
-	 * Download a PocketBase `/api/files/` blob (trying the given URL, the current
-	 * host, then common local PocketBase origins) and upload it to the current
-	 * `user_files` collection.
-	 */
-	async reuploadFromUrl(sourceUrl: string): Promise<UserFileRecord> {
-		const trimmed = sourceUrl.trim();
-		if (!isCloudFileUrl(trimmed)) {
-			throw new Error(translate('Invalid cloud file URL.'));
-		}
-
-		const token = this.#auth.isConfigured ? this.#auth.client.authStore.token : null;
-		const baseUrl = this.#auth.isConfigured ? this.#auth.client.baseUrl : null;
-		const candidates = isPocketBaseFileUrl(trimmed)
-			? candidateDownloadUrls(trimmed, baseUrl)
-			: [trimmed];
-
-		let blob: Blob | null = null;
-		for (const candidate of candidates) {
-			blob = await tryDownloadBlob(candidate, token);
-			if (blob && blob.size > 0) {
-				break;
-			}
-			blob = null;
-		}
-
-		if (!blob) {
-			throw new Error(
-				translate(
-					'Could not download cloud file. Start the previous PocketBase (e.g. localhost:8090) and try again.'
-				)
-			);
-		}
-
-		return this.upload(blob, { originalName: fileNameFromCloudUrl(trimmed) });
 	}
 
 	#requireClient() {
@@ -395,11 +354,17 @@ export class UserFiles {
 		const storedMime = typeof record.mimeType === 'string' ? record.mimeType.trim() : '';
 
 		const pb = this.#auth.client;
+		const absolute = pb.files.getURL(record, fileName);
+		const relative = toRelativeCloudFilePath(absolute);
+		if (!relative) {
+			return null;
+		}
+
 		return {
 			id: record.id,
-			url: pb.files.getURL(record, fileName),
+			url: relative.split(/[?#]/)[0],
 			size: typeof record.size === 'number' ? record.size : Number(record.size) || 0,
-			mimeType: storedMime || mimeFromFileName(originalName),
+			mimeType: storedMime || mimeFromFileName(originalName, 'application/octet-stream'),
 			originalName,
 			createdAt: typeof record.createdAt === 'string' ? record.createdAt : null
 		};

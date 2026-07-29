@@ -3,6 +3,8 @@ description: Prefer @stream-kit/ui components over custom markup in app and plug
 globs:
   - packages/app/**/*.svelte
   - packages/app/**/*.svelte.ts
+  - packages/ui/**/*.svelte
+  - site/**/*.svelte
   - plugins/**/*.svelte
   - plugins/**/*.svelte.ts
 ---
@@ -17,6 +19,7 @@ Before building custom markup for common UI patterns, check whether `@stream-kit
 |--------|---------|
 | `@stream-kit/ui/alert` | Info, success, warning, and error callouts |
 | `@stream-kit/ui/badge` | Status labels and counts |
+| `@stream-kit/ui/blueprint` | Marketing/dashboard schematic chrome (GridFrame, SectionRule, Crosshair, CellGrid, Panel, Eyebrow) |
 | `@stream-kit/ui/button` | Actions and icon buttons |
 | `@stream-kit/ui/container` | Page width constraints |
 | `@stream-kit/ui/data-table` | Presentational data tables (columns, sticky header, scroll, empty state) |

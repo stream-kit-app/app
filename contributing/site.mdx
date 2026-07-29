@@ -11,25 +11,29 @@ Documentation is hosted separately — see [Documentation site](#documentation-s
 
 ## Homepage
 
-The homepage (`site/src/routes/+page.svelte`) is a landing page that positions Stream Kit as the modern alternative to Streamer.bot. It contains:
+The homepage (`site/src/routes/(marketing)/+page.svelte`) is a landing page that positions Stream Kit as the modern alternative to Streamer.bot. It uses the shared **blueprint** visual language (Cloudflare-style rails, hairline rules, crosshairs, collapsed-border grids) from `@stream-kit/ui/blueprint`.
 
-- **Hero** — tagline badge, headline, download button (placeholder link, see `downloadUrl` in `+layout.svelte` and `+page.svelte`) and a dummy app screenshot
-- **Features grid** — chat commands, timers, moderation, actions, Twitch + YouTube, OBS, TTS, WebSocket
-- **Plugin showcase** — the available plugins (Core, Twitch, YouTube, Bot, OBS, TTS, WebSocket)
-- **How it works** — four-step onboarding flow
-- **FAQ** — native `<details>` accordions
-- **CTA + footer** — closing download call-to-action and site links
+Sections:
 
-The app screenshot in the hero is a dummy built in HTML/CSS (`site/src/routes/app-mock.svelte`) that mimics the app UI (sidebar plus the Bot timers page). Replace it with a real screenshot when available.
+- **Hero** — mono eyebrow, headline, download CTA, and the app mock framed in a `Panel` with corner crosshairs on a `blueprint-grid` background
+- **Features** — eight capabilities in a 4×2 `CellGrid` with mono indices
+- **Plugin showcase** — schematic plugin matrix linking to `/plugins`
+- **How it works** — four steps on a dashed connector rail
+- **FAQ** — hairline-divided `<details>` list (`+` / `×` toggle)
+- **CTA** — hatched band with a crosshaired `Panel`
 
-The page reuses `@stream-kit/ui` components (`Button`, `Badge`, `Container`, `Logo`) and the shared app color tokens from `site/src/routes/layout.css`, so the branding matches the desktop app. Content is currently English only; copy lives in plain arrays/constants at the top of `+page.svelte` so it can be extracted for i18n later.
+The marketing layout (`(marketing)/+layout.svelte`) wraps every marketing page in a single `GridFrame` (vertical rails + hatched gutters), sticky header with crosshairs, and a shared footer. `/app/*` stays chrome-free.
+
+The app screenshot in the hero is a dummy built in HTML/CSS (`site/src/routes/(marketing)/app-mock.svelte`) that mimics the app UI (sidebar plus the Bot timers page). Replace it with a real screenshot when available.
+
+The page reuses `@stream-kit/ui` components (`Button`, `Badge`, `Container`, `Logo`) plus blueprint primitives (`GridFrame`, `SectionRule`, `CellGrid`, `Panel`, `Eyebrow`, `Crosshair`) and the shared color tokens from `site/src/routes/layout.css` (including `--color-rule` / `--font-mono`). Content is currently English only; copy lives in plain arrays/constants at the top of `+page.svelte` so it can be extracted for i18n later.
 
 ## Plugins page
 
-The plugins catalog lives at `/plugins` (`site/src/routes/plugins/`). It lists official plugin releases from PocketBase and is linked from the site header.
+The plugins catalog lives at `/plugins` (`site/src/routes/(marketing)/plugins/`). It lists official plugin releases from PocketBase and is linked from the site header. The marketplace UI uses the same blueprint primitives as the homepage (`Panel`, hairline dividers, mono labels, sharp frames).
 
 - **Data source** — server-side `PluginsService.listLatest()` queries `plugin_versions` where `isLatest = true`, expands related `plugins` and `files` records, and maps the result to flat catalog entries with a PocketBase file download URL.
-- **UI** — card grid with icon, name, version, description, Stream Kit version requirement, and a download button when a release file is linked.
+- **UI** — rail-aligned filter sidebar + collapsed-border plugin card grid with icon, name, version, description, Stream Kit version requirement, and a download button when a release file is linked.
 - **Empty state** — shown when no published plugins exist yet.
 - **Error banner** — shown when PocketBase is unreachable (e.g. dev server running without PocketBase).
 
@@ -71,7 +75,32 @@ The site uses [PocketBase](https://pocketbase.io/) as its backend. The PocketBas
 | `site/pb/docker-compose.yml` | Example stack for Dockhand (`pb_data` volume) |
 | `site/src/lib/pocketbase/types.ts` | Generated PocketBase TypeScript types |
 
-On first run, the dev script downloads the PocketBase binary automatically. The admin UI is available at [http://127.0.0.1:8090/_/](http://127.0.0.1:8090/_/).
+On first run, the PocketBase binary downloads automatically. The admin UI is at [http://127.0.0.1:8090/_/](http://127.0.0.1:8090/_/).
+
+Root `pnpm dev` starts PocketBase as its own Turbo task (`@stream-kit/pocketbase#dev`). On boot it:
+
+1. Ensures `packages/app/.env` and `site/.env` exist (`pnpm bootstrap`)
+2. Upserts a local superuser (`POCKETBASE_ADMIN_EMAIL` / `POCKETBASE_ADMIN_PASSWORD`, defaults `admin@stream-kit.local` / `stream-kit-dev` — **local-only**; never point `PUBLIC_POCKETBASE_URL` at a remote host while running this task)
+3. Seeds local data when healthy (localhost only):
+   - default / `SK_DEV_SEED=full` — create `pro` plan if missing + grant active memberships to users without entitlement
+   - `SK_DEV_SEED=plan` — create `pro` plan if missing (no membership writes)
+   - `SK_DEV_SEED=0` — skip seeding
+
+If PocketBase is already listening on the target port, the task **exits with an error** so Turbo owns a single local process (stop the other instance first).
+
+### Hook handler scope
+
+PocketBase serializes every hook handler and runs it in an isolated JS runtime, so a handler **cannot** see functions or constants declared at the top level of its `*.pb.js` file (`ReferenceError: x is not defined`). Shared helpers live in `site/pb/pb_hooks/shared/*.js` and must be loaded inside the handler body:
+
+```js
+function requireActiveSubscription(e) {
+	const entitlement = require(`${__hooks}/shared/entitlement.js`);
+	// …
+	return e.next();
+}
+```
+
+`shared/` is part of the production image; `lib/` (schema codegen) is not.
 
 ### Production Docker image
 
@@ -190,6 +219,7 @@ Useful package scripts:
 ```sh
 pnpm --filter @stream-kit/site pb:setup        # download PocketBase only
 pnpm --filter @stream-kit/site pb:serve        # run PocketBase only
+pnpm --filter @stream-kit/pocketbase dev       # same as pb:serve (Turbo entry)
 pnpm --filter @stream-kit/site pb:typegen      # generate types once
 pnpm --filter @stream-kit/site pb:typegen:watch # watch migrations and regenerate types
 pnpm --filter @stream-kit/site pb:seed           # seed plugins from repo manifests
@@ -201,24 +231,43 @@ pnpm --filter @stream-kit/site dev:site          # run the SvelteKit dev server 
 From the repository root:
 
 ```sh
-pnpm dev:site
+pnpm dev        # packages + plugins + PocketBase + site + Tauri (docs opt-in)
+pnpm dev:site   # PocketBase + site only
+pnpm dev:all    # same as `pnpm dev`, plus docs site
+pnpm bootstrap  # create missing .env files from .env.example
 ```
 
-This starts PocketBase and the SvelteKit dev server together.
+`pnpm --filter @stream-kit/site dev` starts typegen watch + Vite (PocketBase is a separate Turbo package). The Vite dev server attaches an in-memory overlay WebSocket hub at `/ws?overlayId=` (used by cloud browser sources).
 
 Or run commands directly in the package:
 
 ```sh
 pnpm --filter @stream-kit/site dev
 pnpm --filter @stream-kit/site build
-pnpm --filter @stream-kit/site preview
+pnpm --filter @stream-kit/site start    # custom Node server (HTTP + /ws) after build
+pnpm --filter @stream-kit/site preview  # Vite preview (no overlay WS hub)
 ```
+
+### Cloud overlays (`/app/overlays/[uuid]`)
+
+Published overlay bundles live in PocketBase (`user_overlays`) and are served by the site (not PocketBase UI routes):
+
+| Path | Role |
+| --- | --- |
+| `/app/overlays/[uuid]/` | Browser source HTML + assets from the published `dist` zip |
+| `/ws?overlayId=[uuid]` | Live events; OBS connects as subscriber; desktop app as `role=publisher` with PB auth token |
+
+Production must run `node server.js` (or `pnpm start`) so the WebSocket hub is attached. Single Node instance assumed for in-memory rooms.
+
+Marketing routes live under `site/src/routes/(marketing)/` so `/app/*` stays free of marketing chrome (future logged-in dashboard shell).
 
 ## Stack
 
-- SvelteKit with the Node adapter
+- SvelteKit with the Node adapter (+ custom `server.js` for overlay WebSockets)
 - Svelte 5 (runes mode)
 - Tailwind CSS v4
+- `@stream-kit/ui` + `@stream-kit/ui/blueprint` (rails, rules, crosshairs, cell grids, panels)
+- Shared blueprint utilities in `packages/ui/src/styles/blueprint.css` (imported by site and app `layout.css`)
 
 ## Documentation site (`docs-site/`)
 
@@ -243,7 +292,8 @@ User-facing documentation is published at [https://docs.stream-kit.app](https://
 From the repository root:
 
 ```sh
-pnpm dev:docs
+pnpm dev:docs   # docs only
+pnpm dev:all    # full stack including docs
 ```
 
 Or directly in the package:

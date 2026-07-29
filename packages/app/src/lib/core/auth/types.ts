@@ -6,6 +6,11 @@ export type AuthPublicSubscription = {
 	maxFileBytes: number;
 	/** Total cloud storage quota for `user_files` on this plan. */
 	maxStorageBytes: number;
+	/**
+	 * When the membership is cancelled but still in the grace period,
+	 * ISO date string for when cloud access ends. Otherwise omitted/null.
+	 */
+	endsAt?: string | null;
 };
 
 export type AuthPublicUser = {
@@ -13,7 +18,7 @@ export type AuthPublicUser = {
 	name: string | null;
 	avatarUrl: string | null;
 	verified: boolean;
-	/** Current plan from the latest active `user_subscriptions` row, when present. */
+	/** Current plan from the latest entitled `user_subscriptions` row (active or cancelled-in-grace). */
 	subscription: AuthPublicSubscription | null;
 };
 

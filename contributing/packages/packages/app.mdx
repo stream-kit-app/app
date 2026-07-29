@@ -78,8 +78,9 @@ This also syncs `dev-plugins.json` from `plugins/*/manifest.json` for monorepo d
 
 | Script | Description |
 |--------|-------------|
-| `dev` | Sync plugin host modules, then start Vite dev server |
-| `tauri dev` | Run the desktop app in development (use via root `pnpm dev`) |
+| `dev` | Run `tauri dev` (Turbo entry for the desktop app) |
+| `dev:vite` | Sync plugin host modules, then start Vite (used as Tauri `beforeDevCommand`) |
+| `tauri` | Tauri CLI passthrough |
 | `build` | Build plugin host + production frontend |
 | `build:plugin-host` | Generate import map and host bundles only |
 | `check` | `svelte-check` type validation |
@@ -100,8 +101,11 @@ New plugin code should prefer `@stream-kit/plugin` instead. See [Plugin authorin
 From the repository root:
 
 ```bash
-pnpm dev          # Build packages, watch plugins, start Tauri
-pnpm dev:app      # App only (assumes packages are already built)
+pnpm dev          # Turbo: packages + plugins + PocketBase + site + Tauri
+pnpm dev:app      # Tauri + PocketBase only
+pnpm dev:all      # Same as `pnpm dev`, plus docs site
 ```
+
+`pnpm bootstrap` (also run via Turbo before app/site/PB) creates `packages/app/.env` and `site/.env` from their `.env.example` files when missing.
 
 First-party plugins listed in `dev-plugins.json` are linked automatically on boot. External plugins can be linked via **Plugins → Link dev plugin** when developer mode is enabled.

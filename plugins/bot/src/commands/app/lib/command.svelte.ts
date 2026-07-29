@@ -27,11 +27,23 @@ import { normalizeCommandNames } from '../../../lib/commands-store';
 
 import CommandForm from '../ui/command-form.svelte';
 import CommandFormFooter from '../ui/command-form-footer.svelte';
+import CommandFormHeader from '../ui/command-form-header.svelte';
 
 import { normalizeCommandGroup } from './command-layout';
 import { getCommandsService } from './get-commands';
 import type { CommandFormErrors } from './validate-form';
 import { validateCommandForm } from './validate-form';
+
+type CommandFormSnapshot = {
+	name: string;
+	group: string;
+	commandNames: string[];
+	handlers: StoredActionHandler[];
+	sources: CommandSource[];
+	permissions: CommandPermissions;
+	cooldownGlobalMs: number | null;
+	cooldownUserMs: number | null;
+};
 
 export type CommandProps = {
 	id?: string;
@@ -70,6 +82,7 @@ export class Command {
 	updatedAt?: Date;
 
 	formErrors: CommandFormErrors | null = $state(null);
+	private _formSnapshot: CommandFormSnapshot | null = null;
 
 	constructor(props: CommandProps = {}) {
 		this.id = props.id;
@@ -195,6 +208,44 @@ export class Command {
 		};
 	}
 
+	captureFormSnapshot(): void {
+		this._formSnapshot = {
+			name: this.name,
+			group: this.group,
+			commandNames: [...this.commandNames],
+			handlers: this.handlers.map((handler) => structuredClone(handler.toStored())),
+			sources: [...this.sources],
+			permissions: { roles: [...this.permissions.roles] },
+			cooldownGlobalMs: this.cooldownGlobalMs,
+			cooldownUserMs: this.cooldownUserMs
+		};
+	}
+
+	commitFormChanges(): void {
+		this._formSnapshot = null;
+	}
+
+	discardFormChanges(): void {
+		const snapshot = this._formSnapshot;
+
+		if (!snapshot) {
+			return;
+		}
+
+		const app = getCommandsService().requireApp();
+
+		this.name = snapshot.name;
+		this.group = snapshot.group;
+		this.commandNames = [...snapshot.commandNames];
+		this.handlers = Command.handlersFromStored(snapshot.handlers, app);
+		this.sources = [...snapshot.sources];
+		this.permissions = { roles: [...snapshot.permissions.roles] };
+		this.cooldownGlobalMs = snapshot.cooldownGlobalMs;
+		this.cooldownUserMs = snapshot.cooldownUserMs;
+		this.formErrors = null;
+		this._formSnapshot = null;
+	}
+
 	open(): Modal {
 		const app = getCommandsService().requireApp();
 
@@ -205,6 +256,8 @@ export class Command {
 			this.rebindDefinitions();
 		}
 
+		this.captureFormSnapshot();
+
 		const modal =
 			app.modal.get(this.modalId) ??
 			app.modal.create({
@@ -214,10 +267,13 @@ export class Command {
 						? app.i18n.translate('Edit {name}', { name: this.name })
 						: app.i18n.translate('New Command'),
 				content: CommandForm,
+				header: CommandFormHeader,
 				footer: CommandFormFooter,
-				props: { command: this }
+				props: { command: this },
+				onClose: () => this.discardFormChanges()
 			});
 
+		modal.onClose = () => this.discardFormChanges();
 		modal.open();
 		this.formErrors = null;
 
@@ -230,6 +286,7 @@ export class Command {
 		}
 
 		await getCommandsService().delete(this.id);
+		this.commitFormChanges();
 		this.close();
 	}
 
@@ -397,6 +454,7 @@ export class Command {
 			// upsert already added to items
 		}
 
+		this.commitFormChanges();
 		this.close();
 
 		return true;

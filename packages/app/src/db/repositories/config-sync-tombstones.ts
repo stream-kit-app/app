@@ -9,7 +9,8 @@ import {
 export async function recordConfigSyncTombstone(
 	entityType: ConfigSyncEntityType,
 	syncId: string,
-	deletedAt: Date = new Date()
+	deletedAt: Date = new Date(),
+	revision?: number
 ): Promise<void> {
 	const existing = await db
 		.select()
@@ -22,10 +23,16 @@ export async function recordConfigSyncTombstone(
 		)
 		.limit(1);
 
+	const nextRevision =
+		revision ?? existing[0]?.revision ?? null;
+
 	if (existing[0]) {
 		await db
 			.update(configSyncTombstones)
-			.set({ deletedAt })
+			.set({
+				deletedAt,
+				...(nextRevision != null ? { revision: nextRevision } : {})
+			})
 			.where(
 				and(
 					eq(configSyncTombstones.entityType, entityType),
@@ -38,13 +45,14 @@ export async function recordConfigSyncTombstone(
 	await db.insert(configSyncTombstones).values({
 		entityType,
 		syncId,
-		deletedAt
+		deletedAt,
+		revision: nextRevision
 	});
 }
 
 export async function listConfigSyncTombstones(
 	entityType: ConfigSyncEntityType
-): Promise<Array<{ syncId: string; deletedAt: Date }>> {
+): Promise<Array<{ syncId: string; deletedAt: Date; revision: number | null }>> {
 	const rows = await db
 		.select()
 		.from(configSyncTombstones)
@@ -52,7 +60,8 @@ export async function listConfigSyncTombstones(
 
 	return rows.map((row) => ({
 		syncId: row.syncId,
-		deletedAt: row.deletedAt
+		deletedAt: row.deletedAt,
+		revision: row.revision ?? null
 	}));
 }
 

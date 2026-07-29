@@ -4,6 +4,7 @@ export const PLUGIN_HOST_UI_SUBPATHS = [
 	"attachments",
 	"badge",
 	"blocks",
+	"blueprint",
 	"button",
 	"codemirror",
 	"command",

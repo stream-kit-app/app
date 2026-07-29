@@ -35,6 +35,16 @@ import { buildOverlayProject } from './overlay-build';
 
 import { buildOverlayProjectZip } from './overlay-export';
 import { importOverlayProjectFromZip } from './overlay-import';
+import {
+	OverlayCloudPublisher,
+	cloudOverlayUrl,
+	listPublishedOverlayIds,
+	publishOverlayToCloud,
+	resolveSiteUrl,
+	syncOverlayCloudConfig,
+	unpublishOverlayFromCloud
+} from './overlay-cloud';
+import { OVERLAY_SETTINGS_EVENT } from './overlay-manifest';
 
 import {
 
@@ -98,14 +108,59 @@ export class OverlayService {
 
 	port = DEFAULT_OVERLAY_PORT;
 
+	/** Overlay ids currently published to the cloud. */
+	cloudPublished: Record<string, boolean> = $state({});
 
+	/** Publisher WebSocket connected per overlay id. */
+	cloudPublisherConnected: Record<string, boolean> = $state({});
+
+	cloudBusyId: string | null = $state(null);
 
 	private app: App | null = null;
 
+	private cloudPublisher: OverlayCloudPublisher | null = null;
 
+	private authUnsub: (() => void) | null = null;
 
 	init(app: App): Promise<void> {
 		this.app = app;
+		this.cloudPublisher = new OverlayCloudPublisher(
+			{
+				onConnectionChange: (overlayId, connected) => {
+					this.cloudPublisherConnected = {
+						...this.cloudPublisherConnected,
+						[overlayId]: connected
+					};
+					if (connected) {
+						const overlay = this.items.find((item) => item.id === overlayId);
+						this.cloudPublisher?.send(
+							overlayId,
+							OVERLAY_SETTINGS_EVENT,
+							overlay?.config ?? {}
+						);
+					}
+				},
+				onInboundMessage: (overlayId, event, payload) => {
+					this.messages.dispatch({
+						overlayId,
+						event,
+						payload,
+						message: '',
+						timestamp: Date.now()
+					});
+				}
+			},
+			() => {
+				try {
+					return this.getApp().auth.client.authStore.token || null;
+				} catch {
+					return null;
+				}
+			}
+		);
+		this.authUnsub = app.auth.onChange(() => {
+			void this.refreshCloudStatus();
+		});
 
 		return registerOverlayDefinitions(app).then(() => this.boot());
 	}
@@ -279,15 +334,69 @@ export class OverlayService {
 
 
 	private async boot(): Promise<void> {
-
 		await this.refresh();
-
-
-
 		await this.startServer();
-
 		await this.syncAllConfigsToServer();
+		await this.refreshCloudStatus();
+	}
 
+	async refreshCloudStatus(): Promise<void> {
+		const app = this.app;
+		if (!app || !this.cloudPublisher) {
+			return;
+		}
+
+		const ids = await listPublishedOverlayIds(app);
+		this.cloudPublished = Object.fromEntries(ids.map((id) => [id, true]));
+		this.cloudPublisher.sync(ids);
+	}
+
+	isCloudPublished(overlayId: string): boolean {
+		return Boolean(this.cloudPublished[overlayId]);
+	}
+
+	isCloudPublisherConnected(overlayId: string): boolean {
+		return Boolean(this.cloudPublisherConnected[overlayId]);
+	}
+
+	getCloudUrl(overlayId: string): string | null {
+		return cloudOverlayUrl(overlayId);
+	}
+
+	isCloudConfigured(): boolean {
+		return resolveSiteUrl() != null;
+	}
+
+	async publishToCloud(overlayId: string): Promise<void> {
+		const overlay = this.requireOverlay(overlayId);
+		this.cloudBusyId = overlayId;
+		try {
+			await publishOverlayToCloud(this.getApp(), {
+				id: overlayId,
+				name: overlay.name,
+				config: (overlay.config as Record<string, unknown>) ?? {},
+				revision: overlay.version
+			});
+			this.cloudPublished = { ...this.cloudPublished, [overlayId]: true };
+			this.cloudPublisher?.sync(Object.keys(this.cloudPublished).filter((id) => this.cloudPublished[id]));
+			this.cloudPublisher?.send(overlayId, OVERLAY_SETTINGS_EVENT, overlay.config ?? {});
+		} finally {
+			this.cloudBusyId = null;
+		}
+	}
+
+	async unpublishFromCloud(overlayId: string): Promise<void> {
+		this.requireOverlay(overlayId);
+		this.cloudBusyId = overlayId;
+		try {
+			await unpublishOverlayFromCloud(this.getApp(), overlayId);
+			const next = { ...this.cloudPublished };
+			delete next[overlayId];
+			this.cloudPublished = next;
+			this.cloudPublisher?.sync(Object.keys(next).filter((id) => next[id]));
+		} finally {
+			this.cloudBusyId = null;
+		}
 	}
 
 
@@ -355,13 +464,8 @@ export class OverlayService {
 
 
 	getUrl(overlayId: string): string {
-
 		const baseUrl = this.status.baseUrl || `http://127.0.0.1:${this.status.port || this.port}`;
-
-
-
 		return overlayBrowserSourceUrl(baseUrl, overlayId);
-
 	}
 
 
@@ -423,15 +527,17 @@ export class OverlayService {
 
 
 	async remove(id: string): Promise<void> {
+		if (this.isCloudPublished(id)) {
+			try {
+				await this.unpublishFromCloud(id);
+			} catch (error) {
+				console.warn('Failed to unpublish overlay before delete', error);
+			}
+		}
 
 		await removeOverlayProject(this.getApp().fs, id);
-
-
-
 		await this.refresh();
-
 		await this.syncAllConfigsToServer();
-
 	}
 
 
@@ -480,33 +586,33 @@ export class OverlayService {
 
 
 	async saveConfig(settings: OverlaySettingsDefinition): Promise<void> {
-
 		await settings.save();
-
-
-
 		const config = settings.mergedConfigValues();
 
-
-
 		await invoke('overlay_broadcast_settings', {
-
 			overlayId: settings.overlayId,
-
 			config
-
 		});
-
-
 
 		this.patchOverlayRecord(settings.overlayId, {
-
 			config,
-
 			version: settings.versionSnapshot
-
 		});
 
+		if (this.isCloudPublished(settings.overlayId)) {
+			const overlay = this.items.find((item) => item.id === settings.overlayId);
+			try {
+				await syncOverlayCloudConfig(this.getApp(), {
+					id: settings.overlayId,
+					name: overlay?.name ?? settings.overlayId,
+					config,
+					revision: settings.versionSnapshot
+				});
+			} catch (error) {
+				console.warn('Failed to sync overlay config to cloud', error);
+			}
+			this.cloudPublisher?.send(settings.overlayId, OVERLAY_SETTINGS_EVENT, config);
+		}
 	}
 
 
@@ -592,19 +698,15 @@ export class OverlayService {
 
 
 	async broadcast(overlayId: string, event: string, payload: unknown): Promise<void> {
-
 		await this.assertOverlayUsable(overlayId);
-
 		await invoke('overlay_broadcast', {
-
 			overlayId,
-
 			event,
-
 			payload
-
 		});
-
+		if (this.isCloudPublished(overlayId)) {
+			this.cloudPublisher?.send(overlayId, event, payload);
+		}
 	}
 
 
@@ -762,21 +864,25 @@ export class OverlayService {
 
 
 			if (result.success) {
-
 				await this.refreshBuiltStatus();
-
+				if (this.isCloudPublished(id)) {
+					try {
+						await publishOverlayToCloud(this.getApp(), {
+							id,
+							name: overlay.name,
+							config: (overlay.config as Record<string, unknown>) ?? {},
+							revision: overlay.version
+						});
+					} catch (error) {
+						console.warn('Failed to republish overlay bundle after build', error);
+					}
+				}
 			}
 
-
-
 			return result;
-
 		} finally {
-
 			this.buildingId = null;
-
 		}
-
 	}
 
 

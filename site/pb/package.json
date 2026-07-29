@@ -2,5 +2,8 @@
 	"name": "@stream-kit/pocketbase",
 	"private": true,
 	"version": "0.1.1-alpha.2",
-	"description": "Stream Kit PocketBase hooks, migrations, and Docker image"
+	"description": "Stream Kit PocketBase hooks, migrations, and Docker image",
+	"scripts": {
+		"dev": "node ../scripts/run-pocketbase.mjs"
+	}
 }

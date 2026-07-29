@@ -3,11 +3,33 @@ import { openCloudFilePicker } from './open-cloud-file-picker';
 import { openLoginModal } from '$lib/components/core/auth/open-auth-modals';
 import { getApp } from '$lib/core/registry';
 import { isLocalFilePath, usesCloudFileStorage } from '$lib/core/user-files/cloud-file-path';
+import { toRelativeCloudFilePath } from '$lib/core/user-files';
 import { translate } from '$lib/i18n';
 
 export { isLocalFilePath, usesCloudFileStorage } from '$lib/core/user-files/cloud-file-path';
 
 type FileFilter = { name: string; extensions: string[] };
+
+type CloudFilePathApp = {
+	userFiles: {
+		isCloudUrl(value: string | null | undefined): boolean;
+		resolveUrl(value: string): string;
+	};
+};
+
+/** Display value: relative /api/files paths become absolute on the current PB host. */
+export function toDisplayCloudFileValue(app: CloudFilePathApp, value: string): string {
+	const trimmed = value.trim();
+	if (!trimmed || !app.userFiles.isCloudUrl(trimmed)) {
+		return value;
+	}
+	return app.userFiles.resolveUrl(trimmed);
+}
+
+/** Persist value: absolute PB file URLs become host-independent relative paths. */
+export function toStoredCloudFileValue(value: string): string {
+	return toRelativeCloudFilePath(value) ?? value.trim();
+}
 
 function requireCloudAccess(): boolean {
 	const app = getApp();
@@ -87,7 +109,7 @@ export async function uploadLocalFileToCloud(
 	}
 }
 
-/** Browse existing `user_files` → returns cloud URL. */
+/** Browse existing `user_files` → returns relative cloud file path. */
 export async function pickCloudFileUrl(filters?: FileFilter[]): Promise<string | null> {
 	if (!requireCloudAccess()) {
 		return null;

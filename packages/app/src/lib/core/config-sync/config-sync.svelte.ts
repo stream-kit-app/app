@@ -22,10 +22,16 @@ import {
 	clearConfigSyncTombstone,
 	listConfigSyncTombstones
 } from '$db/repositories/config-sync-tombstones';
+import {
+	snapshotActionQueueToTrash,
+	snapshotActionToTrash
+} from '$db/repositories/config-sync-trash';
 import { DEFAULT_ACTION_QUEUE_NAME } from '../action/stored-action';
-import { isPocketBaseAutoCancelled } from '../auth/auth-utils';
+import { isPocketBaseAutoCancelled, isPocketBaseNotFound, pocketBaseErrorMessage } from '../auth/auth-utils';
 import { translate } from '$lib/i18n';
 import { setConfigSyncLocalChangeHandler } from '$db/config-sync-notify';
+import { normalizeCloudFileRefsInHandlers } from '../user-files/normalize-cloud-file-refs';
+import { remoteWinsLww, toLwwSide } from './lww';
 
 export type ConfigSyncStatus =
 	| 'idle'
@@ -41,6 +47,7 @@ type RemoteQueue = {
 	concurrency: number;
 	maxLength: number | null;
 	sortOrder: number;
+	revision: number;
 	clientUpdatedAt: number;
 	deletedAt: number | null;
 };
@@ -56,11 +63,14 @@ type RemoteAction = {
 	enabled: boolean;
 	queueSyncId: string | null;
 	ownerPluginKey: string | null;
+	revision: number;
 	clientUpdatedAt: number;
 	deletedAt: number | null;
 };
 
 const SYNC_DEBOUNCE_MS = 1500;
+const RETRY_BASE_MS = 1000;
+const RETRY_MAX_MS = 5 * 60 * 1000;
 
 function toEpochMs(value: Date | number | null | undefined): number {
 	if (value instanceof Date) {
@@ -70,6 +80,15 @@ function toEpochMs(value: Date | number | null | undefined): number {
 		return value;
 	}
 	return 0;
+}
+
+/** Missing remote revision → 1 to match SQLite DEFAULT 1 (avoid upgrade skew). */
+function readRevision(value: unknown): number {
+	if (value == null || value === '') {
+		return 1;
+	}
+	const n = Number(value);
+	return Number.isFinite(n) ? n : 1;
 }
 
 function parseJsonArray<T>(value: unknown, fallback: T[]): T[] {
@@ -97,6 +116,7 @@ function mapRemoteQueue(record: RecordModel): RemoteQueue {
 				? null
 				: Number(record.maxLength) || null,
 		sortOrder: Number(record.sortOrder) || 0,
+		revision: readRevision(record.revision),
 		clientUpdatedAt: Number(record.clientUpdatedAt) || 0,
 		deletedAt:
 			record.deletedAt == null || record.deletedAt === ''
@@ -123,6 +143,7 @@ function mapRemoteAction(record: RecordModel): RemoteAction {
 			typeof record.ownerPluginKey === 'string' && record.ownerPluginKey.trim()
 				? record.ownerPluginKey.trim()
 				: null,
+		revision: readRevision(record.revision),
 		clientUpdatedAt: Number(record.clientUpdatedAt) || 0,
 		deletedAt:
 			record.deletedAt == null || record.deletedAt === ''
@@ -139,8 +160,12 @@ export class ConfigSync {
 	#app: App;
 	#started = false;
 	#running = false;
+	#pending = false;
 	#debounceTimer: ReturnType<typeof setTimeout> | null = null;
 	#suppressSchedule = false;
+	#retryAttempt = 0;
+	#retryTimer: ReturnType<typeof setTimeout> | null = null;
+	#onOnline: (() => void) | null = null;
 
 	status = $state<ConfigSyncStatus>('idle');
 	lastSyncedAt = $state<Date | null>(null);
@@ -157,6 +182,11 @@ export class ConfigSync {
 		this.#started = true;
 
 		setConfigSyncLocalChangeHandler(() => this.scheduleSync());
+
+		if (typeof window !== 'undefined') {
+			this.#onOnline = () => this.scheduleSync();
+			window.addEventListener('online', this.#onOnline);
+		}
 
 		this.#app.auth.onChange((user) => {
 			void this.#onAuthChange(user);
@@ -180,6 +210,7 @@ export class ConfigSync {
 
 	async sync(): Promise<void> {
 		if (this.#running) {
+			this.#pending = true;
 			return;
 		}
 
@@ -189,6 +220,8 @@ export class ConfigSync {
 		}
 
 		this.#running = true;
+		this.#pending = false;
+		const previousStatus = this.status;
 		this.status = 'syncing';
 		this.lastError = null;
 		this.#suppressSchedule = true;
@@ -198,9 +231,16 @@ export class ConfigSync {
 			await this.#syncActions();
 			this.lastSyncedAt = new Date();
 			this.status = 'synced';
+			this.#clearRetry();
 			await this.#reloadRuntime();
 		} catch (error) {
 			if (isPocketBaseAutoCancelled(error)) {
+				this.status =
+					previousStatus === 'syncing' || previousStatus === 'idle'
+						? this.lastSyncedAt
+							? 'synced'
+							: 'idle'
+						: previousStatus;
 				return;
 			}
 
@@ -214,9 +254,22 @@ export class ConfigSync {
 					? 'offline'
 					: 'error';
 			console.warn('Config sync failed', error);
+			this.#scheduleRetry();
 		} finally {
 			this.#suppressSchedule = false;
 			this.#running = false;
+		}
+
+		if (this.status === 'synced') {
+			const { migrateCloudFilesAfterSync } = await import(
+				'../user-files/cloud-file-migration'
+			);
+			await migrateCloudFilesAfterSync(this.#app);
+		}
+
+		if (this.#pending && this.#canSync()) {
+			this.#pending = false;
+			void this.sync();
 		}
 	}
 
@@ -230,6 +283,7 @@ export class ConfigSync {
 
 	async #onAuthChange(user: AuthPublicUser | null): Promise<void> {
 		if (!user?.subscription) {
+			this.#clearRetry();
 			this.status = user ? 'disabled' : 'idle';
 			return;
 		}
@@ -238,8 +292,33 @@ export class ConfigSync {
 	}
 
 	async #reloadRuntime(): Promise<void> {
+		if (this.#app.actionQueues.hasBusyQueues()) {
+			console.warn('Skipping config sync runtime reload: action queues are busy');
+			return;
+		}
 		await this.#app.actionQueues.load();
 		await this.#app.actions.load();
+	}
+
+	#clearRetry(): void {
+		if (this.#retryTimer) {
+			clearTimeout(this.#retryTimer);
+			this.#retryTimer = null;
+		}
+		this.#retryAttempt = 0;
+	}
+
+	#scheduleRetry(): void {
+		if (this.#retryTimer) {
+			clearTimeout(this.#retryTimer);
+		}
+
+		const delay = Math.min(RETRY_BASE_MS * 2 ** this.#retryAttempt, RETRY_MAX_MS);
+		this.#retryAttempt += 1;
+		this.#retryTimer = setTimeout(() => {
+			this.#retryTimer = null;
+			this.scheduleSync();
+		}, delay);
 	}
 
 	async #syncQueues(): Promise<void> {
@@ -248,7 +327,7 @@ export class ConfigSync {
 		const localQueues = await getActionQueues();
 		const tombs = await listConfigSyncTombstones('action_queue');
 		const remoteRows = await pb.collection('user_action_queues').getFullList({
-			filter: `user="${userId}"`,
+			filter: pb.filter('user={:id}', { id: userId }),
 			requestKey: null
 		});
 		const remotes = remoteRows.map(mapRemoteQueue);
@@ -266,23 +345,45 @@ export class ConfigSync {
 			const local = localById.get(syncId);
 			const remote = remoteById.get(syncId);
 			const tomb = tombById.get(syncId);
-			const localVersion = tomb
-				? toEpochMs(tomb.deletedAt)
+
+			if (
+				local &&
+				remote &&
+				!tomb &&
+				local.revision === remote.revision &&
+				remote.deletedAt == null
+			) {
+				continue;
+			}
+
+			const localSide = tomb
+				? toLwwSide({
+						revision: tomb.revision,
+						clientUpdatedAt: toEpochMs(tomb.deletedAt),
+						present: false
+					})
 				: local
-					? toEpochMs(local.updatedAt)
-					: 0;
-			const remoteVersion = remote
-				? remote.deletedAt != null
-					? remote.deletedAt
-					: remote.clientUpdatedAt
-				: 0;
-			const remoteWins =
-				remoteVersion > localVersion ||
-				(remoteVersion === localVersion && remote != null && !local && !tomb);
+					? toLwwSide({
+							revision: local.revision,
+							clientUpdatedAt: toEpochMs(local.updatedAt),
+							present: true
+						})
+					: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
+
+			const remoteSide = remote
+				? toLwwSide({
+						revision: remote.revision,
+						clientUpdatedAt: remote.clientUpdatedAt,
+						present: remote.deletedAt == null
+					})
+				: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
+
+			const remoteWins = remoteWinsLww(localSide, remoteSide);
 
 			if (remoteWins && remote) {
 				if (remote.deletedAt != null) {
 					if (local && !isDefaultActionQueue(local)) {
+						await snapshotActionQueueToTrash(syncId);
 						const { deleteActionQueue } = await import(
 							'$db/repositories/action-queues'
 						);
@@ -296,6 +397,7 @@ export class ConfigSync {
 						concurrency: remote.concurrency,
 						maxLength: remote.maxLength,
 						sortOrder: remote.sortOrder,
+						revision: remote.revision || 1,
 						updatedAt: new Date(remote.clientUpdatedAt || Date.now())
 					});
 					await clearConfigSyncTombstone('action_queue', syncId);
@@ -311,9 +413,11 @@ export class ConfigSync {
 					concurrency: local?.concurrency ?? 1,
 					maxLength: local?.maxLength ?? undefined,
 					sortOrder: local?.sortOrder ?? 0,
+					revision: tomb.revision ?? (local?.revision ?? 0) + 1,
 					clientUpdatedAt: toEpochMs(tomb.deletedAt),
 					deletedAt: toEpochMs(tomb.deletedAt)
 				});
+				await clearConfigSyncTombstone('action_queue', syncId);
 				continue;
 			}
 
@@ -325,6 +429,7 @@ export class ConfigSync {
 					concurrency: local.concurrency,
 					maxLength: local.maxLength ?? undefined,
 					sortOrder: local.sortOrder,
+					revision: local.revision,
 					clientUpdatedAt: toEpochMs(local.updatedAt)
 				});
 			}
@@ -342,7 +447,7 @@ export class ConfigSync {
 		}
 
 		const remoteRows = await pb.collection('user_action_queues').getFullList({
-			filter: `user="${userId}"`,
+			filter: pb.filter('user={:id}', { id: userId }),
 			requestKey: null
 		});
 		const activeDefaults = remoteRows
@@ -365,6 +470,7 @@ export class ConfigSync {
 				concurrency: duplicate.concurrency,
 				maxLength: duplicate.maxLength,
 				sortOrder: duplicate.sortOrder,
+				revision: (duplicate.revision || 0) + 1,
 				clientUpdatedAt: Date.now(),
 				deletedAt: Date.now()
 			});
@@ -380,6 +486,7 @@ export class ConfigSync {
 				concurrency: localDefault.concurrency,
 				maxLength: localDefault.maxLength,
 				sortOrder: localDefault.sortOrder,
+				revision: (localDefault.revision || 0) + 1,
 				clientUpdatedAt: Date.now(),
 				deletedAt: Date.now()
 			});
@@ -396,7 +503,7 @@ export class ConfigSync {
 		const queueSyncIdById = new Map(queues.map((queue) => [queue.id, queue.syncId]));
 		const tombs = await listConfigSyncTombstones('action');
 		const remoteRows = await pb.collection('user_actions').getFullList({
-			filter: `user="${userId}"`,
+			filter: pb.filter('user={:id}', { id: userId }),
 			requestKey: null
 		});
 		const remotes = remoteRows.map(mapRemoteAction);
@@ -414,22 +521,44 @@ export class ConfigSync {
 			const local = localById.get(syncId);
 			const remote = remoteById.get(syncId);
 			const tomb = tombById.get(syncId);
-			const localVersion = tomb
-				? toEpochMs(tomb.deletedAt)
+
+			if (
+				local &&
+				remote &&
+				!tomb &&
+				local.revision === remote.revision &&
+				remote.deletedAt == null
+			) {
+				continue;
+			}
+
+			const localSide = tomb
+				? toLwwSide({
+						revision: tomb.revision,
+						clientUpdatedAt: toEpochMs(tomb.deletedAt),
+						present: false
+					})
 				: local
-					? toEpochMs(local.updatedAt)
-					: 0;
-			const remoteVersion = remote
-				? remote.deletedAt != null
-					? remote.deletedAt
-					: remote.clientUpdatedAt
-				: 0;
-			const remoteWins =
-				remoteVersion > localVersion ||
-				(remoteVersion === localVersion && remote != null && !local && !tomb);
+					? toLwwSide({
+							revision: local.revision,
+							clientUpdatedAt: toEpochMs(local.updatedAt),
+							present: true
+						})
+					: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
+
+			const remoteSide = remote
+				? toLwwSide({
+						revision: remote.revision,
+						clientUpdatedAt: remote.clientUpdatedAt,
+						present: remote.deletedAt == null
+					})
+				: toLwwSide({ revision: 0, clientUpdatedAt: 0, present: false });
+
+			const remoteWins = remoteWinsLww(localSide, remoteSide);
 
 			if (remoteWins && remote) {
 				if (remote.deletedAt != null) {
+					await snapshotActionToTrash(syncId);
 					await deleteActionBySyncId(syncId);
 					await clearConfigSyncTombstone('action', syncId);
 				} else {
@@ -446,7 +575,8 @@ export class ConfigSync {
 						queueId,
 						ownerPluginKey: remote.ownerPluginKey,
 						triggers: remote.triggers,
-						handlers: remote.handlers,
+						handlers: normalizeCloudFileRefsInHandlers(remote.handlers).handlers,
+						revision: remote.revision || 1,
 						updatedAt: new Date(remote.clientUpdatedAt || Date.now())
 					});
 					await clearConfigSyncTombstone('action', syncId);
@@ -470,13 +600,16 @@ export class ConfigSync {
 							? (queueSyncIdById.get(local.queueId) ?? undefined)
 							: undefined,
 					ownerPluginKey: local?.ownerPluginKey ?? undefined,
+					revision: tomb.revision ?? (local?.revision ?? 0) + 1,
 					clientUpdatedAt: toEpochMs(tomb.deletedAt),
 					deletedAt: toEpochMs(tomb.deletedAt)
 				});
+				await clearConfigSyncTombstone('action', syncId);
 				continue;
 			}
 
 			if (local) {
+				const handlers = normalizeCloudFileRefsInHandlers(local.handlers).handlers;
 				await this.#upsertRemoteAction({
 					id: local.syncId,
 					user: userId,
@@ -485,13 +618,14 @@ export class ConfigSync {
 					groupSortOrder: local.groupSortOrder,
 					sortOrder: local.sortOrder,
 					triggers: local.triggers,
-					handlers: local.handlers,
+					handlers,
 					enabled: local.enabled,
 					queueSyncId:
 						local.queueId != null
 							? (queueSyncIdById.get(local.queueId) ?? undefined)
 							: undefined,
 					ownerPluginKey: local.ownerPluginKey ?? undefined,
+					revision: local.revision,
 					clientUpdatedAt: toEpochMs(local.updatedAt)
 				});
 			}
@@ -526,8 +660,10 @@ export class ConfigSync {
 			await pb.collection(collection).getOne(id, { requestKey: null });
 			await pb.collection(collection).update(id, payload, { requestKey: null });
 			return;
-		} catch {
-			// Record missing — create below.
+		} catch (error) {
+			if (!isPocketBaseNotFound(error)) {
+				throw enrichPocketBaseError(error);
+			}
 		}
 
 		try {
@@ -560,5 +696,13 @@ function enrichPocketBaseError(createError: unknown): Error {
 			: undefined;
 	const detail = response != null ? JSON.stringify(response) : String(createError);
 	console.warn(`Config sync create failed: ${detail}`, { createError });
-	return createError instanceof Error ? createError : new Error(detail);
+	const message = pocketBaseErrorMessage(
+		createError,
+		'Cloud sync request failed.'
+	);
+	if (createError instanceof Error) {
+		createError.message = message;
+		return createError;
+	}
+	return new Error(message);
 }

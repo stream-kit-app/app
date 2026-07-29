@@ -8,7 +8,6 @@
 	import {
 		InputCheckbox,
 		InputSelect,
-		InputSwitch,
 		InputText,
 		InputTextList,
 		InputTextSelect,
@@ -130,18 +129,6 @@
 		{t('Use <arg> for command arguments. The last argument captures the rest of the message.')}
 	</p>
 
-	<HandlerChainEditor
-		host={command}
-		definitions={app.actions.getHandlers()}
-		formErrors={command.formErrors}
-		{contextVariablesForHandler}
-		{globalVariables}
-		showVariablePopover
-		onAddHandler={addHandler}
-		{app}
-		{t}
-	/>
-
 	<section class="grid gap-3">
 		<Label>{t('Platforms')}</Label>
 
@@ -232,5 +219,15 @@
 		</p>
 	</section>
 
-	<InputSwitch label={t('Enabled')} bind:checked={command.enabled} />
+	<HandlerChainEditor
+		host={command}
+		definitions={app.actions.getHandlers()}
+		formErrors={command.formErrors}
+		{contextVariablesForHandler}
+		{globalVariables}
+		showVariablePopover
+		onAddHandler={addHandler}
+		{app}
+		{t}
+	/>
 </form>

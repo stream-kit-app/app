@@ -27,6 +27,8 @@ export const actions = sqliteTable('actions', {
 	enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
 	queueId: integer('queue_id'),
 	ownerPluginKey: text('owner_plugin_key'),
+	/** Monotone sync counter; bumped on every local write. */
+	revision: integer('revision').notNull().default(1),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 });

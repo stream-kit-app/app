@@ -1,5 +1,6 @@
 export type UserFileRecord = {
 	id: string;
+	/** Host-independent path, e.g. `/api/files/...` — resolve with `userFiles.resolveUrl`. */
 	url: string;
 	size: number;
 	mimeType: string;

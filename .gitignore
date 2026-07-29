@@ -9,8 +9,10 @@ node_modules
 /packages/*/dist
 /plugins/*/dist
 /package
+.turbo
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /packages/app/src/lib/core/plugins/host/vendor/_generated
 /packages/app/.env
+/site/.env
 /src-tauri

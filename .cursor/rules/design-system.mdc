@@ -1,0 +1,62 @@
+---
+description: Cloudflare-style blueprint visual language for site, UI package, and dashboards
+globs:
+  - site/**/*.svelte
+  - packages/ui/**/*.svelte
+  - packages/app/**/*.svelte
+---
+
+# Design system (blueprint)
+
+Stream Kit marketing and dashboard UIs share a **blueprint** visual language inspired by Cloudflare product pages: persistent vertical rails, full-bleed hairline rules, crosshair intersections, and collapsed-border schematic grids.
+
+Use `@stream-kit/ui/blueprint` primitives — do not reinvent rails, crosshairs, or cell grids with one-off markup.
+
+## Primitives
+
+| Import from `@stream-kit/ui/blueprint` | Use for |
+| --- | --- |
+| `GridFrame` | Page shell with content column + vertical rails + hatched gutters |
+| `SectionRule` | Full-width horizontal hairline between sections (optional crosshairs) |
+| `Crosshair` | `+` markers at rail/rule intersections and panel corners |
+| `CellGrid` / `Cell` | Collapsed-border schematic grids (shared borders, no card gaps) |
+| `Panel` | Sharp-cornered bordered surface; optional header rule + corner crosshairs |
+| `Eyebrow` | Mono uppercase label with optional index (`01 / FEATURES`) |
+
+Utilities (from `packages/ui/src/styles/blueprint.css`, imported via app/site `layout.css`):
+
+- `blueprint-grid` — masked 48px background grid
+- `blueprint-hatch` — diagonal hatch for gutters / CTA bands
+- `blueprint-ticks` — ruler tick marks along a rule
+- `blueprint-rule-x` / `blueprint-rule-y` — full-bleed escape rules
+
+## Rules
+
+1. **Rails once** — draw vertical rails via a single `GridFrame` in the layout, never per section.
+2. **Hairlines vs UI borders** — schematic lines use `border-rule` / `bg-rule` / `text-rule-strong`. Interactive UI chrome (inputs, buttons, dialogs) keeps `border-border`.
+3. **Sharp structure** — structural frames (`Panel`, cell grids, section frames) use `rounded-none`. Radius stays on controls (`Button`, inputs, badges).
+4. **Collapsed grids over gapped cards** — prefer `CellGrid` + `Cell` over `gap-4` floating `rounded-xl` cards for feature matrices and marketplace grids.
+5. **Eyebrow anatomy** — section intros: `Eyebrow` (optional index) → `h2` in `font-outfit` → muted lede → content.
+6. **No decorative gradients** outside ambient backgrounds (`blueprint-grid`, `boot-ambient`). Do not add purple/blue glow blobs on marketing sections.
+7. **Prefer tokens** — never hardcode hex/oklch for rules; use `--color-rule` / `--color-rule-strong`.
+
+## Anti-patterns
+
+```svelte
+<!-- ❌ Floating rounded cards with strong borders for marketing grids -->
+<article class="rounded-xl border border-dark-600 bg-dark-800 p-6">…</article>
+
+<!-- ✅ Schematic cell -->
+<Cell>
+  <p class="font-mono text-[11px] text-primary">01</p>
+  …
+</Cell>
+```
+
+```svelte
+<!-- ❌ Per-section vertical lines -->
+<section class="border-x border-dark-600">…
+
+<!-- ✅ One GridFrame in the layout -->
+<GridFrame>…</GridFrame>
+```

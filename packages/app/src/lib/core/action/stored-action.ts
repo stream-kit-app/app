@@ -32,6 +32,7 @@ export type ActionRecord = {
 	ownerPluginKey?: string | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
+	revision: number;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -48,6 +49,7 @@ export type NewActionRecord = {
 	ownerPluginKey?: string;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
+	revision?: number;
 	createdAt?: Date;
 	updatedAt?: Date;
 };

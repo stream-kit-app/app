@@ -35,16 +35,24 @@ Ready-made widgets include **Style** and **Layout** sections: typography, colors
 
 ## OBS browser source
 
-Each overlay has a **browser source URL** on its card (copy from the Overlays list or overlay detail page).
+Each overlay has a **local browser source URL** on its configure page (for example `http://127.0.0.1:PORT/o/{overlayId}`).
 
 Typical setup in OBS:
 
 1. Add **Browser Source**.
-2. Paste the URL (for example `http://127.0.0.1:PORT/o/{overlayId}`).
+2. Paste the URL.
 3. Set width and height to match your canvas.
 4. Enable **Shutdown source when not visible** if you want to save resources.
 
 The overlay server runs inside the desktop app on `127.0.0.1`. The port is shown in overlay status in the app.
+
+### Cloud browser source
+
+With a signed-in Stream Kit account and an active plan, you can **Publish to cloud** on the overlay configure page. That uploads the built overlay and gives you a public URL:
+
+`https://stream-kit.app/app/overlays/{overlayId}/`
+
+Use that URL in OBS the same way as the local URL. **Keep the desktop app running** while you stream — live Send-to-Overlay events and settings updates are forwarded from Stream Kit to the cloud page over a WebSocket bridge. When the app is offline, the page still loads but events pause until you reconnect.
 
 ## Configure page
 

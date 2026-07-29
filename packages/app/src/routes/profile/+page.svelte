@@ -10,6 +10,7 @@
 	import { watch } from 'runed';
 
 	import { UserAvatar, openLoginModal } from '$lib/components/core/auth';
+	import { CloudFileManager } from '$lib/components/core/user-files';
 	import { app } from '$lib/core';
 	import { AUTH_AVATAR_MAX_BYTES, validateAvatarFile } from '$lib/core/auth';
 	import { useI18n } from '$lib/i18n';
@@ -24,16 +25,30 @@
 
 	let newEmail = $state('');
 	let requestingEmailChange = $state(false);
+	let requestingVerification = $state(false);
 
 	let oldPassword = $state('');
 	let password = $state('');
 	let passwordConfirm = $state('');
 	let savingPassword = $state(false);
 	let cancellingSubscription = $state(false);
-	let migratingCloudFiles = $state(false);
+
+	let deletePassword = $state('');
+	let deletingAccount = $state(false);
 
 	const account = $derived(app.auth.account);
 	const user = $derived(app.auth.user);
+	const subscriptionEndsAt = $derived(user?.subscription?.endsAt ?? null);
+	const subscriptionEndsAtLabel = $derived.by(() => {
+		if (!subscriptionEndsAt) {
+			return null;
+		}
+		const ms = Date.parse(subscriptionEndsAt);
+		if (!Number.isFinite(ms)) {
+			return subscriptionEndsAt;
+		}
+		return new Date(ms).toLocaleString();
+	});
 	const configSyncStatus = $derived(app.configSync.status);
 	const configSyncLabel = $derived.by(() => {
 		switch (configSyncStatus) {
@@ -196,6 +211,33 @@
 		}
 	}
 
+	async function resendVerification(): Promise<void> {
+		if (!account || requestingVerification) {
+			return;
+		}
+
+		requestingVerification = true;
+		try {
+			await app.auth.requestVerification();
+			app.toast.create({
+				title: t('Check your inbox'),
+				description: t('We sent a verification link to your email.'),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Update failed'),
+				description:
+					error instanceof Error
+						? error.message
+						: t('Could not send a verification email.'),
+				variant: 'error'
+			});
+		} finally {
+			requestingVerification = false;
+		}
+	}
+
 	async function savePassword(): Promise<void> {
 		if (!account || savingPassword) {
 			return;
@@ -238,7 +280,7 @@
 	}
 
 	async function cancelSubscription(): Promise<void> {
-		if (!user?.subscription || cancellingSubscription) {
+		if (!user?.subscription || user.subscription.endsAt || cancellingSubscription) {
 			return;
 		}
 
@@ -246,7 +288,7 @@
 		const confirmed = await app.confirm.ask({
 			title: t('Cancel subscription?'),
 			description: t(
-				'Cancel your {plan} plan? Cloud features for this plan will stop after cancellation.',
+				'Cancel your {plan} plan? Cloud features stay available for 30 days, then access ends.',
 				{ plan: planName }
 			),
 			confirmLabel: t('Cancel subscription'),
@@ -259,9 +301,17 @@
 		cancellingSubscription = true;
 		try {
 			await app.auth.cancelSubscription();
+			const endsLabel = app.auth.user?.subscription?.endsAt
+				? new Date(app.auth.user.subscription.endsAt).toLocaleString()
+				: null;
 			app.toast.create({
 				title: t('Subscription cancelled'),
-				description: t('Your {plan} plan has been cancelled.', { plan: planName }),
+				description: endsLabel
+					? t('Your {plan} plan stays available until {date}.', {
+							plan: planName,
+							date: endsLabel
+						})
+					: t('Your {plan} plan has been cancelled.', { plan: planName }),
 				variant: 'success'
 			});
 		} catch (error) {
@@ -278,19 +328,42 @@
 		}
 	}
 
-	async function migrateCloudFiles(): Promise<void> {
-		if (!user?.subscription || migratingCloudFiles) {
+	async function deleteAccount(): Promise<void> {
+		if (!account || deletingAccount || !deletePassword) {
 			return;
 		}
 
-		migratingCloudFiles = true;
+		const confirmed = await app.confirm.ask({
+			title: t('Delete account?'),
+			description: t(
+				'This permanently deletes your Stream Kit account and cloud data (files, synced actions, and queues). This cannot be undone.'
+			),
+			confirmLabel: t('Delete account'),
+			cancelLabel: t('Cancel')
+		});
+		if (!confirmed) {
+			return;
+		}
+
+		deletingAccount = true;
 		try {
-			const { runCloudFileMigration } = await import(
-				'$lib/core/user-files/cloud-file-migration'
-			);
-			await runCloudFileMigration(app);
+			await app.auth.deleteAccount(deletePassword);
+			app.userFiles.clearFileToken();
+			deletePassword = '';
+			app.toast.create({
+				title: t('Account deleted'),
+				description: t('Your Stream Kit account has been deleted.'),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Delete failed'),
+				description:
+					error instanceof Error ? error.message : t('Could not delete your account.'),
+				variant: 'error'
+			});
 		} finally {
-			migratingCloudFiles = false;
+			deletingAccount = false;
 		}
 	}
 </script>
@@ -357,11 +430,23 @@
 								<p class="truncate text-base font-semibold text-dark-50">
 									{user.subscription.name}
 								</p>
-								<Badge variant="success" size="sm">{t('Active')}</Badge>
+								{#if subscriptionEndsAt}
+									<Badge variant="warning" size="sm">{t('Cancelling')}</Badge>
+								{:else}
+									<Badge variant="success" size="sm">{t('Active')}</Badge>
+								{/if}
 							</div>
-							<p class="mt-0.5 text-sm text-dark-400">
-								{t('Your current Stream Kit plan.')}
-							</p>
+							{#if subscriptionEndsAtLabel}
+								<p class="mt-0.5 text-sm text-dark-400">
+									{t('Cloud features stay available until {date}.', {
+										date: subscriptionEndsAtLabel
+									})}
+								</p>
+							{:else}
+								<p class="mt-0.5 text-sm text-dark-400">
+									{t('Your current Stream Kit plan.')}
+								</p>
+							{/if}
 						{:else}
 							<p class="mt-1 text-sm text-dark-200">{t('No active subscription')}</p>
 							<p class="mt-0.5 text-sm text-dark-400">
@@ -370,7 +455,7 @@
 						{/if}
 					</div>
 				</div>
-				{#if user?.subscription}
+				{#if user?.subscription && !subscriptionEndsAt}
 					<Button
 						variant="destructive"
 						size="sm"
@@ -417,36 +502,6 @@
 						{t('Sync now')}
 					</Button>
 				</div>
-				<div
-					class="flex flex-col gap-4 rounded-xl border border-dark-600 bg-dark-800 p-4 sm:flex-row sm:items-center sm:justify-between"
-				>
-					<div class="flex min-w-0 items-start gap-3">
-						<span
-							class="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/15 text-primary"
-							aria-hidden="true"
-						>
-							<Icon icon="ri:folder-cloud-line" class="size-5" />
-						</span>
-						<div class="min-w-0">
-							<p class="text-xs font-medium tracking-wide text-dark-400 uppercase">
-								{t('Cloud files')}
-							</p>
-							<p class="mt-1 text-sm text-dark-200">
-								{t(
-									'Re-upload files referenced by actions from a previous PocketBase host (e.g. localhost) into this account.'
-								)}
-							</p>
-						</div>
-					</div>
-					<Button
-						size="sm"
-						class="shrink-0 self-start sm:self-center"
-						disabled={migratingCloudFiles}
-						onclick={() => void migrateCloudFiles()}
-					>
-						{t('Migrate cloud files')}
-					</Button>
-				</div>
 			{/if}
 			<InputText
 				label={t('Name')}
@@ -459,11 +514,41 @@
 			</div>
 		</section>
 
+		{#if user?.subscription}
+			<section class="grid max-w-xl gap-6 border-t border-dark-600 pt-10">
+				<Heading level="2">{t('Cloud files')}</Heading>
+				<p class="text-sm text-dark-400">
+					{t('Manage media stored in your Stream Kit account. Deleting a file may break actions that still reference it.')}
+				</p>
+				<CloudFileManager />
+			</section>
+		{/if}
+
 		<section class="grid max-w-xl gap-6 border-t border-dark-600 pt-10">
 			<Heading level="2">{t('Email')}</Heading>
-			<p class="text-sm text-dark-300">
-				{t('Current email')}: <span class="text-dark-100">{account.email}</span>
-			</p>
+			<div class="flex flex-wrap items-center gap-2">
+				<p class="text-sm text-dark-300">
+					{t('Current email')}: <span class="text-dark-100">{account.email}</span>
+				</p>
+				{#if user && !user.verified}
+					<Badge variant="warning" size="sm">{t('Unverified')}</Badge>
+				{/if}
+			</div>
+			{#if user && !user.verified}
+				<div class="flex flex-wrap items-center gap-3">
+					<p class="text-sm text-dark-400">
+						{t('Verify your email to confirm ownership of this address.')}
+					</p>
+					<Button
+						size="sm"
+						variant="outline"
+						disabled={requestingVerification}
+						onclick={() => void resendVerification()}
+					>
+						{t('Resend verification email')}
+					</Button>
+				</div>
+			{/if}
 			<p class="text-sm text-dark-400">
 				{t(
 					'Changing your email sends a confirmation link to the new address. Your login email updates after you confirm.'
@@ -515,6 +600,31 @@
 					onclick={savePassword}
 				>
 					{t('Update password')}
+				</Button>
+			</div>
+		</section>
+
+		<section class="grid max-w-xl gap-6 border-t border-dark-600 pt-10">
+			<Heading level="2">{t('Delete account')}</Heading>
+			<p class="text-sm text-dark-400">
+				{t(
+					'Deleting your account permanently removes your profile and cloud data, including uploaded files and synced actions.'
+				)}
+			</p>
+			<InputText
+				label={t('Confirm with password')}
+				type="password"
+				autocomplete="current-password"
+				value={deletePassword}
+				oninput={(event) => (deletePassword = event.currentTarget.value)}
+			/>
+			<div class="flex justify-end">
+				<Button
+					variant="destructive"
+					disabled={deletingAccount || !deletePassword}
+					onclick={() => void deleteAccount()}
+				>
+					{t('Delete account')}
 				</Button>
 			</div>
 		</section>

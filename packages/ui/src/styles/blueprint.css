@@ -1,0 +1,67 @@
+/*
+ * Blueprint utilities — Cloudflare-style schematic line system.
+ * Consumers must define --color-rule / --color-rule-strong in @theme.
+ */
+
+@utility blueprint-grid {
+	background-image:
+		linear-gradient(var(--color-rule) 1px, transparent 1px),
+		linear-gradient(90deg, var(--color-rule) 1px, transparent 1px);
+	background-size: 48px 48px;
+	mask-image: radial-gradient(circle at center, black 55%, transparent 78%);
+}
+
+@utility blueprint-hatch {
+	background-image: repeating-linear-gradient(
+		-45deg,
+		transparent,
+		transparent 3px,
+		var(--color-rule) 3px,
+		var(--color-rule) 4px
+	);
+}
+
+@utility blueprint-ticks {
+	background-image: repeating-linear-gradient(
+		90deg,
+		var(--color-rule-strong) 0,
+		var(--color-rule-strong) 1px,
+		transparent 1px,
+		transparent 8px
+	);
+	background-size: 100% 6px;
+	background-position: left bottom;
+	background-repeat: no-repeat;
+}
+
+@utility blueprint-rule-x {
+	position: relative;
+
+	&::before {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 0;
+		width: 100vw;
+		height: 1px;
+		margin-left: -50vw;
+		background: var(--color-rule);
+		pointer-events: none;
+	}
+}
+
+@utility blueprint-rule-y {
+	position: relative;
+
+	&::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 0;
+		height: 100vh;
+		width: 1px;
+		margin-top: -50vh;
+		background: var(--color-rule);
+		pointer-events: none;
+	}
+}

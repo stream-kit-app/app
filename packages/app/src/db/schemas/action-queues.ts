@@ -9,6 +9,8 @@ export const actionQueues = sqliteTable('action_queues', {
 	concurrency: integer('concurrency').notNull().default(1),
 	maxLength: integer('max_length'),
 	sortOrder: integer('sort_order').notNull().default(0),
+	/** Monotone sync counter; bumped on every local write. */
+	revision: integer('revision').notNull().default(1),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 });
@@ -20,6 +22,7 @@ export type ActionQueueRecord = {
 	concurrency: number;
 	maxLength: number | null;
 	sortOrder: number;
+	revision: number;
 	createdAt: Date;
 	updatedAt: Date;
 };

@@ -1,3 +1,4 @@
+import { OverlaysService } from './overlays.service';
 import { PluginsService } from './plugins.service';
 import { ReviewsService } from './reviews.service';
 
@@ -8,5 +9,9 @@ export class Services {
 
 	reviews() {
 		return new ReviewsService();
+	}
+
+	overlays() {
+		return new OverlaysService();
 	}
 }

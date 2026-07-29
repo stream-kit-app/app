@@ -461,6 +461,61 @@ export async function migrate(sqlite: Database): Promise<void> {
 	await migrateMapsToCollections(sqlite);
 	await migrateConfigSyncIds(sqlite);
 	await createConfigSyncTombstonesTable(sqlite);
+	await migrateAddRevisionColumns(sqlite);
+	await migrateAddTombstoneRevisionColumn(sqlite);
+	await createConfigSyncTrashTable(sqlite);
+}
+
+async function migrateAddRevisionColumns(sqlite: Database): Promise<void> {
+	const actionColumns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(actions)'
+	);
+	if (
+		actionColumns.length > 0 &&
+		!actionColumns.some((column) => column.name === 'revision')
+	) {
+		await sqlite.execute(
+			'ALTER TABLE actions ADD COLUMN revision INTEGER NOT NULL DEFAULT 1'
+		);
+	}
+
+	const queueColumns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(action_queues)'
+	);
+	if (
+		queueColumns.length > 0 &&
+		!queueColumns.some((column) => column.name === 'revision')
+	) {
+		await sqlite.execute(
+			'ALTER TABLE action_queues ADD COLUMN revision INTEGER NOT NULL DEFAULT 1'
+		);
+	}
+}
+
+async function migrateAddTombstoneRevisionColumn(sqlite: Database): Promise<void> {
+	const columns = await sqlite.select<Array<{ name: string }>>(
+		'PRAGMA table_info(config_sync_tombstones)'
+	);
+	if (columns.length === 0) {
+		return;
+	}
+	if (!columns.some((column) => column.name === 'revision')) {
+		await sqlite.execute(
+			'ALTER TABLE config_sync_tombstones ADD COLUMN revision INTEGER'
+		);
+	}
+}
+
+async function createConfigSyncTrashTable(sqlite: Database): Promise<void> {
+	await sqlite.execute(`
+		CREATE TABLE IF NOT EXISTS config_sync_trash (
+			id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+			entity_type TEXT NOT NULL,
+			sync_id TEXT NOT NULL,
+			payload TEXT NOT NULL,
+			deleted_at INTEGER NOT NULL
+		)
+	`);
 }
 
 async function migrateConfigSyncIds(sqlite: Database): Promise<void> {
@@ -510,6 +565,7 @@ async function createConfigSyncTombstonesTable(sqlite: Database): Promise<void> 
 			entity_type TEXT NOT NULL,
 			sync_id TEXT NOT NULL,
 			deleted_at INTEGER NOT NULL,
+			revision INTEGER,
 			PRIMARY KEY (entity_type, sync_id)
 		)
 	`);

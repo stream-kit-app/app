@@ -33,9 +33,9 @@ Do **not** put catalog CRUD, admin/superuser clients, or migrations in `packages
 | `site/scripts/seed-plugins.mjs` | Seeds plugins + uploads release zips to `files` |
 | `packages/app/src/lib/core/auth/` | Desktop app auth service (`PUBLIC_POCKETBASE_URL`) |
 
-Dev: `pnpm --filter @stream-kit/site dev` (PocketBase + SvelteKit). Admin UI: `http://127.0.0.1:8090/_/`.
+Dev: root `pnpm dev` (or `pnpm dev:site`) starts PocketBase via `@stream-kit/pocketbase#dev` plus the site. Admin UI: `http://127.0.0.1:8090/_/`. Bootstrap creates `packages/app/.env` / `site/.env` and seeds a local `pro` plan when missing (see `site/scripts/run-pocketbase.mjs`). Seed refuses non-localhost URLs; use `SK_DEV_SEED=0` / `plan` / `full`. If port 8090 is already taken, the task exits so Turbo owns a single process.
 
-App local env: set `PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090` in `packages/app/.env` (see `.env.example`).
+App local env: set `PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090` in `packages/app/.env` (see `.env.example`; created automatically by `pnpm bootstrap`).
 
 ## Schema changes
 
@@ -53,9 +53,10 @@ App local env: set `PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090` in `packages/ap
 - **`plugin_versions`** — releases linked to `plugins` (cascade delete): `version`, `streamKitVersion`, `entry`, `file` → `files`, `changelog`, `isLatest`, `publishedAt`. Unique on `(plugin, version)`.
 - **`plugin_reviews`** — user ratings/comments: `plugin` → `plugins` (cascade), `user` → `users`, `rating` (1–5), `body`. Unique on `(plugin, user)`. Public read; create/update/delete requires auth and `user = @request.auth.id`.
 - **`subscriptions`** — admin catalog of plans that unlock cloud features: `key` (unique), `name`, `description`, `icon`, `enabled`, `bullets` (JSON string array for plan card benefits), `maxFileBytes`, `maxStorageBytes`. Public list/view when `enabled = true`; write is superuser-only.
-- **`user_subscriptions`** — membership history: `user` → `users`, `subscription` → `subscriptions`, `purchasedAt`, `cancelledAt`, `status` (`active` \| `cancelled` \| `expired`). Users can list/view own rows; create/delete are superuser-only until purchase flows exist. Owners may cancel an active row (`status` → `cancelled`). Current plan = latest row with `status = "active"`.
-- **`user_files`** — per-user cloud media: `user` → `users`, `file` (upload), `mimeType`, `size`, `originalName`. Owner-only list/view/delete. Create rule: authenticated only; ownership is forced in `user_files.pb.js` (`onRecordCreateRequest`) together with plan `maxFileBytes` / `maxStorageBytes`. Multipart creates that also required `user = @request.auth.id` in the rule failed with a generic 400. Marketplace release zips stay on **`files`**.
-- **`user_action_queues`** / **`user_actions`** — cloud sync of queues/actions. Create rule: authenticated only; update/delete/list/view: owner. Hook `user_config_sync.pb.js` forces `user` to auth id and requires an active subscription. Number fields that may be `0` (e.g. unlimited concurrency, sortOrder) are **not** marked required (PocketBase treats required numbers as nonzero).
+- **`user_subscriptions`** — membership history: `user` → `users`, `subscription` → `subscriptions`, `purchasedAt`, `cancelledAt`, **`endsAt`** (grace end after cancel), `status` (`active` \| `cancelled` \| `expired`). Users can list/view own rows; create/delete are superuser-only until purchase flows exist. Owners may cancel an active row (`status` → `cancelled`, set `endsAt` ≈ now + 30 days). Cloud entitlement = `status = "active"` **or** `status = "cancelled"` with `endsAt` still in the future.
+- **`user_files`** — per-user cloud media: `user` → `users`, `file` (upload, **`protected: true`** — clients use `pb.files.getToken()` / `?token=` URLs), `mimeType`, `size`, `originalName`. Mime allowlist is media-only (no `application/octet-stream`). Owner-only list/view/delete. Create rule: authenticated only (multipart `user` body matching is brittle); `onRecordCreateRequest` forces `user` to auth id; `onRecordCreate` fills metadata and enforces plan `maxFileBytes` / `maxStorageBytes`. The desktop app stores **relative** `/api/files/...` paths in actions and resolves them against `PUBLIC_POCKETBASE_URL` at use time (with a cached file token). Marketplace release zips stay on **`files`**.
+- **`user_action_queues`** / **`user_actions`** — cloud sync of queues/actions. Create rule: authenticated only; update/delete/list/view: owner. Hook `user_config_sync.pb.js` forces `user` to auth id and requires an **entitled** membership (active, or cancelled with `endsAt` in the future). Number fields that may be `0` (e.g. unlimited concurrency, sortOrder) are **not** marked required (PocketBase treats required numbers as nonzero). Monotone **`revision`** (number) drives LWW with `clientUpdatedAt` as tie-breaker; soft-deletes keep `revision` on the tombstone/remote row.
+- **`user_overlays`** — published cloud browser sources. Stable public key is **`overlayId`** (local overlay UUID, unique). PocketBase **`id`** stays the default 15-char key (safer for file storage). Fields: `user`, `name`, `config` (JSON), `bundle` (zip of `dist/`, **not** protected, max 25MB), `published`, `revision`, `clientUpdatedAt`. Public list/view when `published = true` (also owner when authed). Create/update: authenticated; hook `user_overlays.pb.js` forces `user` + entitlement. The marketing/app **site** serves HTML at `/app/overlays/[uuid]/` (lookup by `overlayId`) — do not host overlay UI via PocketBase routes.
 
 ## SvelteKit integration (site)
 
@@ -79,14 +80,40 @@ export const load = async ({ locals }) => {
 
 - Implement auth in `packages/app/src/lib/core/auth` with the public PocketBase SDK and `PUBLIC_POCKETBASE_URL` (`$env/static/public`, build-time).
 - Persist the session with PocketBase `AsyncAuthStore` backed by the Tauri store (`app.auth.json`) — not `localStorage` (plugins share the same window origin).
+- On boot: `authRefresh` **before** `authStore.onChange(..., true)` so consumers never start on a stale token. Wrap `pb.send` to retry once after `authRefresh` on 401; also refresh on a 30‑minute interval while signed in.
+- Prefer `pb.filter('user={:id}', { id })` (and similar) over string-interpolated filters.
 - Email changes use `requestEmailChange` (confirmation link); do not update `email` via the regular profile `update` call.
 - After a password change, re-authenticate with `authWithPassword` because PocketBase rotates `tokenKey`.
-- Expose `app.auth` to plugins (public profile: `id`, `name`, `avatarUrl`, `verified`, optional `subscription` `{ key, name }`).
+- Expose `app.auth` to plugins (public profile: `id`, `name`, `avatarUrl`, `verified`, optional `subscription` `{ key, name, endsAt? }`).
 - Never use `_superusers` or admin credentials from the app.
+
+## Production hardening
+
+- In PocketBase admin, **enable auth rate limits** for login/register (and related auth endpoints) before exposing production. See `docs/site.md`.
+- Document collection/field changes in `docs/site.md` as well as this rule.
 
 ## Hooks
 
 Place hook scripts in `site/pb/pb_hooks/`. Keep hooks focused; use migrations for schema, hooks for request/record lifecycle logic.
+
+### Handler scope (isolated runtimes)
+
+Every handler is serialized and executed in its own runtime, so it **cannot** access anything declared at the top level of the same `*.pb.js` file — that fails at runtime with `ReferenceError: helper is not defined`. Put shared helpers in `site/pb/pb_hooks/shared/*.js` (`module.exports = { … }`) and `require()` them **inside** the handler body:
+
+```js
+function requireActiveSubscription(e) {
+	const entitlement = require(`${__hooks}/shared/entitlement.js`);
+	const auth = entitlement.requestAuth(e);
+	// …
+	return e.next();
+}
+```
+
+Globals (`$app`, `$dbx`, `BadRequestError`, `DynamicModel`, …) *are* available in handlers and required modules. Inline small constants inside the handler instead of hoisting them. `shared/` ships in the Docker image; `lib/` (schema codegen) is `.dockerignore`d, so never put runtime helpers there.
+
+- **`shared/entitlement.js`** — membership entitlement (`hasEntitledMembership`, `findEntitledMembership`, `requestAuth`).
+- **`shared/user-files.js`** — `user_files` mime allowlist, metadata, storage usage.
+- **`shared/plugin-ratings.js`** — plugin rating aggregation.
 
 - **`files.pb.js`** — on create/update of `files`, sets `mimeType`, `size`, `sha256`, and `originalName` from the uploaded file.
 - **`user_files.pb.js`** — on create/update of `user_files`, sets metadata and enforces plan quotas.

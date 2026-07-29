@@ -34,6 +34,32 @@
 	const isBuilt = $derived(app.overlay.isBuilt(overlayId));
 	const isBuilding = $derived(app.overlay.buildingId === overlayId);
 	const browserSourceUrl = $derived(app.overlay.getUrl(overlayId));
+	const cloudUrl = $derived(app.overlay.getCloudUrl(overlayId));
+	const isCloudPublished = $derived(app.overlay.isCloudPublished(overlayId));
+	const isCloudPublisherConnected = $derived(app.overlay.isCloudPublisherConnected(overlayId));
+	const isCloudBusy = $derived(app.overlay.cloudBusyId === overlayId);
+	const isCloudConfigured = $derived(app.overlay.isCloudConfigured());
+	const canPublishCloud = $derived(
+		isCloudConfigured &&
+			app.auth.isAuthenticated &&
+			Boolean(app.auth.user?.subscription) &&
+			isBuilt
+	);
+	const cloudPublishBlockedReason = $derived.by(() => {
+		if (!isCloudConfigured) {
+			return t('Set PUBLIC_SITE_URL to enable cloud overlays.');
+		}
+		if (!app.auth.isAuthenticated) {
+			return t('Sign in from your profile to publish overlays.');
+		}
+		if (!app.auth.user?.subscription) {
+			return t('Your account does not include cloud overlays. An active plan is required.');
+		}
+		if (!isBuilt) {
+			return t('Build the overlay before publishing to the cloud.');
+		}
+		return null;
+	});
 	const dependencyManifest = $derived({
 		requiredPlugins: overlay?.requiredPlugins ?? []
 	} as OverlayManifest);
@@ -183,6 +209,40 @@
 			description: result.error ?? t('Unknown error'),
 			variant: 'error'
 		});
+	}
+
+	async function publishToCloud(): Promise<void> {
+		try {
+			await app.overlay.publishToCloud(overlayId);
+			app.toast.create({
+				title: t('Overlay published'),
+				description: t('Use the cloud URL in OBS. Keep Stream Kit running for live events.'),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not publish overlay'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+		}
+	}
+
+	async function unpublishFromCloud(): Promise<void> {
+		try {
+			await app.overlay.unpublishFromCloud(overlayId);
+			app.toast.create({
+				title: t('Overlay unpublished'),
+				description: t('The cloud browser source URL is no longer available.'),
+				variant: 'success'
+			});
+		} catch (error) {
+			app.toast.create({
+				title: t('Could not unpublish overlay'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+		}
 	}
 
 	async function runTest(event: string, payload?: unknown): Promise<void> {
@@ -475,6 +535,61 @@
 							copiedLabel={t('Copied')}
 						/>
 					</div>
+				</section>
+
+				<section class="rounded-xl border border-dark-600 bg-dark-800 p-4">
+					<p class="mb-2 text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
+						{t('Cloud browser source')}
+					</p>
+					{#if cloudUrl && isCloudPublished}
+						<div class="mb-3 min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
+							<InputText
+								copyable
+								readonly
+								size="xs"
+								aria-label={t('Cloud browser source URL')}
+								value={cloudUrl}
+								copyLabel={t('Copy URL')}
+								copiedLabel={t('Copied')}
+							/>
+						</div>
+						<p class="mb-3 text-xs text-dark-400">
+							{#if isCloudPublisherConnected}
+								{t('Live events connected. Keep Stream Kit open while streaming.')}
+							{:else}
+								{t('Waiting for live connection. Events reach OBS when Stream Kit is online.')}
+							{/if}
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							icon="ri:cloud-off-line"
+							disabled={isCloudBusy}
+							isLoading={isCloudBusy}
+							onclick={() => void unpublishFromCloud()}
+						>
+							{t('Unpublish')}
+						</Button>
+					{:else}
+						{#if canPublishCloud}
+							<p class="mb-3 text-sm text-dark-300">
+								{t('Publish a public URL for OBS. Live events work while Stream Kit is running.')}
+							</p>
+						{:else}
+							<p class="mb-3 text-sm text-dark-300">
+								{cloudPublishBlockedReason}
+							</p>
+						{/if}
+						<Button
+							size="sm"
+							icon="ri:cloud-line"
+							disabled={!canPublishCloud || isCloudBusy}
+							isLoading={isCloudBusy}
+							onclick={() => void publishToCloud()}
+						>
+							{t('Publish to cloud')}
+						</Button>
+					{/if}
 				</section>
 
 				{#if settings?.hasSettings}

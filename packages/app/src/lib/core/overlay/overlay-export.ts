@@ -72,4 +72,40 @@ export async function buildOverlayProjectZip(overlayId: string): Promise<Uint8Ar
 	return zipSync(tree, { level: 6 });
 }
 
+/** Zip only `dist/` for cloud publish (binary-safe). */
+export async function buildOverlayDistZip(overlayId: string): Promise<Uint8Array> {
+	const { exists, readDir, readFile } = await import('@tauri-apps/plugin-fs');
+	const root = `${overlayDir(overlayId)}/dist`;
+
+	if (!(await exists(`${root}/index.html`, { baseDir: BaseDirectory.AppData }))) {
+		throw new Error('Overlay is not built');
+	}
+
+	const tree: Zippable = {};
+
+	async function walk(relativeDir: string, zipPrefix: string): Promise<void> {
+		const entries = await readDir(relativeDir, { baseDir: BaseDirectory.AppData });
+
+		for (const entry of entries) {
+			const fullPath = `${relativeDir}/${entry.name}`;
+			const zipPath = zipPrefix ? `${zipPrefix}/${entry.name}` : entry.name;
+
+			if (entry.isDirectory) {
+				await walk(fullPath, zipPath);
+				continue;
+			}
+
+			tree[zipPath] = await readFile(fullPath, { baseDir: BaseDirectory.AppData });
+		}
+	}
+
+	await walk(root, '');
+
+	if (Object.keys(tree).length === 0) {
+		throw new Error('Overlay dist is empty');
+	}
+
+	return zipSync(tree, { level: 6 });
+}
+
 export { overlayProjectSlug } from './overlay-scaffold';

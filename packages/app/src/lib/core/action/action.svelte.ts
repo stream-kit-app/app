@@ -31,6 +31,7 @@ import { translate } from '$lib/i18n';
 
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
 import { getApp } from '../registry';
+import { normalizeCloudFileRefsInHandlers } from '../user-files/normalize-cloud-file-refs';
 import { ActionExecution } from './action-execution.svelte';
 import { buildActionsExport, isExportableAction } from './action-export';
 import { ActionHandler, type HandlerBranch } from './action-handler.svelte';
@@ -125,22 +126,28 @@ export class Actions {
 
 		for (const row of rows) {
 			const migratedRecord = Action.migrateStoredDefinitionIds(row, this);
-			const action = Action.fromRecord(migratedRecord);
+			const handlersNormalized = normalizeCloudFileRefsInHandlers(migratedRecord.handlers);
+			const record = handlersNormalized.changed
+				? { ...migratedRecord, handlers: handlersNormalized.handlers }
+				: migratedRecord;
+			const action = Action.fromRecord(record);
 			loaded.push(action);
 
 			if (action.enabled) {
 				this.activate(action);
 			}
 
-			if (migratedRecord !== row && row.id != null) {
+			const shouldPersist =
+				(migratedRecord !== row || handlersNormalized.changed) && row.id != null;
+			if (shouldPersist) {
 				await saveAction(
 					{
 						name: row.name,
 						group: row.group,
 						enabled: row.enabled ?? true,
 						queueId: row.queueId ?? null,
-						triggers: migratedRecord.triggers,
-						handlers: migratedRecord.handlers
+						triggers: record.triggers,
+						handlers: record.handlers
 					},
 					row.id
 				);
@@ -504,6 +511,7 @@ export class Actions {
 				ownerPluginKey: action.ownerPluginKey ?? null,
 				triggers: action.triggers.map((trigger) => trigger.toStored()),
 				handlers: action.handlers.map((handler) => handler.toStored()),
+				revision: 1,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}));

@@ -41,15 +41,16 @@ This section documents the six workspace packages in `packages/`.
 
 ## Build order
 
-The root `build:packages` script builds shared packages before the app plugin host:
+Root `build:packages` uses [Turborepo](https://turbo.build) (`turbo.json`) with an explicit task graph (no `^build`, because several packages have cyclic *package* deps via type-only `@stream-kit/app` links). Cacheable builds:
 
-1. `@stream-kit/core` — ESM bundle + declarations
-2. `@stream-kit/plugin` — bundles public `.d.ts` and runtime re-exports (depends on core)
-3. `@stream-kit/ui` — type-check only (source is consumed directly)
-4. First-party plugins under `plugins/*`
-5. `@stream-kit/app build:plugin-host` — import map + host bundles in `static/plugin-host/`
+1. `//#codegen` — plugin config stubs + `@stream-kit/script-api` types
+2. `@stream-kit/core` — ESM bundle + declarations
+3. `@stream-kit/plugin` — public `.d.ts` + runtime re-exports (depends on core + codegen)
+4. `@stream-kit/ui` — type-check only (source is consumed directly)
+5. First-party plugins under `plugins/*` (`@stream-kit/plugin-*`, excluding `plugin-template`)
+6. `@stream-kit/app build:plugin-host` — import map + host bundles in `static/plugin-host/`
 
-During development, `pnpm dev` runs watchers for UI, plugin API, core, all first-party plugins, and the Tauri app in parallel.
+During development, `pnpm dev` builds plugins (cached on warm runs), then starts persistent watchers for core/plugin/ui/plugins, PocketBase, the marketing site, and the Tauri app. Docs are opt-in via `pnpm dev:all` or `pnpm dev:docs`.
 
 ## Related documentation
 

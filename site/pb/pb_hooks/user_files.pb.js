@@ -1,83 +1,55 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 /**
- * Fill metadata and enforce plan upload quotas on `user_files` creates.
- * Always bind `user` to the authenticated record (createRule only checks auth).
+ * Bind ownership + fill metadata / enforce plan quotas on `user_files`.
+ * createRule is auth-only (multipart body `user` is brittle); ownership is forced here.
  * Note: `filesystem.File` has size / originalName / name — not `type`.
+ *
+ * - onRecordCreateRequest: always set `user` from auth (API creates)
+ * - onRecordCreate: metadata + quota (API and non-API creates that go through the model hook)
  */
-function mimeFromName(name) {
-	const base = String(name || '').split(/[/\\]/).pop() || '';
-	const dot = base.lastIndexOf('.');
-	const ext = dot < 0 ? '' : base.slice(dot + 1).toLowerCase();
-	const map = {
-		mp3: 'audio/mpeg',
-		mpeg: 'audio/mpeg',
-		wav: 'audio/wav',
-		ogg: 'audio/ogg',
-		webm: 'audio/webm',
-		flac: 'audio/flac',
-		aac: 'audio/aac',
-		m4a: 'audio/mp4',
-		png: 'image/png',
-		jpg: 'image/jpeg',
-		jpeg: 'image/jpeg',
-		webp: 'image/webp',
-		gif: 'image/gif',
-		svg: 'image/svg+xml',
-		mp4: 'video/mp4',
-		mov: 'video/quicktime',
-		zip: 'application/zip'
-	};
-	return map[ext] || 'application/octet-stream';
-}
 
-function applyFileMetadata(record, file) {
-	const originalName = file.originalName || file.name || 'upload.bin';
-	const size = Number(file.size) || 0;
-	record.set('mimeType', mimeFromName(originalName));
-	record.set('size', size);
-	record.set('originalName', originalName);
-}
+function bindUserOnCreateRequest(e) {
+	const entitlement = require(`${__hooks}/shared/entitlement.js`);
 
-function onUserFilesCreateRequest(e) {
-	const auth = e.auth || (e.requestInfo && e.requestInfo().auth);
-	if (!auth || !auth.id) {
+	const auth = entitlement.requestAuth(e);
+	if (!auth) {
 		throw new BadRequestError('You must be signed in to upload files.');
 	}
+	e.record.set('user', auth.id);
+	return e.next();
+}
+
+function onUserFilesCreate(e) {
+	const entitlement = require(`${__hooks}/shared/entitlement.js`);
+	const userFiles = require(`${__hooks}/shared/user-files.js`);
+
+	const auth = entitlement.requestAuth(e);
+	if (!auth) {
+		throw new BadRequestError('You must be signed in to upload files.');
+	}
+
+	e.record.set('user', auth.id);
 
 	const files = e.record.getUnsavedFiles('file');
 	if (files.length === 0) {
 		throw new BadRequestError('A file is required.');
 	}
 
-	const file = files[0];
-	applyFileMetadata(e.record, file);
-	e.record.set('user', auth.id);
+	userFiles.applyFileMetadata(e.record, files[0]);
 
 	const size = Number(e.record.get('size')) || 0;
 
-	const memberships = e.app.findAllRecords(
-		'user_subscriptions',
-		$dbx.exp('user = {:user} AND status = {:status}', {
-			user: auth.id,
-			status: 'active'
-		})
-	);
-
-	if (!memberships || memberships.length === 0) {
+	const membership = entitlement.findEntitledMembership(e.app, auth.id);
+	if (!membership) {
 		throw new BadRequestError('An active subscription is required to upload files.');
 	}
 
 	let plan = null;
-	for (const membership of memberships) {
-		try {
-			plan = e.app.findRecordById('subscriptions', membership.get('subscription'));
-			if (plan) {
-				break;
-			}
-		} catch (_err) {
-			// try next membership
-		}
+	try {
+		plan = e.app.findRecordById('subscriptions', membership.get('subscription'));
+	} catch (_err) {
+		plan = null;
 	}
 
 	if (!plan) {
@@ -93,14 +65,7 @@ function onUserFilesCreateRequest(e) {
 		);
 	}
 
-	const existing = e.app.findAllRecords(
-		'user_files',
-		$dbx.exp('user = {:user}', { user: auth.id })
-	);
-	let usedBytes = 0;
-	for (const row of existing) {
-		usedBytes += Number(row.get('size')) || 0;
-	}
+	const usedBytes = userFiles.sumUsedBytes(e.app, auth.id);
 
 	if (maxStorageBytes > 0 && usedBytes + size > maxStorageBytes) {
 		throw new BadRequestError(
@@ -112,12 +77,15 @@ function onUserFilesCreateRequest(e) {
 }
 
 function onUserFilesUpdate(e) {
+	const userFiles = require(`${__hooks}/shared/user-files.js`);
+
 	const files = e.record.getUnsavedFiles('file');
 	if (files.length > 0) {
-		applyFileMetadata(e.record, files[0]);
+		userFiles.applyFileMetadata(e.record, files[0]);
 	}
 	return e.next();
 }
 
-onRecordCreateRequest(onUserFilesCreateRequest, 'user_files');
+onRecordCreateRequest(bindUserOnCreateRequest, 'user_files');
+onRecordCreate(onUserFilesCreate, 'user_files');
 onRecordUpdate(onUserFilesUpdate, 'user_files');

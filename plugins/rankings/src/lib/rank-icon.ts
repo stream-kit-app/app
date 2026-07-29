@@ -9,7 +9,11 @@ export function getRankIconKind(icon: string | undefined | null): RankIconKind {
 	}
 
 	const trimmed = icon.trim();
-	if (trimmed.startsWith('data:image/') || /^https?:\/\//i.test(trimmed)) {
+	if (
+		trimmed.startsWith('data:image/') ||
+		trimmed.startsWith('/api/files/') ||
+		/^https?:\/\//i.test(trimmed)
+	) {
 		return 'image';
 	}
 

@@ -13,6 +13,8 @@
 	import { Command as CommandModel } from '../lib/command.svelte';
 	import { getCommandsService } from '../lib/get-commands';
 
+	import CommandIdCopy from './command-id-copy.svelte';
+
 	type Definition = { id: string; name: string; isAvailable: boolean };
 
 	type Props = {
@@ -32,7 +34,6 @@
 	const handlersUnavailable = $derived(
 		command.handlers.some((handler) => !handler.definition.isAvailable)
 	);
-	const commandLabel = $derived(command.displayCommandNames.map((name) => `!${name}`).join(', '));
 
 	const roleLabels = $derived(
 		command.permissions.roles.map((role) => ({
@@ -147,6 +148,14 @@
 	</div>
 {/snippet}
 
+{#snippet commandNamesList(names: string[])}
+	<ul class="flex flex-col gap-1">
+		{#each names as name (name)}
+			<li class="font-mono text-sm">!{name}</li>
+		{/each}
+	</ul>
+{/snippet}
+
 <div
 	class={cn(
 		'group/card flex min-w-0 flex-1 items-center gap-3 transition-colors',
@@ -202,9 +211,16 @@
 			{command.name.trim() || t('Untitled command')}
 		</span>
 		<span class="flex flex-wrap items-center gap-1.5">
-			{#if commandLabel}
-				<span class="truncate text-sm text-dark-300">{commandLabel}</span>
-			{/if}
+			<Badge
+				size="sm"
+				variant="ghost"
+				{@attach tooltip(() =>
+					tooltipSnippet(commandNamesList, command.displayCommandNames)
+				)}
+			>
+				<Icon icon="ri:terminal-box-line" />
+				{t('commands ({count})', { count: command.displayCommandNames.length })}
+			</Badge>
 			<Badge
 				size="sm"
 				variant={handlersUnavailable ? 'destructive' : 'ghost'}
@@ -232,7 +248,7 @@
 				<Badge
 					size="sm"
 					variant="secondary"
-					{@attach tooltip(() => cooldownTooltip ?? cooldownLabel)}
+					{@attach tooltip(() => cooldownTooltip || cooldownLabel)}
 				>
 					<Icon icon="ri:timer-line" />
 					{cooldownLabel}
@@ -246,6 +262,7 @@
 
 	<div class="flex shrink-0 items-center gap-1">
 		{#if command.id != null}
+			<CommandIdCopy id={command.id} variant="badge" />
 			<Button
 				variant="outline"
 				size="icon"

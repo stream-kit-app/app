@@ -135,7 +135,7 @@ stream-kit/
 # Install dependencies
 pnpm install
 
-# Start the dev environment (builds packages, starts watchers + Tauri)
+# Start the full local stack (packages, plugins, PocketBase, site, Tauri)
 pnpm run dev
 ```
 
@@ -147,8 +147,12 @@ pnpm run build          # Production build
 pnpm run check          # Typecheck across the workspace
 pnpm run lint           # Linting & formatting check
 pnpm run format         # Format code
-pnpm run dev:app        # Start the app only (without package watchers)
-pnpm run dev:packages   # Run packages/plugins in watch mode only
+pnpm run bootstrap      # Create missing .env files from .env.example
+pnpm run dev:app        # Tauri + PocketBase only
+pnpm run dev:site       # Marketing site + PocketBase only
+pnpm run dev:docs       # Docs site only
+pnpm run dev:all        # Same as `pnpm dev`, plus docs
+pnpm run dev:packages   # Package/plugin watchers only
 ```
 
 </details>

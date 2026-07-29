@@ -1,0 +1,58 @@
+---
+description: Conventions for the Stream Kit marketing site (site/)
+globs:
+  - site/**
+---
+
+# Marketing site
+
+The public marketing site lives in `site/` (`@stream-kit/site`). Dark-only. English copy for now.
+
+## Route groups
+
+| Group / path | Chrome |
+| --- | --- |
+| `(marketing)/*` | `GridFrame`, sticky header, footer — marketing chrome |
+| `/app/*` | **No** marketing chrome (overlay host today; future logged-in dashboard) |
+
+Keep marketing chrome in `(marketing)/+layout.svelte` only. Never wrap `/app` routes with `GridFrame` or the marketing header/footer.
+
+## Layout
+
+- Exactly **one** `GridFrame` per marketing layout.
+- Footer belongs in the marketing layout (shared across `/`, `/plugins`, …), not duplicated per page.
+- Sections are separated by `SectionRule` from `@stream-kit/ui/blueprint`.
+- **Header** must match the blueprint: mono uppercase nav links, active = bottom hairline (not pill), hairline vertical dividers between logo / nav / CTA, sharp/ghost download control — do not reuse the app's rounded `NavLink` pills.
+
+## Section anatomy
+
+Every major landing section should follow:
+
+1. `Eyebrow` with optional zero-padded index (`01`, `02`, …)
+2. `h2` with `font-outfit` + tight tracking
+3. Short muted lede
+4. Content (`CellGrid`, `Panel`, list, …)
+
+## Page metadata
+
+Every public page must set `<svelte:head>` with a unique `title` and `meta name="description"`.
+
+## Visual language
+
+Follow `design-system.mdc`. Prefer `@stream-kit/ui` + `@stream-kit/ui/blueprint` over custom chrome.
+
+- Structural frames: `rounded-none`, `border-rule`
+- Controls: keep `@stream-kit/ui` button/input radius
+- Mono for indices, eyebrows, small metadata (`font-mono`)
+
+## Copy
+
+- Tone: direct, product-focused, no hype filler
+- English only until i18n is introduced
+- Keep homepage copy in plain arrays/constants at the top of the page script so it can be extracted later
+
+## Stack reminders
+
+- SvelteKit + Tailwind v4 + `@stream-kit/ui`
+- PocketBase for plugin catalog (see `pocketbase.mdc`)
+- Do not import Tauri APIs in `site/`

@@ -3,20 +3,41 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const pluginConfigPaths = [
+
+export const PLUGIN_CONFIG_PATHS = [
 	'plugins/twitch/src/config.ts',
 	'plugins/youtube/src/config.ts',
 	'plugins/discord/src/config.ts'
 ];
 
-for (const configPath of pluginConfigPaths) {
-	const targetPath = join(root, configPath);
+/**
+ * Copy missing plugin OAuth config stubs from `*.example.ts`.
+ * @param {{ log?: (message: string) => void }} [options]
+ * @returns {string[]} Created relative paths
+ */
+export function ensurePluginConfigs(options = {}) {
+	const log = options.log ?? console.log;
+	const created = [];
 
-	if (existsSync(targetPath)) {
-		continue;
+	for (const configPath of PLUGIN_CONFIG_PATHS) {
+		const targetPath = join(root, configPath);
+		if (existsSync(targetPath)) {
+			continue;
+		}
+
+		const examplePath = targetPath.replace(/\.ts$/, '.example.ts');
+		if (!existsSync(examplePath)) {
+			continue;
+		}
+
+		copyFileSync(examplePath, targetPath);
+		log(`Created ${configPath} from ${configPath.replace(/\.ts$/, '.example.ts')}`);
+		created.push(configPath);
 	}
 
-	const examplePath = targetPath.replace(/\.ts$/, '.example.ts');
-	copyFileSync(examplePath, targetPath);
-	console.log(`Created ${configPath} from ${configPath.replace(/\.ts$/, '.example.ts')}`);
+	return created;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	ensurePluginConfigs();
 }

@@ -1,7 +1,7 @@
 export { OverlayService } from './overlay-service.svelte';
 export { registerOverlayHandlers } from './register-handlers';
 export { OVERLAY_FRAMEWORKS, getOverlayFramework, OVERLAY_TEMPLATES, getOverlayTemplate } from './templates';
-export { buildOverlayProjectZip, overlayProjectSlug } from './overlay-export';
+export { buildOverlayProjectZip, buildOverlayDistZip, overlayProjectSlug } from './overlay-export';
 export { importOverlayProjectFromZip } from './overlay-import';
 export { ensureOverlayScaffold, getOverlayProjectDir, isOverlayBuilt } from './overlay-project';
 export { OVERLAY_FRAMEWORK_ICONS, getOverlayFrameworkIcon, OVERLAY_TEMPLATE_ICONS, getOverlayTemplateIcon } from './template-meta';
@@ -26,7 +26,18 @@ export {
 export type { OverlaySettingsContext } from './overlay-settings.svelte';
 export { OVERLAY_SETTINGS_EVENT } from './overlay-manifest';
 export type { OverlayFrameworkId, OverlayProjectFile, OverlayServerStatus } from './types';
-export { createOverlayId, DEFAULT_OVERLAY_PORT, overlayBrowserSourceUrl } from './types';
+export {
+	createOverlayId,
+	DEFAULT_OVERLAY_PORT,
+	overlayBrowserSourceUrl,
+	overlayCloudBrowserSourceUrl
+} from './types';
+export {
+	cloudOverlayUrl,
+	resolveSiteUrl,
+	publishOverlayToCloud,
+	unpublishOverlayFromCloud
+} from './overlay-cloud';
 export {
 	OVERLAY_WIDGET_TEMPLATES,
 	getOverlayWidgetTemplate,

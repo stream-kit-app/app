@@ -43,6 +43,8 @@
 	import {
 		isLocalFilePath,
 		pickCloudFileUrl,
+		toDisplayCloudFileValue,
+		toStoredCloudFileValue,
 		uploadLocalFileToCloud,
 		usesCloudFileStorage
 	} from '$lib/components/core/user-files/cloud-file-actions';
@@ -270,14 +272,15 @@
 		{@const cloudStorage = usesCloudFileStorage(config)}
 		{@const fileValue = String(field.value ?? '')}
 		{@const hasLocalPath = cloudStorage && isLocalFilePath(fileValue)}
+		{@const displayFileValue = toDisplayCloudFileValue(app, fileValue)}
 		<InputFilePath
 			label={config.name}
 			placeholder={config.placeholder}
 			required={config.required}
 			mode={config.mode}
 			filters={config.filters}
-			value={fileValue}
-			onValueChange={(value: string) => (field.value = value)}
+			value={displayFileValue}
+			onValueChange={(value: string) => (field.value = toStoredCloudFileValue(value))}
 			browseLabel={t('Browse')}
 			uploadLabel={hasLocalPath ? t('Upload to cloud') : t('Upload')}
 			cloudLabel={t('Cloud')}

@@ -1,5 +1,9 @@
 import type { RecordModel } from 'pocketbase';
 
+import {
+	isMembershipEntitled,
+	parsePbDateToMs
+} from './subscription-entitlement';
 import type { AuthAccount, AuthPublicSubscription, AuthPublicUser } from './types';
 
 export const AUTH_AVATAR_MAX_BYTES = 5 * 1024 * 1024;
@@ -52,7 +56,7 @@ export function toPublicSubscription(plan: unknown): AuthPublicSubscription | nu
 
 /**
  * Map a `user_subscriptions` row (with `expand.subscription`) to a public plan label.
- * Non-active memberships and disabled plans yield `null`.
+ * Active and cancelled-in-grace memberships are entitled; others yield `null`.
  */
 export function toPublicSubscriptionFromMembership(
 	membership: unknown
@@ -62,7 +66,7 @@ export function toPublicSubscriptionFromMembership(
 	}
 
 	const record = membership as Record<string, unknown>;
-	if (typeof record.status === 'string' && record.status !== 'active') {
+	if (!isMembershipEntitled(record)) {
 		return null;
 	}
 
@@ -71,7 +75,19 @@ export function toPublicSubscriptionFromMembership(
 			? (record.expand as Record<string, unknown>).subscription
 			: undefined;
 
-	return toPublicSubscription(plan);
+	const publicPlan = toPublicSubscription(plan);
+	if (!publicPlan) {
+		return null;
+	}
+
+	if (record.status === 'cancelled') {
+		const endsAtMs = parsePbDateToMs(record.endsAt);
+		if (endsAtMs != null) {
+			return { ...publicPlan, endsAt: new Date(endsAtMs).toISOString() };
+		}
+	}
+
+	return publicPlan;
 }
 
 export function toPublicUser(
@@ -131,13 +147,21 @@ type PocketBaseFieldError = {
 	message?: unknown;
 };
 
+function pocketBaseStatus(error: unknown): number | null {
+	if (!error || typeof error !== 'object') {
+		return null;
+	}
+	const status = 'status' in error ? (error as { status?: unknown }).status : undefined;
+	return typeof status === 'number' ? status : null;
+}
+
 /** True when the PocketBase JS SDK aborted a duplicate in-flight request. */
 export function isPocketBaseAutoCancelled(error: unknown): boolean {
 	if (!error || typeof error !== 'object') {
 		return false;
 	}
 
-	const status = 'status' in error ? (error as { status?: unknown }).status : undefined;
+	const status = pocketBaseStatus(error);
 	const message =
 		'message' in error && typeof (error as { message?: unknown }).message === 'string'
 			? (error as { message: string }).message
@@ -157,6 +181,16 @@ export function isPocketBaseAutoCancelled(error: unknown): boolean {
 	}
 
 	return false;
+}
+
+/** True when PocketBase reports the record was not found (safe to create). */
+export function isPocketBaseNotFound(error: unknown): boolean {
+	return pocketBaseStatus(error) === 404;
+}
+
+/** True when PocketBase reports unauthorized (expired/invalid auth). */
+export function isPocketBaseUnauthorized(error: unknown): boolean {
+	return pocketBaseStatus(error) === 401;
 }
 
 /**

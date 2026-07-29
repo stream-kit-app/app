@@ -19,6 +19,7 @@ export const Collections = {
 	UserActionQueues: "user_action_queues",
 	UserActions: "user_actions",
 	UserFiles: "user_files",
+	UserOverlays: "user_overlays",
 	UserSubscriptions: "user_subscriptions",
 	Users: "users",
 } as const
@@ -198,6 +199,7 @@ export type UserActionQueuesRecord = {
 	id: string
 	maxLength?: number
 	name: string
+	revision?: number
 	sortOrder?: number
 	updatedAt: IsoAutoDateString
 	user: RecordIdString
@@ -215,6 +217,7 @@ export type UserActionsRecord<Thandlers = unknown, Ttriggers = unknown> = {
 	name: string
 	ownerPluginKey?: string
 	queueSyncId?: string
+	revision?: number
 	sortOrder?: number
 	triggers: null | Ttriggers
 	updatedAt: IsoAutoDateString
@@ -232,6 +235,20 @@ export type UserFilesRecord = {
 	user: RecordIdString
 }
 
+export type UserOverlaysRecord<Tconfig = unknown> = {
+	bundle: FileNameString
+	clientUpdatedAt?: number
+	config?: null | Tconfig
+	createdAt: IsoAutoDateString
+	id: string
+	name: string
+	overlayId: string
+	published?: boolean
+	revision?: number
+	updatedAt: IsoAutoDateString
+	user: RecordIdString
+}
+
 export const UserSubscriptionsStatusOptions = {
 	"active": "active",
 	"cancelled": "cancelled",
@@ -241,6 +258,7 @@ export type UserSubscriptionsStatusOptions = typeof UserSubscriptionsStatusOptio
 export type UserSubscriptionsRecord = {
 	cancelledAt?: IsoDateString
 	createdAt: IsoAutoDateString
+	endsAt?: IsoDateString
 	id: string
 	purchasedAt: IsoDateString
 	status: UserSubscriptionsStatusOptions
@@ -276,6 +294,7 @@ export type SubscriptionsResponse<Tbullets = unknown, Texpand = unknown> = Requi
 export type UserActionQueuesResponse<Texpand = unknown> = Required<UserActionQueuesRecord> & BaseSystemFields<Texpand>
 export type UserActionsResponse<Thandlers = unknown, Ttriggers = unknown, Texpand = unknown> = Required<UserActionsRecord<Thandlers, Ttriggers>> & BaseSystemFields<Texpand>
 export type UserFilesResponse<Texpand = unknown> = Required<UserFilesRecord> & BaseSystemFields<Texpand>
+export type UserOverlaysResponse<Tconfig = unknown, Texpand = unknown> = Required<UserOverlaysRecord<Tconfig>> & BaseSystemFields<Texpand>
 export type UserSubscriptionsResponse<Texpand = unknown> = Required<UserSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
@@ -295,6 +314,7 @@ export type CollectionRecords = {
 	user_action_queues: UserActionQueuesRecord
 	user_actions: UserActionsRecord
 	user_files: UserFilesRecord
+	user_overlays: UserOverlaysRecord
 	user_subscriptions: UserSubscriptionsRecord
 	users: UsersRecord
 }
@@ -313,6 +333,7 @@ export type CollectionResponses = {
 	user_action_queues: UserActionQueuesResponse
 	user_actions: UserActionsResponse
 	user_files: UserFilesResponse
+	user_overlays: UserOverlaysResponse
 	user_subscriptions: UserSubscriptionsResponse
 	users: UsersResponse
 }

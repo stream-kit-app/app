@@ -37,6 +37,11 @@
 			"svelte": "./src/lib/components/badge/index.ts",
 			"import": "./src/lib/components/badge/index.ts"
 		},
+		"./blueprint": {
+			"types": "./src/lib/components/blueprint/index.ts",
+			"svelte": "./src/lib/components/blueprint/index.ts",
+			"import": "./src/lib/components/blueprint/index.ts"
+		},
 		"./blocks": {
 			"types": "./src/lib/blocks/index.ts",
 			"svelte": "./src/lib/blocks/index.ts",

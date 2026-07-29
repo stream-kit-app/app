@@ -541,6 +541,7 @@ export interface PluginAppAudioApi {
  */
 export interface PluginAppUserFileRecord {
 	id: string;
+	/** Host-independent /api/files path — use resolveUrl for an absolute URL. */
 	url: string;
 	size: number;
 	mimeType: string;
@@ -566,11 +567,18 @@ export interface PluginAppUserFilesUploadOptions {
 }
 
 export interface PluginAppUserFilesApi {
-	/** True when the value looks like an `http(s)` cloud file URL. */
+	/** True for relative PocketBase /api/files paths or absolute file URLs. */
 	isCloudUrl(value: string | null | undefined): boolean;
+	/**
+	 * Resolve a stored cloud file ref to an absolute URL on the current PocketBase host.
+	 * Appends a cached `?token=` when available (protected `user_files`).
+	 */
+	resolveUrl(value: string): string;
+	/** Absolute protected-file URL with a fresh (or cached) file token. */
+	resolveAuthenticatedUrl(value: string): Promise<string>;
 	/** List the signed-in user's cloud files (optional mime/extension filters). */
 	list(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord[]>;
-	/** Upload a file/blob; requires auth + active subscription within plan limits. */
+	/** Upload a file/blob; requires auth + entitled subscription within plan limits. */
 	upload(
 		file: File | Blob,
 		options: PluginAppUserFilesUploadOptions
@@ -579,7 +587,7 @@ export interface PluginAppUserFilesApi {
 	remove(id: string): Promise<void>;
 	/** Current plan quota usage, or `null` when signed out / no active plan. */
 	getQuota(): Promise<PluginAppUserFilesQuota | null>;
-	/** Download a private cloud file URL with the signed-in auth token. */
+	/** Download a private cloud file via a token URL (no Authorization header). */
 	fetchBlob(url: string): Promise<Blob>;
 	/** Open the app cloud file picker modal; resolves `null` when cancelled. */
 	pick(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord | null>;

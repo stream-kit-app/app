@@ -43,7 +43,7 @@
 				return;
 			}
 
-			if (!/^https?:\/\//i.test(trimmed)) {
+			if (!app.userFiles.isCloudUrl(trimmed)) {
 				return;
 			}
 

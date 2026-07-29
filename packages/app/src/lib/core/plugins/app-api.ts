@@ -178,6 +178,8 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 		},
 		userFiles: {
 			isCloudUrl: app.userFiles.isCloudUrl.bind(app.userFiles),
+			resolveUrl: app.userFiles.resolveUrl.bind(app.userFiles),
+			resolveAuthenticatedUrl: app.userFiles.resolveAuthenticatedUrl.bind(app.userFiles),
 			list: app.userFiles.list.bind(app.userFiles),
 			upload: app.userFiles.upload.bind(app.userFiles),
 			remove: app.userFiles.remove.bind(app.userFiles),

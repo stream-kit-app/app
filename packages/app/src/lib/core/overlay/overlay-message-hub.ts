@@ -62,4 +62,20 @@ export class OverlayMessageHub {
 			}
 		});
 	}
+
+	/** Deliver a message from a non-Tauri source (e.g. cloud publisher WebSocket). */
+	dispatch(context: OverlayMessageContext): void {
+		const payload = normalizePayload(context.payload);
+		const next: OverlayMessageContext = {
+			overlayId: context.overlayId,
+			event: context.event,
+			payload,
+			message: context.message || toMessageString(payload),
+			timestamp: context.timestamp || Date.now()
+		};
+
+		for (const handler of this.handlers) {
+			handler(next);
+		}
+	}
 }

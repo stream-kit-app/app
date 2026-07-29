@@ -121,6 +121,7 @@ export async function saveAction(
 				ownerPluginKey: input.ownerPluginKey ?? null,
 				triggers: input.triggers,
 				handlers: input.handlers,
+				revision: sql`${actions.revision} + 1`,
 				updatedAt: now
 			})
 			.where(eq(actions.id, id))
@@ -148,6 +149,7 @@ export async function saveAction(
 			ownerPluginKey: input.ownerPluginKey ?? null,
 			triggers: input.triggers,
 			handlers: input.handlers,
+			revision: 1,
 			createdAt: now,
 			updatedAt: now
 		})
@@ -189,6 +191,7 @@ export async function reorderActionsLayout(updates: ActionLayoutUpdate[]): Promi
 			"group" = CASE ${actions.id} ${groupCase} END,
 			group_sort_order = CASE ${actions.id} ${groupSortCase} END,
 			sort_order = CASE ${actions.id} ${sortCase} END,
+			revision = revision + 1,
 			updated_at = ${now}
 		WHERE ${actions.id} IN (${idList})
 	`);
@@ -208,6 +211,7 @@ export async function updateActionsEnabled(ids: number[], enabled: boolean): Pro
 		.update(actions)
 		.set({
 			enabled,
+			revision: sql`${actions.revision} + 1`,
 			updatedAt: new Date()
 		})
 		.where(inArray(actions.id, ids));
@@ -226,6 +230,7 @@ export async function updateActionsQueue(
 		.update(actions)
 		.set({
 			queueId,
+			revision: sql`${actions.revision} + 1`,
 			updatedAt: new Date()
 		})
 		.where(inArray(actions.id, ids));
@@ -242,7 +247,7 @@ export async function deleteActions(ids: number[]): Promise<void> {
 	}
 
 	const rows = await db
-		.select({ syncId: actions.syncId })
+		.select({ syncId: actions.syncId, revision: actions.revision })
 		.from(actions)
 		.where(inArray(actions.id, ids));
 
@@ -251,7 +256,12 @@ export async function deleteActions(ids: number[]): Promise<void> {
 	const deletedAt = new Date();
 	for (const row of rows) {
 		if (row.syncId) {
-			await recordConfigSyncTombstone('action', row.syncId, deletedAt);
+			await recordConfigSyncTombstone(
+				'action',
+				row.syncId,
+				deletedAt,
+				(row.revision ?? 1) + 1
+			);
 		}
 	}
 	notifyConfigLocalChange();
@@ -274,10 +284,12 @@ export async function upsertActionFromSync(input: {
 	ownerPluginKey: string | null;
 	triggers: StoredActionTrigger[];
 	handlers: StoredActionHandler[];
+	revision: number;
 	updatedAt: Date;
 }): Promise<ActionRecord> {
 	const existing = await getActionBySyncId(input.syncId);
 	const group = normalizeActionGroup(input.group);
+	const revision = Number(input.revision) || 1;
 
 	if (existing) {
 		const [row] = await db
@@ -292,6 +304,7 @@ export async function upsertActionFromSync(input: {
 				ownerPluginKey: input.ownerPluginKey,
 				triggers: input.triggers,
 				handlers: input.handlers,
+				revision,
 				updatedAt: input.updatedAt
 			})
 			.where(eq(actions.id, existing.id))
@@ -317,6 +330,7 @@ export async function upsertActionFromSync(input: {
 			ownerPluginKey: input.ownerPluginKey,
 			triggers: input.triggers,
 			handlers: input.handlers,
+			revision,
 			createdAt: input.updatedAt,
 			updatedAt: input.updatedAt
 		})

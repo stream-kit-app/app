@@ -7,6 +7,7 @@ import {
 	AUTH_MEMBERSHIP_EXPAND,
 	AuthCreatedButSignInFailedError,
 	isPocketBaseAutoCancelled,
+	isPocketBaseUnauthorized,
 	pocketBaseErrorMessage,
 	resolvePocketBaseUrl,
 	toAccount,
@@ -14,6 +15,11 @@ import {
 	toPublicUser,
 	validateAvatarFile
 } from './auth-utils';
+import {
+	SUBSCRIPTION_GRACE_MS,
+	formatEndsAtIso,
+	isMembershipEntitled
+} from './subscription-entitlement';
 import { createTauriAuthStore } from './tauri-auth-store';
 import type {
 	AuthAccount,
@@ -28,6 +34,8 @@ import type {
 type AuthChangeHandler = (user: AuthPublicUser | null) => void;
 
 const membershipExpandOptions = { expand: AUTH_MEMBERSHIP_EXPAND } as const;
+const AUTH_REFRESH_INTERVAL_MS = 30 * 60 * 1000;
+const SUBSCRIPTION_REFRESH_DEBOUNCE_MS = 300;
 
 export class Auth {
 	#pb: PocketBase | null = null;
@@ -35,6 +43,9 @@ export class Auth {
 	#listeners = new Set<AuthChangeHandler>();
 	#subscriptionRequestId = 0;
 	#activeMembershipId: string | null = null;
+	#refreshTimer: ReturnType<typeof setInterval> | null = null;
+	#subscriptionDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+	#sendRefreshing = false;
 
 	user = $state.raw<AuthPublicUser | null>(null);
 	account = $state.raw<AuthAccount | null>(null);
@@ -66,11 +77,9 @@ export class Auth {
 		const pb = new PocketBase(url, await createTauriAuthStore());
 		this.#pb = pb;
 		this.isConfigured = true;
+		this.#installSendRefresh(pb);
 
-		this.#unsubscribe = pb.authStore.onChange(() => {
-			this.#syncFromStore();
-		}, true);
-
+		// Refresh before authStore.onChange(true) so consumers never see a stale token first.
 		if (pb.authStore.isValid) {
 			try {
 				await pb.collection('users').authRefresh();
@@ -80,10 +89,19 @@ export class Auth {
 			}
 		}
 
+		this.#unsubscribe = pb.authStore.onChange(() => {
+			this.#syncFromStore();
+		}, true);
+
 		return this;
 	}
 
 	destroy(): void {
+		this.#stopRefreshInterval();
+		if (this.#subscriptionDebounceTimer) {
+			clearTimeout(this.#subscriptionDebounceTimer);
+			this.#subscriptionDebounceTimer = null;
+		}
 		this.#unsubscribe?.();
 		this.#unsubscribe = null;
 		this.#listeners.clear();
@@ -157,6 +175,80 @@ export class Auth {
 			return;
 		}
 		this.#pb.authStore.clear();
+	}
+
+	async requestPasswordReset(email: string): Promise<void> {
+		const trimmed = email.trim();
+		if (!trimmed) {
+			throw new Error(translate('Email is required.'));
+		}
+
+		try {
+			await this.client.collection('users').requestPasswordReset(trimmed);
+		} catch (error) {
+			throw new Error(
+				pocketBaseErrorMessage(
+					error,
+					translate('Could not send a password reset email.')
+				)
+			);
+		}
+	}
+
+	async requestVerification(): Promise<void> {
+		const record = this.client.authStore.record;
+		if (!record?.id) {
+			throw new Error(translate('You must be logged in to verify your email.'));
+		}
+
+		const email = typeof record.email === 'string' ? record.email.trim() : '';
+		if (!email) {
+			throw new Error(translate('Email is required.'));
+		}
+
+		try {
+			await this.client.collection('users').requestVerification(email);
+		} catch (error) {
+			throw new Error(
+				pocketBaseErrorMessage(
+					error,
+					translate('Could not send a verification email.')
+				)
+			);
+		}
+	}
+
+	async deleteAccount(password: string): Promise<void> {
+		const record = this.client.authStore.record;
+		if (!record?.id) {
+			throw new Error(translate('You must be logged in to delete your account.'));
+		}
+		if (!password) {
+			throw new Error(translate('Password is required.'));
+		}
+
+		const email = typeof record.email === 'string' ? record.email : '';
+		if (!email) {
+			throw new Error(translate('Could not delete your account.'));
+		}
+
+		try {
+			await this.client.collection('users').authWithPassword(email, password);
+		} catch (error) {
+			throw new Error(
+				pocketBaseErrorMessage(error, translate('Incorrect password.'))
+			);
+		}
+
+		try {
+			await this.client.collection('users').delete(record.id);
+		} catch (error) {
+			throw new Error(
+				pocketBaseErrorMessage(error, translate('Could not delete your account.'))
+			);
+		}
+
+		this.client.authStore.clear();
 	}
 
 	async updateProfile(input: AuthUpdateProfileInput): Promise<void> {
@@ -270,11 +362,19 @@ export class Auth {
 		if (!this.user?.subscription || !membershipId) {
 			throw new Error(translate('No active subscription to cancel.'));
 		}
+		if (this.user.subscription.endsAt) {
+			throw new Error(translate('No active subscription to cancel.'));
+		}
+
+		const nowMs = Date.now();
+		const cancelledAt = formatEndsAtIso(nowMs);
+		const endsAt = formatEndsAtIso(nowMs + SUBSCRIPTION_GRACE_MS);
 
 		try {
 			await this.client.collection('user_subscriptions').update(membershipId, {
 				status: 'cancelled',
-				cancelledAt: new Date().toISOString().replace('T', ' ')
+				cancelledAt,
+				endsAt
 			});
 		} catch (error) {
 			throw new Error(
@@ -282,14 +382,7 @@ export class Auth {
 			);
 		}
 
-		this.#activeMembershipId = null;
-		if (this.user) {
-			this.user = { ...this.user, subscription: null };
-		}
-		if (this.account) {
-			this.account = { ...this.account, subscription: null };
-		}
-		this.#emit();
+		await this.#refreshSubscription(this.user.id);
 	}
 
 	onChange(handler: AuthChangeHandler): () => void {
@@ -303,6 +396,7 @@ export class Auth {
 	#syncFromStore(): void {
 		const pb = this.#pb;
 		if (!pb) {
+			this.#stopRefreshInterval();
 			this.#subscriptionRequestId += 1;
 			this.#activeMembershipId = null;
 			this.user = null;
@@ -317,7 +411,11 @@ export class Auth {
 		if (!record?.id) {
 			this.#subscriptionRequestId += 1;
 			this.#activeMembershipId = null;
+			this.#stopRefreshInterval();
+		} else if (pb.authStore.isValid && !this.#refreshTimer) {
+			this.#startRefreshInterval();
 		}
+
 		const previous = this.user;
 		const keepSubscription =
 			previous && record?.id === previous.id ? previous.subscription : null;
@@ -328,7 +426,24 @@ export class Auth {
 		this.user = toPublicUser(getFileUrl, record, keepSubscription);
 		this.account = toAccount(getFileUrl, record, keepSubscription);
 		this.#emit();
-		void this.#refreshSubscription(record?.id ?? null);
+		this.#scheduleRefreshSubscription(record?.id ?? null);
+	}
+
+	#scheduleRefreshSubscription(userId: string | null): void {
+		if (this.#subscriptionDebounceTimer) {
+			clearTimeout(this.#subscriptionDebounceTimer);
+			this.#subscriptionDebounceTimer = null;
+		}
+
+		if (!userId) {
+			this.#subscriptionRequestId += 1;
+			return;
+		}
+
+		this.#subscriptionDebounceTimer = setTimeout(() => {
+			this.#subscriptionDebounceTimer = null;
+			void this.#refreshSubscription(userId);
+		}, SUBSCRIPTION_REFRESH_DEBOUNCE_MS);
 	}
 
 	async #refreshSubscription(userId: string | null): Promise<void> {
@@ -360,19 +475,87 @@ export class Auth {
 	}
 
 	async #fetchActiveSubscription(userId: string): Promise<AuthPublicSubscription | null> {
-		const result = await this.client.collection('user_subscriptions').getList(1, 1, {
-			filter: `user="${userId}" && status="active"`,
+		const pb = this.client;
+		const result = await pb.collection('user_subscriptions').getList(1, 50, {
+			filter: pb.filter('user={:id} && (status="active" || status="cancelled")', {
+				id: userId
+			}),
 			sort: '-purchasedAt',
 			// Avoid PB SDK auto-cancel when authStore sync fires multiple times quickly.
 			requestKey: null,
 			...membershipExpandOptions
 		});
 
-		const membership = result.items[0] ?? null;
+		const membership =
+			result.items.find((item) =>
+				isMembershipEntitled(item as { status?: unknown; endsAt?: unknown })
+			) ?? null;
 		this.#activeMembershipId =
 			membership && typeof membership.id === 'string' ? membership.id : null;
 
 		return toPublicSubscriptionFromMembership(membership);
+	}
+
+	#installSendRefresh(pb: PocketBase): void {
+		const originalSend = pb.send.bind(pb);
+		pb.send = async (path, options) => {
+			try {
+				return await originalSend(path, options);
+			} catch (error) {
+				const isAuthRefresh = path.includes('auth-refresh');
+				if (
+					isPocketBaseUnauthorized(error) &&
+					pb.authStore.isValid &&
+					!this.#sendRefreshing &&
+					!isAuthRefresh
+				) {
+					this.#sendRefreshing = true;
+					try {
+						await pb.collection('users').authRefresh();
+						return await originalSend(path, options);
+					} catch (refreshError) {
+						console.warn(
+							'Stream Kit account session expired; clearing auth store',
+							refreshError
+						);
+						pb.authStore.clear();
+						throw error;
+					} finally {
+						this.#sendRefreshing = false;
+					}
+				}
+				throw error;
+			}
+		};
+	}
+
+	#startRefreshInterval(): void {
+		this.#stopRefreshInterval();
+		this.#refreshTimer = setInterval(() => {
+			void this.#proactiveAuthRefresh();
+		}, AUTH_REFRESH_INTERVAL_MS);
+	}
+
+	#stopRefreshInterval(): void {
+		if (this.#refreshTimer) {
+			clearInterval(this.#refreshTimer);
+			this.#refreshTimer = null;
+		}
+	}
+
+	async #proactiveAuthRefresh(): Promise<void> {
+		const pb = this.#pb;
+		if (!pb?.authStore.isValid) {
+			this.#stopRefreshInterval();
+			return;
+		}
+
+		try {
+			await pb.collection('users').authRefresh();
+		} catch (error) {
+			console.warn('Failed to refresh Stream Kit account session', error);
+			pb.authStore.clear();
+		}
 	}
 
 	#emit(): void {
