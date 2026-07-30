@@ -26,15 +26,22 @@
     "@stream-kit/pocketbase": "0.1.0"
   },
   "changesets": [
+    "app-blueprint-alignment",
+    "blueprint-design-system",
     "bright-news-kick",
+    "config-sync-revision-files",
     "free-wings-ask",
     "hot-aliens-float",
     "moody-parents-like",
+    "multi-pc-cloud-sync",
+    "pb-hook-handler-scope",
+    "polite-corners-retire",
     "shy-shirts-divide",
     "silent-moons-hug",
     "silver-spiders-sleep",
     "sixty-geese-enjoy",
     "tame-boxes-look",
-    "tricky-moons-kiss"
+    "tricky-moons-kiss",
+    "user-overlays-cloud"
   ]
 }
