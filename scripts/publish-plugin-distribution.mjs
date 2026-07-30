@@ -6,9 +6,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+	GITHUB_ORG,
+	PLUGIN_DESCRIPTIONS,
 	PLUGIN_KEYS,
 	getDownloadUrl,
 	getPluginDir,
+	getRepoName,
 	getRepoSlug,
 	getUpdateManifestUrl,
 	getZipFileName
@@ -68,7 +71,12 @@ function redactToken(command, token) {
 function run(command, cwd = root) {
 	const token = getGithubToken();
 	console.log(`> ${redactToken(command, token)}`);
-	return execSync(command, { cwd, stdio: 'inherit', encoding: 'utf8' });
+
+	try {
+		return execSync(command, { cwd, stdio: 'inherit', encoding: 'utf8' });
+	} catch (error) {
+		throw new Error(redactToken(error.message, token));
+	}
 }
 
 function runCapture(command, cwd = root) {
@@ -210,6 +218,37 @@ function packagePlugin(key, skipBuild) {
 	return parsePackageOutput(output);
 }
 
+function repoExists(slug) {
+	try {
+		runCapture(`gh api repos/${slug} --jq .name`);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function ensureRepoExists(key) {
+	const slug = getRepoSlug(key);
+
+	if (repoExists(slug)) {
+		return;
+	}
+
+	const description = PLUGIN_DESCRIPTIONS[key] ?? `Stream Kit ${key} plugin distribution`;
+
+	console.log(`Distribution repository ${slug} does not exist, creating it.`);
+
+	try {
+		run(
+			`gh repo create ${GITHUB_ORG}/${getRepoName(key)} --public --description "${description}" --add-readme`
+		);
+	} catch (error) {
+		throw new Error(
+			`Failed to create ${slug}. Create it manually with "pnpm create:plugin-repos", or grant the publish token permission to create repositories in the ${GITHUB_ORG} organisation: ${error.message}`
+		);
+	}
+}
+
 function releaseExists(slug, tag) {
 	try {
 		runCapture(`gh release view ${tag} --repo ${slug}`);
@@ -254,6 +293,8 @@ function publishPlugin(key, options) {
 			console.log(JSON.stringify(distributionManifest, null, 2));
 			return;
 		}
+
+		ensureRepoExists(key);
 
 		run(`git clone --depth 1 "${gitRemoteUrl(slug, getGithubToken())}" "${workDir}"`);
 
@@ -311,8 +352,27 @@ for (const key of plugins) {
 	if (!PLUGIN_KEYS.includes(key)) {
 		throw new Error(`Unknown plugin key "${key}"`);
 	}
-
-	publishPlugin(key, options);
 }
 
-console.log('Plugin distribution publish complete.');
+const failures = [];
+
+for (const key of plugins) {
+	try {
+		publishPlugin(key, options);
+	} catch (error) {
+		failures.push({ key, message: error.message });
+		console.error(`Failed to publish ${getRepoSlug(key)}: ${error.message}`);
+	}
+}
+
+if (failures.length > 0) {
+	console.error(`\nPlugin distribution publish finished with ${failures.length} failure(s):`);
+
+	for (const failure of failures) {
+		console.error(`  - ${getRepoSlug(failure.key)}`);
+	}
+
+	process.exitCode = 1;
+} else {
+	console.log('Plugin distribution publish complete.');
+}

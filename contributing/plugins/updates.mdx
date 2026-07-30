@@ -127,6 +127,8 @@ node scripts/publish-plugin-distribution.mjs --plugin bot
 
 CI publishes all plugins automatically when an app release tag (`v*`) is pushed, or manually via the **Publish Plugins** workflow.
 
+Missing `stream-kit-app/plugin-*` repos are created on the fly when the publish token may create repositories in the organisation; otherwise create them up front with `pnpm create:plugin-repos`. A plugin that fails to publish no longer aborts the others — the run continues and exits non-zero with a summary of the failed repos.
+
 ## GitLab example
 
 - Manifest: `https://gitlab.com/your-org/my-plugin/-/raw/main/manifest.json`

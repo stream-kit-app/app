@@ -10,6 +10,7 @@ User-facing app documentation lives in [`/docs`](../docs/).
 | --- | --- |
 | [Packages](./packages/) | Monorepo libraries (`@stream-kit/app`, `@stream-kit/core`, `@stream-kit/plugin`, UI, template) |
 | [Site](./site.mdx) | Marketing site (`stream-kit.app`) and docs site deployment |
+| [PocketBase](./pocketbase.mdx) | Shared backend ops notes: auth rate limits, app-facing collections |
 | [Release](./release.mdx) | Changesets, CI, Microsoft Store |
 | [Monetization](./monetization.mdx) | Internal revenue planning |
 | [Core internals](./core/) | `CorePluginApi`, boot screen implementation |

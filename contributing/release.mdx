@@ -80,6 +80,14 @@ Or re-push the tag from your machine:
 git push origin refs/tags/v0.1.0-alpha.1 --force
 ```
 
+### `pnpm build:packages` fails with no output on Windows CI
+
+If the **Build packages** step ends right after the task banner with only `ELIFECYCLE Command failed with exit code 1.` — no task logs, no `run failed` summary — the `turbo` binary crashed rather than a build task failing.
+
+Turborepo 2.10.1 replaced its virtual terminal with a vendored `libghostty-vt` that was compiled with non-baseline CPU instructions ([vercel/turborepo#13346](https://github.com/vercel/turborepo/issues/13346)). On runners whose CPU lacks those instructions, `turbo.exe` is killed with `STATUS_ILLEGAL_INSTRUCTION` before it can print anything. Because GitHub's Windows runner pool has mixed hardware, this looks intermittent.
+
+`turbo` is therefore pinned to an exact `2.10.0` in the root [`package.json`](../package.json) — the last release before that change. Do not widen it back to a caret range until a `2.10.x` release is verified on Windows CI.
+
 ## Alpha channel
 
 The repo is in Changesets pre-release mode with tag `alpha` (see [`.changeset/pre.json`](../.changeset/pre.json)). Version bumps produce prerelease versions such as `0.1.0-alpha.1`.

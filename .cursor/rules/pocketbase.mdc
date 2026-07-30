@@ -43,7 +43,7 @@ App local env: set `PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090` in `packages/ap
 - Start migrations with `/// <reference path="../pb_data/types.d.ts" />`.
 - Use the `migrate(up, down)` pattern; keep collection IDs stable when editing existing migrations.
 - Field names: **camelCase** (`streamKitVersion`, `isLatest`, `publishedAt`, `mimeType`).
-- Document collection/field changes in `docs/site.md`.
+- Document collection/field changes in `contributing/pocketbase.mdx`.
 
 ### Collections
 
@@ -89,8 +89,8 @@ export const load = async ({ locals }) => {
 
 ## Production hardening
 
-- In PocketBase admin, **enable auth rate limits** for login/register (and related auth endpoints) before exposing production. See `docs/site.md`.
-- Document collection/field changes in `docs/site.md` as well as this rule.
+- In PocketBase admin, **enable auth rate limits** for login/register (and related auth endpoints) before exposing production. See `contributing/pocketbase.mdx`.
+- Document collection/field changes in `contributing/pocketbase.mdx` as well as this rule.
 
 ## Hooks
 
