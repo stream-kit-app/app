@@ -5,22 +5,11 @@
  * createRule is auth-only (multipart body `user` is brittle); ownership is forced here.
  * Note: `filesystem.File` has size / originalName / name — not `type`.
  *
- * - onRecordCreateRequest: always set `user` from auth (API creates)
- * - onRecordCreate: metadata + quota (API and non-API creates that go through the model hook)
+ * Auth + quota must run in onRecordCreateRequest: onRecordCreate is a DB model hook
+ * and does not expose `e.auth` (same pattern as user_config_sync / user_overlays).
  */
 
-function bindUserOnCreateRequest(e) {
-	const entitlement = require(`${__hooks}/shared/entitlement.js`);
-
-	const auth = entitlement.requestAuth(e);
-	if (!auth) {
-		throw new BadRequestError('You must be signed in to upload files.');
-	}
-	e.record.set('user', auth.id);
-	return e.next();
-}
-
-function onUserFilesCreate(e) {
+function onUserFilesCreateRequest(e) {
 	const entitlement = require(`${__hooks}/shared/entitlement.js`);
 	const userFiles = require(`${__hooks}/shared/user-files.js`);
 
@@ -86,6 +75,5 @@ function onUserFilesUpdate(e) {
 	return e.next();
 }
 
-onRecordCreateRequest(bindUserOnCreateRequest, 'user_files');
-onRecordCreate(onUserFilesCreate, 'user_files');
+onRecordCreateRequest(onUserFilesCreateRequest, 'user_files');
 onRecordUpdate(onUserFilesUpdate, 'user_files');

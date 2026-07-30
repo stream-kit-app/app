@@ -51,10 +51,10 @@ jobs:
         run: pnpm build:docs
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: stream-kit-docs
-          directory: docs-site/out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          packageManager: pnpm
+          command: pages deploy docs-site/out --project-name=stream-kit-docs --branch=${{ github.ref_name }}

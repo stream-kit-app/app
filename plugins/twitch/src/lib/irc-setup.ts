@@ -1,6 +1,6 @@
 import type { ChatMessageContext } from '../contexts';
 import type { PluginAppApi } from '@stream-kit/plugin';
-import type { ChatMessage } from '@twurple/chat';
+import type { ChatClient, ChatMessage } from '@twurple/chat';
 
 import { getBroadcasterId } from './broadcaster';
 import { getTwitch } from './plugin-api';
@@ -87,37 +87,53 @@ export function subscribeMessages(
 
 type SimpleHandler<T> = (context: T) => void;
 
-const handlerMaps = new Map<string, Set<SimpleHandler<unknown>>>();
+type SimpleEntry = {
+	client: ChatClient;
+	handlers: Set<SimpleHandler<never>>;
+	dispose: () => void;
+};
+
+const simpleEntries = new Map<string, SimpleEntry>();
 
 function subscribeSimple<T>(
-	app: PluginAppApi,
+	client: ChatClient,
 	key: string,
 	register: (emit: (context: T) => void) => () => void,
 	handler: SimpleHandler<T>
 ): () => void {
-	let handlers = handlerMaps.get(key) as Set<SimpleHandler<T>> | undefined;
-	let dispose: (() => void) | undefined;
+	let entry = simpleEntries.get(key);
 
-	if (!handlers) {
-		handlers = new Set();
-		handlerMaps.set(key, handlers as Set<SimpleHandler<unknown>>);
+	if (entry && entry.client !== client) {
+		simpleEntries.delete(key);
+		entry = undefined;
+	}
 
-		dispose = register((context) => {
-			for (const fn of handlers!) {
+	if (!entry) {
+		const handlers = new Set<SimpleHandler<T>>();
+		const dispose = register((context) => {
+			for (const fn of [...handlers]) {
 				fn(context);
 			}
 		});
+
+		entry = { client, handlers: handlers as Set<SimpleHandler<never>>, dispose };
+		simpleEntries.set(key, entry);
 	}
+
+	const target = entry;
+	const handlers = target.handlers as unknown as Set<SimpleHandler<T>>;
 
 	handlers.add(handler);
 
 	return () => {
-		handlers!.delete(handler);
+		handlers.delete(handler);
 
-		if (handlers!.size === 0) {
-			dispose?.();
-			handlerMaps.delete(key);
+		if (handlers.size > 0 || simpleEntries.get(key) !== target) {
+			return;
 		}
+
+		simpleEntries.delete(key);
+		target.dispose();
 	};
 }
 
@@ -132,7 +148,7 @@ export function subscribeWhispers(
 	}
 
 	return subscribeSimple(
-		app,
+		chat,
 		'whisper',
 		(emit) => {
 			const listener = chat.onWhisper((user, text) => {
@@ -153,7 +169,7 @@ export function subscribeSubs(app: PluginAppApi, handler: SimpleHandler<unknown>
 	}
 
 	return subscribeSimple(
-		app,
+		chat,
 		'sub',
 		(emit) => {
 			const disposers = [
@@ -215,7 +231,7 @@ export function subscribeRaids(
 	}
 
 	return subscribeSimple(
-		app,
+		chat,
 		'raid',
 		(emit) => {
 			const listener = chat.onRaid((channel, user, raidInfo) => {
@@ -239,7 +255,7 @@ export function subscribeModeration(
 	}
 
 	return subscribeSimple(
-		app,
+		chat,
 		'moderation',
 		(emit) => {
 			const disposers = [
@@ -272,7 +288,7 @@ export function subscribeJoinPart(
 	}
 
 	return subscribeSimple(
-		app,
+		chat,
 		'joinpart',
 		(emit) => {
 			const disposers = [

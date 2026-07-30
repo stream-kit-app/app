@@ -1,7 +1,7 @@
 {
   "key": "twitch",
   "name": "Twitch",
-  "version": "0.1.1-alpha.2",
+  "version": "0.2.0-alpha.5",
   "description": "Twitch chat, EventSub, moderation, polls, predictions, and channel actions.",
   "icon": "ri:twitch-fill",
   "entry": "dist/index.js",

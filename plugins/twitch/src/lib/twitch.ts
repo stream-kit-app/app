@@ -17,6 +17,7 @@ import {
 } from './bot-account';
 import { chunkTwitchChatMessages } from './chat-message';
 import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
+import { resetEventSubSubscriptions } from './eventsub-setup';
 import { clearBadgeCache, refreshBadgeCache } from './badge-cache';
 import { describeOAuthError, parseImplicitOAuthCallback } from './oauth-callback';
 
@@ -143,6 +144,8 @@ export function createTwitchPluginApi(
 			console.error(error);
 		}
 
+		resetEventSubSubscriptions();
+
 		client = undefined;
 		chat = undefined;
 		eventSub = undefined;
@@ -150,6 +153,41 @@ export function createTwitchPluginApi(
 		token = undefined;
 		userId = undefined;
 		clearBadgeCache();
+	}
+
+	function attachEventSubConflictRecovery(listener: EventSubWsListener, api: ApiClient): void {
+		listener.onSubscriptionCreateFailure((subscription, error) => {
+			const message = error instanceof Error ? error.message : String(error);
+			const match = /subscription already exists;\s*id=([0-9a-f-]+)/i.exec(message);
+
+			if (!match?.[1]) {
+				return;
+			}
+
+			const existingId = match[1];
+			void api.eventSub
+				.deleteSubscription(existingId)
+				.then(() => {
+					subscription.start();
+				})
+				.catch((deleteError) => {
+					console.error(
+						`[twitch] Failed to clear conflicting EventSub subscription ${existingId}`,
+						deleteError
+					);
+				});
+		});
+	}
+
+	async function clearStaleEventSubSubscriptions(api: ApiClient): Promise<void> {
+		try {
+			// WebSocket EventSub never resumes remote subscriptions. Leftovers from a previous
+			// session (fast restart, crash, or in-flight DELETE) cause Twitch 409 Conflict and
+			// block reward / follow / etc. triggers until cleared.
+			await api.eventSub.deleteAllSubscriptions();
+		} catch (error) {
+			console.error('[twitch] Failed to clear stale EventSub subscriptions', error);
+		}
 	}
 
 	async function connect(nextAccessToken: string): Promise<void> {
@@ -172,8 +210,11 @@ export function createTwitchPluginApi(
 		};
 		await chat.connect();
 
+		await clearStaleEventSubSubscriptions(client);
+
 		eventSub = new TwurpleEventSubWsListener({ apiClient: client });
-		await eventSub.start();
+		attachEventSubConflictRecovery(eventSub, client);
+		eventSub.start();
 
 		try {
 			const info = (await client.getTokenInfo()) as ValidatedTokenInfo;

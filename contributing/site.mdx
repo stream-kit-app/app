@@ -306,12 +306,17 @@ pnpm --filter @stream-kit/docs preview
 
 ### Deployment
 
-GitHub Actions workflow `.github/workflows/deploy-docs.yml` builds with `pnpm build:docs` and deploys `docs-site/out/` to Cloudflare Pages.
+GitHub Actions workflow `.github/workflows/deploy-docs.yml` builds with `pnpm build:docs` and deploys `docs-site/out/` to Cloudflare Pages via `cloudflare/wrangler-action`.
 
 Required repository secrets:
 
-- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_API_TOKEN` — API token with the **Cloudflare Pages: Edit** permission
 - `CLOUDFLARE_ACCOUNT_ID`
+
+```sh
+gh secret set CLOUDFLARE_API_TOKEN
+gh secret set CLOUDFLARE_ACCOUNT_ID
+```
 
 Cloudflare Pages project name: `stream-kit-docs`. Custom domain: `docs.stream-kit.app`.
 

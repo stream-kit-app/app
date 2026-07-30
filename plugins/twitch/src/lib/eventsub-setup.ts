@@ -1,9 +1,44 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
+import type { EventSubWsListener } from '@twurple/eventsub-ws';
+
 import { getTwitch } from './plugin-api';
 
 type SimpleHandler<T> = (context: T) => void;
 
-const handlerMaps = new Map<string, Set<SimpleHandler<unknown>>>();
+type EventSubEntry = {
+	listener: EventSubWsListener;
+	handlers: Set<SimpleHandler<never>>;
+	dispose: () => void;
+	pendingStop: ReturnType<typeof setTimeout> | undefined;
+};
+
+/**
+ * Twitch answers with 409 Conflict when an identical subscription is created while the delete of
+ * the previous one is still in flight, so keep it around briefly after the last handler leaves.
+ * Reactivating actions removes and re-adds handlers within the same tick.
+ */
+const STOP_GRACE_MS = 5000;
+
+const entries = new Map<string, EventSubEntry>();
+
+function cancelPendingStop(entry: EventSubEntry): void {
+	if (entry.pendingStop !== undefined) {
+		clearTimeout(entry.pendingStop);
+		entry.pendingStop = undefined;
+	}
+}
+
+/**
+ * Drops all tracked subscriptions without deleting them at Twitch. Call this when the listener
+ * itself is stopped — its subscriptions die with the websocket session.
+ */
+export function resetEventSubSubscriptions(): void {
+	for (const entry of entries.values()) {
+		cancelPendingStop(entry);
+	}
+
+	entries.clear();
+}
 
 function subscribeEventSub<T>(
 	app: PluginAppApi,
@@ -18,29 +53,55 @@ function subscribeEventSub<T>(
 		return () => {};
 	}
 
-	let handlers = handlerMaps.get(key) as Set<SimpleHandler<T>> | undefined;
-	let dispose: (() => void) | undefined;
+	let entry = entries.get(key);
 
-	if (!handlers) {
-		handlers = new Set();
-		handlerMaps.set(key, handlers as Set<SimpleHandler<unknown>>);
+	if (entry && entry.listener !== eventSub) {
+		cancelPendingStop(entry);
+		entries.delete(key);
+		entry = undefined;
+	}
 
-		dispose = register(userId, (context) => {
-			for (const fn of handlers!) {
+	if (entry) {
+		cancelPendingStop(entry);
+	} else {
+		const handlers = new Set<SimpleHandler<T>>();
+		const dispose = register(userId, (context) => {
+			for (const fn of [...handlers]) {
 				fn(context);
 			}
 		});
+
+		entry = {
+			listener: eventSub,
+			handlers: handlers as Set<SimpleHandler<never>>,
+			dispose,
+			pendingStop: undefined
+		};
+		entries.set(key, entry);
 	}
+
+	const target = entry;
+	const handlers = target.handlers as unknown as Set<SimpleHandler<T>>;
 
 	handlers.add(handler);
 
 	return () => {
-		handlers!.delete(handler);
+		handlers.delete(handler);
 
-		if (handlers!.size === 0) {
-			dispose?.();
-			handlerMaps.delete(key);
+		if (handlers.size > 0 || entries.get(key) !== target) {
+			return;
 		}
+
+		target.pendingStop = setTimeout(() => {
+			target.pendingStop = undefined;
+
+			if (handlers.size > 0 || entries.get(key) !== target) {
+				return;
+			}
+
+			entries.delete(key);
+			target.dispose();
+		}, STOP_GRACE_MS);
 	};
 }
 
