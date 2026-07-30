@@ -398,16 +398,48 @@
 		syncingFromOutside = false;
 	});
 
+	function relayoutEditor(): void {
+		if (!editor || !container) {
+			return;
+		}
+
+		// Monaco sizes its internal DOM to the last layout. After leaving fullscreen,
+		// those pixels become the flex/grid min-content width unless the host can
+		// shrink (`min-w-0`) and we remeasure against the constrained parent.
+		container.style.removeProperty('width');
+		if (fillsHeight) {
+			container.style.removeProperty('height');
+		}
+
+		const width = container.clientWidth;
+		const height = container.clientHeight;
+
+		if (width > 0 && height > 0) {
+			editor.layout({ width, height });
+		} else {
+			editor.layout();
+		}
+	}
+
 	$effect(() => {
 		void expanded;
+		void fillsHeight;
 
 		if (!editor) {
 			return;
 		}
 
-		const frame = requestAnimationFrame(() => editor?.layout());
+		// Wait until expand/collapse classes have been painted and min-w-0 has
+		// allowed the host to shrink before measuring.
+		let innerFrame = 0;
+		const frame = requestAnimationFrame(() => {
+			innerFrame = requestAnimationFrame(() => relayoutEditor());
+		});
 
-		return () => cancelAnimationFrame(frame);
+		return () => {
+			cancelAnimationFrame(frame);
+			cancelAnimationFrame(innerFrame);
+		};
 	});
 
 	$effect(() => {
@@ -454,11 +486,11 @@
 
 <div
 	class={cn(
-		'relative flex w-full flex-col',
+		'relative w-full min-w-0',
 		expanded
-			? 'fixed inset-0 z-60 gap-3 bg-dark-900 p-4'
+			? 'fixed inset-0 z-60 flex flex-col gap-3 bg-dark-900 p-4'
 			: fillHeight
-				? 'h-full min-h-0 flex-1'
+				? 'flex h-full min-h-0 flex-1 flex-col'
 				: 'grid gap-2'
 	)}
 >
@@ -518,7 +550,7 @@
 		aria-invalid={error ? true : undefined}
 		aria-placeholder={placeholder}
 		class={cn(
-			'relative z-52 overflow-visible rounded-lg border bg-dark-900 focus-within:ring-2',
+			'relative z-52 w-full min-w-0 max-w-full overflow-visible rounded-lg border bg-dark-900 focus-within:ring-2',
 			fillsHeight ? 'flex min-h-0 flex-1 flex-col' : '',
 			error
 				? 'border-destructive focus-within:ring-destructive'

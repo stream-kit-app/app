@@ -1,4 +1,5 @@
 import type { HandlerTriggerContext } from '@stream-kit/core';
+import { contextToVariables } from '@stream-kit/core';
 import type { PluginAppApi } from '@stream-kit/plugin';
 import { transform } from 'sucrase';
 
@@ -8,6 +9,7 @@ export const SCRIPT_TEMPLATE = `export default defineScript(async ({ app, contex
 \t// trigger: ID of the trigger that fired
 \t// data: trigger payload (typed in the editor when triggers are configured)
 \t// actionVariables: mutable action-scoped variables for this run
+\t// return { key: value } to expose values as {key} for later handlers
 });`;
 
 const SCRIPT_TIMEOUT_MS = 5_000;
@@ -59,6 +61,14 @@ function toCloneable(context: HandlerTriggerContext[]): HandlerTriggerContext[] 
 	}
 }
 
+function ensureActionVariables(context: HandlerTriggerContext): Record<string, string> {
+	if (!context.actionVariables) {
+		context.actionVariables = {};
+	}
+
+	return context.actionVariables;
+}
+
 function applyContextResult(
 	original: HandlerTriggerContext[],
 	updated: HandlerTriggerContext[]
@@ -70,10 +80,39 @@ function applyContextResult(
 	original.forEach((context, index) => {
 		const next = updated[index];
 
-		if (next?.actionVariables && context.actionVariables) {
-			Object.assign(context.actionVariables, next.actionVariables);
+		if (!next) {
+			return;
+		}
+
+		if (
+			next.data &&
+			context.data &&
+			typeof next.data === 'object' &&
+			typeof context.data === 'object'
+		) {
+			Object.assign(context.data as object, next.data);
+		}
+
+		if (next.actionVariables) {
+			Object.assign(ensureActionVariables(context), next.actionVariables);
 		}
 	});
+}
+
+function applyScriptReturn(context: HandlerTriggerContext[], result: unknown): void {
+	if (!result || typeof result !== 'object' || Array.isArray(result)) {
+		return;
+	}
+
+	const variables = contextToVariables(result);
+
+	if (Object.keys(variables).length === 0) {
+		return;
+	}
+
+	for (const entry of context) {
+		Object.assign(ensureActionVariables(entry), variables);
+	}
 }
 
 function timeoutAfter(ms: number): Promise<never> {
@@ -92,8 +131,9 @@ export async function runUserScript(
 	try {
 		const runnable = compileScript(source);
 		const clone = toCloneable(context);
-		await Promise.race([runnable(app, clone), timeoutAfter(SCRIPT_TIMEOUT_MS)]);
+		const result = await Promise.race([runnable(app, clone), timeoutAfter(SCRIPT_TIMEOUT_MS)]);
 		applyContextResult(context, clone);
+		applyScriptReturn(context, result);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error('Script execution failed', error);

@@ -106,6 +106,8 @@ pnpm dev:app      # Tauri + PocketBase only
 pnpm dev:all      # Same as `pnpm dev`, plus docs site
 ```
 
-`pnpm bootstrap` (also run via Turbo before app/site/PB) creates `packages/app/.env` and `site/.env` from their `.env.example` files when missing.
+`pnpm bootstrap` (also run via Turbo before app/site/PB) creates `packages/app/.env` and `site/.env` from their `.env.example` files when missing (localhost for local PocketBase / site).
+
+Production frontend builds (`pnpm build`, Tauri `beforeBuildCommand`) load `packages/app/.env.production` so the packaged app always points at `https://api.stream-kit.app` and `https://stream-kit.app`, regardless of local `.env`.
 
 First-party plugins listed in `dev-plugins.json` are linked automatically on boot. External plugins can be linked via **Plugins → Link dev plugin** when developer mode is enabled.

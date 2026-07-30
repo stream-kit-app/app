@@ -18,7 +18,9 @@
 			"identifier": "opener:allow-open-path",
 			"allow": [
 				{ "path": "$APPDATA/**/overlays/**" },
-				{ "path": "$APPDATA/**/scripts/**" }
+				{ "path": "$APPDATA/**/scripts/**" },
+				{ "path": "$APPDATA/**/user-files-cache" },
+				{ "path": "$APPDATA/**/user-files-cache/**" }
 			]
 		},
 		"oauth:allow-start",

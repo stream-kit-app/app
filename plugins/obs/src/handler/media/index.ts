@@ -32,11 +32,15 @@ function withMediaInputLock<T>(
 	return app.withResourceLock(`obs:media-input:${inputName.trim().toLowerCase()}`, fn);
 }
 
+function isRemoteMediaPath(path: string): boolean {
+	return /^https?:\/\//i.test(path.trim());
+}
+
 function buildMediaInputSettings(
 	inputKind: string | undefined,
 	filePath: string
 ):
-	| { local_file: string }
+	| { local_file: string; is_local_file: true }
 	| { playlist: Array<{ value: string; hidden: boolean; selected: boolean }> } {
 	if (inputKind === 'vlc_source') {
 		return {
@@ -50,11 +54,35 @@ function buildMediaInputSettings(
 		};
 	}
 
-	return { local_file: filePath };
+	// Always use local-file mode. FFmpeg still opens http(s) URLs here.
+	// Network mode (`is_local_file: false`) reconnects when a finite file ends,
+	// which looks like an endless replay loop.
+	return {
+		is_local_file: true,
+		local_file: filePath
+	};
 }
 
 function normalizeMediaFilePath(path: string): string {
-	return path.trim().replace(/\\/g, '/').toLowerCase();
+	const trimmed = path.trim();
+
+	try {
+		if (trimmed.startsWith('/api/files/')) {
+			return trimmed.split(/[?#]/)[0].replace(/\\/g, '/').toLowerCase();
+		}
+
+		if (isRemoteMediaPath(trimmed)) {
+			const parsed = new URL(trimmed);
+			if (parsed.pathname.includes('/api/files/')) {
+				return parsed.pathname.toLowerCase();
+			}
+			return `${parsed.origin}${parsed.pathname}`.toLowerCase();
+		}
+	} catch {
+		// Fall through to local-path normalization.
+	}
+
+	return trimmed.replace(/\\/g, '/').toLowerCase();
 }
 
 function getCurrentMediaFilePath(
@@ -84,9 +112,44 @@ function getCurrentMediaFilePath(
 		return typeof entry?.value === 'string' ? entry.value : undefined;
 	}
 
+	if (inputSettings.is_local_file === false) {
+		const input = inputSettings.input;
+		return typeof input === 'string' ? input : undefined;
+	}
+
 	const localFile = inputSettings.local_file;
 
 	return typeof localFile === 'string' ? localFile : undefined;
+}
+
+function mediaPathsMatch(
+	currentPath: string,
+	resolvedPath: string,
+	inputSettings?: Record<string, unknown>
+): boolean {
+	if (normalizeMediaFilePath(currentPath) !== normalizeMediaFilePath(resolvedPath)) {
+		return false;
+	}
+
+	// Relative cloud refs previously written as `local_file` are not playable.
+	if (isRemoteMediaPath(resolvedPath) && !isRemoteMediaPath(currentPath)) {
+		return false;
+	}
+
+	// Network mode reconnects forever for finite HTTP files — force rewrite to local_file.
+	if (isRemoteMediaPath(resolvedPath) && inputSettings?.is_local_file === false) {
+		return false;
+	}
+
+	return true;
+}
+
+async function resolveObsMediaPath(app: PluginAppApi, filePath: string): Promise<string> {
+	if (!app.userFiles.isCloudUrl(filePath)) {
+		return filePath;
+	}
+
+	return app.userFiles.resolveLocalPath(filePath);
 }
 
 async function restartMediaInput(
@@ -182,6 +245,21 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 				return;
 			}
 
+			let resolvedPath: string;
+			try {
+				resolvedPath = await resolveObsMediaPath(app, filePath);
+			} catch (error) {
+				app.toast.create({
+					title: 'Set Media Input File failed',
+					description:
+						error instanceof Error
+							? error.message
+							: 'Could not resolve cloud media file URL.',
+					variant: 'error'
+				});
+				return;
+			}
+
 			const settingsResponse = await callObsWithResponse<{
 				inputKind?: string;
 				inputSettings?: Record<string, unknown>;
@@ -196,7 +274,7 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 			const currentPath = getCurrentMediaFilePath(inputKind, settingsResponse?.inputSettings);
 			const sameFile =
 				currentPath !== undefined &&
-				normalizeMediaFilePath(currentPath) === normalizeMediaFilePath(filePath);
+				mediaPathsMatch(currentPath, resolvedPath, settingsResponse?.inputSettings);
 			const shouldRestart = restartPlayback !== false && restartPlayback !== 'false';
 			const trimmed = inputName.trim();
 
@@ -205,7 +283,7 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 			let expectedDurationMs: number | null = null;
 
 			if (shouldRestart) {
-				expectedDurationMs = await app.media.getFileDurationMs(filePath).catch(() => null);
+				expectedDurationMs = await app.media.getFileDurationMs(resolvedPath).catch(() => null);
 			}
 
 			let completed = false;
@@ -233,7 +311,7 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 					'SetInputSettings',
 					{
 						inputName: trimmed,
-						inputSettings: buildMediaInputSettings(inputKind, filePath),
+						inputSettings: buildMediaInputSettings(inputKind, resolvedPath),
 						overlay: true
 					},
 					{ label: 'Set Media Input File' }

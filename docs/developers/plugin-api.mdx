@@ -390,12 +390,19 @@ See [Stream Kit account](/docs/get-started/account) for the in-app UI and `PUBLI
 
 ### Cloud user files (`app.userFiles`)
 
-Authenticated media library backed by PocketBase `user_files`. Requires a signed-in user with an active subscription. Handler file fields (default `storage: 'cloud'`) upload or browse here and store a file URL. When a plan becomes active, the app migrates existing local paths on those fields in the background (same path uploaded once and reused). **Upload to cloud** still migrates a single field manually.
+Authenticated media library backed by PocketBase `user_files`. Requires a signed-in user with an active subscription. Handler file fields (default `storage: 'cloud'`) upload or browse here and store a host-independent `/api/files/...` ref. When a plan becomes active, the app migrates existing local paths on those fields in the background (same path uploaded once and reused). **Upload to cloud** still migrates a single field manually.
+
+Entitled accounts can optionally keep a **local offline cache** of the full library under AppData (**Keep cloud files offline** on Profile → Cloud files; device-local, default off). When enabled, prefer `resolveLocalPath` / `isOfflineMirrorEnabled` so audio/OBS/icons use filesystem paths; handler file fields display the cached local path when available; `syncCache` shows a neutral progress toast (`done / total`). When disabled, cloud playback uses authenticated URLs / `fetchBlob`.
 
 ```ts
 if (app.userFiles.isCloudUrl(value)) {
-  const blob = await app.userFiles.fetchBlob(value);
-  await app.audio.play(blob);
+  if (app.userFiles.isOfflineMirrorEnabled()) {
+    const localPath = await app.userFiles.resolveLocalPath(value);
+    await app.audio.playFile(localPath);
+  } else {
+    const blob = await app.userFiles.fetchBlob(value);
+    await app.audio.play(blob);
+  }
 }
 
 const uploaded = await app.userFiles.upload(file, { originalName: 'alert.mp3' });
@@ -405,10 +412,14 @@ const quota = await app.userFiles.getQuota();
 
 | Member | Description |
 | --- | --- |
-| `isCloudUrl` | Whether a field value looks like an `http(s)` URL |
+| `isCloudUrl` | Whether a field value is a PocketBase `/api/files/...` ref (relative or absolute) |
+| `isOfflineMirrorEnabled` | Whether this device mirrors cloud files locally (default off) |
+| `resolveLocalPath` | Local filesystem path when mirror is on; authenticated cloud URL when off |
+| `getCachedPath` | Sync lookup of a mirrored path, or `null` when not cached yet |
+| `syncCache` | Background reconcile onto local disk (no-op when mirror is off) |
 | `list` / `upload` / `remove` | Manage the signed-in user’s files |
 | `getQuota` | Used / max storage and max file size for the active plan |
-| `fetchBlob` | Authenticated download for playback or display |
+| `fetchBlob` | Download for playback or display (cache-first) |
 | `pick` | Open the app cloud file picker modal |
 
 ### Chat commands (`app.commands`)

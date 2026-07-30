@@ -98,15 +98,13 @@ const DEFAULT_LEADERBOARD_COMMAND = {
 export async function seedRankingsDefaults(
 	app: PluginAppApi,
 	pluginKey: string,
-	store: PluginStore
+	_store: PluginStore
 ): Promise<void> {
 	const seedVersion = await loadSeedVersion(app);
 
 	if (seedVersion >= CURRENT_SEED_VERSION) {
 		return;
 	}
-
-	const ownedActions = app.actions.getSnapshot().filter((action) => action.ownerPluginKey === pluginKey);
 
 	for (const preset of DEFAULT_ACTIONS) {
 		const payload = {
@@ -122,10 +120,26 @@ export async function seedRankingsDefaults(
 			]
 		};
 
-		const match = ownedActions.find((action) => action.name === preset.name);
+		const snapshot = app.actions.getSnapshot();
+		const ownedMatches = snapshot.filter(
+			(action) => action.ownerPluginKey === pluginKey && action.name === preset.name
+		);
+		const matches = (
+			ownedMatches.length > 0
+				? ownedMatches
+				: snapshot.filter(
+						(action) => action.group === PLUGIN_GROUP && action.name === preset.name
+					)
+		).sort((a, b) => a.id - b.id);
 
-		if (match?.id != null) {
-			await app.actions.update(match.id, payload);
+		const keep = matches[0];
+
+		for (const duplicate of matches.slice(1)) {
+			await app.actions.delete(duplicate.id);
+		}
+
+		if (keep?.id != null) {
+			await app.actions.update(keep.id, payload);
 		} else {
 			await app.actions.create(payload);
 		}

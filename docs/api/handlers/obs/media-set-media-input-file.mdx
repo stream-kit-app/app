@@ -11,6 +11,8 @@ description: "OBS handler: obs:obs:media:set-media-input-file"
 | **Plugin** | OBS |
 | **Category** | Media |
 
+Sets the media file on an OBS media input (`ffmpeg_source`, `vlc_source`, or `media_source`). Local paths and (when **Keep cloud files offline** is enabled) offline-cached cloud files are sent as `local_file` with `is_local_file: true`. Cloud file refs (`/api/files/...`) resolve to a local AppData path when offline mirror is on, otherwise to an authenticated PocketBase URL. Network input mode is not used for cloud files, because OBS reconnects when a finite HTTP file ends (endless replay).
+
 ## Related
 
 - [OBS plugin](/docs/plugins/obs)

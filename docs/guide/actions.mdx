@@ -69,6 +69,8 @@ Add **Run script** from Core handlers to run custom TypeScript in the chain. Scr
 - **`app`** — full Stream Kit API (toast, filesystem, plugins, actions, …)
 - **`context`** — trigger payload(s) for the run, including mutable `actionVariables`
 
+Return a plain object (for example `return { greeting: 'hi' }`) to expose values as `{greeting}` for later handlers. You can also mutate `actionVariables` or trigger `data` in place.
+
 The editor uses Monaco with TypeScript IntelliSense. Trigger `data` is typed based on triggers configured on the action. Use **Open in editor** (after saving the action) to edit in Cursor or VS Code; changes sync back automatically.
 
 See [Run script API](/docs/api/handlers/core/run-script) for examples and limits.

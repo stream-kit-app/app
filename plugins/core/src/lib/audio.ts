@@ -20,6 +20,11 @@ export function configureAudioPlayback(app: PluginAppApi): void {
 
 export async function playAudioFile(app: PluginAppApi, path: string, volume = 1): Promise<void> {
 	if (app.userFiles.isCloudUrl(path)) {
+		if (app.userFiles.isOfflineMirrorEnabled()) {
+			const localPath = await app.userFiles.resolveLocalPath(path);
+			await app.audio.playFile(localPath, volume);
+			return;
+		}
 		const blob = await app.userFiles.fetchBlob(path);
 		await app.audio.play(blob, volume);
 		return;

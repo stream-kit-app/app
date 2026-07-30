@@ -20,9 +20,11 @@ const IGNORED_USERS_KEY = 'ignoredUsers';
 const SETTINGS_KEY = 'settings';
 const SEED_VERSION_KEY = 'seedVersion';
 const POINT_HISTORY_KEY = 'pointHistory';
-const SETTINGS_RECORD_ID = 'ranksettings0001';
+/** Must be a valid sync id: exactly 15 chars of [a-z0-9]. */
+const SETTINGS_RECORD_ID = 'ranksettings001';
 const SEED_META_COLLECTION = 'seedMeta';
-const SEED_VERSION_RECORD_ID = 'rankseedversion1';
+/** Must be a valid sync id: exactly 15 chars of [a-z0-9]. */
+const SEED_VERSION_RECORD_ID = 'rnkseedversion1';
 
 export const RANKINGS_RECORD_COLLECTIONS = {
 	tiers: TIERS_KEY,
@@ -32,7 +34,8 @@ export const RANKINGS_RECORD_COLLECTIONS = {
 	settings: SETTINGS_KEY
 } as const;
 
-export const CURRENT_SEED_VERSION = 1;
+/** v2: valid seedMeta sync id + dedupe default actions created before actions.load(). */
+export const CURRENT_SEED_VERSION = 2;
 
 type RecordWithId = Record<string, unknown> & { id: string };
 
@@ -152,10 +155,35 @@ export async function savePointHistory(
 	await store.set(POINT_HISTORY_KEY, trimPointHistory(history));
 }
 
-export async function loadSettings(app: PluginAppApi): Promise<RankingsSettings> {
-	const settings = await collection(app, RANKINGS_RECORD_COLLECTIONS.settings).get<RankingsSettings>(
-		SETTINGS_RECORD_ID
+async function adoptCanonicalRecord<T extends Record<string, unknown>>(
+	records: PluginAppRecordCollectionApi,
+	canonicalId: string
+): Promise<(T & { id: string }) | undefined> {
+	const existing = await records.get<T>(canonicalId);
+	if (existing) {
+		return existing;
+	}
+
+	const orphans = await records.list<T>();
+	if (orphans.length === 0) {
+		return undefined;
+	}
+
+	const source = orphans[0]!;
+	const { id: _id, ...data } = source;
+	const created = await records.create<T>({ id: canonicalId, ...(data as T) });
+	await Promise.all(
+		orphans
+			.filter((row) => row.id !== created.id)
+			.map((row) => records.delete(row.id))
 	);
+
+	return created;
+}
+
+export async function loadSettings(app: PluginAppApi): Promise<RankingsSettings> {
+	const records = collection(app, RANKINGS_RECORD_COLLECTIONS.settings);
+	const settings = await adoptCanonicalRecord<RankingsSettings>(records, SETTINGS_RECORD_ID);
 
 	return {
 		...DEFAULT_RANKINGS_SETTINGS,
@@ -168,6 +196,7 @@ export async function saveSettings(
 	settings: RankingsSettings
 ): Promise<void> {
 	const records = collection(app, RANKINGS_RECORD_COLLECTIONS.settings);
+	await adoptCanonicalRecord<RankingsSettings>(records, SETTINGS_RECORD_ID);
 	const existing = await records.get<RankingsSettings>(SETTINGS_RECORD_ID);
 
 	if (existing) {
@@ -178,10 +207,19 @@ export async function saveSettings(
 }
 
 export async function loadSeedVersion(app: PluginAppApi): Promise<number> {
-	const record = await app.records.open(SEED_META_COLLECTION).get<{ version: number }>(
-		SEED_VERSION_RECORD_ID
-	);
-	return record?.version ?? 0;
+	const records = app.records.open(SEED_META_COLLECTION);
+	const record = await records.get<{ version: number }>(SEED_VERSION_RECORD_ID);
+	if (typeof record?.version === 'number') {
+		return record.version;
+	}
+
+	// Recover orphans created when SEED_VERSION_RECORD_ID was an invalid (16-char) sync id.
+	const orphans = await records.list<{ version: number }>();
+	const versions = orphans
+		.map((row) => row.version)
+		.filter((value): value is number => typeof value === 'number');
+
+	return versions.length > 0 ? Math.max(...versions) : 0;
 }
 
 export async function saveSeedVersion(app: PluginAppApi, version: number): Promise<void> {
@@ -191,6 +229,13 @@ export async function saveSeedVersion(app: PluginAppApi, version: number): Promi
 	} else {
 		await records.create({ id: SEED_VERSION_RECORD_ID, version });
 	}
+
+	const leftover = await records.list();
+	await Promise.all(
+		leftover
+			.filter((row) => row.id !== SEED_VERSION_RECORD_ID)
+			.map((row) => records.delete(row.id))
+	);
 }
 
 function migrationKey(collection: string): string {

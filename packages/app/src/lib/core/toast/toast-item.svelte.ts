@@ -1,6 +1,6 @@
 import type { Component } from 'svelte';
 
-export type ToastVariant = 'default' | 'success' | 'error' | 'warning';
+export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'neutral';
 
 export type ToastItemProps = {
 	id: string;
@@ -13,11 +13,18 @@ export type ToastItemProps = {
 	onDismiss?: () => void;
 };
 
+export type ToastItemUpdateProps = {
+	title?: string;
+	description?: string;
+	variant?: ToastVariant;
+	duration?: number;
+};
+
 export class ToastItem {
 	public id: string;
-	public title: string;
-	public description?: string;
-	public variant: ToastVariant;
+	public title = $state('');
+	public description = $state<string | undefined>(undefined);
+	public variant = $state<ToastVariant>('default');
 	public duration: number;
 	public content?: Component;
 	public props: Record<string, unknown>;
@@ -35,8 +42,22 @@ export class ToastItem {
 		this.props = props.props ?? {};
 		this.#onDismiss = props.onDismiss;
 
-		if (this.duration > 0) {
-			this.#timeoutId = setTimeout(() => this.#onDismiss?.(), this.duration);
+		this.#scheduleAutoDismiss();
+	}
+
+	public update(props: ToastItemUpdateProps): void {
+		if (props.title !== undefined) {
+			this.title = props.title;
+		}
+		if (props.description !== undefined) {
+			this.description = props.description;
+		}
+		if (props.variant !== undefined) {
+			this.variant = props.variant;
+		}
+		if (props.duration !== undefined) {
+			this.duration = props.duration;
+			this.#scheduleAutoDismiss();
 		}
 	}
 
@@ -44,6 +65,13 @@ export class ToastItem {
 		if (this.#timeoutId) {
 			clearTimeout(this.#timeoutId);
 			this.#timeoutId = undefined;
+		}
+	}
+
+	#scheduleAutoDismiss(): void {
+		this.cancelAutoDismiss();
+		if (this.duration > 0) {
+			this.#timeoutId = setTimeout(() => this.#onDismiss?.(), this.duration);
 		}
 	}
 }

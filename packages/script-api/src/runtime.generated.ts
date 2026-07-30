@@ -21,8 +21,15 @@ type ScriptContext = {
 	context: HandlerTriggerContext[];
 };
 
-/** Return value of a Run script handler body. */
-type ScriptResult = void | Promise<void>;
+/**
+ * Return value of a Run script handler body.
+ * A plain object is merged into action-scoped variables (values stringified) so
+ * later handlers can use \`{key}\` placeholders.
+ */
+type ScriptResult =
+	| void
+	| Record<string, unknown>
+	| Promise<void | Record<string, unknown>>;
 
 /** A Run script handler body with fully typed \`app\` and \`context\`. */
 type ScriptHandler = (ctx: ScriptContext) => ScriptResult;
@@ -38,10 +45,13 @@ type ScriptHandler = (ctx: ScriptContext) => ScriptResult;
  *   (the trigger ID), \`data\` (the trigger payload, typed to this action's
  *   triggers), and \`actionVariables\` (mutable variables shared with later handlers).
  *
+ * Return a plain object to expose values as action variables for later handlers.
+ *
  * @example
  * export default defineScript(async ({ app, context }) => {
  * 	const [{ trigger, data, actionVariables }] = context;
  * 	app.toast.create({ title: 'Hello!', variant: 'success' });
+ * 	return { greeting: 'Hello from script' };
  * });
  */
 declare function defineScript(handler: ScriptHandler): ScriptHandler;
@@ -650,12 +660,26 @@ interface PluginAppUserFilesApi {
 	/** True for relative PocketBase /api/files paths or absolute file URLs. */
 	isCloudUrl(value: string | null | undefined): boolean;
 	/**
+	 * True when this device keeps an offline mirror of cloud files and prefers
+	 * local filesystem paths at playback (device setting, default off).
+	 */
+	isOfflineMirrorEnabled(): boolean;
+	/**
 	 * Resolve a stored cloud file ref to an absolute URL on the current PocketBase host.
 	 * Appends a cached \`?token=\` when available (protected \`user_files\`).
 	 */
 	resolveUrl(value: string): string;
 	/** Absolute protected-file URL with a fresh (or cached) file token. */
 	resolveAuthenticatedUrl(value: string): Promise<string>;
+	/**
+	 * When offline mirror is enabled: absolute filesystem path (downloads on demand).
+	 * When disabled: authenticated cloud URL for cloud refs, or the original local path.
+	 */
+	resolveLocalPath(value: string): Promise<string>;
+	/** Sync lookup of a mirrored absolute path, or \`null\` when not cached yet. */
+	getCachedPath(value: string): string | null;
+	/** Background reconcile of the full cloud library onto local disk (no-op when mirror is off). */
+	syncCache(): Promise<void>;
 	/** List the signed-in user's cloud files (optional mime/extension filters). */
 	list(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord[]>;
 	/** Upload a file/blob; requires auth + entitled subscription within plan limits. */

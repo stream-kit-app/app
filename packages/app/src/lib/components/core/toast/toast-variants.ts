@@ -9,7 +9,8 @@ export const toastVariants = tv({
 			default: 'border-border bg-dark-900 text-foreground',
 			success: 'border-success-600 bg-success-900 text-success-50',
 			error: 'border-destructive-600 bg-destructive-900 text-destructive-100',
-			warning: 'border-warning-600 bg-warning-900 text-warning-100'
+			warning: 'border-warning-600 bg-warning-900 text-warning-100',
+			neutral: 'border-dark-600 bg-dark-800 text-dark-100'
 		}
 	},
 	defaultVariants: {
@@ -24,7 +25,8 @@ export const toastIconVariants = tv({
 			default: 'text-primary',
 			success: 'text-green-500',
 			error: 'text-red-500',
-			warning: 'text-amber-500'
+			warning: 'text-amber-500',
+			neutral: 'text-dark-300'
 		}
 	},
 	defaultVariants: {

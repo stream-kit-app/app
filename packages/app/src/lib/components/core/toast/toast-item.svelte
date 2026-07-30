@@ -19,7 +19,8 @@
 		default: 'ri:information-fill',
 		success: 'ri:checkbox-circle-fill',
 		error: 'ri:error-warning-fill',
-		warning: 'ri:alert-fill'
+		warning: 'ri:alert-fill',
+		neutral: 'ri:refresh-line'
 	} as const;
 </script>
 

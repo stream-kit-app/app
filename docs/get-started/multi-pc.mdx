@@ -24,11 +24,13 @@ With an active (or grace-period) Stream Kit plan, sign in on a second PC and you
 | Overlay projects | Metadata + source zip; publish URLs remain separate |
 | Dashboard widgets | Layout sync |
 | Installed zip plugins | Catalog sync; restored when a manifest URL is available |
+| Cloud media library | Refs (`/api/files/...`) sync with actions; optional per-PC offline mirror downloads file bytes locally |
 
 ## What you redo per PC
 
 - OAuth logins (Twitch broadcaster/bot, YouTube)
 - Discord bot token, OBS connection, TTS API keys
 - Localhost websocket URLs and API server bind/port
+- Optionally enabling **Keep cloud files offline** and waiting for the local cache to finish (Profile → Cloud files; a progress toast shows synced count)
 
 Open **Profile → Cloud sync → Sync now** if a machine was offline for a while.

@@ -54,15 +54,18 @@ async function runBoot(): Promise<void> {
 
 	const { startCloudFileMigration } = await import('./user-files/cloud-file-migration');
 	startCloudFileMigration(app);
+	app.userFiles.cache.start();
 	app.auth.onChange((user) => {
 		if (!user) {
 			app.userFiles.clearFileToken();
 			return;
 		}
 		void app.userFiles.ensureFileToken().catch(() => undefined);
+		void app.userFiles.syncCache();
 	});
 	if (app.auth.isAuthenticated) {
 		void app.userFiles.ensureFileToken().catch(() => undefined);
+		void app.userFiles.syncCache();
 	}
 
 	if (app.settings.checkPluginUpdatesOnStartup) {

@@ -239,6 +239,7 @@ export class ConfigSync {
 					'../user-files/cloud-file-migration'
 				);
 				await migrateCloudFilesAfterSync(this.#app);
+				void this.#app.userFiles.syncCache();
 				const { syncOverlayProjectBundles } = await import('./overlay-bundle-sync');
 				await syncOverlayProjectBundles(this.#app).catch((error) => {
 					console.warn('Overlay bundle sync failed', error);

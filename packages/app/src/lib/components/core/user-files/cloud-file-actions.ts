@@ -14,14 +14,31 @@ type CloudFilePathApp = {
 	userFiles: {
 		isCloudUrl(value: string | null | undefined): boolean;
 		resolveUrl(value: string): string;
+		isOfflineMirrorEnabled(): boolean;
+		getCachedPath(value: string): string | null;
+		/** Reactive cache ticks so the UI refreshes when sync finishes. */
+		cache: { cachedCount: number; status: string };
 	};
 };
 
-/** Display value: relative /api/files paths become absolute on the current PB host. */
+/**
+ * Display value for file fields.
+ * When offline mirror is on and the file is cached, shows the local AppData path.
+ * Otherwise relative /api/files paths become absolute on the current PB host.
+ */
 export function toDisplayCloudFileValue(app: CloudFilePathApp, value: string): string {
+	// Depend on reactive cache state so fields update after offline sync.
+	void app.userFiles.cache.cachedCount;
+	void app.userFiles.cache.status;
 	const trimmed = value.trim();
 	if (!trimmed || !app.userFiles.isCloudUrl(trimmed)) {
 		return value;
+	}
+	if (app.userFiles.isOfflineMirrorEnabled()) {
+		const local = app.userFiles.getCachedPath(trimmed);
+		if (local) {
+			return local;
+		}
 	}
 	return app.userFiles.resolveUrl(trimmed);
 }

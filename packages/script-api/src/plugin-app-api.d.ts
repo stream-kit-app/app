@@ -602,12 +602,26 @@ interface PluginAppUserFilesApi {
 	/** True for relative PocketBase /api/files paths or absolute file URLs. */
 	isCloudUrl(value: string | null | undefined): boolean;
 	/**
+	 * True when this device keeps an offline mirror of cloud files and prefers
+	 * local filesystem paths at playback (device setting, default off).
+	 */
+	isOfflineMirrorEnabled(): boolean;
+	/**
 	 * Resolve a stored cloud file ref to an absolute URL on the current PocketBase host.
 	 * Appends a cached `?token=` when available (protected `user_files`).
 	 */
 	resolveUrl(value: string): string;
 	/** Absolute protected-file URL with a fresh (or cached) file token. */
 	resolveAuthenticatedUrl(value: string): Promise<string>;
+	/**
+	 * When offline mirror is enabled: absolute filesystem path (downloads on demand).
+	 * When disabled: authenticated cloud URL for cloud refs, or the original local path.
+	 */
+	resolveLocalPath(value: string): Promise<string>;
+	/** Sync lookup of a mirrored absolute path, or `null` when not cached yet. */
+	getCachedPath(value: string): string | null;
+	/** Background reconcile of the full cloud library onto local disk (no-op when mirror is off). */
+	syncCache(): Promise<void>;
 	/** List the signed-in user's cloud files (optional mime/extension filters). */
 	list(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord[]>;
 	/** Upload a file/blob; requires auth + entitled subscription within plan limits. */

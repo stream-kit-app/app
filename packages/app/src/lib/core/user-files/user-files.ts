@@ -4,6 +4,8 @@ import { translate } from '$lib/i18n';
 
 import type { Auth } from '../auth/auth.svelte';
 import { pocketBaseErrorMessage } from '../auth/auth-utils';
+import type { Filesystem } from '../filesystem';
+import type { Toast } from '../toast';
 
 import { extensionOf, mimeForCloudUpload, mimeFromFileName } from './mime-from-name';
 import type {
@@ -12,11 +14,14 @@ import type {
 	UserFilesQuota,
 	UserFilesUploadOptions
 } from './types';
+import { UserFilesCache } from './user-files-cache.svelte';
 
 /** Refresh file tokens this many ms before assumed expiry. */
 const FILE_TOKEN_REFRESH_MARGIN_MS = 30_000;
 /** Conservative TTL when PocketBase does not expose expiry (tokens are short-lived). */
 const FILE_TOKEN_TTL_MS = 90_000;
+const OFFLINE_SYNC_TOAST_ID = 'offline-cloud-files-sync';
+const OFFLINE_SYNC_TOAST_DISMISS_MS = 2_000;
 
 function matchesListFilters(record: UserFileRecord, options?: UserFilesListOptions): boolean {
 	if (options?.mimePrefix) {
@@ -112,15 +117,84 @@ function appendFileToken(url: string, token: string): string {
 
 export class UserFiles {
 	#auth: Auth;
+	#toast: Toast | null;
 	#fileToken: string | null = null;
 	#fileTokenExpiresAt = 0;
+	#isOfflineMirrorEnabled: () => boolean;
+	#syncToastDismissTimer: ReturnType<typeof setTimeout> | null = null;
+	readonly cache: UserFilesCache;
 
-	constructor(auth: Auth) {
+	constructor(
+		auth: Auth,
+		fs: Filesystem,
+		options?: { isOfflineMirrorEnabled?: () => boolean; toast?: Toast }
+	) {
 		this.#auth = auth;
+		this.#toast = options?.toast ?? null;
+		this.#isOfflineMirrorEnabled = options?.isOfflineMirrorEnabled ?? (() => false);
+		this.cache = new UserFilesCache({
+			fs,
+			list: () => this.list(),
+			download: (url) => this.#downloadFromNetwork(url),
+			hasEntitlement: () => Boolean(this.#auth.user?.subscription),
+			isEnabled: () => this.#isOfflineMirrorEnabled(),
+			onProgress: (done, total) => this.#onSyncProgress(done, total),
+			onComplete: (ok) => this.#onSyncComplete(ok)
+		});
+	}
+
+	#clearSyncToastDismissTimer(): void {
+		if (this.#syncToastDismissTimer) {
+			clearTimeout(this.#syncToastDismissTimer);
+			this.#syncToastDismissTimer = null;
+		}
+	}
+
+	#onSyncProgress(done: number, total: number): void {
+		if (!this.#toast || total <= 0) {
+			return;
+		}
+		this.#clearSyncToastDismissTimer();
+		const title = translate('Offline sync');
+		const description = `${done} / ${total}`;
+		if (this.#toast.get(OFFLINE_SYNC_TOAST_ID)) {
+			this.#toast.update(OFFLINE_SYNC_TOAST_ID, { title, description, variant: 'neutral' });
+			return;
+		}
+		this.#toast.create({
+			id: OFFLINE_SYNC_TOAST_ID,
+			title,
+			description,
+			variant: 'neutral',
+			duration: 0
+		});
+	}
+
+	#onSyncComplete(ok: boolean): void {
+		if (!this.#toast) {
+			return;
+		}
+		this.#clearSyncToastDismissTimer();
+		if (!this.#toast.get(OFFLINE_SYNC_TOAST_ID)) {
+			return;
+		}
+		if (!ok) {
+			this.#toast.dismiss(OFFLINE_SYNC_TOAST_ID);
+			return;
+		}
+		this.#syncToastDismissTimer = setTimeout(() => {
+			this.#syncToastDismissTimer = null;
+			this.#toast?.dismiss(OFFLINE_SYNC_TOAST_ID);
+		}, OFFLINE_SYNC_TOAST_DISMISS_MS);
 	}
 
 	isCloudUrl(value: string | null | undefined): boolean {
 		return isCloudFileUrl(value);
+	}
+
+	/** True when this device mirrors cloud files locally and prefers those paths. */
+	isOfflineMirrorEnabled(): boolean {
+		return this.#isOfflineMirrorEnabled();
 	}
 
 	/**
@@ -148,6 +222,32 @@ export class UserFiles {
 		}
 		const token = await this.ensureFileToken();
 		return appendFileToken(absolute, token);
+	}
+
+	/**
+	 * Absolute filesystem path for a cloud ref when offline mirror is enabled
+	 * (downloads on demand). When mirror is off, returns an authenticated cloud URL
+	 * for cloud refs (suitable for OBS), or the original local path.
+	 */
+	async resolveLocalPath(value: string): Promise<string> {
+		const trimmed = value.trim();
+		if (!isCloudFileUrl(trimmed)) {
+			return trimmed;
+		}
+		if (!this.isOfflineMirrorEnabled()) {
+			return this.resolveAuthenticatedUrl(trimmed);
+		}
+		return this.cache.resolveLocalPath(trimmed);
+	}
+
+	/** Sync lookup of a mirrored absolute path, or null when not cached yet. */
+	getCachedPath(value: string): string | null {
+		return this.cache.getCachedPath(value);
+	}
+
+	/** Background reconcile of the full cloud library onto local disk. */
+	syncCache(): Promise<void> {
+		return this.cache.sync();
 	}
 
 	/** Ensure a short-lived PocketBase file token is cached; returns it. */
@@ -249,6 +349,11 @@ export class UserFiles {
 				throw new Error(translate('Could not upload file.'));
 			}
 			await this.ensureFileToken().catch(() => undefined);
+			if (this.isOfflineMirrorEnabled()) {
+				await this.cache.putFromBlob(record, uploadFile).catch((error) => {
+					console.warn('[user-files] failed to write upload into offline cache', error);
+				});
+			}
 			return record;
 		} catch (error) {
 			throw new Error(pocketBaseErrorMessage(error, translate('Could not upload file.')));
@@ -261,6 +366,9 @@ export class UserFiles {
 
 		try {
 			await pb.collection('user_files').delete(id);
+			await this.cache.removeByRecordId(id).catch((error) => {
+				console.warn('[user-files] failed to remove offline cache entry', error);
+			});
 		} catch (error) {
 			throw new Error(pocketBaseErrorMessage(error, translate('Could not delete file.')));
 		}
@@ -308,6 +416,20 @@ export class UserFiles {
 			throw new Error(translate('Invalid cloud file URL.'));
 		}
 
+		const cached =
+			this.isOfflineMirrorEnabled() ? await this.cache.tryReadBlob(url) : null;
+		if (cached) {
+			return cached;
+		}
+
+		const blob = await this.#downloadFromNetwork(url);
+		if (this.isOfflineMirrorEnabled()) {
+			void this.#cacheFetchedBlob(url, blob);
+		}
+		return blob;
+	}
+
+	async #downloadFromNetwork(url: string): Promise<Blob> {
 		const absolute = await this.resolveAuthenticatedUrl(url);
 		const response = await fetch(absolute);
 		if (!response.ok) {
@@ -317,8 +439,40 @@ export class UserFiles {
 				})
 			);
 		}
-
 		return response.blob();
+	}
+
+	async #cacheFetchedBlob(url: string, blob: Blob): Promise<void> {
+		try {
+			const key = toRelativeCloudFilePath(url)?.split(/[?#]/)[0];
+			if (!key) {
+				return;
+			}
+			const listed = await this.list();
+			const record = listed.find(
+				(item) => item.url.split(/[?#]/)[0].toLowerCase() === key.toLowerCase()
+			);
+			if (record) {
+				await this.cache.putFromBlob(record, blob);
+				return;
+			}
+			const parts = key.split('/').filter(Boolean);
+			if (parts.length >= 5 && parts[0] === 'api' && parts[1] === 'files') {
+				await this.cache.putFromBlob(
+					{
+						id: parts[3]!,
+						url: key,
+						size: blob.size,
+						mimeType: blob.type || 'application/octet-stream',
+						originalName: decodeURIComponent(parts.slice(4).join('/')),
+						createdAt: null
+					},
+					blob
+				);
+			}
+		} catch (error) {
+			console.warn('[user-files] failed to populate offline cache from fetch', error);
+		}
 	}
 
 	#requireClient() {

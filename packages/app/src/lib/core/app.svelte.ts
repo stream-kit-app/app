@@ -44,12 +44,16 @@ export class App extends Bootable {
 	public dashboard = new Dashboard();
 	public settings = new Settings();
 	public auth = new Auth();
-	public userFiles = new UserFiles(this.auth);
 	public records = new PluginRecordsService();
 	public configSync = new ConfigSync(this);
 	public oauth = new OAuth();
 	public opener = new Opener();
 	public fs = new Filesystem();
+	public toast = new Toast();
+	public userFiles = new UserFiles(this.auth, this.fs, {
+		isOfflineMirrorEnabled: () => this.settings.offlineCloudFilesMirror,
+		toast: this.toast
+	});
 	public audio = new Audio();
 	public lifecycle = new AppLifecycle();
 	public process = new ProcessWatcher();
@@ -62,7 +66,6 @@ export class App extends Bootable {
 	public pageHeader = new PageHeader();
 	public toolbar = new Toolbar();
 	public confirm = new Confirm();
-	public toast = new Toast();
 
 	public isBooting: boolean = $state(false);
 

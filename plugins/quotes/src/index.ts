@@ -49,10 +49,9 @@ const plugin: Plugin = (app) => {
 			quotesService.bind(store, pluginApp);
 			await quotesService.load();
 		},
-		onEnable: async ({ store, app: pluginApp, pluginKey }) => {
+		onEnable: async ({ store, app: pluginApp }) => {
 			quotesService.bind(store, pluginApp);
 			await quotesService.load();
-			await seedQuotesDefaults(pluginApp, pluginKey, store);
 		},
 		onReady: async ({ store, app: pluginApp, pluginKey }) => {
 			quotesService.bind(store, pluginApp);

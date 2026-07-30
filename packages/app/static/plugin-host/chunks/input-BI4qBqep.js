@@ -2790,10 +2790,24 @@ function oi(n, r) {
 			text: e,
 			forceMoveMarkers: !0
 		}]), p(H).pushUndoStop(), re = !1);
-	}), o(() => {
-		if (p(z), !p(H)) return;
-		let e = requestAnimationFrame(() => p(H)?.layout());
-		return () => cancelAnimationFrame(e);
+	});
+	function ge() {
+		if (!p(H) || !p(V)) return;
+		p(V).style.removeProperty("width"), p(B) && p(V).style.removeProperty("height");
+		let e = p(V).clientWidth, t = p(V).clientHeight;
+		e > 0 && t > 0 ? p(H).layout({
+			width: e,
+			height: t
+		}) : p(H).layout();
+	}
+	o(() => {
+		if (p(z), p(B), !p(H)) return;
+		let e = 0, t = requestAnimationFrame(() => {
+			e = requestAnimationFrame(() => ge());
+		});
+		return () => {
+			cancelAnimationFrame(t), cancelAnimationFrame(e);
+		};
 	}), o(() => {
 		!p(ee) || !p(H) || !p(U) || D().length === 0 || se(D()) !== p(Y) && de(D()).then(() => {
 			let e = p(H)?.getModel();
@@ -2804,11 +2818,11 @@ function oi(n, r) {
 		let e = p(H)?.getModel();
 		p(H)?.dispose(), G(H, void 0), G(U, void 0), oe(), ie && e && !e.isDisposed() && e.dispose();
 	});
-	var ge = ai();
+	var _e = ai();
 	A("keydown", S, (e) => {
 		p(z) && e.key === "Escape" && G(z, !1);
 	});
-	var _e = T(ge), ve = (e) => {
+	var ve = T(_e), ye = (e) => {
 		var n = ti(), i = T(n), o = (e) => {
 			Tr(e, {
 				get for() {
@@ -2885,19 +2899,19 @@ function oi(n, r) {
 			I().length > 0 && e(b);
 		}), g(c), g(n), j(e, n);
 	};
-	F(_e, (e) => {
-		(r.label || I().length > 0 || m() || v()) && e(ve);
+	F(ve, (e) => {
+		(r.label || I().length > 0 || m() || v()) && e(ye);
 	});
-	var ye = t(_e, 2), be = (e) => {
+	var be = t(ve, 2), xe = (e) => {
 		var t = ni();
 		_(T(t), () => r.toolbar), g(t), j(e, t);
 	};
-	F(ye, (e) => {
-		r.toolbar && e(be);
+	F(be, (e) => {
+		r.toolbar && e(xe);
 	});
-	var xe = t(ye, 2);
-	let Se;
-	var Ce = T(xe), we = (n) => {
+	var Se = t(be, 2);
+	let Ce;
+	var we = T(Se), Te = (n) => {
 		var r = ri(), i = T(r);
 		Z(i, {
 			icon: "gg:spinner",
@@ -2909,20 +2923,20 @@ function oi(n, r) {
 			e(r, "aria-label", k()), W(o, k());
 		}), j(n, r);
 	};
-	F(Ce, (e) => {
-		p(ee) || e(we);
-	}), g(xe), i(xe, (e) => G(V, e), () => p(V));
-	var Te = t(xe, 2), Ee = (e) => {
+	F(we, (e) => {
+		p(ee) || e(Te);
+	}), g(Se), i(Se, (e) => G(V, e), () => p(V));
+	var Ee = t(Se, 2), De = (e) => {
 		var t = ii(), n = T(t, !0);
 		g(t), x(() => {
 			N(t, 1, q(br)), W(n, r.error);
 		}), j(e, t);
 	};
-	F(Te, (e) => {
-		r.error && e(Ee);
-	}), g(ge), x((t, n) => {
-		N(ge, 1, t), e(xe, "id", a()), e(xe, "aria-busy", !p(ee)), e(xe, "aria-invalid", r.error ? !0 : void 0), e(xe, "aria-placeholder", r.placeholder), N(xe, 1, n), Se = te(xe, "", Se, { height: p(B) ? void 0 : u() });
-	}, [() => q(Q("relative flex w-full flex-col", p(z) ? "fixed inset-0 z-60 gap-3 bg-dark-900 p-4" : d() ? "h-full min-h-0 flex-1" : "grid gap-2")), () => q(Q("relative z-52 overflow-visible rounded-lg border bg-dark-900 focus-within:ring-2", p(B) ? "flex min-h-0 flex-1 flex-col" : "", r.error ? "border-destructive focus-within:ring-destructive" : "border-border focus-within:ring-ring", r.class))]), j(n, ge), b();
+	F(Ee, (e) => {
+		r.error && e(De);
+	}), g(_e), x((t, n) => {
+		N(_e, 1, t), e(Se, "id", a()), e(Se, "aria-busy", !p(ee)), e(Se, "aria-invalid", r.error ? !0 : void 0), e(Se, "aria-placeholder", r.placeholder), N(Se, 1, n), Ce = te(Se, "", Ce, { height: p(B) ? void 0 : u() });
+	}, [() => q(Q("relative w-full min-w-0", p(z) ? "fixed inset-0 z-60 flex flex-col gap-3 bg-dark-900 p-4" : d() ? "flex h-full min-h-0 flex-1 flex-col" : "grid gap-2")), () => q(Q("relative z-52 w-full min-w-0 max-w-full overflow-visible rounded-lg border bg-dark-900 focus-within:ring-2", p(B) ? "flex min-h-0 flex-1 flex-col" : "", r.error ? "border-destructive focus-within:ring-destructive" : "border-border focus-within:ring-ring", r.class))]), j(n, _e), b();
 }
 //#endregion
 //#region ../../node_modules/.pnpm/svelte-awesome-color-picker_056a75e2a4d26229eaacc7e6f2f295b0/node_modules/svelte-awesome-color-picker/dist/utils/texts.js

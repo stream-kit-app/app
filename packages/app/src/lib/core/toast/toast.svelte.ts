@@ -1,4 +1,4 @@
-import type { ToastItemProps, ToastVariant } from './toast-item.svelte';
+import type { ToastItemUpdateProps, ToastVariant } from './toast-item.svelte';
 
 import type { Component } from 'svelte';
 
@@ -41,6 +41,12 @@ export class Toast {
 	public create(props: ToastCreateProps): ToastItem {
 		const id = props.id ?? crypto.randomUUID();
 
+		const existing = this.entries.get(id);
+		if (existing) {
+			existing.cancelAutoDismiss();
+			this.entries.delete(id);
+		}
+
 		const item = new ToastItem({
 			id,
 			title: props.title,
@@ -54,6 +60,16 @@ export class Toast {
 
 		this.entries.set(id, item);
 
+		return item;
+	}
+
+	/** Update an existing toast in place (reactive title/description/variant). */
+	public update(id: string, props: ToastItemUpdateProps): ToastItem | undefined {
+		const item = this.entries.get(id);
+		if (!item) {
+			return undefined;
+		}
+		item.update(props);
 		return item;
 	}
 

@@ -481,8 +481,15 @@ type ScriptContext = {
 	context: HandlerTriggerContext[];
 };
 
-/** Return value of a Run script handler body. */
-type ScriptResult = void | Promise<void>;
+/**
+ * Return value of a Run script handler body.
+ * A plain object is merged into action-scoped variables (values stringified) so
+ * later handlers can use \`{key}\` placeholders.
+ */
+type ScriptResult =
+	| void
+	| Record<string, unknown>
+	| Promise<void | Record<string, unknown>>;
 
 /** A Run script handler body with fully typed \`app\` and \`context\`. */
 type ScriptHandler = (ctx: ScriptContext) => ScriptResult;
@@ -498,10 +505,13 @@ type ScriptHandler = (ctx: ScriptContext) => ScriptResult;
  *   (the trigger ID), \`data\` (the trigger payload, typed to this action's
  *   triggers), and \`actionVariables\` (mutable variables shared with later handlers).
  *
+ * Return a plain object to expose values as action variables for later handlers.
+ *
  * @example
  * export default defineScript(async ({ app, context }) => {
  * 	const [{ trigger, data, actionVariables }] = context;
  * 	app.toast.create({ title: 'Hello!', variant: 'success' });
+ * 	return { greeting: 'Hello from script' };
  * });
  */
 declare function defineScript(handler: ScriptHandler): ScriptHandler;

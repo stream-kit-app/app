@@ -49,6 +49,8 @@ Each item in `context` has:
 | `data` | Trigger-specific | Payload from the trigger that fired. Typed in the editor based on triggers configured on the action. |
 | `actionVariables` | `Record<string, string>` | Mutable action-scoped variables for this handler chain run. Changes are visible to later handlers. |
 
+You can also **return** a plain object from the script. Each key is written into `actionVariables` (values are stringified) so later handlers can use `{key}` placeholders.
+
 Browse trigger payloads in the [Triggers API reference](/docs/api/triggers/core).
 
 ## `app` API overview
@@ -115,16 +117,29 @@ export default async ({ app, context }: ScriptContext) => {
 
 ### Set an action variable for later handlers
 
+Mutate `actionVariables` in place, or **return** a plain object — both become `{key}` placeholders for later handlers. Objects/numbers are stringified.
+
 ```typescript
 import type { ScriptContext } from '@stream-kit/script-api';
 
 export default async ({ context }: ScriptContext) => {
-  const [{ actionVariables }] = context;
+  const [{ data, actionVariables }] = context;
+
   if (actionVariables) {
     actionVariables.greeting = 'Hello from script';
   }
+
+  // Equivalent: return values are merged into action variables
+  return {
+    normalizedMessage:
+      typeof data === 'object' && data && 'message' in data
+        ? String((data as { message: unknown }).message).toLowerCase()
+        : ''
+  };
 };
 ```
+
+Use `{greeting}` or `{normalizedMessage}` in subsequent handler fields.
 
 ### Call a plugin API
 

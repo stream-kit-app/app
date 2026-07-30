@@ -115,7 +115,9 @@ export function createActionAdapter(app: App): SyncAdapter<ActionRecord, RemoteA
 		async toRemotePayload(local, ctx) {
 			const queues = await getActionQueues();
 			const queueSyncIdById = new Map(queues.map((queue) => [queue.id, queue.syncId]));
-			const handlers = normalizeCloudFileRefsInHandlers(local.handlers).handlers;
+			const handlers = normalizeCloudFileRefsInHandlers(
+				Array.isArray(local.handlers) ? local.handlers : []
+			).handlers;
 			return {
 				id: local.syncId,
 				user: ctx.userId,
@@ -123,7 +125,7 @@ export function createActionAdapter(app: App): SyncAdapter<ActionRecord, RemoteA
 				group: local.group,
 				groupSortOrder: local.groupSortOrder,
 				sortOrder: local.sortOrder,
-				triggers: local.triggers,
+				triggers: Array.isArray(local.triggers) ? local.triggers : [],
 				handlers,
 				enabled: local.enabled,
 				queueSyncId:

@@ -178,8 +178,12 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 		},
 		userFiles: {
 			isCloudUrl: app.userFiles.isCloudUrl.bind(app.userFiles),
+			isOfflineMirrorEnabled: app.userFiles.isOfflineMirrorEnabled.bind(app.userFiles),
 			resolveUrl: app.userFiles.resolveUrl.bind(app.userFiles),
 			resolveAuthenticatedUrl: app.userFiles.resolveAuthenticatedUrl.bind(app.userFiles),
+			resolveLocalPath: app.userFiles.resolveLocalPath.bind(app.userFiles),
+			getCachedPath: app.userFiles.getCachedPath.bind(app.userFiles),
+			syncCache: app.userFiles.syncCache.bind(app.userFiles),
 			list: app.userFiles.list.bind(app.userFiles),
 			upload: app.userFiles.upload.bind(app.userFiles),
 			remove: app.userFiles.remove.bind(app.userFiles),

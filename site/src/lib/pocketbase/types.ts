@@ -215,14 +215,14 @@ export type UserActionsRecord<Thandlers = unknown, Ttriggers = unknown> = {
 	enabled?: boolean
 	group: string
 	groupSortOrder?: number
-	handlers: null | Thandlers
+	handlers?: null | Thandlers
 	id: string
 	name: string
 	ownerPluginKey?: string
 	queueSyncId?: string
 	revision?: number
 	sortOrder?: number
-	triggers: null | Ttriggers
+	triggers?: null | Ttriggers
 	updatedAt: IsoAutoDateString
 	user: RecordIdString
 }

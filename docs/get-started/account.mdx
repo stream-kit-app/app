@@ -28,7 +28,7 @@ If your email is not verified yet, the profile page shows an **Unverified** badg
 
 If your account has an active plan, your avatar shows a primary ring (header and profile) and the plan appears in a **Subscription** card on the profile page. You can cancel an active plan from that card. After cancellation, cloud features stay available for **30 days** (grace period); the profile shows the end date. When the grace period ends, the plan no longer unlocks cloud access.
 
-Active (or grace-period) plans also unlock **cloud files** (`user_files`): upload or browse media from handler file fields (for example Play audio file) and rankings icons. Manage stored files from the **Cloud files** section on Profile (list, quota bar, delete). Each plan defines a max file size and total storage quota. Stored values are **host-independent** paths such as `/api/files/...`; the UI and runtime resolve them against the current `PUBLIC_POCKETBASE_URL` with short-lived file tokens (files are protected). Absolute PocketBase URLs from older builds are normalized to relative paths on load when a plan is active.
+Active (or grace-period) plans also unlock **cloud files** (`user_files`): upload or browse media from handler file fields (for example Play audio file) and rankings icons. Manage stored files from the **Cloud files** section on Profile (list, quota bar, optional **Keep cloud files offline**, **Open offline folder**, delete). Each plan defines a max file size and total storage quota. Stored values are **host-independent** paths such as `/api/files/...`; the UI and runtime resolve them against the current `PUBLIC_POCKETBASE_URL`. When **Keep cloud files offline** is enabled on a PC, Stream Kit mirrors the library into local AppData (with a gray progress toast showing how many files are synced), file fields show the local cache path when available, and playback (audio, OBS media, icons) uses filesystem paths instead of cloud URLs, while actions keep syncing cloud refs across machines. Absolute PocketBase URLs from older builds are normalized to relative paths on load when a plan is active.
 
 When a plan becomes active, Stream Kit automatically uploads existing local files from **cloud-capable action handler fields** in the background. Prefer cloud file refs (`/api/files/...`) so media works on every PC. Local paths keep working for playback until they are migrated.
 
@@ -52,13 +52,13 @@ Root `pnpm dev` bootstraps this automatically:
 
 Dev seed and the PocketBase task refuse non-localhost `PUBLIC_POCKETBASE_URL` values so a remote/production instance cannot be seeded by accident.
 
-Example app env:
+Example app env (local `.env`):
 
 ```env
 PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090
 PUBLIC_SITE_URL=http://localhost:5173
 ```
 
-For release builds, set `PUBLIC_POCKETBASE_URL` (and `PUBLIC_SITE_URL` when needed) in CI at build time so the packaged app points at production.
+Release / `tauri build` uses committed `packages/app/.env.production` (`https://api.stream-kit.app` and `https://stream-kit.app`), which overrides localhost values from `.env`. The Vite production build fails if those URLs are wrong.
 
 Plugins can read the signed-in public profile and call login/logout via `app.auth` — see [Plugin Authoring API](/docs/developers/plugin-api). Subscription objects may include optional `endsAt` during the post-cancel grace period.

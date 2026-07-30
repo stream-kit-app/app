@@ -4,6 +4,7 @@ const LOCALE_KEY = 'locale';
 const DEVELOPER_MODE_KEY = 'developerMode';
 const PLUGIN_DEV_MODE_KEY = 'pluginDevMode';
 const CHECK_PLUGIN_UPDATES_KEY = 'checkPluginUpdatesOnStartup';
+const OFFLINE_CLOUD_FILES_MIRROR_KEY = 'offlineCloudFilesMirror';
 
 const store = new LazyStore('app.settings.json');
 
@@ -68,4 +69,13 @@ export async function getCheckPluginUpdatesOnStartup(): Promise<boolean> {
 
 export async function saveCheckPluginUpdatesOnStartup(enabled: boolean): Promise<void> {
 	await store.set(CHECK_PLUGIN_UPDATES_KEY, enabled);
+}
+
+/** Device-local: mirror cloud media into AppData and prefer local paths at playback. Default off. */
+export async function getOfflineCloudFilesMirror(): Promise<boolean> {
+	return (await store.get<boolean>(OFFLINE_CLOUD_FILES_MIRROR_KEY)) ?? false;
+}
+
+export async function saveOfflineCloudFilesMirror(enabled: boolean): Promise<void> {
+	await store.set(OFFLINE_CLOUD_FILES_MIRROR_KEY, enabled);
 }

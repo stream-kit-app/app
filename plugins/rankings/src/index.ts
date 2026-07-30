@@ -134,14 +134,15 @@ const plugin: Plugin = (app) => {
 			rankingsService.bind(store, pluginApp);
 			await rankingsService.load();
 		},
-		onEnable: async ({ store, app: pluginApp, pluginKey }) => {
+		onEnable: async ({ store, app: pluginApp }) => {
 			rankingsService.bind(store, pluginApp);
 			await rankingsService.load();
-			await seedRankingsDefaults(pluginApp, pluginKey, store);
 		},
 		onReady: async ({ store, app: pluginApp, pluginKey }) => {
 			rankingsService.bind(store, pluginApp);
 			await rankingsService.load();
+			// Seed after app.actions.load() (see boot-app). Seeding in onEnable runs too early
+			// and would recreate defaults on every boot when the action list is still empty.
 			await seedRankingsDefaults(pluginApp, pluginKey, store);
 
 			const watchTimeEnabled = pluginApp.plugins.getSettingValue(pluginKey, 'watch-time-rewards');
