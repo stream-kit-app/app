@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/plugin-obs",
-	"version": "0.2.0-alpha.3",
+	"version": "0.2.0-alpha.4",
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE",
 	"exports": {

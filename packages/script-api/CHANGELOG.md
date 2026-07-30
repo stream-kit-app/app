@@ -1,5 +1,11 @@
 # @stream-kit/script-api
 
+## 0.1.0-alpha.4
+
+### Patch Changes
+
+- [`0fb0f05`](https://github.com/stream-kit-app/app/commit/0fb0f050c4418dfdd6ea5ac0e1e48b35c4ff5034) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - cloud storage sync
+
 ## 0.1.0-alpha.3
 
 ### Minor Changes
