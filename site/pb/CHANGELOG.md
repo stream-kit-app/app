@@ -1,5 +1,11 @@
 # @stream-kit/pocketbase
 
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- [`7856ba3`](https://github.com/stream-kit-app/app/commit/7856ba3105cc895a412c2792fe5104aeb47cbc88) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Raise published overlay bundle size limit from 25MB to 100MB, and allow non-UUID local overlay ids (slugs) on `user_overlays.overlayId`.
+
 ## 0.2.0-alpha.5
 
 ### Patch Changes
