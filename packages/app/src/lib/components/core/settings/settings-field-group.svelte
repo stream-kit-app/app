@@ -14,17 +14,30 @@
 	import {
 		InputCheckbox,
 		InputColor,
+		InputFilePath,
 		InputSelect,
 		InputSlider,
 		InputSwitch,
 		InputText,
 		InputTextSelect
 	} from '@stream-kit/ui/input';
+
+	import {
+		hasCloudFileAccess,
+		isLocalFilePath,
+		pickCloudFileUrl,
+		toDisplayCloudFileValue,
+		toStoredCloudFileValue,
+		uploadLocalFileToCloud,
+		usesCloudFileStorage
+	} from '$lib/components/core/user-files/cloud-file-actions';
+	import { getApp } from '$lib/core/registry';
 	import {
 		filterVisibleFieldItems,
 		isSettingsFieldSection,
 		toSettingsSelectItemsSource
 	} from '$lib/core/settings/settings-field';
+	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
 	import SelectValuesSettingsField from './select-values-settings-field.svelte';
@@ -40,6 +53,8 @@
 
 	let { context, items, getField, getFieldError, class: className }: Props = $props();
 
+	const { t } = useI18n();
+	const app = getApp();
 	const visibleItems = $derived(filterVisibleFieldItems(items, context));
 
 	function updateField(field: SettingsFieldInstance, value: SettingsFieldValue): void {
@@ -121,6 +136,38 @@
 				() => String(field.value ?? config.defaultValue ?? ''),
 				(value) => updateField(field, value)
 			}
+			{error}
+		/>
+	{:else if config.type === 'select-file-or-folder'}
+		{@const cloudStorage = usesCloudFileStorage(config) && hasCloudFileAccess(app.auth)}
+		{@const fileValue = String(field.value ?? '')}
+		{@const hasLocalPath = cloudStorage && isLocalFilePath(fileValue)}
+		{@const displayFileValue =
+			cloudStorage || app.userFiles.isOfflineMirrorEnabled()
+				? toDisplayCloudFileValue(app, fileValue)
+				: fileValue}
+		<InputFilePath
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			mode={config.mode}
+			filters={config.filters}
+			value={displayFileValue}
+			onValueChange={(value: string) => updateField(field, toStoredCloudFileValue(value))}
+			browseLabel={t('Browse')}
+			uploadLabel={hasLocalPath ? t('Upload to cloud') : t('Upload')}
+			cloudLabel={t('Cloud')}
+			emptyFileLabel={t('No file selected')}
+			emptyFolderLabel={t('No folder selected')}
+			onBrowse={() =>
+				app.fs.select({
+					type: config.mode,
+					filters: config.filters
+				})}
+			onUpload={cloudStorage
+				? () => uploadLocalFileToCloud(config.filters, fileValue)
+				: undefined}
+			onCloudBrowse={cloudStorage ? () => pickCloudFileUrl(config.filters) : undefined}
 			{error}
 		/>
 	{/if}

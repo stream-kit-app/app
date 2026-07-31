@@ -1,15 +1,30 @@
 import type { ActionHandler } from '../action/action-handler.svelte';
+import type { HandlerFieldInstance, OneOfFieldValue } from '../action/handler/field';
 import type { App } from '../app.svelte';
 import type { AuthPublicUser } from '../auth/types';
-import type { HandlerFieldInstance, OneOfFieldValue } from '../action/handler/field';
+import type { SettingsFieldValue } from '../settings/field';
+
+import { saveAction } from '$db/repositories/actions';
+import { saveOverlayConfig } from '$db/repositories/overlays';
 
 import { isOneOfFieldValue } from '@stream-kit/core';
 
-import { saveAction } from '$db/repositories/actions';
 import { translate } from '$lib/i18n';
 
 import { flattenActionHandlers } from '../action/handler-tree';
-import { isLocalFilePath, usesCloudFileStorage } from './cloud-file-path';
+import { BaseDirectory } from '../filesystem';
+import {
+	collectOverlayDefaultConfig,
+	collectOverlayFileSettingsFields
+} from '../overlay/overlay-manifest';
+import { overlayDir } from '../overlay/overlay-project';
+import { readOverlayManifest } from '../overlay/overlay-settings.svelte';
+import {
+	isLocalFilePath,
+	isOverlayRelativePath,
+	overlayRelativePathWithinProject,
+	usesCloudFileStorage
+} from './cloud-file-path';
 import { normalizeCloudFileRefValue } from './normalize-cloud-file-refs';
 
 type UploadCache = Map<string, string>;
@@ -26,7 +41,8 @@ let pending = false;
 /**
  * Watch auth and, while the user has an active plan:
  * - normalize absolute PocketBase file URLs to host-independent /api/files paths
- * - upload local file values on cloud-capable action handler fields
+ * - upload local OS paths on cloud-capable action handler fields and overlay settings
+ * - upload overlay-relative paths (`./video.webm`) from the overlay project into cloud files
  *
  * Plugin-record file fields (bot/rankings) are covered once those values use
  * host-independent cloud paths via `app.userFiles`; absolute hosts are normalized
@@ -48,10 +64,7 @@ export async function migrateCloudFilesAfterSync(app: App): Promise<void> {
 	await migrateCloudFilesIfNeeded(app, app.auth.user);
 }
 
-async function migrateCloudFilesIfNeeded(
-	app: App,
-	user: AuthPublicUser | null
-): Promise<void> {
+async function migrateCloudFilesIfNeeded(app: App, user: AuthPublicUser | null): Promise<void> {
 	if (!app.auth.isConfigured || !user?.subscription) {
 		return;
 	}
@@ -71,7 +84,9 @@ async function migrateCloudFilesIfNeeded(
 			let normalized = false;
 
 			try {
-				normalized = await migrateActions(app, cache, stats);
+				const actionsDirty = await migrateActions(app, cache, stats);
+				const overlaysDirty = await migrateOverlays(app, cache, stats);
+				normalized = actionsDirty || overlaysDirty;
 
 				if (stats.uploaded > 0 || normalized) {
 					app.configSync.scheduleSync();
@@ -90,9 +105,12 @@ async function migrateCloudFilesIfNeeded(
 				if (stats.failed > 0) {
 					app.toast.create({
 						title: translate('Cloud files'),
-						description: translate('{count} files could not be uploaded to the cloud.', {
-							count: stats.failed
-						}),
+						description: translate(
+							'{count} files could not be uploaded to the cloud.',
+							{
+								count: stats.failed
+							}
+						),
 						variant: 'warning'
 					});
 				}
@@ -139,6 +157,90 @@ async function migrateActions(
 			);
 		} catch (error) {
 			console.warn(`Failed to persist cloud migration for action ${action.id}`, error);
+			stats.failed += 1;
+		}
+	}
+
+	return anyDirty;
+}
+
+async function migrateOverlays(
+	app: App,
+	cache: UploadCache,
+	stats: MigrationStats
+): Promise<boolean> {
+	let anyDirty = false;
+
+	for (const overlay of app.overlay.items) {
+		let manifest;
+		try {
+			manifest = await readOverlayManifest(overlay.id);
+		} catch (error) {
+			console.warn(
+				`Failed to read overlay manifest for cloud migration ${overlay.id}`,
+				error
+			);
+			continue;
+		}
+
+		const fileFields = collectOverlayFileSettingsFields(manifest.settings).filter((field) =>
+			usesCloudFileStorage(field)
+		);
+		if (fileFields.length === 0) {
+			continue;
+		}
+
+		const config: Record<string, SettingsFieldValue> = {
+			...collectOverlayDefaultConfig(manifest.settings),
+			...((overlay.config as Record<string, SettingsFieldValue>) ?? {})
+		};
+		let dirty = false;
+
+		for (const field of fileFields) {
+			const current = config[field.key];
+			const normalized = normalizeCloudFileRefValue(
+				typeof current === 'string' ? current : ''
+			);
+			if (normalized.changed && typeof normalized.value === 'string') {
+				config[field.key] = normalized.value;
+				dirty = true;
+			}
+
+			const value = config[field.key];
+			if (typeof value !== 'string' || !value.trim()) {
+				continue;
+			}
+
+			let url: string | null = null;
+			if (isLocalFilePath(value)) {
+				url = await uploadLocalPath(app, value.trim(), cache, stats);
+			} else if (isOverlayRelativePath(value)) {
+				url = await uploadOverlayRelativePath(app, overlay.id, value.trim(), cache, stats);
+			} else {
+				continue;
+			}
+
+			if (!url) {
+				continue;
+			}
+			config[field.key] = url;
+			dirty = true;
+		}
+
+		if (!dirty) {
+			continue;
+		}
+
+		anyDirty = true;
+
+		try {
+			await saveOverlayConfig(overlay.id, config, overlay.version ?? 0);
+			app.overlay.items = app.overlay.items.map((item) =>
+				item.id === overlay.id ? { ...item, config } : item
+			);
+			await app.overlay.pushResolvedSettings(overlay.id);
+		} catch (error) {
+			console.warn(`Failed to persist cloud migration for overlay ${overlay.id}`, error);
 			stats.failed += 1;
 		}
 	}
@@ -239,20 +341,22 @@ async function uploadLocalPath(
 	app: App,
 	path: string,
 	cache: UploadCache,
-	stats: MigrationStats
+	stats: MigrationStats,
+	options?: { baseDir?: BaseDirectory }
 ): Promise<string | null> {
-	const cached = cache.get(path);
+	const cacheKey = options?.baseDir != null ? `${options.baseDir}:${path}` : path;
+	const cached = cache.get(cacheKey);
 	if (cached) {
 		return cached;
 	}
 
 	try {
-		const bytes = await app.fs.readFile(path);
+		const bytes = await app.fs.readFile(path, options);
 		const originalName = path.split(/[/\\]/).pop() || 'upload.bin';
 		const uploaded = await app.userFiles.upload(new Blob([Uint8Array.from(bytes)]), {
 			originalName
 		});
-		cache.set(path, uploaded.url);
+		cache.set(cacheKey, uploaded.url);
 		stats.uploaded += 1;
 		return uploaded.url;
 	} catch (error) {
@@ -260,4 +364,54 @@ async function uploadLocalPath(
 		stats.failed += 1;
 		return null;
 	}
+}
+
+/**
+ * Resolve `./file.webm` under the overlay project (prefer `dist/`, then project root)
+ * and upload to `user_files`.
+ */
+async function uploadOverlayRelativePath(
+	app: App,
+	overlayId: string,
+	relativePath: string,
+	cache: UploadCache,
+	stats: MigrationStats
+): Promise<string | null> {
+	const within = overlayRelativePathWithinProject(relativePath);
+	if (!within) {
+		stats.failed += 1;
+		return null;
+	}
+
+	const root = overlayDir(overlayId);
+	const candidates = [`${root}/dist/${within}`, `${root}/${within}`];
+
+	for (const candidate of candidates) {
+		try {
+			const exists = await app.fs.exists(candidate, {
+				baseDir: BaseDirectory.AppData
+			});
+			if (!exists) {
+				continue;
+			}
+			return uploadLocalPath(app, candidate, cache, stats, {
+				baseDir: BaseDirectory.AppData
+			});
+		} catch (error) {
+			console.warn(
+				'Cloud migration could not resolve overlay relative path',
+				candidate,
+				error
+			);
+		}
+	}
+
+	console.warn(
+		'Cloud migration missing overlay relative file',
+		overlayId,
+		relativePath,
+		candidates
+	);
+	stats.failed += 1;
+	return null;
 }

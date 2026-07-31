@@ -9,41 +9,76 @@ Overlays are local web projects served by Stream Kit. Author overlays by editing
 
 ## Manifest
 
-Each overlay includes `overlay.manifest.json`:
+Each overlay includes `overlay.manifest.json`. For editor autocomplete, set `$schema` to the public JSON Schema:
 
 ```json
 {
-  "id": "my-alert-overlay",
-  "name": "My Alerts",
-  "framework": "svelte",
-  "expectedEvents": ["alert", "clear"],
-  "outgoingEvents": ["button:clicked", "alert:dismissed"],
-  "settings": [],
-  "testHandlers": [],
-  "requiredPlugins": ["twitch"],
-  "actions": []
+	"$schema": "https://stream-kit.app/schemas/overlay-manifest.schema.json",
+	"id": "my-alert-overlay",
+	"name": "My Alerts",
+	"framework": "svelte",
+	"expectedEvents": ["alert", "clear"],
+	"outgoingEvents": ["button:clicked", "alert:dismissed"],
+	"settings": [],
+	"testHandlers": [],
+	"requiredPlugins": ["twitch"],
+	"actions": []
 }
 ```
 
-| Field | Description |
-| --- | --- |
-| `id` | Stable overlay id (folder name) |
-| `name` | Display name in the app |
-| `framework` | Starter template id (`vanilla`, `svelte`, `react`, …) |
-| `expectedEvents` | Event names for **Send to Overlay** combobox (app → overlay) |
-| `outgoingEvents` | Event names this overlay sends to Stream Kit (overlay → app); used for **Message Received** trigger setup |
-| `settings` | Configure page fields (text, switch, select, slider, color, sections) |
-| `testHandlers` | Quick test buttons on overlay detail page |
-| `requiredPlugins` | Plugin keys required for action presets |
-| `actions` | Optional action presets to install |
+Stream Kit also copies `overlay-manifest.schema.json` into new overlay projects for offline use (`./overlay-manifest.schema.json`).
+
+| Field             | Description                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------- |
+| `id`              | Stable overlay id (folder name)                                                                           |
+| `name`            | Display name in the app                                                                                   |
+| `framework`       | Starter template id (`vanilla`, `svelte`, `react`, …)                                                     |
+| `expectedEvents`  | Event names for **Send to Overlay** combobox (app → overlay)                                              |
+| `outgoingEvents`  | Event names this overlay sends to Stream Kit (overlay → app); used for **Message Received** trigger setup |
+| `settings`        | Configure page fields (text, switch, select, slider, color, file, sections)                               |
+| `testHandlers`    | Quick test buttons on overlay detail page                                                                 |
+| `requiredPlugins` | Plugin keys required for action presets                                                                   |
+| `actions`         | Optional action presets to install                                                                        |
 
 ## Settings
 
 Settings fields render on the overlay **Configure** page. Values are broadcast to the browser source as event `overlay:settings` with a key-value map.
 
-Supported field types: `text`, `switch`, `checkbox`, `select`, `slider`, `color`, and grouped `section` blocks.
+Supported field types: `text`, `switch`, `checkbox`, `select`, `slider`, `color`, `select-file-or-folder`, and grouped `section` blocks.
 
 Use `__overlay__` token in select items when a field should reference the current overlay id.
+
+### File settings
+
+Use `select-file-or-folder` with `mode: "file"` (folders are not supported in overlay settings). With an active subscription, the Configure page shows **Upload** and **Cloud** (same cloud library as action handlers).
+
+File values use two forms:
+
+- **Stored config:** cloud files remain host-independent `/api/files/...` refs so the overlay config works across PCs. Local files are stored as the absolute path returned by the desktop picker.
+- **Configure page:** cloud refs show as a full authenticated URL when cloud access is available. When **Keep cloud files offline** is enabled and the file is cached, the desktop UI may show the local cache path instead.
+- **`overlay:settings` payload:** cloud refs are always sent as full authenticated URLs. The desktop offline path is not sent to the browser source because it is not accessible from OBS's browser context. Local file paths are left unchanged, but they are only useful to desktop consumers.
+
+Tokens on cloud URLs are refreshed while the app is running.
+
+When a subscription becomes active (or when you open Configure), Stream Kit automatically uploads remaining local OS paths and overlay-relative defaults such as `./alert.webm` from the overlay project into your cloud library and rewrites the setting to a `/api/files/...` ref.
+
+```json
+{
+	"type": "select-file-or-folder",
+	"key": "logo",
+	"name": "Logo",
+	"mode": "file",
+	"filters": [{ "name": "Images", "extensions": ["png", "jpg", "webp", "gif"] }]
+}
+```
+
+```js
+'overlay:settings': (payload) => {
+  logoEl.src = payload.logo || '';
+}
+```
+
+Without a subscription, the field falls back to local **Browse** only. The desktop picker returns a full local path, but local absolute paths are not usable in OBS browser sources — prefer cloud file refs for overlay media.
 
 ## Receiving events
 
@@ -61,12 +96,12 @@ Use the starter's `connectOverlay()` helper, which returns a `send()` function:
 
 ```js
 const overlay = connectOverlay({
-  'overlay:settings': (payload) => applySettings(payload),
-  alert: (payload) => showAlert(payload)
+	'overlay:settings': (payload) => applySettings(payload),
+	alert: (payload) => showAlert(payload)
 });
 
 document.getElementById('follow-btn')?.addEventListener('click', () => {
-  overlay.send('button:clicked', { id: 'follow' });
+	overlay.send('button:clicked', { id: 'follow' });
 });
 ```
 
@@ -76,10 +111,10 @@ Listen for inbound messages manually:
 
 ```js
 socket.addEventListener('message', (event) => {
-  const { event: eventName, payload } = JSON.parse(event.data);
-  if (eventName === 'alert') {
-    showAlert(payload);
-  }
+	const { event: eventName, payload } = JSON.parse(event.data);
+	if (eventName === 'alert') {
+		showAlert(payload);
+	}
 });
 ```
 
@@ -87,10 +122,10 @@ socket.addEventListener('message', (event) => {
 
 **Send to Overlay** payload supports two modes:
 
-| Mode | Use when |
-| --- | --- |
-| **JSON** | Build a payload template with `\{variables\}`. Quoted standalone placeholders are cast to real JSON when the value is valid JSON (objects, arrays, numbers, booleans, or `null`). For example, `"\{message\}"` sends the object when `{message}` is a JSON object. |
-| **Variable** | Pass one variable through unchanged — for example `{message}` when the trigger already provides a JSON object. |
+| Mode         | Use when                                                                                                                                                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **JSON**     | Build a payload template with `\{variables\}`. Quoted standalone placeholders are cast to real JSON when the value is valid JSON (objects, arrays, numbers, booleans, or `null`). For example, `"\{message\}"` sends the object when `{message}` is a JSON object. |
+| **Variable** | Pass one variable through unchanged — for example `{message}` when the trigger already provides a JSON object.                                                                                                                                                     |
 
 Leave payload empty to receive the full trigger context.
 
@@ -102,25 +137,25 @@ Presets bundle triggers and handlers users can install from the overlay page:
 
 ```json
 {
-  "key": "follow-alert",
-  "name": "Follow alert",
-  "enabled": true,
-  "triggers": [
-    {
-      "triggerTypeId": "twitch:twitch:channel:new-follower",
-      "conditions": {}
-    }
-  ],
-  "handlers": [
-    {
-      "handlerTypeId": "overlay:overlay:send-to-overlay",
-      "fields": [
-        { "key": "overlay", "value": "__overlay__" },
-        { "key": "event", "value": "alert" },
-        { "key": "payload", "value": "{\"username\":\"{username}\"}" }
-      ]
-    }
-  ]
+	"key": "follow-alert",
+	"name": "Follow alert",
+	"enabled": true,
+	"triggers": [
+		{
+			"triggerTypeId": "twitch:twitch:channel:new-follower",
+			"conditions": {}
+		}
+	],
+	"handlers": [
+		{
+			"handlerTypeId": "overlay:overlay:send-to-overlay",
+			"fields": [
+				{ "key": "overlay", "value": "__overlay__" },
+				{ "key": "event", "value": "alert" },
+				{ "key": "payload", "value": "{\"username\":\"{username}\"}" }
+			]
+		}
+	]
 }
 ```
 

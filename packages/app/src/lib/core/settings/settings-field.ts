@@ -133,7 +133,8 @@ export function initSettingsFieldValue(definition: SettingsFieldDefinition): Set
 		definition.type === 'text' ||
 		definition.type === 'select' ||
 		definition.type === 'combobox' ||
-		definition.type === 'color'
+		definition.type === 'color' ||
+		definition.type === 'select-file-or-folder'
 	) {
 		return '';
 	}
@@ -183,7 +184,8 @@ export function isSettingsFieldValueEmpty(
 		definition.type === 'text' ||
 		definition.type === 'select' ||
 		definition.type === 'combobox' ||
-		definition.type === 'color'
+		definition.type === 'color' ||
+		definition.type === 'select-file-or-folder'
 	) {
 		return !String(value ?? '').trim();
 	}

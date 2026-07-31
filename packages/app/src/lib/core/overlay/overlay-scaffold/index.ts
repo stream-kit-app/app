@@ -106,11 +106,11 @@ Use the **Overlay → Send to Overlay** action handler in Stream Kit to push eve
 
 Edit \`manifest.json\` with VS Code or Cursor for JSON Schema autocomplete (settings fields, test handlers, framework values).
 
-The project includes \`overlay-manifest.schema.json\` next to \`manifest.json\`. Keep the \`$schema\` property pointing at that file:
+Point \`$schema\` at the public schema (or the local copy shipped next to \`manifest.json\`):
 
 \`\`\`json
 {
-	"$schema": "./overlay-manifest.schema.json"
+	"$schema": "https://stream-kit.app/schemas/overlay-manifest.schema.json"
 }
 \`\`\`
 `;

@@ -14,10 +14,17 @@ export type {
 } from './overlay-manifest';
 export {
 	collectOverlayDefaultConfig,
+	collectOverlayFileSettingsFields,
 	mergeOverlayConfig,
 	overlayManifestToSettingsItems,
 	parseOverlayManifest
 } from './overlay-manifest';
+export type { OverlayFileSettingsFieldJson } from './overlay-manifest';
+export {
+	normalizeOverlayConfigCloudFileRefs,
+	overlayConfigHasCloudFileRefs,
+	resolveOverlayConfigForClients
+} from './resolve-overlay-config-files';
 export {
 	loadOverlaySettingsDefinition,
 	OverlaySettingsDefinition,

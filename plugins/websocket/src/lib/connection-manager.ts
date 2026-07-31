@@ -724,8 +724,8 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 
 				try {
 					await connectId(connection.id, false);
-				} catch (error) {
-					console.warn(`WebSocket auto-connect failed for ${connection.name}`, error);
+				} catch {
+					// Expected when the remote socket is down; status/retries cover UX.
 				}
 			}
 		},

@@ -390,7 +390,7 @@ See [Stream Kit account](/docs/get-started/account) for the in-app UI and `PUBLI
 
 ### Cloud user files (`app.userFiles`)
 
-Authenticated media library backed by PocketBase `user_files`. Requires a signed-in user with an active subscription. Handler file fields (default `storage: 'cloud'`) upload or browse here and store a host-independent `/api/files/...` ref. When a plan becomes active, the app migrates existing local paths on those fields in the background (same path uploaded once and reused). **Upload to cloud** still migrates a single field manually.
+Authenticated media library backed by PocketBase `user_files`. Requires a signed-in user with an active subscription. Handler file fields and overlay manifest file settings (default `storage: 'cloud'`) upload or browse here and store a host-independent `/api/files/...` ref. When a plan becomes active, the app migrates existing local paths on those fields in the background (same path uploaded once and reused). **Upload to cloud** still migrates a single field manually.
 
 Entitled accounts can optionally keep a **local offline cache** of the full library under AppData (**Keep cloud files offline** on Profile → Cloud files; device-local, default off). When enabled, prefer `resolveLocalPath` / `isOfflineMirrorEnabled` so audio/OBS/icons use filesystem paths; handler file fields display the cached local path when available; `syncCache` shows a neutral progress toast (`done / total`). When disabled, cloud playback uses authenticated URLs / `fetchBlob`.
 

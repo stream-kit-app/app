@@ -22,13 +22,13 @@ function requireOverlayEntitlement(e) {
 }
 
 function enforceBundleSize(e) {
-	const maxBundleBytes = 25 * 1024 * 1024;
+	const maxBundleBytes = 100 * 1024 * 1024;
 	const files = e.record.getUnsavedFiles('bundle');
 	if (files && files.length > 0) {
 		for (let i = 0; i < files.length; i++) {
 			const file = files[i];
 			if (file && Number(file.size) > maxBundleBytes) {
-				throw new BadRequestError('Overlay bundle exceeds the 25MB limit.');
+				throw new BadRequestError('Overlay bundle exceeds the 100MB limit.');
 			}
 		}
 	}

@@ -71,6 +71,18 @@ export type SettingsFieldDefinition =
 			unit?: string;
 	  })
 	| (SettingsFieldBase & { type: 'color' })
+	| (SettingsFieldBase & {
+			type: 'select-file-or-folder';
+			/** Pick a file or folder. */
+			mode: 'file' | 'folder';
+			filters?: { name: string; extensions: string[] }[];
+			/**
+			 * Where selected files are stored.
+			 * - `cloud` (default for `mode: 'file'`): upload/browse `user_files`, value is a URL
+			 * - `local`: keep an absolute filesystem path (programs, folders)
+			 */
+			storage?: 'cloud' | 'local';
+	  })
 	| {
 			type: 'button';
 			key: string;

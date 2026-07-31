@@ -46,6 +46,11 @@ import {
 	unpublishOverlayFromCloud
 } from './overlay-cloud';
 import { OVERLAY_SETTINGS_EVENT } from './overlay-manifest';
+import {
+	normalizeOverlayConfigCloudFileRefs,
+	overlayConfigHasCloudFileRefs,
+	resolveOverlayConfigForClients
+} from './resolve-overlay-config-files';
 
 import {
 
@@ -128,6 +133,11 @@ export class OverlayService {
 
 	private ensureCloudPublishPromise: Promise<void> | null = null;
 
+	/** Refresh protected file tokens in overlay:settings before PocketBase expiry (~90s). */
+	private static readonly CLOUD_FILE_TOKEN_REFRESH_MS = 60_000;
+
+	private cloudFileTokenRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
 	init(app: App): Promise<void> {
 		this.app = app;
 		this.cloudPublisher = new OverlayCloudPublisher(
@@ -138,12 +148,7 @@ export class OverlayService {
 						[overlayId]: connected
 					};
 					if (connected) {
-						const overlay = this.items.find((item) => item.id === overlayId);
-						this.cloudPublisher?.send(
-							overlayId,
-							OVERLAY_SETTINGS_EVENT,
-							overlay?.config ?? {}
-						);
+						void this.pushResolvedSettings(overlayId);
 					}
 				},
 				onInboundMessage: (overlayId, event, payload) => {
@@ -166,6 +171,7 @@ export class OverlayService {
 		);
 		this.authUnsub = app.auth.onChange(() => {
 			void this.refreshCloudStatus();
+			this.updateCloudFileTokenRefreshTimer();
 		});
 
 		return registerOverlayDefinitions(app).then(() => this.boot());
@@ -425,7 +431,7 @@ export class OverlayService {
 				revision: overlay.version
 			});
 			this.markCloudPublished(overlayId);
-			this.cloudPublisher?.send(overlayId, OVERLAY_SETTINGS_EVENT, overlay.config ?? {});
+			await this.pushResolvedSettings(overlayId);
 			return true;
 		} catch (error) {
 			if (!alreadyPublished) {
@@ -478,7 +484,7 @@ export class OverlayService {
 				revision: overlay.version
 			});
 			this.markCloudPublished(overlayId);
-			this.cloudPublisher?.send(overlayId, OVERLAY_SETTINGS_EVENT, overlay.config ?? {});
+			await this.pushResolvedSettings(overlayId);
 		} finally {
 			this.cloudBusyId = null;
 		}
@@ -662,6 +668,11 @@ export class OverlayService {
 			throw new Error(translate('Overlay not found.'));
 		}
 
+		// Upload overlay-relative defaults (./video.webm) to cloud when entitled,
+		// so the configure page shows full cloud URLs instead of bundled paths.
+		const { migrateCloudFilesAfterSync } = await import('../user-files/cloud-file-migration');
+		await migrateCloudFilesAfterSync(this.getApp());
+
 		await ensureOverlayManifestEditorSupport(id);
 
 		const definition = await loadOverlaySettingsDefinition(id);
@@ -687,18 +698,22 @@ export class OverlayService {
 
 
 	async saveConfig(settings: OverlaySettingsDefinition): Promise<void> {
-		await settings.save();
-		const config = settings.mergedConfigValues();
+		const config = normalizeOverlayConfigCloudFileRefs(settings.mergedConfigValues());
+		for (const field of settings.fields) {
+			if (Object.prototype.hasOwnProperty.call(config, field.key)) {
+				field.value = config[field.key];
+			}
+		}
 
-		await invoke('overlay_broadcast_settings', {
-			overlayId: settings.overlayId,
-			config
-		});
+		await settings.save();
 
 		this.patchOverlayRecord(settings.overlayId, {
 			config,
 			version: settings.versionSnapshot
 		});
+		this.updateCloudFileTokenRefreshTimer();
+
+		await this.pushResolvedSettings(settings.overlayId);
 
 		if (this.isCloudPublished(settings.overlayId)) {
 			const overlay = this.items.find((item) => item.id === settings.overlayId);
@@ -712,7 +727,6 @@ export class OverlayService {
 			} catch (error) {
 				console.warn('Failed to sync overlay config to cloud', error);
 			}
-			this.cloudPublisher?.send(settings.overlayId, OVERLAY_SETTINGS_EVENT, config);
 		}
 	}
 
@@ -757,43 +771,103 @@ export class OverlayService {
 
 
 	async syncConfigToServer(overlayId: string, config: Record<string, unknown>): Promise<void> {
-
 		if (!this.status.running) {
-
 			return;
-
 		}
 
-
-
+		const resolved = await resolveOverlayConfigForClients(this.getApp(), config);
 		await invoke('overlay_sync_config', {
-
 			overlayId,
-
-			config
-
+			config: resolved
 		});
-
+		this.updateCloudFileTokenRefreshTimer();
 	}
 
-
-
 	async syncAllConfigsToServer(): Promise<void> {
-
 		if (!this.status.running) {
-
 			return;
-
 		}
 
-
-
-		const configs = Object.fromEntries(this.items.map((item) => [item.id, item.config ?? {}]));
-
-
+		const app = this.getApp();
+		const configs: Record<string, Record<string, unknown>> = {};
+		await Promise.all(
+			this.items.map(async (item) => {
+				configs[item.id] = await resolveOverlayConfigForClients(
+					app,
+					(item.config as Record<string, unknown>) ?? {}
+				);
+			})
+		);
 
 		await invoke('overlay_sync_all_configs', { configs });
+		this.updateCloudFileTokenRefreshTimer();
+	}
 
+	/** Broadcast resolved settings to local WS clients and cloud publisher. */
+	async pushResolvedSettings(overlayId: string): Promise<void> {
+		// Config sync / cloud-file migration can run before overlay.init().
+		if (!this.app) {
+			return;
+		}
+
+		const overlay = this.items.find((item) => item.id === overlayId);
+		const config = (overlay?.config as Record<string, unknown>) ?? {};
+		const resolved = await resolveOverlayConfigForClients(this.app, config);
+
+		try {
+			await invoke('overlay_broadcast_settings', {
+				overlayId,
+				config: resolved
+			});
+		} catch (error) {
+			if (this.status.running) {
+				console.warn('Failed to broadcast overlay settings', overlayId, error);
+			}
+		}
+
+		if (this.isCloudPublished(overlayId)) {
+			this.cloudPublisher?.send(overlayId, OVERLAY_SETTINGS_EVENT, resolved);
+		}
+	}
+
+	private async refreshCloudFileSettingsTokens(): Promise<void> {
+		const targets = this.items.filter((item) =>
+			overlayConfigHasCloudFileRefs((item.config as Record<string, unknown>) ?? {})
+		);
+
+		if (targets.length === 0) {
+			this.stopCloudFileTokenRefreshTimer();
+			return;
+		}
+
+		await Promise.all(targets.map((item) => this.pushResolvedSettings(item.id)));
+	}
+
+	private updateCloudFileTokenRefreshTimer(): void {
+		const needsRefresh = this.items.some((item) =>
+			overlayConfigHasCloudFileRefs((item.config as Record<string, unknown>) ?? {})
+		);
+
+		if (!needsRefresh) {
+			this.stopCloudFileTokenRefreshTimer();
+			return;
+		}
+
+		if (this.cloudFileTokenRefreshTimer) {
+			return;
+		}
+
+		this.cloudFileTokenRefreshTimer = setInterval(() => {
+			void this.refreshCloudFileSettingsTokens();
+		}, OverlayService.CLOUD_FILE_TOKEN_REFRESH_MS);
+	}
+
+	private stopCloudFileTokenRefreshTimer(): void {
+		if (!this.cloudFileTokenRefreshTimer) {
+			return;
+		}
+		clearInterval(this.cloudFileTokenRefreshTimer);
+		this.cloudFileTokenRefreshTimer = null;
 	}
 
 

@@ -161,7 +161,7 @@ export const userOverlaysSchema = z.object({
     collectionName: z.string().min(1).max(255).optional(),
     id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
     user: z.string().regex(/^[a-z0-9]+$/).length(15),
-    overlayId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/).length(36),
+    overlayId: z.string().min(1).max(64),
     name: z.string().min(1).max(5000),
     config: z.unknown().optional(),
     bundle: z.string(),

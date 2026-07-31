@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: 31 juli 2026 (site op Cloudflare Workers)
+> Versie 0.1.0 — laatst bijgewerkt: 31 juli 2026 (overlay file settings + cloud)
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -31,7 +31,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] i18n (NL + EN)
 - [x] Inbound WebSocket API server (remote control; plugin-extensible via `app.api`)
 - [x] Stream Kit account (PocketBase login/register/profile, password reset, email verificatie-UI, account delete + `app.auth` voor plugins)
-- [x] Cloud user files (`user_files` + `app.userFiles`, plan quota, profile file manager, protected files + token URLs, handler Upload/Cloud; auto-migrate actions; **opt-in offline AppData-cache** + `resolveLocalPath` / lokale paden bij playback)
+- [x] Cloud user files (`user_files` + `app.userFiles`, plan quota, profile file manager, protected files + token URLs, handler + overlay-settings Upload/Cloud; auto-migrate actions/overlay file fields; **opt-in offline AppData-cache** + `resolveLocalPath` / lokale paden bij playback)
 - [x] Cloud sync actions/queues (`user_actions` / `user_action_queues` + `app.configSync`, revision LWW, offline retry/backoff, 30-dagen cancel grace, profile status)
 - [x] Account & cloud hardening — FASE 1–5 + multi-PC sync: plugin records (`app.records` / `user_plugin_records`), overlay project sync (`user_overlay_projects`), dashboard widgets, installed-plugin catalog restore, settings account/device/secret split; platform credentials blijven per PC
 
@@ -107,7 +107,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 ### Hosting & ecosysteem
 
 - [~] Optionele cloud-hosted overlays (SE-achtige URL) — auto-publish + site host + Durable Object WS rooms klaar; dashboard `/app` / public cloud media nog open
-- [x] Cloud file uploads — `user_files` + handler Upload/Cloud; auto-migratie van lokale paden op **actions** bij actieve subscription; opt-in offline AppData-spiegel + playback via lokale paden
+- [x] Cloud file uploads — `user_files` + handler/overlay-settings Upload/Cloud; auto-migratie van lokale paden op **actions** + **overlay file settings** bij actieve subscription; opt-in offline AppData-spiegel + playback via lokale paden
 - [x] Cloud sync of actions/settings — actions + queues + plugin records + overlay projects + dashboard via PocketBase (`app.configSync` adapters, revision LWW + local trash + offline retry); credentials blijven device-local
 - [ ] Widget marketplace / community templates
 - [ ] Volledige StreamElements API-koppeling (niet alleen TTS)

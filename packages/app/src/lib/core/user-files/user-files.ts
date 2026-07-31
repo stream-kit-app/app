@@ -120,6 +120,8 @@ export class UserFiles {
 	#toast: Toast | null;
 	#fileToken: string | null = null;
 	#fileTokenExpiresAt = 0;
+	/** Coalesce concurrent getToken calls (PocketBase auto-cancels duplicate keys). */
+	#fileTokenPromise: Promise<string> | null = null;
 	#isOfflineMirrorEnabled: () => boolean;
 	#syncToastDismissTimer: ReturnType<typeof setTimeout> | null = null;
 	readonly cache: UserFilesCache;
@@ -292,15 +294,27 @@ export class UserFiles {
 			return this.#fileToken;
 		}
 
-		const token = await pb.files.getToken();
-		this.#fileToken = token;
-		this.#fileTokenExpiresAt = now + FILE_TOKEN_TTL_MS;
-		return token;
+		if (this.#fileTokenPromise) {
+			return this.#fileTokenPromise;
+		}
+
+		this.#fileTokenPromise = (async () => {
+			// requestKey: null — parallel overlay field resolves must not auto-cancel.
+			const token = await pb.files.getToken({ requestKey: null });
+			this.#fileToken = token;
+			this.#fileTokenExpiresAt = Date.now() + FILE_TOKEN_TTL_MS;
+			return token;
+		})().finally(() => {
+			this.#fileTokenPromise = null;
+		});
+
+		return this.#fileTokenPromise;
 	}
 
 	clearFileToken(): void {
 		this.#fileToken = null;
 		this.#fileTokenExpiresAt = 0;
+		this.#fileTokenPromise = null;
 	}
 
 	async list(options?: UserFilesListOptions): Promise<UserFileRecord[]> {

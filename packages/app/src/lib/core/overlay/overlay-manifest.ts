@@ -87,6 +87,23 @@ export type OverlaySettingsFieldJson =
 			placeholder?: string;
 			defaultValue?: SettingsFieldValue;
 			required?: boolean;
+	  }
+	| {
+			type: 'select-file-or-folder';
+			key: string;
+			name: string;
+			placeholder?: string;
+			defaultValue?: SettingsFieldValue;
+			required?: boolean;
+			/** Overlay settings only support file picks. */
+			mode: 'file';
+			filters?: { name: string; extensions: string[] }[];
+			/**
+			 * Where selected files are stored.
+			 * - `cloud` (default): upload/browse `user_files`, value is a URL
+			 * - `local`: keep an absolute filesystem path
+			 */
+			storage?: 'cloud' | 'local';
 	  };
 
 export type OverlaySettingsSectionJson = {
@@ -113,7 +130,15 @@ export type OverlayManifest = {
 
 export const OVERLAY_SETTINGS_EVENT = 'overlay:settings';
 
-const SUPPORTED_FIELD_TYPES = new Set(['text', 'switch', 'checkbox', 'select', 'slider', 'color']);
+const SUPPORTED_FIELD_TYPES = new Set([
+	'text',
+	'switch',
+	'checkbox',
+	'select',
+	'slider',
+	'color',
+	'select-file-or-folder'
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -199,9 +224,64 @@ function parseSettingsField(value: unknown, path: string): OverlaySettingsFieldJ
 				type: 'color',
 				placeholder: typeof value.placeholder === 'string' ? value.placeholder : undefined
 			};
+		case 'select-file-or-folder': {
+			if (value.mode !== 'file') {
+				throw new Error(`File settings field at ${path} requires mode "file"`);
+			}
+
+			const filters = parseFileFilters(value.filters, `${path}.filters`);
+			const storage =
+				value.storage === 'local' || value.storage === 'cloud' ? value.storage : undefined;
+
+			return {
+				...base,
+				type: 'select-file-or-folder',
+				mode: 'file',
+				placeholder: typeof value.placeholder === 'string' ? value.placeholder : undefined,
+				filters,
+				storage
+			};
+		}
 		default:
 			throw new Error(`Unsupported settings field type at ${path}: ${type}`);
 	}
+}
+
+function parseFileFilters(
+	value: unknown,
+	path: string
+): { name: string; extensions: string[] }[] | undefined {
+	if (value === undefined) {
+		return undefined;
+	}
+
+	if (!Array.isArray(value)) {
+		throw new Error(`File filters at ${path} must be an array`);
+	}
+
+	return value.map((item, index) => {
+		if (!isRecord(item)) {
+			throw new Error(`Invalid file filter at ${path}[${index}]`);
+		}
+
+		const name = typeof item.name === 'string' ? item.name.trim() : '';
+		if (!name) {
+			throw new Error(`File filter at ${path}[${index}] requires a name`);
+		}
+
+		if (!Array.isArray(item.extensions) || item.extensions.length === 0) {
+			throw new Error(`File filter at ${path}[${index}] requires extensions`);
+		}
+
+		const extensions = item.extensions.map((extension, extIndex) => {
+			if (typeof extension !== 'string' || !extension.trim()) {
+				throw new Error(`Invalid extension at ${path}[${index}].extensions[${extIndex}]`);
+			}
+			return extension.trim().replace(/^\./, '');
+		});
+
+		return { name, extensions };
+	});
 }
 
 function parseSelectItem(value: unknown, path: string): SelectItem {
@@ -541,6 +621,35 @@ export function overlayManifestToSettingsItems(
 	items: OverlaySettingsItemJson[] | undefined
 ): SettingsFieldItem[] {
 	return (items ?? []) as SettingsFieldItem[];
+}
+
+export type OverlayFileSettingsFieldJson = Extract<
+	OverlaySettingsFieldJson,
+	{ type: 'select-file-or-folder' }
+>;
+
+/** Flattened file settings fields from a manifest settings schema. */
+export function collectOverlayFileSettingsFields(
+	items: OverlaySettingsItemJson[] | undefined
+): OverlayFileSettingsFieldJson[] {
+	const fields: OverlayFileSettingsFieldJson[] = [];
+
+	for (const item of items ?? []) {
+		if (item.type === 'section') {
+			for (const field of item.fields) {
+				if (field.type === 'select-file-or-folder') {
+					fields.push(field);
+				}
+			}
+			continue;
+		}
+
+		if (item.type === 'select-file-or-folder') {
+			fields.push(item);
+		}
+	}
+
+	return fields;
 }
 
 export function collectOverlayDefaultConfig(items: OverlaySettingsItemJson[] | undefined): Record<string, SettingsFieldValue> {

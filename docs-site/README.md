@@ -25,6 +25,12 @@ pnpm preview:docs
 
 ## Deploy
 
-Static output: `docs-site/out/`
+Static output: `docs-site/out/` → Cloudflare Pages project `stream-kit-docs` (`docs.stream-kit.app`).
 
-GitHub Actions: `.github/workflows/deploy-docs.yml` → Cloudflare Pages (`stream-kit-docs`).
+```sh
+pnpm --filter @stream-kit/docs deploy   # local: build + wrangler pages deploy
+```
+
+CI: `.github/workflows/deploy-docs.yml` runs from `docs-site/` (Wrangler is a package `devDependency`) so the monorepo root install does not need to add Wrangler on the fly.
+
+Required secrets: `CLOUDFLARE_API_TOKEN` (Pages: Edit) and `CLOUDFLARE_ACCOUNT_ID`.

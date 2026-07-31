@@ -1,7 +1,8 @@
 /// <reference path="../pb_data/types.d.ts" />
 /**
  * Backfill upload limits on existing subscription catalog rows, then require the fields.
- * Default / free-like: 5 MB / file, 50 MB storage. Pro: 50 MB / file, 1 GB storage.
+ * Default / free-like: 50 MB / file, 50 MB storage. Pro: 50 MB / file, 1 GB storage.
+ * (Per-file limit later raised for all plans in 1782000042 if still below 50 MB.)
  */
 migrate((app) => {
 	const records = app.findAllRecords('subscriptions');
@@ -11,7 +12,7 @@ migrate((app) => {
 			record.set('maxFileBytes', 50 * 1024 * 1024);
 			record.set('maxStorageBytes', 1024 * 1024 * 1024);
 		} else {
-			record.set('maxFileBytes', 5 * 1024 * 1024);
+			record.set('maxFileBytes', 50 * 1024 * 1024);
 			record.set('maxStorageBytes', 50 * 1024 * 1024);
 		}
 		app.save(record);

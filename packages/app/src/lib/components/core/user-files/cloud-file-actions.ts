@@ -1,14 +1,14 @@
-import { openCloudFilePicker } from './open-cloud-file-picker';
-
 import { openLoginModal } from '$lib/components/core/auth/open-auth-modals';
 import { getApp } from '$lib/core/registry';
+import { toRelativeCloudFilePath } from '$lib/core/user-files';
 import {
 	hasCloudFileAccess,
 	isLocalFilePath,
 	usesCloudFileStorage
 } from '$lib/core/user-files/cloud-file-path';
-import { toRelativeCloudFilePath } from '$lib/core/user-files';
 import { translate } from '$lib/i18n';
+
+import { openCloudFilePicker } from './open-cloud-file-picker';
 
 export {
 	hasCloudFileAccess,
@@ -26,7 +26,7 @@ type CloudFilePathApp = {
 		isOfflineMirrorEnabled(): boolean;
 		getCachedPath(value: string): string | null;
 		/** Reactive cache ticks so the UI refreshes when sync finishes. */
-		cache: { cachedCount: number; status: string };
+		cache?: { cachedCount: number; status: string };
 	};
 };
 
@@ -38,8 +38,8 @@ type CloudFilePathApp = {
  */
 export function toDisplayCloudFileValue(app: CloudFilePathApp, value: string): string {
 	// Depend on reactive cache state so fields update after offline sync.
-	void app.userFiles.cache.cachedCount;
-	void app.userFiles.cache.status;
+	void app.userFiles.cache?.cachedCount;
+	void app.userFiles.cache?.status;
 	const trimmed = value.trim();
 	if (!trimmed || !app.userFiles.isCloudUrl(trimmed)) {
 		return value;
@@ -132,7 +132,8 @@ export async function uploadLocalFileToCloud(
 	} catch (error) {
 		getApp().toast.create({
 			title: translate('Upload failed'),
-			description: error instanceof Error ? error.message : translate('Could not upload file.'),
+			description:
+				error instanceof Error ? error.message : translate('Could not upload file.'),
 			variant: 'error'
 		});
 		return null;

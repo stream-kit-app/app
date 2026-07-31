@@ -54,6 +54,8 @@ With a signed-in Stream Kit account and an active plan, **built overlays publish
 
 Use that URL in OBS the same way as the local URL. **Keep the desktop app running** while you stream — live Send-to-Overlay events and settings updates are forwarded from Stream Kit to the cloud page over a WebSocket bridge. When the app is offline, the page still loads but events pause until you reconnect.
 
+Published bundles are capped at **100MB** (zip of the overlay `dist/` folder).
+
 You can **Unpublish** from the configure page to remove the public URL; publish again manually if you want it back.
 
 ## Configure page

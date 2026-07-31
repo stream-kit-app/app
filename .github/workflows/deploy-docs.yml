@@ -57,4 +57,5 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           packageManager: pnpm
-          command: pages deploy docs-site/out --project-name=stream-kit-docs --branch=${{ github.ref_name }}
+          workingDirectory: docs-site
+          command: pages deploy out --project-name=stream-kit-docs --branch=${{ github.ref_name }}
