@@ -5,6 +5,7 @@
 
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Panel } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 
 	import QueueActionEntries from '$lib/components/core/queue/queue-action-entries.svelte';
@@ -63,10 +64,11 @@
 	}
 </script>
 
-<article
-	class="group/card flex flex-col overflow-hidden rounded-none border border-rule bg-dark-800 transition-colors hover:bg-dark-900/60"
+<Panel
+	tone="solid"
+	class="group/card flex flex-col overflow-hidden transition-colors hover:bg-dark-900/60"
 >
-	<div class="flex items-start gap-3 p-4 pb-3">
+	<div class="flex items-start gap-3 border-b border-rule p-4">
 		<div
 			class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 			aria-hidden="true"
@@ -110,7 +112,7 @@
 		</div>
 	</div>
 
-	<div class="border-t border-rule bg-dark-900/50 px-4 py-3">
+	<div class="bg-dark-900/50 p-4">
 		<div class="grid items-start gap-4 md:grid-cols-2">
 			<QueueActionEntries
 				title={t('Running')}
@@ -127,7 +129,7 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-between gap-2 border-t border-rule p-3">
+	<div class="flex items-center justify-between gap-2 border-t border-rule p-4">
 		<div class="flex flex-wrap items-center gap-2">
 			<Button
 				size="sm"
@@ -168,4 +170,4 @@
 			/>
 		</div>
 	</div>
-</article>
+</Panel>

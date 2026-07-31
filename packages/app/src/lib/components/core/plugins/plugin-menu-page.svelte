@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Container } from '@stream-kit/ui';
 
+	import { EmptyState } from '@stream-kit/ui/empty-state';
+
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
@@ -30,8 +32,10 @@
 	<PluginPageRenderer {entry} />
 {:else}
 	<Container class="px-6 py-6">
-		<div class="rounded-lg border border-dark-600 p-6 text-dark-100">
-			<p>{t('This plugin page is unavailable or the plugin is disabled.')}</p>
-		</div>
+		<EmptyState
+			icon="ri:puzzle-line"
+			title={t('Plugin page not found')}
+			description={t('This plugin page is unavailable or the plugin is disabled.')}
+		/>
 	</Container>
 {/if}

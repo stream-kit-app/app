@@ -1,10 +1,10 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import tailwindcss from '@tailwindcss/vite';
-import adapter from '@sveltejs/adapter-node';
+import adapter from '@sveltejs/adapter-cloudflare';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, loadEnv } from 'vite';
 
 import { overlayWsPlugin } from './overlay-ws/vite-plugin.mjs';
@@ -19,7 +19,12 @@ export default defineConfig(async ({ mode }) => {
 			tailwindcss(),
 			...(await sveltekit({
 				preprocess: vitePreprocess(),
-				adapter: adapter(),
+				adapter: adapter({
+					config: 'wrangler.jsonc',
+					platformProxy: {
+						configPath: 'wrangler.jsonc'
+					}
+				}),
 				experimental: {
 					remoteFunctions: true,
 					handleRenderingErrors: true

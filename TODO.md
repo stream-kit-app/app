@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: 30 juli 2026 (offline cloud file cache)
+> Versie 0.1.0 — laatst bijgewerkt: 31 juli 2026 (site op Cloudflare Workers)
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -18,7 +18,8 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Schedule triggers (Cron + Scheduled) in Core plugin
 - [x] Globale hotkeys (Core Hotkey trigger + HotkeyManager)
 - [x] Overlays — lokale browser-source server + ready-made widget templates
-- [~] Cloud-hosted overlays — publish dist+config naar `user_overlays`, publieke site-URL `/app/overlays/[uuid]/` + desktop↔site WS-bridge; multi-instance WS / `/app` dashboard / public media later
+- [~] Cloud-hosted overlays — auto-publish + site host + WS-bridge; site op Cloudflare Workers met Durable Object rooms (`OverlayRoom`); `/app` dashboard / public cloud media later
+- [x] Marketing site op Cloudflare Workers — `@sveltejs/adapter-cloudflare`, `wrangler.jsonc`, CI deploy (`deploy-site.yml`); PocketBase blijft Docker + tunnel
 - [x] Marketing site blueprint UI — Cloudflare-achtige rails/rules/crosshairs via `@stream-kit/ui/blueprint`; homepage + `/plugins` herontwerp; design foundation voor toekomstig `/app` dashboard
 - [x] Desktop app blueprint alignment — shell chrome (sidebar rail, page header, toolbar), shared UI surfaces/controls, app cards → `Panel tone="solid"`; plugin-local cards later
 - [x] Rankings plugin (punten, tiers, watch-time, leaderboard, overlay)
@@ -105,7 +106,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 ### Hosting & ecosysteem
 
-- [~] Optionele cloud-hosted overlays (SE-achtige URL) — publish + site host + WS-bridge klaar; multi-instance / dashboard `/app` / public cloud media nog open
+- [~] Optionele cloud-hosted overlays (SE-achtige URL) — auto-publish + site host + Durable Object WS rooms klaar; dashboard `/app` / public cloud media nog open
 - [x] Cloud file uploads — `user_files` + handler Upload/Cloud; auto-migratie van lokale paden op **actions** bij actieve subscription; opt-in offline AppData-spiegel + playback via lokale paden
 - [x] Cloud sync of actions/settings — actions + queues + plugin records + overlay projects + dashboard via PocketBase (`app.configSync` adapters, revision LWW + local trash + offline retry); credentials blijven device-local
 - [ ] Widget marketplace / community templates

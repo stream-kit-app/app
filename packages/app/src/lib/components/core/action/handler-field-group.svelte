@@ -41,6 +41,7 @@
 
 	import { CollectionContentPopover } from '$lib/components/core/collection';
 	import {
+		hasCloudFileAccess,
 		isLocalFilePath,
 		pickCloudFileUrl,
 		toDisplayCloudFileValue,
@@ -269,7 +270,7 @@
 			/>
 		{/if}
 	{:else if config.type === 'select-file-or-folder'}
-		{@const cloudStorage = usesCloudFileStorage(config)}
+		{@const cloudStorage = usesCloudFileStorage(config) && hasCloudFileAccess(app.auth)}
 		{@const fileValue = String(field.value ?? '')}
 		{@const hasLocalPath = cloudStorage && isLocalFilePath(fileValue)}
 		{@const displayFileValue = toDisplayCloudFileValue(app, fileValue)}

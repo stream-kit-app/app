@@ -66,7 +66,7 @@
 	{/if}
 
 	{#if hasTrailing && !isOverlay}
-		<div class="min-w-0 flex-1 rounded-xl border border-dark-600">
+		<div class="min-w-0 flex-1 rounded-none border border-rule">
 			<div {@attach ref} class="relative min-w-0">
 				<div
 					class={cn(isDragging.current && 'pointer-events-none select-none opacity-0')}
@@ -76,7 +76,7 @@
 				</div>
 				{#if isDragging.current}
 					<div
-						class="absolute inset-0 flex items-center justify-center rounded-t-xl border-2 border-dashed border-primary-300/70 bg-primary-950/50 px-4 text-sm font-medium text-primary-200"
+						class="absolute inset-0 flex items-center justify-center rounded-none border border-dashed border-rule bg-dark-900/80 px-4 text-sm font-medium text-dark-200"
 						aria-hidden="true"
 					>
 						{t('Moving: {name}', { name: label })}
@@ -88,7 +88,7 @@
 	{:else}
 		<div {@attach ref} class="relative min-w-0 flex-1">
 			{#if isOverlay}
-				<div class="rounded-xl shadow-2xl ring-1 ring-white/10">
+				<div class="rounded-none border border-rule bg-dark-800 shadow-2xl">
 					{@render children()}
 				</div>
 			{:else}
@@ -100,7 +100,7 @@
 				</div>
 				{#if isDragging.current}
 					<div
-						class="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-dashed border-primary-300/70 bg-primary-950/50 px-4 text-sm font-medium text-primary-200"
+						class="absolute inset-0 flex items-center justify-center rounded-none border border-dashed border-rule bg-dark-900/80 px-4 text-sm font-medium text-dark-200"
 						aria-hidden="true"
 					>
 						{t('Moving: {name}', { name: label })}

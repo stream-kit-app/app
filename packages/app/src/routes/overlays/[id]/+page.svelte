@@ -8,7 +8,6 @@
 	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 	import { InputText } from '@stream-kit/ui/input';
 
@@ -37,6 +36,7 @@
 	const browserSourceUrl = $derived(app.overlay.getUrl(overlayId));
 	const cloudUrl = $derived(app.overlay.getCloudUrl(overlayId));
 	const isCloudPublished = $derived(app.overlay.isCloudPublished(overlayId));
+	const isCloudOptedOut = $derived(app.overlay.isCloudOptedOut(overlayId));
 	const isCloudPublisherConnected = $derived(app.overlay.isCloudPublisherConnected(overlayId));
 	const isCloudBusy = $derived(app.overlay.cloudBusyId === overlayId);
 	const isCloudConfigured = $derived(app.overlay.isCloudConfigured());
@@ -45,6 +45,9 @@
 			app.auth.isAuthenticated &&
 			Boolean(app.auth.user?.subscription) &&
 			isBuilt
+	);
+	const isAutoPublishingCloud = $derived(
+		canPublishCloud && !isCloudPublished && !isCloudOptedOut && isCloudBusy
 	);
 	const cloudPublishBlockedReason = $derived.by(() => {
 		if (!isCloudConfigured) {
@@ -91,6 +94,13 @@
 	let openingEditor = $state(false);
 	let runningTest = $state<string | null>(null);
 	let settingsForm = $state<OverlaySettingsForm | undefined>();
+	let sidebarCollapsed = $state({
+		recommended: false,
+		browserUrl: false,
+		cloud: false,
+		settings: false,
+		test: false
+	});
 
 	const pendingPresets = $derived(
 		actionPresets.filter((entry) => entry.status === 'installable')
@@ -422,7 +432,7 @@
 			<section
 				class="sticky top-4 flex h-[28rem] max-h-[70vh] flex-col self-start overflow-hidden rounded-none border border-rule bg-dark-900 lg:h-[min(36rem,70vh)]"
 			>
-				<div class="flex shrink-0 items-center justify-between border-b border-dark-700 px-4 py-3">
+				<div class="flex shrink-0 items-center justify-between border-b border-rule px-4 py-3">
 					<p class="text-sm font-medium text-dark-100">{t('Preview')}</p>
 					{#if !isBuilt}
 						<Badge variant="warning" size="sm">{t('Not built')}</Badge>
@@ -453,148 +463,215 @@
 			</section>
 
 			<aside class="space-y-6">
+				{#snippet sectionToggle(collapsed: boolean, label: string, toggle: () => void)}
+					<button
+						type="button"
+						class={[
+							'flex w-full cursor-pointer items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-dark-700/40',
+							!collapsed && 'border-b border-rule'
+						]}
+						aria-expanded={!collapsed}
+						aria-label={collapsed
+							? t('Expand {name}', { name: label })
+							: t('Collapse {name}', { name: label })}
+						onclick={toggle}
+					>
+						<Icon
+							icon="ri:arrow-down-s-line"
+							class={[
+								'size-4 shrink-0 text-dark-400 transition-transform duration-200',
+								collapsed && '-rotate-90'
+							]}
+							aria-hidden="true"
+						/>
+						<Eyebrow>{label}</Eyebrow>
+					</button>
+				{/snippet}
+
 				{#if hasRecommendedActions}
-					<section class="rounded-none border border-rule bg-dark-800 p-4">
-						<Heading level="3" class="mb-2">{t('Recommended actions')}</Heading>
-						<p class="mb-4 text-sm text-dark-300">
-							{t('Install ready-made actions that connect triggers to this overlay.')}
-						</p>
-
-						<ul class="space-y-3">
-							{#each actionPresets as entry (entry.preset.key)}
-								<li class="rounded-lg border border-dark-700 bg-dark-900/60 p-3">
-									<div class="flex items-start gap-3">
-										{#if entry.status === 'installable'}
-											<InputCheckbox
-												bind:checked={
-													() => selectedPresetKeys.includes(entry.preset.key),
-													(value) => togglePresetSelection(entry.preset.key, value)
-												}
-												aria-label={entry.preset.name}
-											/>
-										{/if}
-										<div class="min-w-0 flex-1 space-y-1">
-											<div class="flex flex-wrap items-center gap-2">
-												<p class="font-medium text-dark-50">{entry.preset.name}</p>
-												<Badge
-													variant={entry.status === 'installed'
-														? 'success'
-														: entry.status === 'blocked'
-															? 'destructive'
-															: 'secondary'}
-													size="sm"
-												>
-													{presetStatusLabel(entry.status)}
-												</Badge>
+					<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+						{@render sectionToggle(
+							sidebarCollapsed.recommended,
+							t('Recommended actions'),
+							() => {
+								sidebarCollapsed.recommended = !sidebarCollapsed.recommended;
+							}
+						)}
+						{#if !sidebarCollapsed.recommended}
+							<div class="p-4">
+								<p class="mb-4 text-sm text-dark-300">
+									{t('Install ready-made actions that connect triggers to this overlay.')}
+								</p>
+								<ul class="space-y-3">
+									{#each actionPresets as entry (entry.preset.key)}
+										<li class="rounded-none border border-rule bg-dark-900/60 p-3">
+											<div class="flex items-start gap-3">
+												{#if entry.status === 'installable'}
+													<InputCheckbox
+														bind:checked={
+															() => selectedPresetKeys.includes(entry.preset.key),
+															(value) => togglePresetSelection(entry.preset.key, value)
+														}
+														aria-label={entry.preset.name}
+													/>
+												{/if}
+												<div class="min-w-0 flex-1 space-y-1">
+													<div class="flex flex-wrap items-center gap-2">
+														<p class="font-medium text-dark-50">{entry.preset.name}</p>
+														<Badge
+															variant={entry.status === 'installed'
+																? 'success'
+																: entry.status === 'blocked'
+																	? 'destructive'
+																	: 'secondary'}
+															size="sm"
+														>
+															{presetStatusLabel(entry.status)}
+														</Badge>
+													</div>
+													<p class="text-xs text-dark-400">
+														{t('Triggers')}: {entry.preset.triggers
+															.map((trigger) => trigger.triggerTypeId)
+															.join(', ')}
+													</p>
+													{#if getPresetEventSummary(entry.preset)}
+														<p class="text-xs text-dark-400">
+															{t('Event')}: {getPresetEventSummary(entry.preset)}
+														</p>
+													{/if}
+													{#if entry.issues.length > 0}
+														<p class="text-xs text-red-400">{entry.issues.join(' ')}</p>
+													{/if}
+												</div>
 											</div>
-											<p class="text-xs text-dark-400">
-												{t('Triggers')}: {entry.preset.triggers
-													.map((trigger) => trigger.triggerTypeId)
-													.join(', ')}
-											</p>
-											{#if getPresetEventSummary(entry.preset)}
-												<p class="text-xs text-dark-400">
-													{t('Event')}: {getPresetEventSummary(entry.preset)}
-												</p>
-											{/if}
-											{#if entry.issues.length > 0}
-												<p class="text-xs text-red-400">{entry.issues.join(' ')}</p>
-											{/if}
-										</div>
-									</div>
-								</li>
-							{/each}
-						</ul>
-
-						{#if pendingPresets.length > 0}
-							<Button
-								class="mt-4"
-								size="sm"
-								icon="ri:download-2-line"
-								disabled={selectedPresetKeys.length === 0 || isInstallingPresets || !isOverlayAvailable}
-								isLoading={isInstallingPresets}
-								onclick={() => void installRecommendedActions()}
-							>
-								{t('Install recommended actions')}
-							</Button>
+										</li>
+									{/each}
+								</ul>
+								{#if pendingPresets.length > 0}
+									<Button
+										class="mt-4"
+										size="sm"
+										icon="ri:download-2-line"
+										disabled={selectedPresetKeys.length === 0 || isInstallingPresets || !isOverlayAvailable}
+										isLoading={isInstallingPresets}
+										onclick={() => void installRecommendedActions()}
+									>
+										{t('Install recommended actions')}
+									</Button>
+								{/if}
+							</div>
 						{/if}
 					</section>
 				{/if}
 
-				<section class="rounded-none border border-rule bg-dark-800 p-4">
-					<Eyebrow class="mb-2">{t('Browser source URL')}</Eyebrow>
-					<div class="min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
-						<InputText
-							copyable
-							readonly
-							size="xs"
-							aria-label={t('Browser source URL')}
-							value={browserSourceUrl}
-							copyLabel={t('Copy URL')}
-							copiedLabel={t('Copied')}
-						/>
-					</div>
+				<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+					{@render sectionToggle(
+						sidebarCollapsed.browserUrl,
+						t('Browser source URL'),
+						() => {
+							sidebarCollapsed.browserUrl = !sidebarCollapsed.browserUrl;
+						}
+					)}
+					{#if !sidebarCollapsed.browserUrl}
+						<div class="p-4">
+							<div class="min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
+								<InputText
+									copyable
+									readonly
+									size="xs"
+									aria-label={t('Browser source URL')}
+									value={browserSourceUrl}
+									copyLabel={t('Copy URL')}
+									copiedLabel={t('Copied')}
+								/>
+							</div>
+						</div>
+					{/if}
 				</section>
 
-				<section class="rounded-none border border-rule bg-dark-800 p-4">
-					<Eyebrow class="mb-2">{t('Cloud browser source')}</Eyebrow>
-					{#if cloudUrl && isCloudPublished}
-						<div class="mb-3 min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
-							<InputText
-								copyable
-								readonly
-								size="xs"
-								aria-label={t('Cloud browser source URL')}
-								value={cloudUrl}
-								copyLabel={t('Copy URL')}
-								copiedLabel={t('Copied')}
-							/>
-						</div>
-						<p class="mb-3 text-xs text-dark-400">
-							{#if isCloudPublisherConnected}
-								{t('Live events connected. Keep Stream Kit open while streaming.')}
+				<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+					{@render sectionToggle(
+						sidebarCollapsed.cloud,
+						t('Cloud browser source'),
+						() => {
+							sidebarCollapsed.cloud = !sidebarCollapsed.cloud;
+						}
+					)}
+					{#if !sidebarCollapsed.cloud}
+						<div class="p-4">
+							{#if cloudUrl && isCloudPublished}
+								<div class="mb-3 min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
+									<InputText
+										copyable
+										readonly
+										size="xs"
+										aria-label={t('Cloud browser source URL')}
+										value={cloudUrl}
+										copyLabel={t('Copy URL')}
+										copiedLabel={t('Copied')}
+									/>
+								</div>
+								<p class="mb-3 text-xs text-dark-400">
+									{#if isCloudPublisherConnected}
+										{t('Live events connected. Keep Stream Kit open while streaming.')}
+									{:else}
+										{t('Waiting for live connection. Events reach OBS when Stream Kit is online.')}
+									{/if}
+								</p>
+								<Button
+									variant="outline"
+									size="sm"
+									icon="ri:cloud-off-line"
+									disabled={isCloudBusy}
+									isLoading={isCloudBusy}
+									onclick={() => void unpublishFromCloud()}
+								>
+									{t('Unpublish')}
+								</Button>
+							{:else if isAutoPublishingCloud}
+								<p class="text-sm text-dark-300">{t('Publishing to cloud…')}</p>
 							{:else}
-								{t('Waiting for live connection. Events reach OBS when Stream Kit is online.')}
+								{#if canPublishCloud}
+									<p class="mb-3 text-sm text-dark-300">
+										{isCloudOptedOut
+											? t('This overlay was unpublished. Publish again to get a public URL for OBS.')
+											: t('Built overlays publish to the cloud automatically when your plan includes cloud overlays.')}
+									</p>
+								{:else}
+									<p class="mb-3 text-sm text-dark-300">
+										{cloudPublishBlockedReason}
+									</p>
+								{/if}
+								<Button
+									size="sm"
+									icon="ri:cloud-line"
+									disabled={!canPublishCloud || isCloudBusy}
+									isLoading={isCloudBusy}
+									onclick={() => void publishToCloud()}
+								>
+									{t('Publish to cloud')}
+								</Button>
 							{/if}
-						</p>
-						<Button
-							variant="outline"
-							size="sm"
-							icon="ri:cloud-off-line"
-							disabled={isCloudBusy}
-							isLoading={isCloudBusy}
-							onclick={() => void unpublishFromCloud()}
-						>
-							{t('Unpublish')}
-						</Button>
-					{:else}
-						{#if canPublishCloud}
-							<p class="mb-3 text-sm text-dark-300">
-								{t('Publish a public URL for OBS. Live events work while Stream Kit is running.')}
-							</p>
-						{:else}
-							<p class="mb-3 text-sm text-dark-300">
-								{cloudPublishBlockedReason}
-							</p>
-						{/if}
-						<Button
-							size="sm"
-							icon="ri:cloud-line"
-							disabled={!canPublishCloud || isCloudBusy}
-							isLoading={isCloudBusy}
-							onclick={() => void publishToCloud()}
-						>
-							{t('Publish to cloud')}
-						</Button>
+						</div>
 					{/if}
 				</section>
 
 				{#if settings?.hasSettings}
-					<section class="rounded-none border border-rule bg-dark-800 p-4">
-						<Heading level="3" class="mb-4">{t('Settings')}</Heading>
-						{#key `${settings.overlayId}:${settings.versionSnapshot}`}
-							<OverlaySettingsForm bind:this={settingsForm} {settings} />
-						{/key}
+					<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+						{@render sectionToggle(
+							sidebarCollapsed.settings,
+							t('Settings'),
+							() => {
+								sidebarCollapsed.settings = !sidebarCollapsed.settings;
+							}
+						)}
+						{#if !sidebarCollapsed.settings}
+							<div class="p-4">
+								{#key `${settings.overlayId}:${settings.versionSnapshot}`}
+									<OverlaySettingsForm bind:this={settingsForm} {settings} />
+								{/key}
+							</div>
+						{/if}
 					</section>
 				{:else if settings}
 					<section class="rounded-none border border-dashed border-rule bg-dark-900/50 p-4">
@@ -605,30 +682,40 @@
 				{/if}
 
 				{#if settings && settings.testHandlers.length > 0}
-					<section class="rounded-none border border-rule bg-dark-800 p-4">
-						<Heading level="3" class="mb-2">{t('Test mode')}</Heading>
-						<p class="mb-4 text-sm text-dark-300">
-							{t('Trigger sample events to preview overlay behavior without going live.')}
-						</p>
-						{#if !isOverlayAvailable}
-							<p class="mb-4 text-sm text-dark-400">
-								{t('Install and enable required plugins to use test mode.')}
-							</p>
+					<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+						{@render sectionToggle(
+							sidebarCollapsed.test,
+							t('Test mode'),
+							() => {
+								sidebarCollapsed.test = !sidebarCollapsed.test;
+							}
+						)}
+						{#if !sidebarCollapsed.test}
+							<div class="p-4">
+								<p class="mb-4 text-sm text-dark-300">
+									{t('Trigger sample events to preview overlay behavior without going live.')}
+								</p>
+								{#if !isOverlayAvailable}
+									<p class="mb-4 text-sm text-dark-400">
+										{t('Install and enable required plugins to use test mode.')}
+									</p>
+								{/if}
+								<div class="flex flex-wrap gap-2">
+									{#each settings.testHandlers as handler (handler.event + handler.label)}
+										<Button
+											variant="outline"
+											size="sm"
+											icon="ri:play-line"
+											disabled={!isBuilt || !isOverlayAvailable || runningTest === handler.event}
+											isLoading={runningTest === handler.event}
+											onclick={() => void runTest(handler.event, handler.payload)}
+										>
+											{handler.label}
+										</Button>
+									{/each}
+								</div>
+							</div>
 						{/if}
-						<div class="flex flex-wrap gap-2">
-							{#each settings.testHandlers as handler (handler.event + handler.label)}
-								<Button
-									variant="outline"
-									size="sm"
-									icon="ri:play-line"
-									disabled={!isBuilt || !isOverlayAvailable || runningTest === handler.event}
-									isLoading={runningTest === handler.event}
-									onclick={() => void runTest(handler.event, handler.payload)}
-								>
-									{handler.label}
-								</Button>
-							{/each}
-						</div>
 					</section>
 				{/if}
 			</aside>

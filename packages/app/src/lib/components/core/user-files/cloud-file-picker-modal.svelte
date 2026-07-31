@@ -5,6 +5,7 @@
 	import { watch } from 'runed';
 	import { SvelteSet } from 'svelte/reactivity';
 
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
@@ -203,32 +204,33 @@
 		{:else if error}
 			<p class="text-sm text-destructive-100">{error}</p>
 		{:else if files.length === 0}
-			<div
-				class="flex flex-col items-center gap-2 rounded-xl border border-dashed border-dark-600 px-4 py-8 text-center"
-			>
-				<Icon icon="ri:cloud-off-line" class="size-8 text-dark-400" aria-hidden="true" />
-				{#if mimePrefix || extensions.length > 0}
+			{#if mimePrefix || extensions.length > 0}
+				<div
+					class="flex flex-col items-center gap-2 rounded-none border border-dashed border-rule px-4 py-8 text-center"
+				>
+					<Icon icon="ri:cloud-off-line" class="size-8 text-dark-400" aria-hidden="true" />
 					<p class="text-sm text-dark-200">{t('No matching cloud files')}</p>
 					<p class="text-xs text-dark-400">
 						{t('Try uploading a file of this type, or clear the filter.')}
 					</p>
-				{:else}
-					<p class="text-sm text-dark-200">{t('No cloud files yet')}</p>
-					<p class="text-xs text-dark-400">
-						{t('Upload a file to store it in your Stream Kit account.')}
-					</p>
-				{/if}
-			</div>
+				</div>
+			{:else}
+				<EmptyState
+					icon="ri:cloud-off-line"
+					title={t('No cloud files yet')}
+					description={t('Upload a file to store it in your Stream Kit account.')}
+				/>
+			{/if}
 		{:else if filteredFiles.length === 0}
 			<div
-				class="flex flex-col items-center gap-2 rounded-xl border border-dashed border-dark-600 px-4 py-8 text-center"
+				class="flex flex-col items-center gap-2 rounded-none border border-dashed border-rule px-4 py-8 text-center"
 			>
 				<Icon icon="ri:search-line" class="size-8 text-dark-400" aria-hidden="true" />
 				<p class="text-sm text-dark-200">{t('No values match your search.')}</p>
 			</div>
 		{:else}
 			<ScrollArea orientation="vertical" class="min-h-0 flex-1" viewportClasses="h-full w-full">
-				<ul class="divide-y divide-dark-700 rounded-xl border border-dark-600">
+				<ul class="divide-y divide-rule rounded-none border border-rule">
 					{#each filteredFiles as file (file.id)}
 						<li class="flex items-center gap-1 pr-2">
 							<button
@@ -237,14 +239,14 @@
 								onclick={() => onSelect(file)}
 							>
 								<span
-									class="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dark-600 bg-dark-800 text-primary"
+									class="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-none border border-rule bg-dark-800 text-primary"
 									aria-hidden="true"
 								>
 									{#if file.mimeType.startsWith('image/') && !failedThumbIds.has(file.id)}
 										<img
 											src={getApp().userFiles.resolveUrl(file.url)}
 											alt=""
-											class="size-9 rounded-lg object-cover"
+											class="size-9 rounded-none object-cover"
 											onerror={() => failedThumbIds.add(file.id)}
 										/>
 									{:else}

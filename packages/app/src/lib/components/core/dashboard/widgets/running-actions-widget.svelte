@@ -57,7 +57,7 @@
 					<button
 						type="button"
 						class={cn(
-							'flex w-full min-w-0 flex-col gap-1 rounded-lg border border-success-700/60 bg-success-950/40 px-3 py-2 text-left text-sm transition-colors hover:border-success-600'
+							'flex w-full min-w-0 cursor-pointer flex-col gap-1 rounded-none border border-success-700/60 bg-success-950/40 px-3 py-2 text-left text-sm transition-colors'
 						)}
 						onclick={() => action.open()}
 					>

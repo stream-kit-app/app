@@ -11,6 +11,7 @@
 	} from '../../lib/rank-icon';
 	import { getRankingsService } from '../lib/get-rankings';
 	import RankIcon from './rank-icon.svelte';
+	import { hasCloudFileAccess } from '$lib/core/user-files/cloud-file-path';
 
 	type Props = {
 		rank: Rank;
@@ -24,6 +25,7 @@
 	let { rank }: Props = $props();
 	const app = getRankingsService().requireApp();
 	const t = app.i18n.t;
+	const canUseCloud = $derived(hasCloudFileAccess(app.auth));
 
 	const IMAGE_FILTERS = [
 		{
@@ -79,21 +81,29 @@
 
 	async function uploadIcon(): Promise<string | null> {
 		try {
-			if (!app.auth.isAuthenticated) {
-				app.toast.create({
-					title: t('Sign in required'),
-					description: t('Log in to upload or browse cloud files.'),
-					variant: 'warning'
+			if (!hasCloudFileAccess(app.auth)) {
+				const path = await app.fs.select({
+					type: 'file',
+					filters: IMAGE_FILTERS
 				});
-				return null;
-			}
-			if (!app.auth.user?.subscription) {
-				app.toast.create({
-					title: t('Subscription required'),
-					description: t('An active subscription is required to use cloud files.'),
-					variant: 'warning'
-				});
-				return null;
+				if (!path) {
+					return null;
+				}
+
+				const bytes = await app.fs.readFile(path);
+				const dataUrl = await fileBytesToRankIcon(bytes, path);
+				const baseName = path.split(/[/\\]/).pop() || 'icon.png';
+
+				iconOneOf = {
+					variant: 'file',
+					values: {
+						...iconOneOf.values,
+						file: dataUrl
+					}
+				};
+				rank.icon = dataUrl;
+				fileDisplayName = baseName;
+				return baseName;
 			}
 
 			const existing = String(iconOneOf.values.file ?? '').trim();
@@ -146,7 +156,7 @@
 
 	async function pickCloudIcon(): Promise<string | null> {
 		try {
-			if (!app.auth.isAuthenticated || !app.auth.user?.subscription) {
+			if (!hasCloudFileAccess(app.auth)) {
 				app.toast.create({
 					title: t('Sign in required'),
 					description: t('Log in with an active subscription to use cloud files.'),
@@ -244,6 +254,7 @@
 							value={fileDisplayName}
 							emptyLabel={t('No file selected')}
 							browseLabel={
+								canUseCloud &&
 								String(iconOneOf.values.file ?? '').startsWith('data:image/')
 									? t('Upload to cloud')
 									: t('Upload')
@@ -251,7 +262,7 @@
 							cloudLabel={t('Cloud')}
 							clearLabel={t('Clear')}
 							onBrowse={uploadIcon}
-							onCloudBrowse={pickCloudIcon}
+							onCloudBrowse={canUseCloud ? pickCloudIcon : undefined}
 							onValueChange={(name) => {
 								fileDisplayName = name;
 							}}

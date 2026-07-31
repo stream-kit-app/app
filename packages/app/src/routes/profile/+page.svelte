@@ -1,15 +1,17 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
+	import { watch } from 'runed';
+	import { onDestroy, onMount } from 'svelte';
+
+	import { Alert } from '@stream-kit/ui/alert';
 	import { Badge } from '@stream-kit/ui/badge';
-	import { Button } from '@stream-kit/ui/button';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
+	import { Button, buttonVariants } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { InputText } from '@stream-kit/ui/input';
-	import { watch } from 'runed';
 
-	import { UserAvatar, openLoginModal } from '$lib/components/core/auth';
+	import { openLoginModal, UserAvatar } from '$lib/components/core/auth';
 	import { CloudFileManager } from '$lib/components/core/user-files';
 	import { app } from '$lib/core';
 	import { AUTH_AVATAR_MAX_BYTES, validateAvatarFile } from '$lib/core/auth';
@@ -50,20 +52,39 @@
 		return new Date(ms).toLocaleString();
 	});
 	const configSyncStatus = $derived(app.configSync.status);
-	const configSyncLabel = $derived.by(() => {
+	const configSyncBadge = $derived.by(() => {
+		switch (configSyncStatus) {
+			case 'restoring':
+			case 'syncing':
+				return { label: t('Syncing…'), variant: 'default' as const };
+			case 'synced':
+				return { label: t('Synced'), variant: 'success' as const };
+			case 'offline':
+				return { label: t('Offline'), variant: 'warning' as const };
+			case 'error':
+				return { label: t('Failed'), variant: 'destructive' as const };
+			case 'disabled':
+			case 'idle':
+			default:
+				return { label: t('Waiting'), variant: 'outline' as const };
+		}
+	});
+	const configSyncDetail = $derived.by(() => {
 		switch (configSyncStatus) {
 			case 'restoring':
 				return t('Restoring from cloud…');
 			case 'syncing':
-				return t('Syncing…');
+				return t('Syncing your setup…');
 			case 'synced': {
 				const at = app.configSync.lastSyncedAt;
-				return at ? `${t('Synced')} · ${at.toLocaleString()}` : t('Synced');
+				return at
+					? t('Last synced {date}', { date: at.toLocaleString() })
+					: t('Your setup is up to date.');
 			}
 			case 'offline':
-				return t('Offline');
+				return t('Waiting for a network connection.');
 			case 'error':
-				return t('Sync failed');
+				return t('Could not sync. Try again when you are ready.');
 			case 'disabled':
 			case 'idle':
 			default:
@@ -159,11 +180,7 @@
 		try {
 			await app.auth.updateProfile({
 				name: name.trim(),
-				...(avatarFile
-					? { avatar: avatarFile }
-					: removeAvatar
-						? { avatar: null }
-						: {})
+				...(avatarFile ? { avatar: avatarFile } : removeAvatar ? { avatar: null } : {})
 			});
 			clearAvatarPreview();
 			avatarFile = null;
@@ -373,264 +390,333 @@
 </script>
 
 {#if !account}
-	<Container class="flex min-h-0 flex-1 flex-col py-8">
-		<EmptyState
-			icon="ri:user-line"
-			title={t('Not signed in')}
-			description={t('Log in to manage your Stream Kit account.')}
-		>
-			<Button onclick={() => openLoginModal()}>{t('Log in')}</Button>
-		</EmptyState>
-	</Container>
+	<EmptyState
+		icon="ri:user-line"
+		title={t('Not signed in')}
+		description={t('Log in to manage your Stream Kit account.')}
+	>
+		<Button class="relative" onclick={() => openLoginModal()}>{t('Log in')}</Button>
+	</EmptyState>
 {:else}
-	<Container class="flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto py-8">
-		<section class="grid max-w-xl gap-6">
-			<Heading level="2">{t('Profile')}</Heading>
-			<div class="flex items-center gap-4">
-				<UserAvatar {user} size="lg" avatarUrl={displayAvatarUrl} />
-				<div class="grid gap-2">
-					<label class="text-sm font-medium text-dark-100" for="profile-avatar">
-						{t('Avatar')}
-					</label>
-					<input
-						id="profile-avatar"
-						type="file"
-						accept="image/jpeg,image/png,image/webp,image/gif"
-						class="cursor-pointer text-sm text-dark-200 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-dark-700 file:px-3 file:py-1.5 file:text-sm file:text-dark-100"
-						onchange={onAvatarSelected}
-					/>
-					<p class="text-xs text-dark-400">
-						{t('JPEG, PNG, WebP, or GIF up to {size} MB.', {
-							size: String(AUTH_AVATAR_MAX_BYTES / (1024 * 1024))
-						})}
-					</p>
-					{#if account.avatar || avatarFile || removeAvatar}
-						<button
-							type="button"
-							class="cursor-pointer justify-self-start text-sm text-primary hover:underline"
-							onclick={onRemoveAvatar}
+	<Container class="flex min-h-0 flex-1 flex-col overflow-y-auto py-8">
+		<div class="grid max-w-xl gap-6">
+			<Panel tone="solid">
+				{#snippet header()}
+					<div class="flex items-center justify-between gap-3">
+						<Eyebrow>{t('Profile')}</Eyebrow>
+						<Button
+							size="sm"
+							class="shrink-0"
+							disabled={savingProfile}
+							onclick={() => void saveProfile()}
 						>
-							{removeAvatar ? t('Undo remove avatar') : t('Remove avatar')}
-						</button>
-					{/if}
-				</div>
-			</div>
-			<div
-				class="flex flex-col gap-4 rounded-xl border border-dark-600 bg-dark-800 p-4 sm:flex-row sm:items-center sm:justify-between"
-			>
-				<div class="flex min-w-0 items-start gap-3">
-					<span
-						class="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/15 text-primary"
-						aria-hidden="true"
-					>
-						<Icon icon="ri:vip-crown-line" class="size-5" />
-					</span>
-					<div class="min-w-0">
-						<p class="text-xs font-medium tracking-wide text-dark-400 uppercase">
-							{t('Subscription')}
-						</p>
-						{#if user?.subscription}
-							<div class="mt-1 flex flex-wrap items-center gap-2">
-								<p class="truncate text-base font-semibold text-dark-50">
-									{user.subscription.name}
-								</p>
-								{#if subscriptionEndsAt}
-									<Badge variant="warning" size="sm">{t('Cancelling')}</Badge>
-								{:else}
-									<Badge variant="success" size="sm">{t('Active')}</Badge>
+							{t('Save profile')}
+						</Button>
+					</div>
+				{/snippet}
+				<div class="grid gap-4 p-4">
+					<div class="flex items-start gap-4">
+						<UserAvatar {user} size="lg" avatarUrl={displayAvatarUrl} />
+						<div class="grid min-w-0 flex-1 gap-2">
+							<p class="text-sm font-medium text-dark-100">{t('Avatar')}</p>
+							<div class="flex flex-wrap items-center gap-2">
+								<input
+									id="profile-avatar"
+									type="file"
+									accept="image/jpeg,image/png,image/webp,image/gif"
+									class="sr-only"
+									onchange={onAvatarSelected}
+								/>
+								<label
+									for="profile-avatar"
+									class={buttonVariants({ size: 'sm', variant: 'outline' })}
+								>
+									{t('Browse')}
+								</label>
+								{#if account.avatar || avatarFile || removeAvatar}
+									<button
+										type="button"
+										class="cursor-pointer text-sm text-primary hover:underline"
+										onclick={onRemoveAvatar}
+									>
+										{removeAvatar
+											? t('Undo remove avatar')
+											: t('Remove avatar')}
+									</button>
 								{/if}
 							</div>
-							{#if subscriptionEndsAtLabel}
-								<p class="mt-0.5 text-sm text-dark-400">
-									{t('Cloud features stay available until {date}.', {
-										date: subscriptionEndsAtLabel
-									})}
-								</p>
-							{:else}
-								<p class="mt-0.5 text-sm text-dark-400">
-									{t('Your current Stream Kit plan.')}
-								</p>
-							{/if}
-						{:else}
-							<p class="mt-1 text-sm text-dark-200">{t('No active subscription')}</p>
-							<p class="mt-0.5 text-sm text-dark-400">
-								{t('Plans unlock cloud features for your account.')}
-							</p>
-						{/if}
-					</div>
-				</div>
-				{#if user?.subscription && !subscriptionEndsAt}
-					<Button
-						variant="destructive"
-						size="sm"
-						class="shrink-0 self-start sm:self-center"
-						disabled={cancellingSubscription}
-						onclick={() => void cancelSubscription()}
-					>
-						{t('Cancel subscription')}
-					</Button>
-				{/if}
-			</div>
-			{#if user?.subscription}
-				<div
-					class="flex flex-col gap-4 rounded-xl border border-dark-600 bg-dark-800 p-4 sm:flex-row sm:items-center sm:justify-between"
-				>
-					<div class="flex min-w-0 items-start gap-3">
-						<span
-							class="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/15 text-primary"
-							aria-hidden="true"
-						>
-							<Icon icon="ri:cloud-line" class="size-5" />
-						</span>
-						<div class="min-w-0">
-							<p class="text-xs font-medium tracking-wide text-dark-400 uppercase">
-								{t('Cloud sync')}
-							</p>
-							<p class="mt-1 text-base font-semibold text-dark-50">{configSyncLabel}</p>
-							{#if configSyncStatus === 'error' && app.configSync.lastError}
-								<p class="mt-0.5 text-sm text-destructive-100">{app.configSync.lastError}</p>
-							{/if}
-							<p class="mt-0.5 text-sm text-dark-400">
-								{t(
-									'Actions, queues, plugin data, overlays, and dashboard layout sync while your plan is active. Platform logins stay on this PC.'
-								)}
+							<p class="text-xs text-dark-400">
+								{t('JPEG, PNG, WebP, or GIF up to {size} MB.', {
+									size: String(AUTH_AVATAR_MAX_BYTES / (1024 * 1024))
+								})}
 							</p>
 						</div>
 					</div>
-					<Button
-						size="sm"
-						class="shrink-0 self-start sm:self-center"
-						disabled={configSyncBusy}
-						onclick={() => void app.configSync.sync()}
-					>
-						{configSyncStatus === 'restoring' ? t('Restoring…') : t('Sync now')}
-					</Button>
+					<InputText
+						label={t('Name')}
+						autocomplete="name"
+						value={name}
+						oninput={(event) => (name = event.currentTarget.value)}
+					/>
 				</div>
+			</Panel>
+
+			<Panel tone="solid">
+				{#snippet header()}
+					<div class="flex items-center justify-between gap-3">
+						<Eyebrow>{t('Subscription')}</Eyebrow>
+						{#if user?.subscription && !subscriptionEndsAt}
+							<Button
+								variant="destructive"
+								size="sm"
+								class="shrink-0"
+								disabled={cancellingSubscription}
+								onclick={() => void cancelSubscription()}
+							>
+								{t('Cancel subscription')}
+							</Button>
+						{/if}
+					</div>
+				{/snippet}
+				<div class="grid gap-3 p-4">
+					<div class="flex min-w-0 items-start gap-3">
+						<span
+							class="inline-flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
+							aria-hidden="true"
+						>
+							<Icon icon="ri:vip-crown-line" class="size-5" />
+						</span>
+						<div class="min-w-0 flex-1">
+							{#if user?.subscription}
+								<div class="flex flex-wrap items-center gap-2">
+									<p class="truncate text-sm font-medium text-dark-50">
+										{user.subscription.name}
+									</p>
+									{#if subscriptionEndsAt}
+										<Badge variant="warning" size="sm">{t('Cancelling')}</Badge>
+									{:else}
+										<Badge variant="success" size="sm">{t('Active')}</Badge>
+									{/if}
+								</div>
+								<p class="mt-1 text-sm text-dark-400">
+									{#if subscriptionEndsAtLabel}
+										{t('Cloud features stay available until {date}.', {
+											date: subscriptionEndsAtLabel
+										})}
+									{:else}
+										{t('Your current Stream Kit plan.')}
+									{/if}
+								</p>
+							{:else}
+								<p class="text-sm font-medium text-dark-50">
+									{t('No active subscription')}
+								</p>
+								<p class="mt-1 text-sm text-dark-400">
+									{t('Plans unlock cloud features for your account.')}
+								</p>
+							{/if}
+						</div>
+					</div>
+				</div>
+			</Panel>
+
+			{#if user?.subscription}
+				<Panel tone="solid">
+					{#snippet header()}
+						<div class="flex items-center justify-between gap-3">
+							<Eyebrow>{t('Cloud sync')}</Eyebrow>
+							<Button
+								size="sm"
+								variant="outline"
+								class="shrink-0"
+								disabled={configSyncBusy}
+								onclick={() => void app.configSync.sync()}
+							>
+								{configSyncStatus === 'restoring' ? t('Restoring…') : t('Sync now')}
+							</Button>
+						</div>
+					{/snippet}
+					<div class="grid gap-3 p-4">
+						<div class="flex min-w-0 items-start gap-3">
+							<span
+								class="inline-flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
+								aria-hidden="true"
+							>
+								<Icon
+									icon={configSyncStatus === 'error'
+										? 'ri:cloud-off-line'
+										: configSyncBusy
+											? 'ri:refresh-line'
+											: 'ri:cloud-line'}
+									class={configSyncBusy ? 'size-5 animate-spin' : 'size-5'}
+								/>
+							</span>
+							<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-center gap-2">
+									<p class="text-sm font-medium text-dark-50">
+										{configSyncDetail}
+									</p>
+									<Badge variant={configSyncBadge.variant} size="sm">
+										{configSyncBadge.label}
+									</Badge>
+								</div>
+								<p class="mt-1 text-sm text-dark-400">
+									{t(
+										'Actions, queues, plugin data, overlays, and dashboard layout sync while your plan is active. Platform logins stay on this PC.'
+									)}
+								</p>
+							</div>
+						</div>
+						{#if configSyncStatus === 'error' && app.configSync.lastError}
+							<Alert
+								variant="error"
+								title={t('Sync failed')}
+								description={app.configSync.lastError}
+							/>
+						{/if}
+					</div>
+				</Panel>
+
+				<Panel tone="solid">
+					{#snippet header()}
+						<Eyebrow>{t('Cloud files')}</Eyebrow>
+					{/snippet}
+					<div class="grid gap-4 p-4">
+						<p class="text-sm text-dark-400">
+							{t(
+								'Manage media stored in your Stream Kit account. Deleting a file may break actions that still reference it.'
+							)}
+						</p>
+						<CloudFileManager />
+					</div>
+				</Panel>
 			{/if}
-			<InputText
-				label={t('Name')}
-				autocomplete="name"
-				value={name}
-				oninput={(event) => (name = event.currentTarget.value)}
-			/>
-			<div class="flex justify-end">
-				<Button disabled={savingProfile} onclick={saveProfile}>{t('Save profile')}</Button>
-			</div>
-		</section>
 
-		{#if user?.subscription}
-			<section class="grid max-w-xl gap-6 border-t border-dark-600 pt-10">
-				<Heading level="2">{t('Cloud files')}</Heading>
-				<p class="text-sm text-dark-400">
-					{t('Manage media stored in your Stream Kit account. Deleting a file may break actions that still reference it.')}
-				</p>
-				<CloudFileManager />
-			</section>
-		{/if}
-
-		<section class="grid max-w-xl gap-6 border-t border-dark-600 pt-10">
-			<Heading level="2">{t('Email')}</Heading>
-			<div class="flex flex-wrap items-center gap-2">
-				<p class="text-sm text-dark-300">
-					{t('Current email')}: <span class="text-dark-100">{account.email}</span>
-				</p>
-				{#if user && !user.verified}
-					<Badge variant="warning" size="sm">{t('Unverified')}</Badge>
-				{/if}
-			</div>
-			{#if user && !user.verified}
-				<div class="flex flex-wrap items-center gap-3">
+			<Panel tone="solid">
+				{#snippet header()}
+					<div class="flex items-center justify-between gap-3">
+						<Eyebrow>{t('Email')}</Eyebrow>
+						<Button
+							size="sm"
+							class="shrink-0"
+							disabled={requestingEmailChange || !newEmail.trim()}
+							onclick={() => void requestEmailChange()}
+						>
+							{t('Change email')}
+						</Button>
+					</div>
+				{/snippet}
+				<div class="grid gap-4 p-4">
+					<div class="flex flex-wrap items-center gap-2">
+						<p class="text-sm text-dark-300">
+							{t('Current email')}: <span class="text-dark-100">{account.email}</span>
+						</p>
+						{#if user && !user.verified}
+							<Badge variant="warning" size="sm">{t('Unverified')}</Badge>
+						{/if}
+					</div>
+					{#if user && !user.verified}
+						<div class="flex flex-wrap items-center gap-3">
+							<p class="text-sm text-dark-400">
+								{t('Verify your email to confirm ownership of this address.')}
+							</p>
+							<Button
+								size="sm"
+								variant="outline"
+								disabled={requestingVerification}
+								onclick={() => void resendVerification()}
+							>
+								{t('Resend verification email')}
+							</Button>
+						</div>
+					{/if}
 					<p class="text-sm text-dark-400">
-						{t('Verify your email to confirm ownership of this address.')}
+						{t(
+							'Changing your email sends a confirmation link to the new address. Your login email updates after you confirm.'
+						)}
 					</p>
-					<Button
-						size="sm"
-						variant="outline"
-						disabled={requestingVerification}
-						onclick={() => void resendVerification()}
-					>
-						{t('Resend verification email')}
-					</Button>
+					<InputText
+						label={t('New email')}
+						type="email"
+						autocomplete="email"
+						value={newEmail}
+						oninput={(event) => (newEmail = event.currentTarget.value)}
+					/>
 				</div>
-			{/if}
-			<p class="text-sm text-dark-400">
-				{t(
-					'Changing your email sends a confirmation link to the new address. Your login email updates after you confirm.'
-				)}
-			</p>
-			<InputText
-				label={t('New email')}
-				type="email"
-				autocomplete="email"
-				value={newEmail}
-				oninput={(event) => (newEmail = event.currentTarget.value)}
-			/>
-			<div class="flex justify-end">
-				<Button
-					disabled={requestingEmailChange || !newEmail.trim()}
-					onclick={requestEmailChange}
-				>
-					{t('Change email')}
-				</Button>
-			</div>
-		</section>
+			</Panel>
 
-		<section class="grid max-w-xl gap-6 border-t border-dark-600 pt-10">
-			<Heading level="2">{t('Change password')}</Heading>
-			<InputText
-				label={t('Current password')}
-				type="password"
-				autocomplete="current-password"
-				value={oldPassword}
-				oninput={(event) => (oldPassword = event.currentTarget.value)}
-			/>
-			<InputText
-				label={t('New password')}
-				type="password"
-				autocomplete="new-password"
-				value={password}
-				oninput={(event) => (password = event.currentTarget.value)}
-			/>
-			<InputText
-				label={t('Confirm password')}
-				type="password"
-				autocomplete="new-password"
-				value={passwordConfirm}
-				oninput={(event) => (passwordConfirm = event.currentTarget.value)}
-			/>
-			<div class="flex justify-end">
-				<Button
-					disabled={savingPassword || !oldPassword || !password || !passwordConfirm}
-					onclick={savePassword}
-				>
-					{t('Update password')}
-				</Button>
-			</div>
-		</section>
+			<Panel tone="solid">
+				{#snippet header()}
+					<div class="flex items-center justify-between gap-3">
+						<Eyebrow>{t('Password')}</Eyebrow>
+						<Button
+							size="sm"
+							class="shrink-0"
+							disabled={savingPassword ||
+								!oldPassword ||
+								!password ||
+								!passwordConfirm}
+							onclick={() => void savePassword()}
+						>
+							{t('Update password')}
+						</Button>
+					</div>
+				{/snippet}
+				<div class="grid gap-4 p-4">
+					<InputText
+						label={t('Current password')}
+						type="password"
+						autocomplete="current-password"
+						value={oldPassword}
+						oninput={(event) => (oldPassword = event.currentTarget.value)}
+					/>
+					<InputText
+						label={t('New password')}
+						type="password"
+						autocomplete="new-password"
+						value={password}
+						oninput={(event) => (password = event.currentTarget.value)}
+					/>
+					<InputText
+						label={t('Confirm password')}
+						type="password"
+						autocomplete="new-password"
+						value={passwordConfirm}
+						oninput={(event) => (passwordConfirm = event.currentTarget.value)}
+					/>
+				</div>
+			</Panel>
 
-		<section class="grid max-w-xl gap-6 border-t border-dark-600 pt-10">
-			<Heading level="2">{t('Delete account')}</Heading>
-			<p class="text-sm text-dark-400">
-				{t(
-					'Deleting your account permanently removes your profile and cloud data, including uploaded files and synced actions.'
-				)}
-			</p>
-			<InputText
-				label={t('Confirm with password')}
-				type="password"
-				autocomplete="current-password"
-				value={deletePassword}
-				oninput={(event) => (deletePassword = event.currentTarget.value)}
-			/>
-			<div class="flex justify-end">
-				<Button
-					variant="destructive"
-					disabled={deletingAccount || !deletePassword}
-					onclick={() => void deleteAccount()}
-				>
-					{t('Delete account')}
-				</Button>
-			</div>
-		</section>
+			<Panel tone="solid">
+				{#snippet header()}
+					<div class="flex items-center justify-between gap-3">
+						<Eyebrow>{t('Delete account')}</Eyebrow>
+						<Button
+							variant="destructive"
+							size="sm"
+							class="shrink-0"
+							disabled={deletingAccount || !deletePassword}
+							onclick={() => void deleteAccount()}
+						>
+							{t('Delete account')}
+						</Button>
+					</div>
+				{/snippet}
+				<div class="grid gap-4 p-4">
+					<p class="text-sm text-dark-400">
+						{t(
+							'Deleting your account permanently removes your profile and cloud data, including uploaded files and synced actions.'
+						)}
+					</p>
+					<InputText
+						label={t('Confirm with password')}
+						type="password"
+						autocomplete="current-password"
+						value={deletePassword}
+						oninput={(event) => (deletePassword = event.currentTarget.value)}
+					/>
+				</div>
+			</Panel>
+		</div>
 	</Container>
 {/if}

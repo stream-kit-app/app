@@ -3,6 +3,7 @@
 
 	import Icon from '@iconify/svelte';
 
+	import { Panel } from '@stream-kit/ui/blueprint';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 
@@ -30,19 +31,19 @@
 </script>
 
 {#if definitions.length === 0}
-	<div class="rounded-lg border border-dark-600 bg-dark-800 p-6 text-center text-dark-100">
+	<Panel tone="solid" class="p-6 text-center text-dark-100">
 		<p class="font-semibold text-dark-50">{t('No widgets available')}</p>
 		<p class="mt-1 text-sm">
 			{t('All available widgets are already on your dashboard, or their plugins are disabled.')}
 		</p>
-	</div>
+	</Panel>
 {:else}
 	<div class="grid gap-4 md:grid-cols-2">
 		{#each definitions as definition (definition.definitionId)}
-			<section class="flex flex-col gap-4 rounded-lg border border-dark-600 bg-dark-800 p-4">
+			<Panel tone="solid" class="flex flex-col gap-4 p-4">
 				<div class="flex items-start gap-3">
 					<div
-						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-dark-700"
+						class="flex size-10 shrink-0 items-center justify-center border border-rule"
 					>
 						<Icon icon={definition.icon ?? 'ri:layout-grid-line'} class="h-5 w-5" />
 					</div>
@@ -66,7 +67,7 @@
 				<div class="mt-auto flex flex-wrap gap-2">
 					<Button onclick={() => void handleAdd(definition)}>{t('Add')}</Button>
 				</div>
-			</section>
+			</Panel>
 		{/each}
 	</div>
 {/if}

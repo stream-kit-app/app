@@ -1,42 +1,24 @@
-# sv
+# `@stream-kit/site`
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Marketing site and cloud overlay host for [stream-kit.app](https://stream-kit.app).
 
-## Creating a project
+## Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- SvelteKit + Tailwind v4 + `@stream-kit/ui`
+- Cloudflare Workers (`@sveltejs/adapter-cloudflare`) with Durable Objects for overlay WebSockets
+- PocketBase backend (separate; see `site/pb/`)
 
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+## Commands
 
 ```sh
-# recreate this project
-pnpm dlx sv@0.16.1 create --template minimal --types ts --add tailwindcss="plugins:none" sveltekit-adapter="adapter:node" experimental="versions:kit+features:async,remoteFunctions,explicitEnvironmentVariables,handleRenderingErrors" mcp="ide:cursor+setup:remote" --install pnpm ./
+pnpm --filter @stream-kit/site dev:site   # Vite + local /ws hub
+pnpm --filter @stream-kit/site build      # production Worker bundle
+pnpm --filter @stream-kit/site preview    # wrangler dev after build
+pnpm --filter @stream-kit/site deploy     # wrangler deploy after build
 ```
 
-## Developing
+From the monorepo root: `pnpm dev:site`, `pnpm build:site`, `pnpm preview:site`.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Docs
 
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+See [contributing/site.mdx](../contributing/site.mdx) for PocketBase, overlays, and Cloudflare deploy details.

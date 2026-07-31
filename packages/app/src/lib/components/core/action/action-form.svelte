@@ -106,7 +106,7 @@
 </script>
 
 <form
-	class={cn('grid gap-6 rounded-xl transition-colors duration-200')}
+	class={cn('grid gap-6 rounded-none transition-colors duration-200')}
 	onsubmit={(event: SubmitEvent) => event.preventDefault()}
 >
 	<InputText
@@ -171,12 +171,12 @@
 				{#snippet itemContent(trigger: ActionTrigger)}
 					<div
 						class={cn(
-							'grid min-w-0 rounded-xl border px-4 pt-4 pb-4 transition-colors duration-200',
+							'grid min-w-0 rounded-none border px-4 pt-4 pb-4 transition-colors duration-200',
 							{
 								'border-green-500 ring-1 ring-green-500/50':
 									trigger.definition.isAvailable &&
 									action.execution.state.activeTriggerId === trigger.id,
-								'border-dark-600':
+								'border-rule':
 									trigger.definition.isAvailable &&
 									action.execution.state.activeTriggerId !== trigger.id,
 								'border-destructive-500 bg-destructive-800':

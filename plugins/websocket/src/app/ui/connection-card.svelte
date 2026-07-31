@@ -6,6 +6,7 @@
 
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Panel } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 
 	import { getConnectionsService } from '../lib/get-connections';
@@ -57,16 +58,17 @@
 	const logsLabel = t('View logs');
 </script>
 
-<div
-	class="grid grid-cols-[1fr_auto] items-center rounded-xl border border-dark-600 bg-dark-800 transition-colors hover:bg-dark-700"
+<Panel
+	tone="solid"
+	class="group/card grid grid-cols-[1fr_auto] items-center transition-colors hover:bg-dark-900/60"
 >
 	<button
 		type="button"
-		class="group flex min-w-0 cursor-pointer items-center gap-3 px-3 py-2 text-left transition-colors"
+		class="group flex min-w-0 cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors"
 		onclick={() => connection.open()}
 	>
 		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+			class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 			aria-hidden="true"
 		>
 			<Icon icon="ri:links-line" class="size-5" />
@@ -95,7 +97,7 @@
 	</button>
 
 	{#if connection.id}
-		<div class="flex shrink-0 items-center gap-1 pe-2">
+		<div class="flex shrink-0 items-center gap-1 pe-4">
 			<Button
 				type="button"
 				variant="ghost"
@@ -129,4 +131,4 @@
 			{/if}
 		</div>
 	{/if}
-</div>
+</Panel>

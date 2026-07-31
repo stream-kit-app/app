@@ -52,7 +52,7 @@
 <div
 	class={cn(
 		'grid min-w-0 gap-2 transition-colors duration-200',
-		variant === 'standalone' && 'rounded-xl border px-4 py-4',
+		variant === 'standalone' && 'rounded-none border px-4 py-4',
 		variant === 'embedded' && 'px-4 py-4',
 		variant === 'standalone' && {
 			'border-green-500 ring-1 ring-green-500/50':
@@ -61,7 +61,7 @@
 				handler.definition.isAvailable &&
 				executionState?.activeHandlerId !== handler.id &&
 				executionState?.completedHandlerIds.includes(handler.id),
-			'border-dark-600':
+			'border-rule':
 				handler.definition.isAvailable &&
 				executionState?.activeHandlerId !== handler.id &&
 				!executionState?.completedHandlerIds.includes(handler.id),

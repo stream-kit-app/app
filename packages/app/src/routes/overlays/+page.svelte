@@ -47,8 +47,8 @@
 		</Button>
 	</EmptyState>
 {:else}
-	<Container class="px-6 py-6" size="md">
-		<CellGrid cols={2}>
+	<Container class="px-6 py-6">
+		<CellGrid cols={3}>
 			{#each app.overlay.items as overlay (overlay.id)}
 				<Cell class="p-0 [&>article]:border-0 [&>article]:bg-transparent">
 					<OverlayCard {overlay} />

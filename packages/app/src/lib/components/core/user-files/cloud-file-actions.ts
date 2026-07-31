@@ -2,15 +2,24 @@ import { openCloudFilePicker } from './open-cloud-file-picker';
 
 import { openLoginModal } from '$lib/components/core/auth/open-auth-modals';
 import { getApp } from '$lib/core/registry';
-import { isLocalFilePath, usesCloudFileStorage } from '$lib/core/user-files/cloud-file-path';
+import {
+	hasCloudFileAccess,
+	isLocalFilePath,
+	usesCloudFileStorage
+} from '$lib/core/user-files/cloud-file-path';
 import { toRelativeCloudFilePath } from '$lib/core/user-files';
 import { translate } from '$lib/i18n';
 
-export { isLocalFilePath, usesCloudFileStorage } from '$lib/core/user-files/cloud-file-path';
+export {
+	hasCloudFileAccess,
+	isLocalFilePath,
+	usesCloudFileStorage
+} from '$lib/core/user-files/cloud-file-path';
 
 type FileFilter = { name: string; extensions: string[] };
 
 type CloudFilePathApp = {
+	auth?: { isAuthenticated: boolean };
 	userFiles: {
 		isCloudUrl(value: string | null | undefined): boolean;
 		resolveUrl(value: string): string;
@@ -23,8 +32,9 @@ type CloudFilePathApp = {
 
 /**
  * Display value for file fields.
- * When offline mirror is on and the file is cached, shows the local AppData path.
- * Otherwise relative /api/files paths become absolute on the current PB host.
+ * When offline mirror is on and the file is cached, shows the local AppData path
+ * (including while signed out). Otherwise relative /api/files paths become absolute
+ * on the current PB host — unless signed out, then the host-independent ref is kept.
  */
 export function toDisplayCloudFileValue(app: CloudFilePathApp, value: string): string {
 	// Depend on reactive cache state so fields update after offline sync.
@@ -39,6 +49,9 @@ export function toDisplayCloudFileValue(app: CloudFilePathApp, value: string): s
 		if (local) {
 			return local;
 		}
+	}
+	if (app.auth && !app.auth.isAuthenticated) {
+		return toRelativeCloudFilePath(trimmed) ?? trimmed;
 	}
 	return app.userFiles.resolveUrl(trimmed);
 }
@@ -70,7 +83,7 @@ function requireCloudAccess(): boolean {
 		return false;
 	}
 
-	if (!app.auth.user?.subscription) {
+	if (!hasCloudFileAccess(app.auth)) {
 		app.toast.create({
 			title: translate('Subscription required'),
 			description: translate('An active subscription is required to use cloud files.'),

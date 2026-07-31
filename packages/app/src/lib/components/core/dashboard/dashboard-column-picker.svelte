@@ -19,7 +19,7 @@
 
 <div
 	class={cn(
-		'flex w-auto shrink-0 items-center gap-0.5 rounded-lg border border-dark-600 bg-dark-700 p-0.5',
+		'flex w-auto shrink-0 items-center gap-0.5 rounded-lg border border-border bg-dark-700 p-0.5',
 		'@max-[24rem]/widget:w-full',
 		className
 	)}

@@ -216,11 +216,11 @@
 				/>
 			{:else}
 				<Container class="px-6 py-6" size="md">
-					<ul class="flex flex-col gap-2">
+					<ul class="divide-y divide-rule rounded-none border border-rule">
 						{#each filtered as user, index (user.userId)}
 							{@const progress = resolveProgress(user.totalPoints, ordered)}
 							<li
-								class="grid grid-cols-1 gap-3 rounded-xl border border-dark-600 bg-dark-800 p-3 transition-colors hover:border-dark-500 sm:grid-cols-[1fr_auto] sm:items-center"
+								class="grid grid-cols-1 gap-3 px-4 py-3 transition-colors hover:bg-dark-700/40 sm:grid-cols-[1fr_auto] sm:items-center"
 							>
 								<button
 									type="button"
@@ -323,10 +323,10 @@
 					>
 						{t('Ignored users')}
 					</Heading>
-					<ul class="flex flex-col gap-2">
+					<ul class="divide-y divide-rule rounded-none border border-rule">
 						{#each ignoredUsers as user (user.userId)}
 							<li
-								class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dark-600 bg-dark-800 p-3"
+								class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-dark-700/40"
 							>
 								<div class="flex min-w-0 items-center gap-3">
 									<div

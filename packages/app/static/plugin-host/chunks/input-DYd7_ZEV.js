@@ -2184,7 +2184,7 @@ function Tr(e, t) {
 var Er = J("<div><!> <!></div>"), Dr = J("<p> </p>"), Or = J("<div><div class=\"flex items-center gap-2\"><!> <!></div> <!></div>");
 function kr(e, r) {
 	c(r, !0);
-	let i = O(r, "checked", 15, !1), a = O(r, "id", 19, Fe), o = O(r, "inline", 3, !1), s = K(() => Q("peer inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded border transition-colors outline-none", "data-[state=checked]:border-primary data-[state=checked]:bg-primary/15 data-[state=checked]:text-primary", "data-[state=unchecked]:bg-dark-700", r.error ? hr : "border-border data-[state=unchecked]:hover:border-dark-400", Cr, "disabled:cursor-not-allowed disabled:opacity-50"));
+	let i = O(r, "checked", 15, !1), a = O(r, "id", 19, Fe), o = O(r, "inline", 3, !1), s = K(() => Q("peer inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-none border transition-colors outline-none", "data-[state=checked]:border-primary data-[state=checked]:bg-primary/15 data-[state=checked]:text-primary", r.error ? Q(hr, "data-[state=unchecked]:bg-destructive/15") : "data-[state=unchecked]:border-border data-[state=unchecked]:bg-transparent data-[state=unchecked]:hover:border-dark-400", Cr, "disabled:cursor-not-allowed disabled:opacity-50"));
 	var l = L(), u = h(l), d = (e) => {
 		var o = Er(), c = T(o);
 		{
@@ -5966,7 +5966,7 @@ function ss(e, r) {
 	let i = O(r, "checked", 15, !1), a = O(r, "id", 19, Fe);
 	var o = os(), s = T(o), l = T(s);
 	{
-		let e = K(() => r.label ? `${a()}-label` : void 0), t = K(() => r.error ? !0 : void 0), o = K(() => Q("inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors outline-none", "data-[state=checked]:bg-primary/15", r.error ? "data-[state=unchecked]:bg-destructive/30" : "data-[state=unchecked]:bg-dark-600", Cr, "disabled:cursor-not-allowed disabled:opacity-50"));
+		let e = K(() => r.label ? `${a()}-label` : void 0), t = K(() => r.error ? !0 : void 0), o = K(() => Q("inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-none border p-[2px] transition-colors outline-none", "data-[state=checked]:border-primary data-[state=checked]:bg-primary/15", r.error ? Q(hr, "data-[state=unchecked]:bg-destructive/15") : "data-[state=unchecked]:border-border data-[state=unchecked]:bg-transparent data-[state=unchecked]:hover:border-dark-400", Cr, "disabled:cursor-not-allowed disabled:opacity-50"));
 		n(l, () => cr, (r, s) => {
 			s(r, {
 				get id() {
@@ -5990,7 +5990,7 @@ function ss(e, r) {
 				children: (e, t) => {
 					var r = L(), i = h(r);
 					{
-						let e = K(() => Q("pointer-events-none block size-5 shrink-0 rounded-full bg-white transition-transform", "data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0", "data-[state=checked]:bg-primary"));
+						let e = K(() => Q("pointer-events-none block size-4 shrink-0 rounded-none transition-transform", "data-[state=checked]:translate-x-[19px] data-[state=unchecked]:-translate-x-[1px]", "data-[state=unchecked]:bg-dark-400", "data-[state=checked]:bg-primary"));
 						n(i, () => dr, (t, n) => {
 							n(t, { get class() {
 								return p(e);

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Cell, CellGrid } from '@stream-kit/ui/blueprint';
 	import { Container } from '@stream-kit/ui/container';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
@@ -50,10 +51,12 @@
 	/>
 {:else}
 	<Container class="px-6 py-6" size="md">
-		<div class="flex flex-col gap-2">
+		<CellGrid cols={1}>
 			{#each connections.items as connection (connection.id)}
-				<ConnectionCard {connection} {connections} />
+				<Cell class="p-0 *:border-0 *:bg-transparent">
+					<ConnectionCard {connection} {connections} />
+				</Cell>
 			{/each}
-		</div>
+		</CellGrid>
 	</Container>
 {/if}

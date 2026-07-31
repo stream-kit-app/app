@@ -4,6 +4,7 @@ export { default as CloudFilePickerModal } from './cloud-file-picker-modal.svelt
 export { openCloudFilePicker } from './open-cloud-file-picker';
 export type { OpenCloudFilePickerOptions } from './open-cloud-file-picker';
 export {
+	hasCloudFileAccess,
 	pickCloudFileUrl,
 	toDisplayCloudFileValue,
 	toStoredCloudFileValue,

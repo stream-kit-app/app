@@ -23,6 +23,7 @@
 	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
 	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
 	import {
+		hasCloudFileAccess,
 		isLocalFilePath,
 		pickCloudFileUrl,
 		toDisplayCloudFileValue,
@@ -175,7 +176,7 @@
 		{error}
 	/>
 {:else if config.type === 'select-file-or-folder'}
-	{@const cloudStorage = usesCloudFileStorage(config)}
+	{@const cloudStorage = usesCloudFileStorage(config) && hasCloudFileAccess(app.auth)}
 	{@const fileValue = String(scalarValue ?? '')}
 	{@const hasLocalPath = cloudStorage && isLocalFilePath(fileValue)}
 	{@const displayFileValue = toDisplayCloudFileValue(app, fileValue)}

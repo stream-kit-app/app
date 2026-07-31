@@ -126,9 +126,9 @@
 		/>
 	{/if}
 
-	<div class="overflow-hidden rounded-xl border border-dark-600">
+	<div class="overflow-hidden rounded-none border border-rule">
 		<div
-			class="grid gap-3 border-b border-dark-600 bg-dark-700/40 px-3 py-2 text-xs font-medium text-dark-200"
+			class="grid gap-3 border-b border-rule bg-dark-700/40 px-3 py-2 text-xs font-medium text-dark-200"
 			style={gridStyle}
 		>
 			{#each config.columns as column (column.key)}
@@ -155,7 +155,7 @@
 					{#each filteredRows as row (rowIdentity(row))}
 						<li
 							class={cn(
-								'grid items-center gap-3 border-b border-dark-600/60 px-3 py-2 last:border-b-0',
+								'grid items-center gap-3 border-b border-rule px-3 py-2 last:border-b-0',
 								'transition hover:bg-dark-700/50'
 							)}
 							style={gridStyle}

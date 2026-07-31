@@ -43,6 +43,8 @@
 	const framework = $derived(overlay.template as OverlayFrameworkId);
 	const needsBuild = $derived(framework !== 'vanilla');
 	const browserSourceUrl = $derived(app.overlay.getUrl(overlay.id));
+	const cloudUrl = $derived(app.overlay.getCloudUrl(overlay.id));
+	const isCloudPublished = $derived(app.overlay.isCloudPublished(overlay.id));
 	const isBuilt = $derived(app.overlay.isBuilt(overlay.id));
 	const isBuilding = $derived(app.overlay.buildingId === overlay.id);
 	const dependencyManifest = $derived({
@@ -306,6 +308,9 @@
 				{:else}
 					<Badge variant="warning" size="sm">{t('Not built')}</Badge>
 				{/if}
+				{#if isCloudPublished}
+					<Badge variant="secondary" size="sm">{t('Cloud')}</Badge>
+				{/if}
 				{#if overlay.expectedEvents.length > 0}
 					<Badge variant="ghost" size="sm">
 						<Icon icon="ri:flashlight-line" />
@@ -350,6 +355,20 @@
 				copiedLabel={t('Copied')}
 			/>
 		</div>
+		{#if isCloudPublished && cloudUrl}
+			<Eyebrow class="mb-2 mt-3">{t('Cloud browser source')}</Eyebrow>
+			<div class="min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
+				<InputText
+					copyable
+					readonly
+					size="xs"
+					aria-label={t('Cloud browser source URL')}
+					value={cloudUrl}
+					copyLabel={t('Copy URL')}
+					copiedLabel={t('Copied')}
+				/>
+			</div>
+		{/if}
 	</div>
 
 	<div class="mt-auto flex items-center gap-2 border-t border-rule p-3">

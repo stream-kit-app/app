@@ -38,7 +38,21 @@ function requireEntitledAuth(app: App): { userId: string; token: string } {
 	return { userId: app.auth.user.id, token };
 }
 
-export async function listPublishedOverlayIds(app: App): Promise<string[]> {
+export type CloudOverlayState = {
+	overlayId: string;
+	published: boolean;
+};
+
+export function canPublishOverlaysToCloud(app: App): boolean {
+	return (
+		resolveSiteUrl() != null &&
+		app.auth.isConfigured &&
+		app.auth.isAuthenticated &&
+		Boolean(app.auth.user?.subscription)
+	);
+}
+
+export async function listCloudOverlayStates(app: App): Promise<CloudOverlayState[]> {
 	if (!app.auth.isAuthenticated || !app.auth.user) {
 		return [];
 	}
@@ -46,21 +60,34 @@ export async function listPublishedOverlayIds(app: App): Promise<string[]> {
 	try {
 		const pb = app.auth.client;
 		const records = await pb.collection('user_overlays').getFullList({
-			filter: pb.filter('user={:id} && published=true', { id: app.auth.user.id }),
-			fields: 'overlayId',
+			filter: pb.filter('user={:id}', { id: app.auth.user.id }),
+			fields: 'overlayId,published',
 			requestKey: null
 		});
 		return records
-			.map((record) =>
-				typeof record.overlayId === 'string' ? record.overlayId.trim() : ''
-			)
-			.filter(Boolean);
+			.map((record) => {
+				const overlayId =
+					typeof record.overlayId === 'string' ? record.overlayId.trim() : '';
+				if (!overlayId) {
+					return null;
+				}
+				return {
+					overlayId,
+					published: Boolean(record.published)
+				};
+			})
+			.filter((entry): entry is CloudOverlayState => entry != null);
 	} catch (error) {
 		if (pocketBaseErrorMessage(error, '')) {
-			console.warn('Failed to list published overlays', error);
+			console.warn('Failed to list cloud overlays', error);
 		}
 		return [];
 	}
+}
+
+export async function listPublishedOverlayIds(app: App): Promise<string[]> {
+	const states = await listCloudOverlayStates(app);
+	return states.filter((entry) => entry.published).map((entry) => entry.overlayId);
 }
 
 async function findOverlayRecordByOverlayId(app: App, overlayId: string) {

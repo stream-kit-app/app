@@ -133,7 +133,7 @@
 <div class="relative">
 	{#if editMode}
 		<div
-			class="boot-grid pointer-events-none absolute inset-0 rounded-xl opacity-30"
+			class="boot-grid pointer-events-none absolute inset-0 rounded-none opacity-30"
 			aria-hidden="true"
 		></div>
 	{/if}

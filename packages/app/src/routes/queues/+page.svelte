@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ActionQueueDefinition } from '$lib/core/action-queue/action-queues.svelte';
 
+	import { Cell, CellGrid } from '@stream-kit/ui/blueprint';
 	import { Container } from '@stream-kit/ui/container';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
@@ -50,11 +51,13 @@
 	/>
 {:else}
 	<Container class="px-6 py-6" size="md">
-		<div class="grid gap-3">
+		<CellGrid cols={1}>
 			{#each queues as queue (queue.id)}
-				<QueueCard {queue} onEdit={openEdit} />
+				<Cell class="p-0 *:border-0 *:bg-transparent">
+					<QueueCard {queue} onEdit={openEdit} />
+				</Cell>
 			{/each}
-		</div>
+		</CellGrid>
 	</Container>
 {/if}
 

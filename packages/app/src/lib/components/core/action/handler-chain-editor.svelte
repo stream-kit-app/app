@@ -222,7 +222,7 @@
 				{#snippet children(source)}
 					{@const match = findHandlerDndEntry(layout, String(source.id))}
 					{#if match}
-						<div class="rounded-xl shadow-2xl ring-1 ring-white/10">
+						<div class="rounded-none border border-rule bg-dark-800 shadow-2xl">
 							<HandlerChainCard
 								{action}
 								{host}

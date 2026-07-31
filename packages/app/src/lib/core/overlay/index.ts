@@ -33,6 +33,7 @@ export {
 	overlayCloudBrowserSourceUrl
 } from './types';
 export {
+	canPublishOverlaysToCloud,
 	cloudOverlayUrl,
 	resolveSiteUrl,
 	publishOverlayToCloud,

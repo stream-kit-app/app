@@ -58,13 +58,13 @@
 		<div class={bodyClass}>{@render content()}</div>
 	{/if}
 {:else if href}
-	<a {href} class={cn('block transition-colors hover:bg-dark-900/60', className)}>
-		<Panel tone="solid" class="p-4">
+	<a {href} class={cn('block transition-opacity hover:opacity-90', className)}>
+		<Panel tone="flush" class="p-4">
 			{@render content()}
 		</Panel>
 	</a>
 {:else}
-	<Panel tone="solid" class={cn('p-4', className)}>
+	<Panel tone="flush" class={cn('p-4', className)}>
 		{@render content()}
 	</Panel>
 {/if}

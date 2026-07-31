@@ -5,6 +5,7 @@
 	import { Alert } from '@stream-kit/ui/alert';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
+	import { Panel } from '@stream-kit/ui/blueprint';
 	import { Container } from '@stream-kit/ui/container';
 	import { DataTable } from '@stream-kit/ui/data-table';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
@@ -118,26 +119,26 @@
 	</section>
 
 	<section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-		<div class="rounded-xl border border-dark-700 bg-dark-800/40 px-4 py-3">
+		<Panel tone="solid" class="px-4 py-3">
 			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Elgato plugin')}</p>
 			<div class="mt-2">
 				<Badge variant={status.pluginConnected ? 'success' : 'default'} size="sm">
 					{status.pluginConnected ? t('Connected') : t('Disconnected')}
 				</Badge>
 			</div>
-		</div>
-		<div class="rounded-xl border border-dark-700 bg-dark-800/40 px-4 py-3">
+		</Panel>
+		<Panel tone="solid" class="px-4 py-3">
 			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Registered buttons')}</p>
 			<p class="mt-2 text-lg font-semibold text-dark-100">{status.buttonCount}</p>
-		</div>
-		<div class="rounded-xl border border-dark-700 bg-dark-800/40 px-4 py-3">
+		</Panel>
+		<Panel tone="solid" class="px-4 py-3">
 			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Last event')}</p>
 			<p class="mt-2 text-sm font-medium text-dark-100">{status.lastEventType ?? '—'}</p>
-		</div>
-		<div class="rounded-xl border border-dark-700 bg-dark-800/40 px-4 py-3">
+		</Panel>
+		<Panel tone="solid" class="px-4 py-3">
 			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Last event at')}</p>
 			<p class="mt-2 text-sm font-medium text-dark-100">{formatWhen(status.lastEventAt)}</p>
-		</div>
+		</Panel>
 	</section>
 
 	<section class="space-y-3">

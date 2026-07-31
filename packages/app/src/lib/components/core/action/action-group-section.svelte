@@ -7,6 +7,7 @@
 	import Icon from '@iconify/svelte';
 	import { capitalize } from 'es-toolkit';
 
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
@@ -68,7 +69,7 @@
 	class={cn(
 		'overflow-hidden rounded-none',
 		isOverlay
-			? 'border border-rule bg-dark-800 shadow-2xl ring-1 ring-white/10'
+			? 'border border-rule bg-dark-800 shadow-2xl'
 			: 'border border-rule bg-dark-800'
 	)}
 >
@@ -89,27 +90,29 @@
 		</button>
 
 		{#if collapsible}
-			<button
-				type="button"
-				class="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3 text-left transition-colors hover:bg-dark-700/40"
-				aria-expanded={!collapsed}
-				aria-label={collapsed
-					? t('Expand group {name}', { name: displayName })
-					: t('Collapse group {name}', { name: displayName })}
-				onclick={() => onCollapsedChange?.(!collapsed)}
+			<div
+				class="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3 transition-colors hover:bg-dark-700/40"
 			>
-				<Icon
-					icon="ri:arrow-down-s-line"
-					class={cn(
-						'size-4 shrink-0 text-dark-400 transition-transform duration-200',
-						collapsed && '-rotate-90'
-					)}
-					aria-hidden="true"
-				/>
+				<button
+					type="button"
+					class="flex shrink-0 cursor-pointer items-center justify-center text-dark-400 transition-colors hover:text-dark-200"
+					aria-expanded={!collapsed}
+					aria-label={collapsed
+						? t('Expand group {name}', { name: displayName })
+						: t('Collapse group {name}', { name: displayName })}
+					onclick={() => onCollapsedChange?.(!collapsed)}
+				>
+					<Icon
+						icon="ri:arrow-down-s-line"
+						class={cn(
+							'size-4 shrink-0 transition-transform duration-200',
+							collapsed && '-rotate-90'
+						)}
+						aria-hidden="true"
+					/>
+				</button>
 				{#if showGroupSelect}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<span class="shrink-0" onclick={(event) => event.stopPropagation()}>
+					<span class="shrink-0">
 						<InputCheckbox
 							inline
 							aria-label={t('Select all in group {name}', { name: displayName })}
@@ -120,11 +123,22 @@
 						/>
 					</span>
 				{/if}
-				<span class="truncate text-sm font-semibold text-dark-50">{displayName}</span>
-				{#if count != null}
-					<Badge variant="outline" size="sm">{count}</Badge>
-				{/if}
-			</button>
+				<button
+					type="button"
+					class="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-left"
+					aria-expanded={!collapsed}
+					onclick={() => onCollapsedChange?.(!collapsed)}
+				>
+					<span
+						class="min-w-0 truncate font-mono text-[11px] leading-none font-medium tracking-[0.14em] text-muted-foreground uppercase"
+					>
+						{displayName}
+					</span>
+					{#if count != null}
+						<Badge variant="outline" size="sm">{count}</Badge>
+					{/if}
+				</button>
+			</div>
 		{:else}
 			<div class="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3">
 				{#if showGroupSelect}
@@ -137,7 +151,7 @@
 						}
 					/>
 				{/if}
-				<span class="truncate text-sm font-semibold text-dark-50">{displayName}</span>
+				<Eyebrow class="min-w-0 truncate">{displayName}</Eyebrow>
 				{#if count != null}
 					<Badge variant="outline" size="sm">{count}</Badge>
 				{/if}

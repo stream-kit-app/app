@@ -242,10 +242,10 @@ pnpm bootstrap  # create missing .env files from .env.example
 Or run commands directly in the package:
 
 ```sh
-pnpm --filter @stream-kit/site dev
-pnpm --filter @stream-kit/site build
-pnpm --filter @stream-kit/site start    # custom Node server (HTTP + /ws) after build
-pnpm --filter @stream-kit/site preview  # Vite preview (no overlay WS hub)
+pnpm --filter @stream-kit/site dev       # typegen + Vite (local /ws via Node hub)
+pnpm --filter @stream-kit/site build     # Worker bundle + Durable Object exports
+pnpm --filter @stream-kit/site preview   # wrangler dev (SSR + Durable Object /ws)
+pnpm --filter @stream-kit/site deploy    # wrangler deploy to Cloudflare Workers
 ```
 
 ### Cloud overlays (`/app/overlays/[uuid]`)
@@ -257,17 +257,38 @@ Published overlay bundles live in PocketBase (`user_overlays`) and are served by
 | `/app/overlays/[uuid]/` | Browser source HTML + assets from the published `dist` zip |
 | `/ws?overlayId=[uuid]` | Live events; OBS connects as subscriber; desktop app as `role=publisher` with PB auth token |
 
-Production must run `node server.js` (or `pnpm start`) so the WebSocket hub is attached. Single Node instance assumed for in-memory rooms.
+In production, `/ws` is routed to a **Durable Object** (`OverlayRoom`, one instance per `overlayId`) with hibernatable WebSockets. Local `vite dev` still attaches the in-memory Node hub via `overlay-ws/vite-plugin.mjs` so overlays work without Wrangler.
 
 Marketing routes live under `site/src/routes/(marketing)/` so `/app/*` stays free of marketing chrome (future logged-in dashboard shell).
 
 ## Stack
 
-- SvelteKit with the Node adapter (+ custom `server.js` for overlay WebSockets)
+- SvelteKit with `@sveltejs/adapter-cloudflare` (Workers + static assets)
+- Overlay WebSockets via Cloudflare Durable Objects (`OVERLAY_ROOMS` → `OverlayRoom`)
 - Svelte 5 (runes mode)
 - Tailwind CSS v4
 - `@stream-kit/ui` + `@stream-kit/ui/blueprint` (rails, rules, crosshairs, cell grids, panels)
 - Shared blueprint utilities in `packages/ui/src/styles/blueprint.css` (imported by site and app `layout.css`)
+
+## Deployment (marketing site)
+
+GitHub Actions workflow `.github/workflows/deploy-site.yml` builds with `pnpm build:site` and deploys the Worker from `site/` via `cloudflare/wrangler-action` (`wrangler deploy`).
+
+Worker name: `stream-kit-site` (see `site/wrangler.jsonc`). Custom domain: `stream-kit.app` (attach in the Cloudflare dashboard after the first deploy).
+
+Required repository secrets (shared with docs deploy):
+
+- `CLOUDFLARE_API_TOKEN` — API token with **Workers Scripts: Edit** (and Durable Objects) in addition to Pages if you reuse the docs token
+- `CLOUDFLARE_ACCOUNT_ID`
+
+```sh
+gh secret set CLOUDFLARE_API_TOKEN
+gh secret set CLOUDFLARE_ACCOUNT_ID
+```
+
+Build-time env for the catalog:
+
+- `PUBLIC_POCKETBASE_URL` — production default `https://api.stream-kit.app` (also set as a Worker `vars` entry for Durable Object auth)
 
 ## Documentation site (`docs-site/`)
 
@@ -310,7 +331,7 @@ GitHub Actions workflow `.github/workflows/deploy-docs.yml` builds with `pnpm bu
 
 Required repository secrets:
 
-- `CLOUDFLARE_API_TOKEN` — API token with the **Cloudflare Pages: Edit** permission
+- `CLOUDFLARE_API_TOKEN` — API token with **Cloudflare Pages: Edit** (docs) and **Workers Scripts: Edit** (marketing site) when shared
 - `CLOUDFLARE_ACCOUNT_ID`
 
 ```sh

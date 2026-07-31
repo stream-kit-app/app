@@ -673,10 +673,14 @@ interface PluginAppUserFilesApi {
 	resolveAuthenticatedUrl(value: string): Promise<string>;
 	/**
 	 * When offline mirror is enabled: absolute filesystem path (downloads on demand).
+	 * Falls back to an authenticated cloud URL if the local cache/download fails.
 	 * When disabled: authenticated cloud URL for cloud refs, or the original local path.
 	 */
 	resolveLocalPath(value: string): Promise<string>;
-	/** Sync lookup of a mirrored absolute path, or \`null\` when not cached yet. */
+	/**
+	 * Sync lookup of a mirrored absolute path confirmed on disk, or \`null\` when
+	 * not cached yet / missing from disk.
+	 */
 	getCachedPath(value: string): string | null;
 	/** Background reconcile of the full cloud library onto local disk (no-op when mirror is off). */
 	syncCache(): Promise<void>;

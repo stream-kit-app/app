@@ -4,6 +4,7 @@
 
 	import { Badge } from '@stream-kit/ui/badge';
 	import { DataTable } from '@stream-kit/ui/data-table';
+	import { Panel } from '@stream-kit/ui/blueprint';
 
 	import { formatWatchTime } from '../../lib/extract-user';
 	import { orderRanks, resolveProgress } from '../../lib/ranking-engine';
@@ -87,7 +88,7 @@
 	<div class="flex flex-col gap-4">
 		<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 			<RankingsStatCard icon="ri:coin-line" value={user.totalPoints} label={t('Points')} />
-			<div class="rounded-xl border border-dark-600 bg-dark-800 p-4">
+			<Panel tone="solid" class="p-4">
 				<div class="flex items-start gap-3">
 					<div
 						class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
@@ -109,7 +110,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
+			</Panel>
 			<RankingsStatCard
 				icon="ri:time-line"
 				value={formatWatchTime(user.watchTimeSeconds)}

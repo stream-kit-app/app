@@ -52,6 +52,10 @@ export class App extends Bootable {
 	public toast = new Toast();
 	public userFiles = new UserFiles(this.auth, this.fs, {
 		isOfflineMirrorEnabled: () => this.settings.offlineCloudFilesMirror,
+		getLastMirrorUserId: () => this.settings.offlineCloudFilesMirrorUserId,
+		setLastMirrorUserId: (userId) => {
+			void this.settings.setOfflineCloudFilesMirrorUserId(userId);
+		},
 		toast: this.toast
 	});
 	public audio = new Audio();

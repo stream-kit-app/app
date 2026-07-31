@@ -328,7 +328,7 @@
 				{#each entries as entry (entry.key)}
 					<li
 						class={cn(
-							'rounded-lg border border-dark-600 bg-dark-700/40 p-3',
+							'rounded-none border border-rule bg-dark-700/40 p-3',
 							editingKey === entry.key && 'border-primary-500/40'
 						)}
 					>
@@ -403,7 +403,7 @@
 	{/if}
 </div>
 
-<div class="mt-5 grid gap-3 rounded-xl border border-dark-600 bg-dark-700/30 p-4">
+<div class="mt-5 grid gap-3 rounded-none border border-rule bg-dark-700/30 p-4">
 	<p class="text-sm font-medium text-dark-100">{t('Add entry')}</p>
 	<div class="grid gap-3 sm:grid-cols-2">
 		<InputText
@@ -432,7 +432,7 @@
 	</div>
 </div>
 
-<div class="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-dark-600 pt-4">
+<div class="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-4">
 	<div class="flex flex-wrap gap-2">
 		<Button
 			variant="outline"

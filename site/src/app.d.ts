@@ -1,5 +1,6 @@
+/// <reference types="@cloudflare/workers-types" />
 // See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces\
+// for information about these interfaces
 import type { TypedPocketBase } from '$lib/pocketbase/types';
 import type { Services } from '$lib/server/services/services';
 
@@ -14,7 +15,16 @@ declare global {
 		}
 		interface PageData {}
 		// interface PageState {}
-		// interface Platform {}
+		interface Platform {
+			env: {
+				ASSETS: Fetcher;
+				OVERLAY_ROOMS: DurableObjectNamespace;
+				PUBLIC_POCKETBASE_URL: string;
+			};
+			context: ExecutionContext;
+			caches: CacheStorage;
+			cf?: IncomingRequestCfProperties;
+		}
 	}
 }
 

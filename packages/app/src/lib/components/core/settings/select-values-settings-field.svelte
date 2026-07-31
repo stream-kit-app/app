@@ -114,7 +114,7 @@
 		<ul class="flex flex-wrap gap-2">
 			{#each selectedItemsSource.items as item (item.value)}
 				<li
-					class="rounded-lg border border-success-200/40 bg-success-200/5 px-3 py-1.5 text-sm text-dark-50"
+					class="rounded-none border border-rule bg-success-200/5 px-3 py-1.5 text-sm text-dark-50"
 				>
 					{item.label}
 				</li>
@@ -139,7 +139,7 @@
 			<Dialog.Content
 				class={cn(
 					'fixed top-1/2 left-1/2 z-50 flex max-h-[min(32rem,calc(100vh-2rem))] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col',
-					'rounded-2xl border border-dark-600 bg-dark-800 p-6 shadow-lg duration-75 outline-none',
+					'rounded-none border border-rule bg-dark-800 p-6 shadow-lg duration-75 outline-none',
 					'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
 					'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95'
 				)}
@@ -160,7 +160,7 @@
 
 					<ScrollArea
 						orientation="vertical"
-						class="rounded-xl border border-dark-600"
+						class="rounded-none border border-rule"
 						viewportClasses="max-h-64 p-2"
 					>
 						{#if dialogItems.loading}

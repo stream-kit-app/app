@@ -33,10 +33,10 @@
 </script>
 
 <div class="flex flex-col gap-1 text-sm">
-	<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+	<div class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5">
 		<div class="flex min-w-0 items-center gap-3">
 			<div
-				class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+				class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 			>
 				<Icon icon="ri:twitch-line" class="size-4" />
 			</div>
@@ -47,10 +47,10 @@
 		</Badge>
 	</div>
 
-	<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+	<div class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5">
 		<div class="flex min-w-0 items-center gap-3">
 			<div
-				class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+				class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 			>
 				<Icon icon="ri:youtube-line" class="size-4" />
 			</div>
@@ -66,10 +66,10 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+	<div class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5">
 		<div class="flex min-w-0 items-center gap-3">
 			<div
-				class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+				class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 			>
 				<Icon icon="ri:live-line" class="size-4" />
 			</div>
@@ -89,10 +89,10 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+	<div class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5">
 		<div class="flex min-w-0 items-center gap-3">
 			<div
-				class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+				class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 			>
 				<Icon icon="ri:links-line" class="size-4" />
 			</div>

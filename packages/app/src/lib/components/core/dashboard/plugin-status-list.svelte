@@ -50,10 +50,10 @@
 
 <div class="flex flex-col gap-1 text-sm">
 	{#each plugins as plugin (plugin.key)}
-		<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+		<div class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5">
 			<div class="flex min-w-0 items-center gap-3">
 				<div
-					class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+					class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 				>
 					<Icon icon={plugin.icon ?? 'ri:plug-line'} class="size-4" />
 				</div>

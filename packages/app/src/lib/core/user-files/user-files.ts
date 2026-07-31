@@ -14,7 +14,7 @@ import type {
 	UserFilesQuota,
 	UserFilesUploadOptions
 } from './types';
-import { UserFilesCache } from './user-files-cache.svelte';
+import { UserFilesCache, parseCloudFilePath, sanitizeRecordId } from './user-files-cache.svelte';
 
 /** Refresh file tokens this many ms before assumed expiry. */
 const FILE_TOKEN_REFRESH_MARGIN_MS = 30_000;
@@ -127,7 +127,12 @@ export class UserFiles {
 	constructor(
 		auth: Auth,
 		fs: Filesystem,
-		options?: { isOfflineMirrorEnabled?: () => boolean; toast?: Toast }
+		options?: {
+			isOfflineMirrorEnabled?: () => boolean;
+			getLastMirrorUserId?: () => string | null;
+			setLastMirrorUserId?: (userId: string) => void;
+			toast?: Toast;
+		}
 	) {
 		this.#auth = auth;
 		this.#toast = options?.toast ?? null;
@@ -138,6 +143,9 @@ export class UserFiles {
 			download: (url) => this.#downloadFromNetwork(url),
 			hasEntitlement: () => Boolean(this.#auth.user?.subscription),
 			isEnabled: () => this.#isOfflineMirrorEnabled(),
+			getUserId: () => this.#auth.user?.id ?? null,
+			getLastUserId: () => options?.getLastMirrorUserId?.() ?? null,
+			setLastUserId: (userId) => options?.setLastMirrorUserId?.(userId),
 			onProgress: (done, total) => this.#onSyncProgress(done, total),
 			onComplete: (ok) => this.#onSyncComplete(ok)
 		});
@@ -225,9 +233,11 @@ export class UserFiles {
 	}
 
 	/**
-	 * Absolute filesystem path for a cloud ref when offline mirror is enabled
-	 * (downloads on demand). When mirror is off, returns an authenticated cloud URL
-	 * for cloud refs (suitable for OBS), or the original local path.
+	 * Resolve a cloud file ref for playback / OBS:
+	 * - Offline mirror on: absolute filesystem path (downloads on demand). If the
+	 *   download fails, falls back to an authenticated cloud URL.
+	 * - Offline mirror off: authenticated cloud URL for cloud refs.
+	 * - Non-cloud values are returned unchanged (local paths).
 	 */
 	async resolveLocalPath(value: string): Promise<string> {
 		const trimmed = value.trim();
@@ -237,10 +247,31 @@ export class UserFiles {
 		if (!this.isOfflineMirrorEnabled()) {
 			return this.resolveAuthenticatedUrl(trimmed);
 		}
-		return this.cache.resolveLocalPath(trimmed);
+		try {
+			return await this.cache.resolveLocalPath(trimmed);
+		} catch (error) {
+			// Signed out: keep local playback only — do not fall back to cloud URLs.
+			if (!this.#auth.isAuthenticated) {
+				const cached = this.cache.getCachedPath(trimmed);
+				if (cached) {
+					return cached;
+				}
+				throw error instanceof Error
+					? error
+					: new Error(translate('Could not resolve local path for cloud file.'));
+			}
+			console.warn(
+				'[user-files] offline cache unavailable, falling back to cloud URL',
+				error
+			);
+			return this.resolveAuthenticatedUrl(trimmed);
+		}
 	}
 
-	/** Sync lookup of a mirrored absolute path, or null when not cached yet. */
+	/**
+	 * Sync lookup of a mirrored absolute path that is confirmed on disk,
+	 * or null when not cached yet / missing.
+	 */
 	getCachedPath(value: string): string | null {
 		return this.cache.getCachedPath(value);
 	}
@@ -448,27 +479,29 @@ export class UserFiles {
 			if (!key) {
 				return;
 			}
-			const listed = await this.list();
-			const record = listed.find(
-				(item) => item.url.split(/[?#]/)[0].toLowerCase() === key.toLowerCase()
-			);
-			if (record) {
-				await this.cache.putFromBlob(record, blob);
-				return;
-			}
-			const parts = key.split('/').filter(Boolean);
-			if (parts.length >= 5 && parts[0] === 'api' && parts[1] === 'files') {
+
+			const parsed = parseCloudFilePath(key.toLowerCase());
+			if (parsed) {
 				await this.cache.putFromBlob(
 					{
-						id: parts[3]!,
+						id: parsed.recordId,
 						url: key,
 						size: blob.size,
 						mimeType: blob.type || 'application/octet-stream',
-						originalName: decodeURIComponent(parts.slice(4).join('/')),
+						originalName: parsed.fileName || 'file',
 						createdAt: null
 					},
 					blob
 				);
+				return;
+			}
+
+			const listed = await this.list();
+			const record = listed.find(
+				(item) => item.url.split(/[?#]/)[0].toLowerCase() === key.toLowerCase()
+			);
+			if (record && sanitizeRecordId(record.id)) {
+				await this.cache.putFromBlob(record, blob);
 			}
 		} catch (error) {
 			console.warn('[user-files] failed to populate offline cache from fetch', error);

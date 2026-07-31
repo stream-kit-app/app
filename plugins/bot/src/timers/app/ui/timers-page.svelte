@@ -168,21 +168,19 @@
 	/>
 {:else}
 	<Container class="px-6 py-6" size="md">
-		<div class="grid gap-3">
+		<ul class="divide-y divide-rule rounded-none border border-rule">
 			{#each timers.items as timer (timer.id)}
 				{#if timer.id != null}
-					<div
-						class="border-border-dark-600 rounded-xl border bg-dark-800 px-4 py-2 transition-colors hover:bg-dark-700"
-					>
+					<li class="px-4 py-2 transition-colors hover:bg-dark-700/40">
 						<TimerCard
 							{timer}
 							selected={selectedIds.has(timer.id)}
 							onSelectedChange={(value, shiftKey) =>
 								handleSelectedChange(timer.id!, value, shiftKey)}
 						/>
-					</div>
+					</li>
 				{/if}
 			{/each}
-		</div>
+		</ul>
 	</Container>
 {/if}

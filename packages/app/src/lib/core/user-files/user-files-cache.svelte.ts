@@ -6,9 +6,24 @@ import { BaseDirectory } from '../filesystem';
 import type { Filesystem } from '../filesystem';
 
 import type { UserFileRecord } from './types';
+import {
+	isSafeCacheRelativePath,
+	normalizeManifestKey,
+	parseCloudFilePath,
+	sanitizeFileName,
+	sanitizeRecordId,
+	sanitizeUserId
+} from './user-files-cache-path';
+
+export {
+	isSafeCacheRelativePath,
+	normalizeManifestKey,
+	parseCloudFilePath,
+	sanitizeFileName,
+	sanitizeRecordId
+} from './user-files-cache-path';
 
 const CACHE_ROOT = 'user-files-cache';
-const MANIFEST_PATH = `${CACHE_ROOT}/index.json`;
 
 export type UserFilesCacheStatus = 'idle' | 'syncing' | 'error';
 
@@ -28,63 +43,25 @@ type UserFilesCacheDeps = {
 	hasEntitlement: () => boolean;
 	/** Device setting: keep cloud files offline (default off). */
 	isEnabled: () => boolean;
+	/** Signed-in PocketBase user id (scopes cache writes / sync). */
+	getUserId: () => string | null;
+	/**
+	 * Last account whose offline cache should stay readable while signed out
+	 * (device-local; used when `getUserId()` is null).
+	 */
+	getLastUserId: () => string | null;
+	/** Persist the active account id after a successful cache load/sync. */
+	setLastUserId: (userId: string) => void;
 	/** Called after each file is processed during reconcile (`done` includes already-cached). */
 	onProgress?: (done: number, total: number) => void;
 	/** Called when reconcile finishes (success or error). */
 	onComplete?: (ok: boolean) => void;
 };
 
-/** Host-independent cloud path key (lowercase, no query). Avoids importing user-files.ts. */
-function normalizeManifestKey(value: string): string | null {
-	const trimmed = value.trim();
-	if (!trimmed) {
-		return null;
-	}
-	if (trimmed.startsWith('/api/files/')) {
-		return trimmed.split(/[?#]/)[0].toLowerCase();
-	}
-	if (!/^https?:\/\//i.test(trimmed)) {
-		return null;
-	}
-	try {
-		const parsed = new URL(trimmed);
-		if (!parsed.pathname.includes('/api/files/')) {
-			return null;
-		}
-		return parsed.pathname.toLowerCase();
-	} catch {
-		return null;
-	}
-}
-
-function sanitizeFileName(name: string): string {
-	const trimmed = name.trim() || 'file';
-	return trimmed.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').slice(0, 200) || 'file';
-}
-
-function parseCloudFilePath(
-	relativePath: string
-): { recordId: string; fileName: string } | null {
-	const parts = relativePath.split('/').filter(Boolean);
-	if (parts.length < 5 || parts[0] !== 'api' || parts[1] !== 'files') {
-		return null;
-	}
-	try {
-		return {
-			recordId: parts[3]!,
-			fileName: decodeURIComponent(parts.slice(4).join('/'))
-		};
-	} catch {
-		return {
-			recordId: parts[3]!,
-			fileName: parts.slice(4).join('/')
-		};
-	}
-}
-
 /**
- * Local disk mirror of PocketBase `user_files` under AppData.
+ * Local disk mirror of PocketBase `user_files` under AppData/{userId}.
  * Actions keep host-independent `/api/files/...` refs; playback resolves to absolute paths.
+ * Cached paths stay readable after logout when offline mirror is enabled.
  */
 export class UserFilesCache {
 	status = $state<UserFilesCacheStatus>('idle');
@@ -97,10 +74,16 @@ export class UserFilesCache {
 	#download: (url: string) => Promise<Blob>;
 	#hasEntitlement: () => boolean;
 	#isEnabled: () => boolean;
+	#getUserId: () => string | null;
+	#getLastUserId: () => string | null;
+	#setLastUserId: (userId: string) => void;
 	#onProgress?: (done: number, total: number) => void;
 	#onComplete?: (ok: boolean) => void;
 	#manifest: Manifest = {};
+	/** Keys confirmed present on disk (sync-safe for getCachedPath). */
+	#onDiskKeys = new Set<string>();
 	#manifestLoaded = false;
+	#loadedUserId: string | null = null;
 	#appDataDir: string | null = null;
 	#pathSep = '/';
 	#reconcilePromise: Promise<void> | null = null;
@@ -114,12 +97,40 @@ export class UserFilesCache {
 		this.#download = deps.download;
 		this.#hasEntitlement = deps.hasEntitlement;
 		this.#isEnabled = deps.isEnabled;
+		this.#getUserId = deps.getUserId;
+		this.#getLastUserId = deps.getLastUserId;
+		this.#setLastUserId = deps.setLastUserId;
 		this.#onProgress = deps.onProgress;
 		this.#onComplete = deps.onComplete;
 	}
 
+	#authUserId(): string | null {
+		return sanitizeUserId(this.#getUserId());
+	}
+
+	/** Account whose AppData folder is used for reads (signed-in user or last offline user). */
+	#readUserId(): string | null {
+		return this.#authUserId() ?? sanitizeUserId(this.#loadedUserId) ?? sanitizeUserId(this.#getLastUserId());
+	}
+
 	#canSync(): boolean {
-		return this.#isEnabled() && this.#hasEntitlement();
+		return this.#isEnabled() && this.#hasEntitlement() && this.#authUserId() != null;
+	}
+
+	/** Write/sync root — only the currently signed-in account. */
+	#writeUserRoot(): string | null {
+		const userId = this.#authUserId();
+		return userId ? `${CACHE_ROOT}/${userId}` : null;
+	}
+
+	/** Read root — signed-in account, or last loaded/persisted account while logged out. */
+	#readUserRoot(): string | null {
+		const userId = this.#readUserId();
+		return userId ? `${CACHE_ROOT}/${userId}` : null;
+	}
+
+	#manifestPathFor(userRoot: string): string {
+		return `${userRoot}/index.json`;
 	}
 
 	start(): void {
@@ -135,7 +146,12 @@ export class UserFilesCache {
 		if (typeof window !== 'undefined') {
 			window.addEventListener('online', this.#onlineHandler);
 		}
-		void this.#ensureAppDataDir().catch(() => undefined);
+		void this.#bootstrap();
+	}
+
+	async #bootstrap(): Promise<void> {
+		await this.#ensureAppDataDir().catch(() => undefined);
+		await this.#loadManifest();
 		if (this.#canSync()) {
 			void this.sync();
 		}
@@ -149,13 +165,17 @@ export class UserFilesCache {
 		this.#started = false;
 	}
 
-	/** Absolute OS path to the offline cache root; creates the folder if missing. */
+	/** Absolute OS path to this account's offline cache root; creates the folder if missing. */
 	async getCacheDirPath(): Promise<string> {
-		await this.#fs.mkdir(CACHE_ROOT, {
+		const root = this.#writeUserRoot() ?? this.#readUserRoot();
+		if (!root) {
+			throw new Error(translate('You must be signed in to use cloud files.'));
+		}
+		await this.#fs.mkdir(root, {
 			baseDir: BaseDirectory.AppData,
 			recursive: true
 		});
-		return this.#joinAbsolute(CACHE_ROOT);
+		return this.#joinAbsolute(root);
 	}
 
 	/** Background reconcile of the full cloud library. */
@@ -176,12 +196,16 @@ export class UserFilesCache {
 	}
 
 	/**
-	 * Sync lookup of an absolute OS path when the file is already mirrored.
-	 * Returns null when the cache index is not ready or the file is missing.
+	 * Sync lookup of an absolute OS path when the file is already mirrored on disk.
+	 * Works while signed out when the last account's offline cache is still loaded.
+	 * Returns null when the index is not ready or the file is missing.
 	 */
 	getCachedPath(value: string): string | null {
+		if (!this.#isEnabled() || !this.#loadedUserId || !this.#appDataDir) {
+			return null;
+		}
 		const key = normalizeManifestKey(value);
-		if (!key || !this.#appDataDir) {
+		if (!key || !this.#onDiskKeys.has(key)) {
 			return null;
 		}
 		const entry = this.#manifest[key];
@@ -226,13 +250,14 @@ export class UserFilesCache {
 			return null;
 		}
 		const entry = this.#manifest[key];
-		if (!entry) {
+		if (!entry || !this.#onDiskKeys.has(key)) {
 			return null;
 		}
 		const exists = await this.#fs.exists(entry.relativeLocalPath, {
 			baseDir: BaseDirectory.AppData
 		});
 		if (!exists) {
+			this.#onDiskKeys.delete(key);
 			return null;
 		}
 		const bytes = await this.#fs.readFile(entry.relativeLocalPath, {
@@ -242,19 +267,32 @@ export class UserFilesCache {
 	}
 
 	async putFromBlob(record: UserFileRecord, blob: Blob | File): Promise<void> {
+		if (!this.#writeUserRoot()) {
+			return;
+		}
 		await this.#loadManifest();
 		const key = normalizeManifestKey(record.url);
 		if (!key) {
 			return;
 		}
 		const bytes = new Uint8Array(await blob.arrayBuffer());
-		await this.#writeBytes(key, record.id, record.originalName, record.size || bytes.byteLength, bytes);
+		await this.#writeBytes(
+			key,
+			record.id,
+			record.originalName,
+			record.size || bytes.byteLength,
+			bytes
+		);
 	}
 
 	async removeByRecordId(recordId: string): Promise<void> {
 		await this.#loadManifest();
+		const safeId = sanitizeRecordId(recordId);
+		if (!safeId) {
+			return;
+		}
 		const keys = Object.keys(this.#manifest).filter(
-			(key) => this.#manifest[key]?.recordId === recordId
+			(key) => this.#manifest[key]?.recordId === safeId
 		);
 		for (const key of keys) {
 			const entry = this.#manifest[key];
@@ -272,13 +310,19 @@ export class UserFilesCache {
 		await this.#ensureAppDataDir();
 
 		const entry = this.#manifest[key];
-		if (entry) {
+		if (entry && this.#onDiskKeys.has(key)) {
 			const exists = await this.#fs.exists(entry.relativeLocalPath, {
 				baseDir: BaseDirectory.AppData
 			});
 			if (exists) {
 				return this.#joinAbsolute(entry.relativeLocalPath);
 			}
+			this.#onDiskKeys.delete(key);
+		}
+
+		// Downloads require a signed-in account; cached files above still work offline.
+		if (!this.#writeUserRoot()) {
+			throw new Error(translate('Could not resolve local path for cloud file.'));
 		}
 
 		let record: UserFileRecord | null = null;
@@ -290,7 +334,9 @@ export class UserFilesCache {
 		}
 
 		const parsed = parseCloudFilePath(key);
-		const recordId = record?.id ?? entry?.recordId ?? parsed?.recordId;
+		const recordId = sanitizeRecordId(
+			record?.id ?? entry?.recordId ?? parsed?.recordId ?? ''
+		);
 		const originalName =
 			record?.originalName ?? entry?.originalName ?? parsed?.fileName ?? 'file';
 		const expectedSize = record?.size ?? entry?.size ?? 0;
@@ -330,30 +376,43 @@ export class UserFilesCache {
 
 			const remoteKeys = new Set<string>();
 			let done = 0;
+			let firstFileError: string | null = null;
 
 			for (const record of work) {
 				const key = normalizeManifestKey(record.url)!;
 				remoteKeys.add(key);
 
-				const existing = this.#manifest[key];
-				const onDisk =
-					existing &&
-					existing.recordId === record.id &&
-					existing.size === record.size &&
-					(await this.#fs.exists(existing.relativeLocalPath, {
-						baseDir: BaseDirectory.AppData
-					}));
+				try {
+					const existing = this.#manifest[key];
+					const onDisk =
+						existing &&
+						this.#onDiskKeys.has(key) &&
+						existing.recordId === record.id &&
+						existing.size === record.size &&
+						(await this.#fs.exists(existing.relativeLocalPath, {
+							baseDir: BaseDirectory.AppData
+						}));
 
-				if (!onDisk) {
-					const blob = await this.#download(record.url);
-					const bytes = new Uint8Array(await blob.arrayBuffer());
-					await this.#writeBytes(
-						key,
-						record.id,
-						record.originalName,
-						record.size || bytes.byteLength,
-						bytes
-					);
+					if (!onDisk) {
+						const blob = await this.#download(record.url);
+						const bytes = new Uint8Array(await blob.arrayBuffer());
+						await this.#writeBytes(
+							key,
+							record.id,
+							record.originalName,
+							record.size || bytes.byteLength,
+							bytes
+						);
+					}
+				} catch (error) {
+					const message =
+						error instanceof Error
+							? error.message
+							: translate('Could not sync offline cloud files.');
+					if (!firstFileError) {
+						firstFileError = message;
+					}
+					console.error('[user-files-cache] failed to cache file', record.id, error);
 				}
 
 				done += 1;
@@ -372,8 +431,15 @@ export class UserFilesCache {
 
 			await this.#saveManifest();
 			this.#refreshCachedCount();
-			this.status = 'idle';
-			ok = true;
+
+			if (firstFileError && this.#onDiskKeys.size === 0 && work.length > 0) {
+				this.lastError = firstFileError;
+				this.status = 'error';
+			} else {
+				this.lastError = null;
+				this.status = 'idle';
+				ok = true;
+			}
 		} catch (error) {
 			this.lastError =
 				error instanceof Error
@@ -391,12 +457,33 @@ export class UserFilesCache {
 		key: string,
 		recordId: string,
 		originalName: string,
-		size: number,
+		expectedSize: number,
 		bytes: Uint8Array
 	): Promise<void> {
+		const userRoot = this.#writeUserRoot();
+		if (!userRoot) {
+			throw new Error(translate('You must be signed in to use cloud files.'));
+		}
+
+		const safeId = sanitizeRecordId(recordId);
+		if (!safeId) {
+			throw new Error(translate('Could not resolve local path for cloud file.'));
+		}
+
+		if (bytes.byteLength === 0) {
+			throw new Error(translate('Cloud file download incomplete.'));
+		}
+		if (expectedSize > 0 && bytes.byteLength !== expectedSize) {
+			throw new Error(translate('Cloud file download incomplete.'));
+		}
+
 		const safeName = sanitizeFileName(originalName);
-		const relativeLocalPath = `${CACHE_ROOT}/${recordId}/${safeName}`;
-		const dir = `${CACHE_ROOT}/${recordId}`;
+		const relativeLocalPath = `${userRoot}/${safeId}/${safeName}`;
+		const dir = `${userRoot}/${safeId}`;
+
+		if (!isSafeCacheRelativePath(relativeLocalPath, userRoot)) {
+			throw new Error(translate('Could not resolve local path for cloud file.'));
+		}
 
 		await this.#fs.mkdir(dir, { baseDir: BaseDirectory.AppData, recursive: true });
 		await this.#fs.writeFile(relativeLocalPath, bytes, {
@@ -404,78 +491,151 @@ export class UserFilesCache {
 		});
 
 		this.#manifest[key] = {
-			recordId,
-			size,
+			recordId: safeId,
+			size: bytes.byteLength,
 			originalName,
 			relativeLocalPath
 		};
+		this.#onDiskKeys.add(key);
 		await this.#saveManifest();
 		this.#refreshCachedCount();
 	}
 
 	async #removeEntry(key: string, entry: ManifestEntry): Promise<void> {
+		const userRoot = this.#writeUserRoot() ?? this.#readUserRoot();
 		try {
 			if (
-				await this.#fs.exists(entry.relativeLocalPath, {
+				userRoot &&
+				isSafeCacheRelativePath(entry.relativeLocalPath, userRoot) &&
+				(await this.#fs.exists(entry.relativeLocalPath, {
 					baseDir: BaseDirectory.AppData
-				})
+				}))
 			) {
 				await this.#fs.remove(entry.relativeLocalPath, {
 					baseDir: BaseDirectory.AppData
 				});
 			}
-			const dir = `${CACHE_ROOT}/${entry.recordId}`;
-			if (await this.#fs.exists(dir, { baseDir: BaseDirectory.AppData })) {
-				const remaining = await this.#fs.readDir(dir, {
-					baseDir: BaseDirectory.AppData
-				});
-				if (remaining.length === 0) {
-					await this.#fs.remove(dir, {
-						baseDir: BaseDirectory.AppData,
-						recursive: true
+			const safeId = sanitizeRecordId(entry.recordId);
+			if (userRoot && safeId) {
+				const dir = `${userRoot}/${safeId}`;
+				if (await this.#fs.exists(dir, { baseDir: BaseDirectory.AppData })) {
+					const remaining = await this.#fs.readDir(dir, {
+						baseDir: BaseDirectory.AppData
 					});
+					if (remaining.length === 0) {
+						await this.#fs.remove(dir, {
+							baseDir: BaseDirectory.AppData,
+							recursive: true
+						});
+					}
 				}
 			}
 		} catch (error) {
 			console.warn('[user-files-cache] failed to remove cache entry', key, error);
 		}
 		delete this.#manifest[key];
+		this.#onDiskKeys.delete(key);
 	}
 
 	async #loadManifest(): Promise<void> {
-		if (this.#manifestLoaded) {
+		const authId = this.#authUserId();
+		const userId =
+			authId ?? sanitizeUserId(this.#loadedUserId) ?? sanitizeUserId(this.#getLastUserId());
+
+		if (!userId) {
+			this.#manifest = {};
+			this.#onDiskKeys.clear();
+			this.#manifestLoaded = false;
+			this.#loadedUserId = null;
+			this.#refreshCachedCount();
 			return;
 		}
+
+		if (this.#manifestLoaded && this.#loadedUserId === userId) {
+			return;
+		}
+
+		this.#manifest = {};
+		this.#onDiskKeys.clear();
+		this.#loadedUserId = userId;
+
+		const userRoot = `${CACHE_ROOT}/${userId}`;
+		const manifestPath = this.#manifestPathFor(userRoot);
+
 		try {
-			const exists = await this.#fs.exists(MANIFEST_PATH, {
+			const exists = await this.#fs.exists(manifestPath, {
 				baseDir: BaseDirectory.AppData
 			});
-			if (!exists) {
-				this.#manifest = {};
-			} else {
-				const raw = await this.#fs.readTextFile(MANIFEST_PATH, {
+			if (exists) {
+				const raw = await this.#fs.readTextFile(manifestPath, {
 					baseDir: BaseDirectory.AppData
 				});
 				const parsed = JSON.parse(raw) as unknown;
-				this.#manifest =
-					parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-						? (parsed as Manifest)
-						: {};
+				if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+					this.#manifest = parsed as Manifest;
+				}
 			}
 		} catch (error) {
 			console.warn('[user-files-cache] failed to load manifest', error);
 			this.#manifest = {};
 		}
+
+		await this.#pruneInvalidAndMissing(userRoot);
 		this.#manifestLoaded = true;
 		this.#refreshCachedCount();
+
+		if (authId) {
+			this.#setLastUserId(authId);
+		}
+	}
+
+	async #pruneInvalidAndMissing(userRoot: string): Promise<void> {
+		let dirty = false;
+		for (const key of Object.keys(this.#manifest)) {
+			const entry = this.#manifest[key];
+			if (!entry) {
+				continue;
+			}
+			const safeId = sanitizeRecordId(entry.recordId);
+			if (
+				!safeId ||
+				!isSafeCacheRelativePath(entry.relativeLocalPath, userRoot)
+			) {
+				delete this.#manifest[key];
+				dirty = true;
+				continue;
+			}
+			try {
+				const exists = await this.#fs.exists(entry.relativeLocalPath, {
+					baseDir: BaseDirectory.AppData
+				});
+				if (!exists) {
+					delete this.#manifest[key];
+					dirty = true;
+					continue;
+				}
+				this.#onDiskKeys.add(key);
+			} catch {
+				delete this.#manifest[key];
+				dirty = true;
+			}
+		}
+		if (dirty) {
+			await this.#saveManifest();
+		}
 	}
 
 	async #saveManifest(): Promise<void> {
-		await this.#fs.mkdir(CACHE_ROOT, {
+		const userRoot = this.#writeUserRoot();
+		if (!userRoot) {
+			return;
+		}
+		const manifestPath = this.#manifestPathFor(userRoot);
+		await this.#fs.mkdir(userRoot, {
 			baseDir: BaseDirectory.AppData,
 			recursive: true
 		});
-		await this.#fs.writeTextFile(MANIFEST_PATH, JSON.stringify(this.#manifest), {
+		await this.#fs.writeTextFile(manifestPath, JSON.stringify(this.#manifest), {
 			baseDir: BaseDirectory.AppData
 		});
 	}
@@ -506,6 +666,6 @@ export class UserFilesCache {
 	}
 
 	#refreshCachedCount(): void {
-		this.cachedCount = Object.keys(this.#manifest).length;
+		this.cachedCount = this.#onDiskKeys.size;
 	}
 }

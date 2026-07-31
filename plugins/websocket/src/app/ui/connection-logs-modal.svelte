@@ -146,7 +146,7 @@
 
 <div class="grid h-[calc(100dvh-13.5rem)] min-h-72 grid-rows-[auto_auto_minmax(0,1fr)] gap-4">
 	<!-- Header -->
-	<div class="flex items-center justify-between gap-3 border-b border-dark-800 pb-2">
+	<div class="flex items-center justify-between gap-3 border-b border-rule pb-2">
 		<div class="min-w-0 flex-1">
 			<h3 class="truncate text-base font-semibold text-dark-50">
 				{connection.name || t('WebSocket Logs')}
@@ -179,12 +179,12 @@
 					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
 					filterDirection === 'all'
 						? 'border-dark-500 bg-dark-600 font-semibold text-dark-50'
-						: 'border-dark-700/60 bg-dark-800/40 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
+						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
 				)}
 				onclick={() => (filterDirection = 'all')}
 			>
 				<span>{t('All')}</span>
-				<span class="rounded bg-dark-900 px-1 py-0.25 font-mono text-[10px] text-dark-400">
+				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
 					{counts.all}
 				</span>
 			</Button>
@@ -198,15 +198,13 @@
 					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
 					filterDirection === 'in'
 						? 'border-success-500/40 bg-success-500/15 font-semibold text-success-300'
-						: 'border-dark-700/60 bg-dark-800/40 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
+						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
 				)}
 				onclick={() => (filterDirection = 'in')}
 			>
 				<Icon icon="ri:arrow-left-down-line" class="size-3.5 text-success-400" />
 				<span>{t('Received')}</span>
-				<span
-					class="rounded bg-dark-900/60 px-1 py-0.25 font-mono text-[10px] text-dark-400"
-				>
+				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
 					{counts.in}
 				</span>
 			</Button>
@@ -220,15 +218,13 @@
 					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
 					filterDirection === 'out'
 						? 'border-primary-500/40 bg-primary-500/15 font-semibold text-primary-300'
-						: 'border-dark-700/60 bg-dark-800/40 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
+						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
 				)}
 				onclick={() => (filterDirection = 'out')}
 			>
 				<Icon icon="ri:arrow-right-up-line" class="size-3.5 text-primary-400" />
 				<span>{t('Sent')}</span>
-				<span
-					class="rounded bg-dark-900/60 px-1 py-0.25 font-mono text-[10px] text-dark-400"
-				>
+				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
 					{counts.out}
 				</span>
 			</Button>
@@ -242,15 +238,13 @@
 					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
 					filterDirection === 'system'
 						? 'border-dark-500/40 bg-dark-500/20 font-semibold text-dark-300'
-						: 'border-dark-700/60 bg-dark-800/40 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
+						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
 				)}
 				onclick={() => (filterDirection = 'system')}
 			>
 				<Icon icon="ri:terminal-line" class="size-3.5 text-dark-400" />
 				<span>{t('System')}</span>
-				<span
-					class="rounded bg-dark-900/60 px-1 py-0.25 font-mono text-[10px] text-dark-400"
-				>
+				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
 					{counts.system}
 				</span>
 			</Button>
@@ -275,14 +269,14 @@
 	<!-- Scrollable Logs Content -->
 	<ScrollArea
 		orientation="vertical"
-		class="border-border-dark-600 h-full min-h-0 overflow-hidden rounded-lg border bg-dark-900 font-mono text-sm leading-normal shadow-inner"
+		class="h-full min-h-0 overflow-hidden rounded-none border border-rule bg-dark-900 font-mono text-sm leading-normal"
 		viewportClasses="h-full"
 	>
 		{#if logs.length === 0}
 			<div
 				class="flex h-full min-h-64 flex-col items-center justify-center px-4 py-12 text-center"
 			>
-				<div class="mb-3 rounded-full bg-dark-800 p-3 text-dark-500">
+				<div class="mb-3 border border-rule bg-dark-800 p-3 text-dark-500">
 					<Icon icon="ri:bubble-chart-line" class="size-8 animate-pulse" />
 				</div>
 				<h4 class="font-sans text-sm font-semibold text-dark-200">
@@ -296,7 +290,7 @@
 			<div
 				class="flex h-full min-h-64 flex-col items-center justify-center px-4 py-12 text-center"
 			>
-				<div class="mb-3 rounded-full bg-dark-800 p-3 text-dark-500">
+				<div class="mb-3 border border-rule bg-dark-800 p-3 text-dark-500">
 					<Icon icon="ri:search-eye-line" class="size-8" />
 				</div>
 				<h4 class="font-sans text-sm font-semibold text-dark-200">
@@ -313,7 +307,7 @@
 					{@const isMultiline = displayMessage.includes('\n')}
 					<div
 						class={cn(
-							'group relative border-b border-dark-800/60 px-4 py-2 transition-colors last:border-b-0',
+							'group relative border-b border-rule px-4 py-2 transition-colors last:border-b-0',
 							directionLineClasses[entry.direction]
 						)}
 					>
@@ -325,7 +319,7 @@
 								type="button"
 								variant="outline"
 								size="icon-sm"
-								class="flex size-7 cursor-pointer items-center justify-center rounded-md border border-dark-700 bg-dark-800 text-dark-400 shadow-md transition-all hover:bg-dark-700 hover:text-dark-100"
+								class="flex size-7 cursor-pointer items-center justify-center rounded-md border border-rule bg-dark-800 text-dark-400 shadow-md transition-all hover:bg-dark-700 hover:text-dark-100"
 								aria-label={copiedId === entry.id ? t('Copied') : t('Copy message')}
 								onclick={() => handleCopy(entry.id, entry.message)}
 								{@attach tooltip(() =>
@@ -371,7 +365,7 @@
 						<!-- Log Content -->
 						{#if isMultiline}
 							<pre
-								class="m-0 mt-1 overflow-x-auto rounded-lg border border-dark-800/40 bg-dark-950/40 p-2.5 font-mono text-xs text-dark-200"><code
+								class="m-0 mt-1 overflow-x-auto rounded-none border border-rule bg-dark-950/40 p-2.5 font-mono text-xs text-dark-200"><code
 									>{displayMessage}</code
 								></pre>
 						{:else}

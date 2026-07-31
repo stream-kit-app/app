@@ -15,7 +15,7 @@ var v = new Set([
 	"onAction",
 	"children",
 	"class"
-]), y = m("<div class=\"relative flex flex-wrap items-center justify-center gap-2\"><!></div>"), b = m("<div><div class=\"relative flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4 overflow-hidden rounded-none border border-dashed border-rule bg-dark-900 px-6 py-16 text-center\"><div class=\"boot-ambient pointer-events-none opacity-30\"></div> <div class=\"relative flex size-16 items-center justify-center border border-rule bg-dark-800 text-primary\"><!></div> <div class=\"relative flex flex-col gap-1.5\"><p class=\"text-lg font-semibold text-dark-50\"> </p> <p class=\"text-sm text-dark-300\"> </p></div> <!></div></div>");
+]), y = m("<div class=\"relative flex flex-wrap items-center justify-center gap-2\"><!></div>"), b = m("<div><div class=\"relative flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4 overflow-hidden rounded-none border border-dashed border-rule bg-dark-950 px-6 py-16 text-center\"><div class=\"pointer-events-none opacity-30\"></div> <div class=\"relative flex size-16 items-center justify-center border border-rule bg-dark-800 text-primary\"><!></div> <div class=\"relative flex flex-col gap-1.5\"><p class=\"text-lg font-semibold text-dark-50\"> </p> <p class=\"text-sm text-dark-300\"> </p></div> <!></div></div>");
 function x(m, x) {
 	t(x, !0);
 	let S = f(x, v);

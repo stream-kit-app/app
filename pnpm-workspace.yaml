@@ -9,3 +9,4 @@ packages:
 onlyBuiltDependencies:
     - '@tailwindcss/oxide'
     - esbuild
+    - workerd

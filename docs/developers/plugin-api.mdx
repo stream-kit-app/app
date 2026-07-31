@@ -414,8 +414,8 @@ const quota = await app.userFiles.getQuota();
 | --- | --- |
 | `isCloudUrl` | Whether a field value is a PocketBase `/api/files/...` ref (relative or absolute) |
 | `isOfflineMirrorEnabled` | Whether this device mirrors cloud files locally (default off) |
-| `resolveLocalPath` | Local filesystem path when mirror is on; authenticated cloud URL when off |
-| `getCachedPath` | Sync lookup of a mirrored path, or `null` when not cached yet |
+| `resolveLocalPath` | Local filesystem path when mirror is on (falls back to authenticated cloud URL if download/cache fails); authenticated cloud URL when off |
+| `getCachedPath` | Sync lookup of a mirrored path confirmed on disk, or `null` when not cached yet |
 | `syncCache` | Background reconcile onto local disk (no-op when mirror is off) |
 | `list` / `upload` / `remove` | Manage the signed-in user’s files |
 | `getQuota` | Used / max storage and max file size for the active plan |

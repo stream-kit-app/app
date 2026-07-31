@@ -50,7 +50,7 @@ Full list with IDs: [OBS triggers](/docs/api/triggers/obs).
 | Filter | Enable/disable/toggle, set settings, create/remove |
 | Scene | Set program/preview scene, transitions, studio mode, virtual cam |
 
-**Set Media Input File** updates `ffmpeg_source`, `vlc_source`, or `media_source` and can wait for playback duration before continuing the chain. Cloud file refs (`/api/files/...`) resolve to a local offline-cache path when **Keep cloud files offline** is enabled, otherwise to an authenticated PocketBase URL, and are set as `local_file` (OBS network mode is avoided because it reconnects and loops finite files).
+**Set Media Input File** updates `ffmpeg_source`, `vlc_source`, or `media_source` and can wait for playback duration before continuing the chain. Cloud file refs (`/api/files/...`) resolve to a local offline-cache path when **Keep cloud files offline** is enabled (with authenticated URL fallback if the file is not on disk yet), otherwise to an authenticated PocketBase URL, and are set as `local_file` (OBS network mode is avoided because it reconnects and loops finite files).
 
 **Get Stream/Record/Media Status** writes action-scoped variables for later handlers (`streamActive`, `recordDuration`, `mediaState`, …).
 

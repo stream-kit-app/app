@@ -5,6 +5,7 @@ const DEVELOPER_MODE_KEY = 'developerMode';
 const PLUGIN_DEV_MODE_KEY = 'pluginDevMode';
 const CHECK_PLUGIN_UPDATES_KEY = 'checkPluginUpdatesOnStartup';
 const OFFLINE_CLOUD_FILES_MIRROR_KEY = 'offlineCloudFilesMirror';
+const OFFLINE_CLOUD_FILES_MIRROR_USER_KEY = 'offlineCloudFilesMirrorUserId';
 
 const store = new LazyStore('app.settings.json');
 
@@ -78,4 +79,18 @@ export async function getOfflineCloudFilesMirror(): Promise<boolean> {
 
 export async function saveOfflineCloudFilesMirror(enabled: boolean): Promise<void> {
 	await store.set(OFFLINE_CLOUD_FILES_MIRROR_KEY, enabled);
+}
+
+/** Last account whose offline cache should stay readable while signed out. */
+export async function getOfflineCloudFilesMirrorUserId(): Promise<string | null> {
+	const value = await store.get<string>(OFFLINE_CLOUD_FILES_MIRROR_USER_KEY);
+	return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+export async function saveOfflineCloudFilesMirrorUserId(userId: string | null): Promise<void> {
+	if (userId && userId.trim()) {
+		await store.set(OFFLINE_CLOUD_FILES_MIRROR_USER_KEY, userId.trim());
+		return;
+	}
+	await store.delete(OFFLINE_CLOUD_FILES_MIRROR_USER_KEY);
 }

@@ -21,3 +21,11 @@ export function usesCloudFileStorage(config: {
 	}
 	return config.storage !== 'local';
 }
+
+/** Signed in with an entitled plan (active or grace) — same gate as Profile cloud files. */
+export function hasCloudFileAccess(auth: {
+	isAuthenticated: boolean;
+	user?: { subscription?: unknown } | null;
+}): boolean {
+	return Boolean(auth.isAuthenticated && auth.user?.subscription);
+}

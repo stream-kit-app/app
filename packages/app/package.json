@@ -11,7 +11,7 @@
     "sync:plugin-host": "node scripts/sync-plugin-host-modules.mjs",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test": "node --experimental-strip-types --test src/lib/core/auth/auth-utils.test.ts src/lib/core/auth/subscription-entitlement.test.ts src/lib/core/config-sync/lww.test.ts src/lib/core/config-sync/sync-loop.test.ts src/lib/core/user-files/mime-from-name.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/core/auth/auth-utils.test.ts src/lib/core/auth/subscription-entitlement.test.ts src/lib/core/config-sync/lww.test.ts src/lib/core/config-sync/sync-loop.test.ts src/lib/core/user-files/mime-from-name.test.ts src/lib/core/user-files/user-files-cache.test.ts",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
     "lint": "eslint .",

@@ -37,8 +37,9 @@ import { buildOverlayProjectZip } from './overlay-export';
 import { importOverlayProjectFromZip } from './overlay-import';
 import {
 	OverlayCloudPublisher,
+	canPublishOverlaysToCloud,
 	cloudOverlayUrl,
-	listPublishedOverlayIds,
+	listCloudOverlayStates,
 	publishOverlayToCloud,
 	resolveSiteUrl,
 	syncOverlayCloudConfig,
@@ -111,6 +112,9 @@ export class OverlayService {
 	/** Overlay ids currently published to the cloud. */
 	cloudPublished: Record<string, boolean> = $state({});
 
+	/** Overlay ids the user unpublished (do not auto-publish again). */
+	cloudOptedOut: Record<string, boolean> = $state({});
+
 	/** Publisher WebSocket connected per overlay id. */
 	cloudPublisherConnected: Record<string, boolean> = $state({});
 
@@ -121,6 +125,8 @@ export class OverlayService {
 	private cloudPublisher: OverlayCloudPublisher | null = null;
 
 	private authUnsub: (() => void) | null = null;
+
+	private ensureCloudPublishPromise: Promise<void> | null = null;
 
 	init(app: App): Promise<void> {
 		this.app = app;
@@ -346,13 +352,24 @@ export class OverlayService {
 			return;
 		}
 
-		const ids = await listPublishedOverlayIds(app);
-		this.cloudPublished = Object.fromEntries(ids.map((id) => [id, true]));
-		this.cloudPublisher.sync(ids);
+		const states = await listCloudOverlayStates(app);
+		this.cloudPublished = Object.fromEntries(
+			states.filter((entry) => entry.published).map((entry) => [entry.overlayId, true])
+		);
+		this.cloudOptedOut = Object.fromEntries(
+			states.filter((entry) => !entry.published).map((entry) => [entry.overlayId, true])
+		);
+		const publishedIds = Object.keys(this.cloudPublished).filter((id) => this.cloudPublished[id]);
+		this.cloudPublisher.sync(publishedIds);
+		void this.ensureEligibleOverlaysPublished();
 	}
 
 	isCloudPublished(overlayId: string): boolean {
 		return Boolean(this.cloudPublished[overlayId]);
+	}
+
+	isCloudOptedOut(overlayId: string): boolean {
+		return Boolean(this.cloudOptedOut[overlayId]);
 	}
 
 	isCloudPublisherConnected(overlayId: string): boolean {
@@ -367,6 +384,89 @@ export class OverlayService {
 		return resolveSiteUrl() != null;
 	}
 
+	canAutoPublishToCloud(): boolean {
+		const app = this.app;
+		return app != null && canPublishOverlaysToCloud(app);
+	}
+
+	private markCloudPublished(overlayId: string): void {
+		const nextOptedOut = { ...this.cloudOptedOut };
+		delete nextOptedOut[overlayId];
+		this.cloudOptedOut = nextOptedOut;
+		this.cloudPublished = { ...this.cloudPublished, [overlayId]: true };
+		this.cloudPublisher?.sync(
+			Object.keys(this.cloudPublished).filter((id) => this.cloudPublished[id])
+		);
+	}
+
+	async ensurePublishedToCloud(overlayId: string): Promise<boolean> {
+		if (!this.canAutoPublishToCloud()) {
+			return false;
+		}
+		if (this.cloudOptedOut[overlayId]) {
+			return false;
+		}
+		if (!this.isBuilt(overlayId)) {
+			return false;
+		}
+
+		const overlay = this.items.find((item) => item.id === overlayId);
+		if (!overlay) {
+			return false;
+		}
+
+		const alreadyPublished = this.isCloudPublished(overlayId);
+		this.cloudBusyId = overlayId;
+		try {
+			await publishOverlayToCloud(this.getApp(), {
+				id: overlayId,
+				name: overlay.name,
+				config: (overlay.config as Record<string, unknown>) ?? {},
+				revision: overlay.version
+			});
+			this.markCloudPublished(overlayId);
+			this.cloudPublisher?.send(overlayId, OVERLAY_SETTINGS_EVENT, overlay.config ?? {});
+			return true;
+		} catch (error) {
+			if (!alreadyPublished) {
+				console.warn('Failed to auto-publish overlay to cloud', overlayId, error);
+			} else {
+				console.warn('Failed to republish overlay bundle', overlayId, error);
+			}
+			return false;
+		} finally {
+			if (this.cloudBusyId === overlayId) {
+				this.cloudBusyId = null;
+			}
+		}
+	}
+
+	async ensureEligibleOverlaysPublished(): Promise<void> {
+		if (this.ensureCloudPublishPromise) {
+			return this.ensureCloudPublishPromise;
+		}
+
+		this.ensureCloudPublishPromise = (async () => {
+			if (!this.canAutoPublishToCloud()) {
+				return;
+			}
+
+			for (const overlay of this.items) {
+				if (this.isCloudPublished(overlay.id) || this.cloudOptedOut[overlay.id]) {
+					continue;
+				}
+				if (!this.isBuilt(overlay.id)) {
+					continue;
+				}
+				await this.ensurePublishedToCloud(overlay.id);
+			}
+		})().finally(() => {
+			this.ensureCloudPublishPromise = null;
+		});
+
+		return this.ensureCloudPublishPromise;
+	}
+
 	async publishToCloud(overlayId: string): Promise<void> {
 		const overlay = this.requireOverlay(overlayId);
 		this.cloudBusyId = overlayId;
@@ -377,8 +477,7 @@ export class OverlayService {
 				config: (overlay.config as Record<string, unknown>) ?? {},
 				revision: overlay.version
 			});
-			this.cloudPublished = { ...this.cloudPublished, [overlayId]: true };
-			this.cloudPublisher?.sync(Object.keys(this.cloudPublished).filter((id) => this.cloudPublished[id]));
+			this.markCloudPublished(overlayId);
 			this.cloudPublisher?.send(overlayId, OVERLAY_SETTINGS_EVENT, overlay.config ?? {});
 		} finally {
 			this.cloudBusyId = null;
@@ -393,6 +492,7 @@ export class OverlayService {
 			const next = { ...this.cloudPublished };
 			delete next[overlayId];
 			this.cloudPublished = next;
+			this.cloudOptedOut = { ...this.cloudOptedOut, [overlayId]: true };
 			this.cloudPublisher?.sync(Object.keys(next).filter((id) => next[id]));
 		} finally {
 			this.cloudBusyId = null;
@@ -488,6 +588,7 @@ export class OverlayService {
 
 		await this.refresh();
 		await this.syncConfigToServer(record.id, record.config);
+		await this.ensurePublishedToCloud(record.id);
 
 		return record;
 	}
@@ -865,18 +966,7 @@ export class OverlayService {
 
 			if (result.success) {
 				await this.refreshBuiltStatus();
-				if (this.isCloudPublished(id)) {
-					try {
-						await publishOverlayToCloud(this.getApp(), {
-							id,
-							name: overlay.name,
-							config: (overlay.config as Record<string, unknown>) ?? {},
-							revision: overlay.version
-						});
-					} catch (error) {
-						console.warn('Failed to republish overlay bundle after build', error);
-					}
-				}
+				await this.ensurePublishedToCloud(id);
 			}
 
 			return result;

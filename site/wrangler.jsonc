@@ -1,0 +1,31 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "stream-kit-site",
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"compatibility_date": "2026-07-31",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": ".svelte-kit/cloudflare"
+	},
+	"vars": {
+		"PUBLIC_POCKETBASE_URL": "https://api.stream-kit.app"
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "OVERLAY_ROOMS",
+				"class_name": "OverlayRoom"
+			}
+		]
+	},
+	"exports": {
+		"OverlayRoom": {
+			"type": "durable-object",
+			"storage": "sqlite"
+		}
+	},
+	"observability": {
+		"enabled": true
+	}
+}

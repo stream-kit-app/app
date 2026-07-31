@@ -8,6 +8,7 @@
 	import Icon from '@iconify/svelte';
 
 	import { Alert } from '@stream-kit/ui/alert';
+	import { panelVariants } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 
 	import { useI18n } from '$lib/i18n';
@@ -60,10 +61,10 @@
 
 	const shellClass = $derived(
 		cn(
-			'group/card @container/widget relative flex min-w-0 flex-col overflow-hidden',
+			panelVariants({ tone: 'flush' }),
+			'group/card @container/widget flex min-w-0 flex-col overflow-hidden',
 			columnSpanClass[instance.columns],
-			'rounded-none border border-rule bg-dark-800 transition-colors hover:bg-dark-900/60',
-			isOverlay && 'shadow-lg',
+			isOverlay && 'bg-background shadow-2xl',
 			className
 		)
 	);
@@ -134,7 +135,7 @@
 		</div>
 	{/if}
 
-	<div class="min-w-0 flex-1 border-t border-rule bg-dark-900/50 px-4 py-3">
+	<div class="min-w-0 flex-1 border-t border-rule px-4 py-3">
 		{#if definition}
 			<DashboardWidgetHost {definition} {unavailable} />
 		{:else}

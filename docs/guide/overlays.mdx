@@ -48,11 +48,13 @@ The overlay server runs inside the desktop app on `127.0.0.1`. The port is shown
 
 ### Cloud browser source
 
-With a signed-in Stream Kit account and an active plan, you can **Publish to cloud** on the overlay configure page. That uploads the built overlay and gives you a public URL:
+With a signed-in Stream Kit account and an active plan, **built overlays publish to the cloud automatically**. You get a public URL on the overlays list and configure page:
 
 `https://stream-kit.app/app/overlays/{overlayId}/`
 
 Use that URL in OBS the same way as the local URL. **Keep the desktop app running** while you stream — live Send-to-Overlay events and settings updates are forwarded from Stream Kit to the cloud page over a WebSocket bridge. When the app is offline, the page still loads but events pause until you reconnect.
+
+You can **Unpublish** from the configure page to remove the public URL; publish again manually if you want it back.
 
 ## Configure page
 

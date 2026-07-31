@@ -216,7 +216,7 @@
 	</div>
 {/snippet}
 
-<div class={cn('grid gap-4', !root && 'rounded-xl border border-dark-600 p-3')}>
+<div class={cn('grid gap-4', !root && 'rounded-none border border-rule p-3')}>
 	{#each group.children as child, index (child.id)}
 		{#if child.kind === 'condition'}
 			{@const config = editor.getConditionDefinition(child.key)}

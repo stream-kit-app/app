@@ -28,14 +28,11 @@
 	}: Props = $props();
 </script>
 
-<div
-	{...restProps}
-	class={cn('box-border flex min-h-full w-full flex-1 flex-col p-6', className)}
->
+<div {...restProps} class={cn('box-border flex min-h-full w-full flex-1 flex-col p-6', className)}>
 	<div
-		class="relative flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4 overflow-hidden rounded-none border border-dashed border-rule bg-dark-900 px-6 py-16 text-center"
+		class="relative flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4 overflow-hidden rounded-none border border-dashed border-rule bg-dark-950 px-6 py-16 text-center"
 	>
-		<div class="boot-ambient pointer-events-none opacity-30"></div>
+		<div class="pointer-events-none opacity-30"></div>
 		<div
 			class="relative flex size-16 items-center justify-center border border-rule bg-dark-800 text-primary"
 		>

@@ -149,11 +149,11 @@
 		<div class="flex flex-col gap-1 text-sm">
 			{#each collections as collection (collection.collectionName)}
 				<div
-					class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 transition hover:bg-dark-700/50"
+					class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5 transition hover:bg-dark-700/50"
 				>
 					<div class="flex min-w-0 items-center gap-3">
 						<div
-							class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+							class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 						>
 							<Icon icon="ri:database-2-line" class="size-4" />
 						</div>
@@ -189,7 +189,7 @@
 		</div>
 	{/if}
 
-	<div class="mt-3 border-t border-dark-700 pt-3">
+	<div class="mt-3 border-t border-rule pt-3">
 		<Button
 			size="sm"
 			icon="ri:add-line"

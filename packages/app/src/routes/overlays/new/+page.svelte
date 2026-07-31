@@ -5,6 +5,7 @@
 
 	import { goto } from '$app/navigation';
 
+	import { Panel } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { InputText } from '@stream-kit/ui/input';
@@ -111,7 +112,7 @@
 			{t('Back to overlays')}
 		</Button>
 
-		<section class="grid gap-6 rounded-xl border border-dark-600 bg-dark-800 p-6">
+		<Panel tone="solid" class="grid gap-6 p-6">
 			<ToggleGroup
 				value={mode}
 				ariaLabel={t('Overlay create mode')}
@@ -142,20 +143,20 @@
 								type="button"
 								aria-pressed={isSelected}
 								class={cn(
-									'group flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left transition-colors',
+									'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
 									isSelected
 										? 'border-primary bg-primary/10 ring-1 ring-primary/40'
-										: 'border-dark-600 bg-dark-900/40 hover:border-dark-500 hover:bg-dark-700/40'
+										: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'
 								)}
 								onclick={() => selectWidget(item.id)}
 							>
 								<div class="flex items-center justify-between gap-2">
 									<div
 										class={cn(
-											'flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
+											'flex size-10 items-center justify-center border border-rule transition-colors',
 											isSelected
 												? 'bg-primary/20 text-primary'
-												: 'bg-dark-700 text-dark-100 group-hover:text-primary'
+												: 'bg-dark-800 text-dark-100 group-hover:text-primary'
 										)}
 									>
 										<Icon icon={item.icon} class="size-5" />
@@ -188,20 +189,20 @@
 								type="button"
 								aria-pressed={isSelected}
 								class={cn(
-									'group flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left transition-colors',
+									'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
 									isSelected
 										? 'border-primary bg-primary/10 ring-1 ring-primary/40'
-										: 'border-dark-600 bg-dark-900/40 hover:border-dark-500 hover:bg-dark-700/40'
+										: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'
 								)}
 								onclick={() => (framework = item.id)}
 							>
 								<div class="flex items-center justify-between gap-2">
 									<div
 										class={cn(
-											'flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
+											'flex size-10 items-center justify-center border border-rule transition-colors',
 											isSelected
 												? 'bg-primary/20 text-primary'
-												: 'bg-dark-700 text-dark-100 group-hover:text-primary'
+												: 'bg-dark-800 text-dark-100 group-hover:text-primary'
 										)}
 									>
 										<Icon icon={getOverlayFrameworkIcon(item.id)} class="size-5" />
@@ -223,7 +224,7 @@
 				</div>
 			{/if}
 
-			<div class="flex flex-wrap items-center justify-end gap-2 border-t border-dark-700 pt-5">
+			<div class="flex flex-wrap items-center justify-end gap-2 border-t border-rule pt-5">
 				<Button variant="outline" onclick={() => goto('/overlays')}>
 					{t('Cancel')}
 				</Button>
@@ -236,6 +237,6 @@
 					{t('Create overlay')}
 				</Button>
 			</div>
-		</section>
+		</Panel>
 	</div>
 </Container>

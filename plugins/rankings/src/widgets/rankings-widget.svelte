@@ -2,6 +2,7 @@
 	import type { PluginWidgetProps } from '@stream-kit/plugin';
 
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
 
 	import { tryGetRankingsService } from '../app/lib/get-rankings';
 	import { RankedUser } from '../app/lib/ranked-user.svelte';
@@ -26,15 +27,15 @@
 	<div class="space-y-3 text-sm">
 		<div class="grid grid-cols-3 gap-2">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Users')}</p>
+				<Eyebrow>{t('Users')}</Eyebrow>
 				<p class="text-xl font-semibold text-dark-50">{stats.totalUsers}</p>
 			</div>
 			<div>
-				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Points')}</p>
+				<Eyebrow>{t('Points')}</Eyebrow>
 				<p class="text-xl font-semibold text-dark-50">{stats.totalPointsAwarded}</p>
 			</div>
 			<div>
-				<p class="text-xs uppercase tracking-wide text-dark-400">{t('Watch time')}</p>
+				<Eyebrow>{t('Watch time')}</Eyebrow>
 				<p class="text-xl font-semibold text-dark-50">
 					{formatWatchTime(stats.totalWatchTimeSeconds)}
 				</p>
@@ -42,7 +43,7 @@
 		</div>
 
 		<div>
-			<p class="text-xs uppercase tracking-wide text-dark-400">{t('Top users')}</p>
+			<Eyebrow>{t('Top users')}</Eyebrow>
 			{#if stats.topUsers.length > 0}
 				<ul class="mt-1.5 flex flex-col gap-0.5">
 					{#each stats.topUsers as user, index (user.userId)}
@@ -50,11 +51,11 @@
 						<li>
 							<button
 								type="button"
-								class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-dark-700/60"
+								class="flex w-full cursor-pointer items-center gap-2.5 rounded-none px-1.5 py-1.5 text-left transition-colors hover:bg-dark-700/60"
 								onclick={() => openUser(user)}
 							>
 								<span
-									class="grid size-7 shrink-0 place-items-center rounded-md bg-dark-800 text-xs font-medium text-dark-300"
+									class="grid size-7 shrink-0 place-items-center border border-rule text-xs font-medium text-dark-300"
 									aria-hidden="true"
 								>
 									{index + 1}

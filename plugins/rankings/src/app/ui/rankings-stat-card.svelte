@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 
+	import { Panel } from '@stream-kit/ui/blueprint';
+
 	type Props = {
 		icon: string;
 		value: string | number;
@@ -11,7 +13,7 @@
 	let { icon, value, label, description }: Props = $props();
 </script>
 
-<div class="rounded-xl border border-dark-600 bg-dark-800 p-4">
+<Panel tone="solid" class="p-4">
 	<div class="flex items-start gap-3">
 		<div
 			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
@@ -27,4 +29,4 @@
 			{/if}
 		</div>
 	</div>
-</div>
+</Panel>
