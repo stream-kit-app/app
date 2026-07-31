@@ -1,5 +1,11 @@
 # @stream-kit/pocketbase
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- [`89ac6b2`](https://github.com/stream-kit-app/app/commit/89ac6b2a31e3db09db2ab5d2d838c47ea691d887) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Fix cloud file uploads rejecting signed-in users: move auth, ownership, metadata, and quota checks from `onRecordCreate` (no request auth) to `onRecordCreateRequest`.
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes
