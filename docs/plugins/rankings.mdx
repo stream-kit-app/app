@@ -20,7 +20,7 @@ Open **Rankings** in the sidebar:
 | Page | Description |
 | --- | --- |
 | **Overview** | Stats (including total watch time), top users, tier distribution |
-| **Tiers & Ranks** | Create tiers and rank milestones (global point thresholds). Click a rank to edit its name, points, or custom icon. |
+| **Tiers & Ranks** | Create tiers and rank milestones (global point thresholds). Click a rank to edit its name, points, icon, or see who holds it. |
 | **Leaderboard** | Search users, adjust points manually, remove users, or ignore them so they stop earning points |
 
 ## Progression
@@ -36,14 +36,15 @@ On **Tiers & Ranks**, click a rank to edit:
 
 - **Name** and **points required**
 - **Icon** — choose **Iconify** (class such as `ri:medal-line`) or **File** (upload an image/SVG). Raster images larger than 40×40 are resized automatically; SVGs keep their vector data and display at up to 40×40.
+- **Users in this rank** — a sorted list of everyone currently at that milestone (points, watch time, platform). Click a user to open their detail modal.
 
 ## Watch time
 
-When **Watch time rewards** is enabled (plugin settings), the plugin tracks active Twitch chatters via the Helix chatters list (with IRC join/part as a supplement) and awards points on a configurable interval. Twitch must be connected; reconnect Twitch after updating Stream Kit if watch time stayed at `0m`.
+When **Watch time rewards** is enabled (plugin settings), the plugin tracks active Twitch chatters via the Helix chatters list (with IRC join/part as a supplement) and awards points on a configurable interval **only while your Twitch channel is live**. Offline chatters do not earn watch-time points or rank ups from this path. Twitch must be connected; reconnect Twitch after updating Stream Kit if watch time stayed at `0m`.
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| Watch time rewards | on | Enable automatic watch-time points |
+| Watch time rewards | on | Enable automatic watch-time points while live |
 | Points per minute | `1` | Points earned per full minute watched |
 | Award interval (seconds) | `60` | How often active chatters are evaluated |
 | Leaderboard size | `10` | Default size for leaderboard commands |

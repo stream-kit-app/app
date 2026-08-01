@@ -64,13 +64,14 @@ export class Rank {
 			modal = app.modal.create({
 				id: this.modalId,
 				title,
-				size: 'sm',
+				size: 'md',
 				content: RankForm,
 				footer: RankFormFooter,
 				props: { rank: this }
 			});
 		} else {
 			modal.title = title;
+			modal.size = 'md';
 			modal.props = { rank: this };
 		}
 

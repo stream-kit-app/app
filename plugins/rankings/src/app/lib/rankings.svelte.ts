@@ -2,10 +2,12 @@ import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 
 import type { RankingsEventContext, RankingsEventMap, RankingsStats } from '../../lib/contexts';
+import { DEFAULT_RANK_ICON, resolveOverlayRankIcon } from '../../lib/rank-icon';
 import {
 	clampPoints,
 	didRankChange,
 	didTierAdvance,
+	isLastRankInTier,
 	orderRanks,
 	resolveProgress,
 	sortUsersByPoints
@@ -75,6 +77,7 @@ export class RankingsService {
 	>();
 	private recordUnsubscribers: Array<() => void> = [];
 	private isPersistingRecords = false;
+	private overlayIconCache = new Map<string, string>();
 
 	bind(store: PluginStore, app: PluginAppApi): void {
 		this.store = store;
@@ -227,6 +230,7 @@ export class RankingsService {
 				tierId: tierIds.get(rank.tierId) ?? rank.tierId
 			}));
 			this.ranks = await saveRanks(app, this.ranks);
+			this.overlayIconCache.clear();
 		});
 	}
 
@@ -562,6 +566,8 @@ export class RankingsService {
 		currentProgress: RankProgress
 	): RankingsEventContext {
 		const { channel, broadcasterId } = this.resolveTwitchChatFields();
+		const ordered = this.getOrderedRanks();
+		const lastInTier = isLastRankInTier(currentProgress.rank, currentProgress.tier, ordered);
 
 		return {
 			userId: user.userId,
@@ -578,18 +584,34 @@ export class RankingsService {
 			currentRank: currentProgress.rank?.name ?? 'None',
 			previousTier: previousProgress.tier?.name ?? 'None',
 			currentTier: currentProgress.tier?.name ?? 'None',
+			currentRankIcon: currentProgress.rank?.icon?.trim() || DEFAULT_RANK_ICON,
+			currentRankColor: currentProgress.rank?.color?.trim() || '',
+			isLastRankInTier: lastInTier ? 'true' : 'false',
 			channel,
 			broadcasterId
 		};
 	}
 
-	private applyPointsMutation(
+	async resolveOverlayIcon(icon: string | undefined): Promise<string> {
+		const key = icon?.trim() || DEFAULT_RANK_ICON;
+		const cached = this.overlayIconCache.get(key);
+
+		if (cached) {
+			return cached;
+		}
+
+		const resolved = await resolveOverlayRankIcon(key, this.app?.userFiles ?? null);
+		this.overlayIconCache.set(key, resolved);
+		return resolved;
+	}
+
+	private async applyPointsMutation(
 		user: UserRankingRecord,
 		nextPoints: number,
 		amount: number,
 		source: string,
 		historyKind?: PointHistoryKind
-	): PointsMutationResult {
+	): Promise<PointsMutationResult> {
 		const ordered = this.getOrderedRanks();
 		const previousPoints = user.totalPoints;
 		const previousProgress = resolveProgress(previousPoints, ordered);
@@ -621,6 +643,10 @@ export class RankingsService {
 			previousProgress,
 			currentProgress
 		);
+
+		if (rankChanged || tierAdvanced) {
+			context.currentRankIcon = await this.resolveOverlayIcon(currentProgress.rank?.icon);
+		}
 
 		if (amount > 0) {
 			this.emit('points-earned', context);
@@ -657,7 +683,7 @@ export class RankingsService {
 		}
 
 		const user = this.upsertUser(input);
-		const result = this.applyPointsMutation(
+		const result = await this.applyPointsMutation(
 			user,
 			user.totalPoints + clampPoints(input.amount),
 			clampPoints(input.amount),
@@ -682,7 +708,7 @@ export class RankingsService {
 
 		const user = this.upsertUser(input);
 		const amount = clampPoints(input.amount) - user.totalPoints;
-		const result = this.applyPointsMutation(
+		const result = await this.applyPointsMutation(
 			user,
 			clampPoints(input.amount),
 			amount,
@@ -709,7 +735,7 @@ export class RankingsService {
 
 		const requested = clampPoints(input.amount);
 		const removed = Math.min(requested, user.totalPoints);
-		const result = this.applyPointsMutation(
+		const result = await this.applyPointsMutation(
 			user,
 			user.totalPoints - removed,
 			-removed,

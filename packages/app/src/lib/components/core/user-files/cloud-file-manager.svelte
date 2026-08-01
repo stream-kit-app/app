@@ -108,7 +108,7 @@
 		try {
 			await settings.setOfflineCloudFilesMirror(enabled);
 			if (enabled) {
-				void app.userFiles.syncCache();
+				void app.userFiles.syncCache({ notify: true });
 			}
 		} catch (err) {
 			app.toast.create({

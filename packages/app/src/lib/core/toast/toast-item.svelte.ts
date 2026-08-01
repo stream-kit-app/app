@@ -2,12 +2,18 @@ import type { Component } from 'svelte';
 
 export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'neutral';
 
+export type ToastProgress = {
+	done: number;
+	total: number;
+};
+
 export type ToastItemProps = {
 	id: string;
 	title: string;
 	description?: string;
 	variant?: ToastVariant;
 	duration?: number;
+	progress?: ToastProgress;
 	content?: Component<any>;
 	props?: Record<string, unknown>;
 	onDismiss?: () => void;
@@ -18,6 +24,8 @@ export type ToastItemUpdateProps = {
 	description?: string;
 	variant?: ToastVariant;
 	duration?: number;
+	/** Pass `undefined` to clear the progress bar. */
+	progress?: ToastProgress | undefined;
 };
 
 export class ToastItem {
@@ -25,6 +33,7 @@ export class ToastItem {
 	public title = $state('');
 	public description = $state<string | undefined>(undefined);
 	public variant = $state<ToastVariant>('default');
+	public progress = $state<ToastProgress | undefined>(undefined);
 	public duration: number;
 	public content?: Component;
 	public props: Record<string, unknown>;
@@ -37,6 +46,7 @@ export class ToastItem {
 		this.title = props.title;
 		this.description = props.description;
 		this.variant = props.variant ?? 'default';
+		this.progress = props.progress;
 		this.duration = props.duration ?? 5000;
 		this.content = props.content;
 		this.props = props.props ?? {};
@@ -54,6 +64,9 @@ export class ToastItem {
 		}
 		if (props.variant !== undefined) {
 			this.variant = props.variant;
+		}
+		if ('progress' in props) {
+			this.progress = props.progress;
 		}
 		if (props.duration !== undefined) {
 			this.duration = props.duration;

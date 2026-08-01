@@ -135,6 +135,16 @@ export function countUsersByRank(
 	return counts;
 }
 
+export function usersForRank(
+	users: UserRankingRecord[],
+	rankId: string,
+	ordered: OrderedRankEntry[]
+): UserRankingRecord[] {
+	return sortUsersByPoints(
+		users.filter((user) => resolveProgress(user.totalPoints, ordered).rank?.id === rankId)
+	);
+}
+
 export function clampPoints(value: number): number {
 	if (!Number.isFinite(value)) {
 		return 0;

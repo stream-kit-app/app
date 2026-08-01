@@ -3,8 +3,8 @@
 	import type { RankedUser } from '../lib/ranked-user.svelte';
 
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 	import { DataTable } from '@stream-kit/ui/data-table';
-	import { Panel } from '@stream-kit/ui/blueprint';
 
 	import { formatWatchTime } from '../../lib/extract-user';
 	import { orderRanks, resolveProgress } from '../../lib/ranking-engine';
@@ -85,20 +85,20 @@
 {/snippet}
 
 {#if user && progress}
-	<div class="flex flex-col gap-4">
+	<div class="flex flex-col gap-6">
 		<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 			<RankingsStatCard icon="ri:coin-line" value={user.totalPoints} label={t('Points')} />
-			<Panel tone="solid" class="p-4">
-				<div class="flex items-start gap-3">
+			<Panel tone="flush" class="p-3">
+				<div class="flex min-w-0 items-start gap-2.5">
 					<div
-						class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+						class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 						aria-hidden="true"
 					>
-						<span class="text-sm font-semibold">#</span>
+						<span class="text-xs font-semibold">#</span>
 					</div>
-					<div class="min-w-0 flex-1 space-y-1.5">
-						<p class="text-sm text-dark-100">{t('Rank')}</p>
-						<div class="flex flex-wrap items-center gap-1.5">
+					<div class="min-w-0 flex-1 space-y-1">
+						<p class="truncate text-xs text-dark-300">{t('Rank')}</p>
+						<div class="flex flex-wrap items-center gap-1">
 							{#if progress.rank}
 								<Badge variant="secondary" size="sm">{progress.rank.name}</Badge>
 							{:else}
@@ -127,18 +127,20 @@
 			/>
 		</div>
 
-		<DataTable
-			data={history}
-			getRowKey={(entry) => entry.id}
-			title={t('Point history')}
-			empty={t('No point history yet.')}
-			columns={[
-				{ id: 'when', header: t('When'), cell: whenCell },
-				{ id: 'source', header: t('Source'), cell: sourceCell },
-				{ id: 'change', header: t('Change'), align: 'right', cell: changeCell },
-				{ id: 'total', header: t('Total after'), align: 'right', cell: totalCell }
-			]}
-		/>
+		<div class="flex flex-col gap-3">
+			<Eyebrow>{t('Point history')}</Eyebrow>
+			<DataTable
+				data={history}
+				getRowKey={(entry) => entry.id}
+				empty={t('No point history yet.')}
+				columns={[
+					{ id: 'when', header: t('When'), cell: whenCell },
+					{ id: 'source', header: t('Source'), cell: sourceCell },
+					{ id: 'change', header: t('Change'), align: 'right', cell: changeCell },
+					{ id: 'total', header: t('Total after'), align: 'right', cell: totalCell }
+				]}
+			/>
+		</div>
 	</div>
 {:else}
 	<p class="text-sm text-dark-300">{t('User not found.')}</p>

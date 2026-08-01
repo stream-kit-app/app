@@ -54,6 +54,25 @@ function isSafeRelativePath(path: string): boolean {
 	return !parts.some((part) => part === '..');
 }
 
+/**
+ * Vite builds overlays with `base: './'`. SvelteKit serves the page without a trailing
+ * slash (`/app/overlays/{id}`), so relative `./assets/...` would resolve to
+ * `/app/overlays/assets/...`. Inject `<base>` so assets stay under the overlay id.
+ */
+function withOverlayBaseHref(html: Uint8Array, overlayId: string): Uint8Array {
+	const text = new TextDecoder('utf-8').decode(html);
+	const baseHref = `/app/overlays/${encodeURIComponent(overlayId)}/`;
+	if (/<base\b/i.test(text)) {
+		return html;
+	}
+	const tag = `<base href="${baseHref}" />`;
+	const withHead = text.replace(/<head([^>]*)>/i, `<head$1>${tag}`);
+	if (withHead !== text) {
+		return new TextEncoder().encode(withHead);
+	}
+	return new TextEncoder().encode(`${tag}${text}`);
+}
+
 function bundleUrl(record: UserOverlaysResponse): string {
 	const base = PUBLIC_POCKETBASE_URL.replace(/\/$/, '');
 	const filename = String(record.bundle);
@@ -113,11 +132,15 @@ export class OverlaysService extends Service {
 			for (const candidate of candidates) {
 				const bytes = files.get(candidate);
 				if (bytes) {
+					const contentType = contentTypeForPath(candidate);
+					const body = contentType.startsWith('text/html')
+						? withOverlayBaseHref(bytes, uuid)
+						: bytes;
 					return fromPromise(
 						Promise.resolve({
 							path: candidate,
-							bytes,
-							contentType: contentTypeForPath(candidate)
+							bytes: body,
+							contentType
 						}),
 						(error) => this.error(2001, 'OVERLAY_ASSET_FAILED', error)
 					);

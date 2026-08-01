@@ -624,8 +624,11 @@ interface PluginAppUserFilesApi {
 	 * not cached yet / missing from disk.
 	 */
 	getCachedPath(value: string): string | null;
-	/** Background reconcile of the full cloud library onto local disk (no-op when mirror is off). */
-	syncCache(): Promise<void>;
+	/**
+	 * Background reconcile of the full cloud library onto local disk (no-op when mirror is off).
+	 * Pass `{ notify: true }` to show the offline-sync progress toast.
+	 */
+	syncCache(options?: { notify?: boolean }): Promise<void>;
 	/** List the signed-in user's cloud files (optional mime/extension filters). */
 	list(options?: PluginAppUserFilesListOptions): Promise<PluginAppUserFileRecord[]>;
 	/** Upload a file/blob; requires auth + entitled subscription within plan limits. */

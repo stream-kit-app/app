@@ -10,15 +10,20 @@
 
 	type Props = {
 		icon?: string;
+		size?: 'sm' | 'md';
 		class?: string;
 	};
 
-	let { icon, class: className }: Props = $props();
+	let { icon, size = 'md', class: className }: Props = $props();
 
 	const app = getRankingsService().requireApp();
 	const kind = $derived(getRankIconKind(icon));
 	let resolvedSrc = $state<string | null>(null);
 	let objectUrl = $state<string | null>(null);
+
+	const shellSizeClass = $derived(size === 'sm' ? 'size-8' : 'size-10');
+	const glyphSizeClass = $derived(size === 'sm' ? 'size-4' : 'size-5');
+	const imageMaxClass = $derived(size === 'sm' ? 'max-h-8 max-w-8' : 'max-h-10 max-w-10');
 
 	function clearObjectUrl(): void {
 		if (objectUrl) {
@@ -72,14 +77,19 @@
 
 <div
 	class={cn(
-		'flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary',
+		'flex shrink-0 items-center justify-center border border-rule text-primary',
+		shellSizeClass,
 		className
 	)}
 	aria-hidden="true"
 >
 	{#if kind === 'image' && resolvedSrc}
-		<img src={resolvedSrc} alt="" class="size-full max-h-10 max-w-10 object-contain p-1" />
+		<img
+			src={resolvedSrc}
+			alt=""
+			class={cn('size-full object-contain p-1', imageMaxClass)}
+		/>
 	{:else}
-		<Icon icon={icon?.trim() || DEFAULT_RANK_ICON} class="size-5" />
+		<Icon icon={icon?.trim() || DEFAULT_RANK_ICON} class={glyphSizeClass} />
 	{/if}
 </div>

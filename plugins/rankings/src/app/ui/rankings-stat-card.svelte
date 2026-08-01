@@ -13,19 +13,24 @@
 	let { icon, value, label, description }: Props = $props();
 </script>
 
-<Panel tone="solid" class="p-4">
-	<div class="flex items-start gap-3">
+<Panel tone="flush" class="p-3">
+	<div class="flex min-w-0 items-start gap-2.5">
 		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+			class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 			aria-hidden="true"
 		>
-			<Icon {icon} class="size-5" />
+			<Icon {icon} class="size-4" />
 		</div>
 		<div class="min-w-0 flex-1">
-			<p class="text-2xl font-semibold text-dark-50">{value}</p>
-			<p class="text-sm text-dark-100">{label}</p>
+			<p
+				class="truncate font-mono text-base font-semibold tabular-nums tracking-tight text-dark-50"
+				title={String(value)}
+			>
+				{value}
+			</p>
+			<p class="truncate text-xs text-dark-300">{label}</p>
 			{#if description}
-				<p class="mt-0.5 text-xs text-dark-300">{description}</p>
+				<p class="mt-0.5 truncate text-xs text-dark-400">{description}</p>
 			{/if}
 		</div>
 	</div>

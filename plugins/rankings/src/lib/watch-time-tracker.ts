@@ -31,6 +31,9 @@ type TwitchPluginApi = {
 				pagination?: { after?: string; limit?: number }
 			): Promise<{ data: HelixChatChatter[]; cursor?: string | null }>;
 		};
+		streams?: {
+			getStreamByUserId(userId: string): Promise<unknown | null>;
+		};
 	};
 	subscribe?(listener: () => void): () => void;
 };
@@ -201,6 +204,21 @@ export class WatchTimeTracker {
 		this.bindJoinPart();
 	}
 
+	/** Watch-time points only while the Twitch channel is live (same Helix check as bot timers). */
+	private async isTwitchLive(twitch: TwitchPluginApi): Promise<boolean> {
+		if (!twitch.userId || !twitch.client?.streams?.getStreamByUserId) {
+			return false;
+		}
+
+		try {
+			const stream = await twitch.client.streams.getStreamByUserId(twitch.userId);
+			return stream != null;
+		} catch (error) {
+			console.warn('[rankings] Failed to check Twitch live status for watch time', error);
+			return false;
+		}
+	}
+
 	private async syncChattersFromHelix(twitch: TwitchPluginApi): Promise<void> {
 		const broadcasterId = twitch.userId;
 		const client = twitch.client;
@@ -271,6 +289,10 @@ export class WatchTimeTracker {
 		const twitch = this.getTwitch();
 
 		if (!twitch?.isConnected) {
+			return;
+		}
+
+		if (!(await this.isTwitchLive(twitch))) {
 			return;
 		}
 

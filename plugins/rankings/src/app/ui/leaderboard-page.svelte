@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
-	import Icon from '@iconify/svelte';
-
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
@@ -15,6 +13,7 @@
 	import { orderRanks, resolveProgress, sortUsersByPoints } from '../../lib/ranking-engine';
 	import { tryGetRankingsService } from '../lib/get-rankings';
 	import { RankedUser } from '../lib/ranked-user.svelte';
+	import RankIcon from './rank-icon.svelte';
 
 	let { app, title: _title, description: _description }: PluginCustomViewProps = $props();
 
@@ -36,17 +35,6 @@
 
 		return leaderboard.filter((user) => user.username.toLowerCase().includes(query));
 	});
-
-	function platformIcon(platform: 'twitch' | 'youtube' | 'unknown'): string {
-		switch (platform) {
-			case 'twitch':
-				return 'ri:twitch-line';
-			case 'youtube':
-				return 'ri:youtube-line';
-			default:
-				return 'ri:user-line';
-		}
-	}
 
 	function getEditValue(userId: string, currentPoints: number) {
 		return editPoints[userId] ?? String(currentPoints);
@@ -228,17 +216,12 @@
 									onclick={() => openUser(user)}
 								>
 									<span
-										class="grid size-8 shrink-0 place-items-center rounded-md bg-dark-900 text-xs font-medium text-dark-300"
+										class="grid size-8 shrink-0 place-items-center border border-rule text-xs font-medium text-dark-300"
 										aria-hidden="true"
 									>
 										{index + 1}
 									</span>
-									<div
-										class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
-										aria-hidden="true"
-									>
-										<Icon icon={platformIcon(user.platform)} class="size-5" />
-									</div>
+									<RankIcon icon={progress.rank?.icon} />
 									<div class="min-w-0 flex-1">
 										<p class="truncate font-medium text-dark-50 group-hover:text-primary">
 											{user.username}
@@ -329,12 +312,7 @@
 								class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-dark-700/40"
 							>
 								<div class="flex min-w-0 items-center gap-3">
-									<div
-										class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-dark-300"
-										aria-hidden="true"
-									>
-										<Icon icon={platformIcon(user.platform)} class="size-5" />
-									</div>
+									<RankIcon />
 									<div class="min-w-0">
 										<p class="truncate font-medium text-dark-50">{user.username}</p>
 										<p class="truncate text-sm text-dark-300">{t('Ignored')}</p>

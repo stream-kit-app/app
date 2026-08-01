@@ -111,7 +111,7 @@ const plugin: Plugin = (app) => {
 			{
 				type: 'switch',
 				name: 'Watch time rewards',
-				description: 'Award points to active Twitch chatters automatically.',
+				description: 'Award points to active Twitch chatters while you are live.',
 				defaultValue: true
 			},
 			{

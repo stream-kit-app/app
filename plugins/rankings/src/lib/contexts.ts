@@ -25,6 +25,15 @@ export type RankingsEventContext = {
 	previousTier: string;
 	/** Current tier name (`None` when none). */
 	currentTier: string;
+	/** Current rank icon (Iconify id or image URL). Empty when unranked. */
+	currentRankIcon: string;
+	/** Current rank accent color, if configured. */
+	currentRankColor: string;
+	/**
+	 * `'true'` when the current rank is the highest rank within its tier
+	 * (e.g. the final “level” of that tier). Otherwise `'false'`.
+	 */
+	isLastRankInTier: string;
 	/** Connected Twitch channel login — used by Twitch Send Message / As bot. */
 	channel?: string;
 	broadcasterId?: string;

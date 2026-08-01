@@ -42,5 +42,5 @@ export function overlayBrowserSourceUrl(baseUrl: string, overlayId: string): str
 export function overlayCloudBrowserSourceUrl(siteUrl: string, overlayId: string): string {
 	const normalized = siteUrl.replace(/\/$/, '');
 
-	return `${normalized}/app/overlays/${overlayId}/`;
+	return `${normalized}/app/overlays/${overlayId}`;
 }

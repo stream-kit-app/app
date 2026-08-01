@@ -3,6 +3,13 @@ export const RANK_ICON_MAX_SIZE = 40;
 
 export type RankIconKind = 'iconify' | 'image' | 'empty';
 
+export type RankIconUserFiles = {
+	isCloudUrl(value: string | null | undefined): boolean;
+	fetchBlob(url: string): Promise<Blob>;
+	resolveUrl(value: string): string;
+	resolveAuthenticatedUrl?(value: string): Promise<string>;
+};
+
 export function getRankIconKind(icon: string | undefined | null): RankIconKind {
 	if (icon == null || !icon.trim()) {
 		return 'empty';
@@ -91,4 +98,74 @@ export async function fileBytesToRankIcon(bytes: Uint8Array, path: string): Prom
 export async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
 	const response = await fetch(dataUrl);
 	return response.blob();
+}
+
+export async function blobToDataUrl(blob: Blob): Promise<string> {
+	const buffer = await blob.arrayBuffer();
+	const bytes = new Uint8Array(buffer);
+	let binary = '';
+
+	for (let i = 0; i < bytes.length; i += 1) {
+		binary += String.fromCharCode(bytes[i]!);
+	}
+
+	const mime = blob.type.trim() || 'image/png';
+	return `data:${mime};base64,${btoa(binary)}`;
+}
+
+/**
+ * Make a rank icon usable in OBS overlays.
+ * Iconify ids stay as-is; cloud / relative image refs become data URLs.
+ */
+export async function resolveOverlayRankIcon(
+	icon: string | undefined | null,
+	userFiles?: RankIconUserFiles | null
+): Promise<string> {
+	const trimmed = icon?.trim() || '';
+
+	if (!trimmed) {
+		return DEFAULT_RANK_ICON;
+	}
+
+	const kind = getRankIconKind(trimmed);
+
+	if (kind === 'iconify') {
+		return trimmed;
+	}
+
+	if (trimmed.startsWith('data:image/')) {
+		return trimmed;
+	}
+
+	if (/^https?:\/\//i.test(trimmed)) {
+		return trimmed;
+	}
+
+	if (userFiles?.isCloudUrl(trimmed)) {
+		try {
+			const blob = await userFiles.fetchBlob(trimmed);
+			return await blobToDataUrl(blob);
+		} catch {
+			try {
+				if (userFiles.resolveAuthenticatedUrl) {
+					return await userFiles.resolveAuthenticatedUrl(trimmed);
+				}
+
+				return userFiles.resolveUrl(trimmed);
+			} catch {
+				return DEFAULT_RANK_ICON;
+			}
+		}
+	}
+
+	// Relative / unrecognized image path — prefer absolute cloud URL when possible.
+	if (userFiles) {
+		try {
+			return userFiles.resolveUrl(trimmed);
+		} catch {
+			return DEFAULT_RANK_ICON;
+		}
+	}
+
+	return DEFAULT_RANK_ICON;
 }

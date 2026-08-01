@@ -2,6 +2,7 @@ import type { ConditionGroupNode, TriggerDefinitionProps } from '@stream-kit/plu
 
 import type { RankingsService } from '../app/lib/rankings.svelte';
 import type { RankingsEventContext } from '../lib/contexts';
+import { DEFAULT_RANK_ICON, getRankIconKind } from '../lib/rank-icon';
 import {
 	createActivate,
 	createDeactivate,
@@ -28,6 +29,19 @@ function minimumAmountCondition() {
 	};
 }
 
+function lastRankInTierCondition() {
+	return {
+		key: 'last-rank-in-tier',
+		name: 'Last rank in tier',
+		type: 'select' as const,
+		items: [
+			{ value: '', label: 'Any' },
+			{ value: 'true', label: 'Yes' },
+			{ value: 'false', label: 'No' }
+		]
+	};
+}
+
 function validateRankingsEvent(conditions: ConditionGroupNode, context: unknown): boolean {
 	const event = context as RankingsEventContext;
 
@@ -51,8 +65,33 @@ function validateRankingsEvent(conditions: ConditionGroupNode, context: unknown)
 			}
 
 			return event.amount >= minimum;
+		},
+		'last-rank-in-tier': (value) => {
+			if (typeof value !== 'string' || !value.trim()) {
+				return true;
+			}
+
+			return event.isLastRankInTier === value.trim().toLowerCase();
 		}
 	});
+}
+
+function resolveTestRankIcon(rankings: RankingsService, icon: string | undefined): string {
+	const rawIcon = icon?.trim() || DEFAULT_RANK_ICON;
+
+	if (getRankIconKind(rawIcon) !== 'image' || rawIcon.startsWith('data:image/')) {
+		return rawIcon;
+	}
+
+	if (!rankings.isReady) {
+		return rawIcon;
+	}
+
+	try {
+		return rankings.requireApp().userFiles.resolveUrl(rawIcon);
+	} catch {
+		return rawIcon;
+	}
 }
 
 function createTestContext(rankings: RankingsService): RankingsEventContext {
@@ -79,6 +118,9 @@ function createTestContext(rankings: RankingsService): RankingsEventContext {
 		currentRank: currentProgress.rank?.name ?? 'None',
 		previousTier: previousProgress.tier?.name ?? 'None',
 		currentTier: currentProgress.tier?.name ?? 'None',
+		currentRankIcon: resolveTestRankIcon(rankings, currentProgress.rank?.icon),
+		currentRankColor: currentProgress.rank?.color?.trim() || '',
+		isLastRankInTier: 'false',
 		channel: chat.channel,
 		broadcasterId: chat.broadcasterId
 	};
@@ -101,7 +143,7 @@ export function createPointsEarnedTrigger(rankings: RankingsService): TriggerDef
 export function createRankChangedTrigger(rankings: RankingsService): TriggerDefinitionProps {
 	return {
 		name: 'Rank changed',
-		conditions: [sourceCondition()],
+		conditions: [sourceCondition(), lastRankInTierCondition()],
 		validate: (conditions, context) => validateRankingsEvent(conditions, context),
 		activate: createActivate<RankingsEventContext>(
 			(listener) => rankings.subscribe('rank-changed', listener),

@@ -8,6 +8,7 @@
 	import { orderRanks, resolveProgress } from '../../lib/ranking-engine';
 	import { tryGetRankingsService } from '../lib/get-rankings';
 	import { RankedUser } from '../lib/ranked-user.svelte';
+	import RankIcon from './rank-icon.svelte';
 	import RankingsSectionCard from './rankings-section-card.svelte';
 	import RankingsStatCard from './rankings-stat-card.svelte';
 
@@ -71,11 +72,12 @@
 										onclick={() => openUser(user)}
 									>
 										<span
-											class="grid size-8 shrink-0 place-items-center rounded-md bg-dark-800 text-xs font-medium text-dark-300"
+											class="grid size-8 shrink-0 place-items-center border border-rule text-xs font-medium text-dark-300"
 											aria-hidden="true"
 										>
 											{index + 1}
 										</span>
+										<RankIcon icon={progress.rank?.icon} size="sm" />
 										<span class="min-w-0 flex-1 truncate font-medium text-dark-50">
 											{user.username}
 										</span>

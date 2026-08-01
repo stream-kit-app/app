@@ -6,6 +6,7 @@
 
 	import { tryGetRankingsService } from '../app/lib/get-rankings';
 	import { RankedUser } from '../app/lib/ranked-user.svelte';
+	import RankIcon from '../app/ui/rank-icon.svelte';
 	import { formatWatchTime } from '../lib/extract-user';
 	import { orderRanks, resolveProgress } from '../lib/ranking-engine';
 
@@ -60,6 +61,7 @@
 								>
 									{index + 1}
 								</span>
+								<RankIcon icon={progress.rank?.icon} size="sm" />
 								<span class="min-w-0 flex-1 truncate font-medium text-dark-50">
 									{user.username}
 								</span>

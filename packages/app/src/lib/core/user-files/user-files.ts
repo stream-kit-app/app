@@ -123,6 +123,8 @@ export class UserFiles {
 	/** Coalesce concurrent getToken calls (PocketBase auto-cancels duplicate keys). */
 	#fileTokenPromise: Promise<string> | null = null;
 	#isOfflineMirrorEnabled: () => boolean;
+	/** Only true while a sync started with `{ notify: true }` is in flight. */
+	#syncToastEnabled = false;
 	#syncToastDismissTimer: ReturnType<typeof setTimeout> | null = null;
 	readonly cache: UserFilesCache;
 
@@ -161,36 +163,44 @@ export class UserFiles {
 	}
 
 	#onSyncProgress(done: number, total: number): void {
-		if (!this.#toast || total <= 0) {
+		if (!this.#syncToastEnabled || !this.#toast || total <= 0) {
 			return;
 		}
 		this.#clearSyncToastDismissTimer();
 		const title = translate('Offline sync');
-		const description = `${done} / ${total}`;
+		const progress = { done, total };
 		if (this.#toast.get(OFFLINE_SYNC_TOAST_ID)) {
-			this.#toast.update(OFFLINE_SYNC_TOAST_ID, { title, description, variant: 'neutral' });
+			this.#toast.update(OFFLINE_SYNC_TOAST_ID, { title, progress, variant: 'neutral' });
 			return;
 		}
 		this.#toast.create({
 			id: OFFLINE_SYNC_TOAST_ID,
 			title,
-			description,
+			progress,
 			variant: 'neutral',
 			duration: 0
 		});
 	}
 
 	#onSyncComplete(ok: boolean): void {
-		if (!this.#toast) {
+		if (!this.#syncToastEnabled || !this.#toast) {
 			return;
 		}
 		this.#clearSyncToastDismissTimer();
-		if (!this.#toast.get(OFFLINE_SYNC_TOAST_ID)) {
+		const existing = this.#toast.get(OFFLINE_SYNC_TOAST_ID);
+		if (!existing) {
 			return;
 		}
 		if (!ok) {
 			this.#toast.dismiss(OFFLINE_SYNC_TOAST_ID);
 			return;
+		}
+		const total = existing.progress?.total ?? 0;
+		if (total > 0) {
+			this.#toast.update(OFFLINE_SYNC_TOAST_ID, {
+				progress: { done: total, total },
+				variant: 'neutral'
+			});
 		}
 		this.#syncToastDismissTimer = setTimeout(() => {
 			this.#syncToastDismissTimer = null;
@@ -278,9 +288,20 @@ export class UserFiles {
 		return this.cache.getCachedPath(value);
 	}
 
-	/** Background reconcile of the full cloud library onto local disk. */
-	syncCache(): Promise<void> {
-		return this.cache.sync();
+	/**
+	 * Background reconcile of the full cloud library onto local disk.
+	 * Pass `{ notify: true }` to show the progress toast (e.g. when the user
+	 * enables Keep cloud files offline). Background syncs stay silent.
+	 */
+	syncCache(options?: { notify?: boolean }): Promise<void> {
+		if (options?.notify) {
+			this.#syncToastEnabled = true;
+		}
+		return this.cache.sync().finally(() => {
+			if (options?.notify) {
+				this.#syncToastEnabled = false;
+			}
+		});
 	}
 
 	/** Ensure a short-lived PocketBase file token is cached; returns it. */

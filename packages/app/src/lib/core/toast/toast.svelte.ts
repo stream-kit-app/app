@@ -1,4 +1,4 @@
-import type { ToastItemUpdateProps, ToastVariant } from './toast-item.svelte';
+import type { ToastItemUpdateProps, ToastProgress, ToastVariant } from './toast-item.svelte';
 
 import type { Component } from 'svelte';
 
@@ -29,6 +29,8 @@ export type ToastCreateProps = {
 	variant?: ToastVariant;
 	/** Auto-dismiss delay in milliseconds. Use `0` to keep the toast until manually dismissed. Defaults to `5000`. */
 	duration?: number;
+	/** Optional determinate progress bar (`done` / `total`). */
+	progress?: ToastProgress;
 	/** Optional custom Svelte content. Typically used by built-in npm plugins only. */
 	content?: Component<any>;
 	/** Props passed to the custom `content` component. */
@@ -53,6 +55,7 @@ export class Toast {
 			description: props.description,
 			variant: props.variant,
 			duration: props.duration,
+			progress: props.progress,
 			content: props.content,
 			props: props.props,
 			onDismiss: () => this.dismiss(id)
@@ -63,7 +66,7 @@ export class Toast {
 		return item;
 	}
 
-	/** Update an existing toast in place (reactive title/description/variant). */
+	/** Update an existing toast in place (reactive title/description/variant/progress). */
 	public update(id: string, props: ToastItemUpdateProps): ToastItem | undefined {
 		const item = this.entries.get(id);
 		if (!item) {

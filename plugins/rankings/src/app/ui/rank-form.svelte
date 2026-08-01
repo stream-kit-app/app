@@ -1,15 +1,21 @@
 <script lang="ts">
+	import type { UserRankingRecord } from '../../lib/types';
 	import type { Rank } from '../lib/rank.svelte';
 
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
+	import { DataTable } from '@stream-kit/ui/data-table';
 	import { InputFile, InputOneOf, InputText } from '@stream-kit/ui/input';
 	import { watch } from 'runed';
 
+	import { formatWatchTime } from '../../lib/extract-user';
 	import {
 		dataUrlToBlob,
 		fileBytesToRankIcon,
 		getRankIconKind
 	} from '../../lib/rank-icon';
+	import { orderRanks, usersForRank } from '../../lib/ranking-engine';
 	import { getRankingsService } from '../lib/get-rankings';
+	import { RankedUser } from '../lib/ranked-user.svelte';
 	import RankIcon from './rank-icon.svelte';
 	import { hasCloudFileAccess } from '$lib/core/user-files/cloud-file-path';
 
@@ -23,9 +29,12 @@
 	};
 
 	let { rank }: Props = $props();
-	const app = getRankingsService().requireApp();
+	const rankings = getRankingsService();
+	const app = rankings.requireApp();
 	const t = app.i18n.t;
 	const canUseCloud = $derived(hasCloudFileAccess(app.auth));
+	const ordered = $derived(orderRanks(rankings.tiers, rankings.ranks));
+	const usersInRank = $derived(usersForRank(rankings.users, rank.id, ordered));
 
 	const IMAGE_FILTERS = [
 		{
@@ -207,7 +216,33 @@
 			rank.icon = undefined;
 		}
 	}
+
+	function formatPlatform(platform: UserRankingRecord['platform']): string {
+		return platform.charAt(0).toUpperCase() + platform.slice(1);
+	}
 </script>
+
+{#snippet userCell(user: UserRankingRecord)}
+	<button
+		type="button"
+		class="cursor-pointer truncate font-medium text-dark-50 hover:text-primary"
+		onclick={() => RankedUser.fromRecord(user).open()}
+	>
+		{user.username}
+	</button>
+{/snippet}
+
+{#snippet pointsCell(user: UserRankingRecord)}
+	<span class="tabular-nums text-dark-200">{user.totalPoints}</span>
+{/snippet}
+
+{#snippet watchTimeCell(user: UserRankingRecord)}
+	<span class="tabular-nums text-dark-300">{formatWatchTime(user.watchTimeSeconds)}</span>
+{/snippet}
+
+{#snippet platformCell(user: UserRankingRecord)}
+	<span class="text-dark-300">{formatPlatform(user.platform)}</span>
+{/snippet}
 
 <form class="grid gap-6" onsubmit={(event: SubmitEvent) => event.preventDefault()}>
 	<InputText
@@ -272,5 +307,21 @@
 				{/snippet}
 			</InputOneOf>
 		</div>
+	</div>
+
+	<div class="flex flex-col gap-3">
+		<Eyebrow>{t('Users in this rank')} ({usersInRank.length})</Eyebrow>
+		<DataTable
+			data={usersInRank}
+			getRowKey={(user) => user.userId}
+			empty={t('No users in this rank yet.')}
+			maxHeight="max-h-64"
+			columns={[
+				{ id: 'user', header: t('User'), cell: userCell },
+				{ id: 'points', header: t('Points'), align: 'right', cell: pointsCell },
+				{ id: 'watchTime', header: t('Watch time'), align: 'right', cell: watchTimeCell },
+				{ id: 'platform', header: t('Platform'), cell: platformCell }
+			]}
+		/>
 	</div>
 </form>
