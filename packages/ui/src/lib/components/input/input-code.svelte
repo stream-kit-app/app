@@ -118,7 +118,7 @@
 	}
 
 	function stripModelReference(source: string): string {
-		return source.replace(/^\/\/\/ <reference path="[^"]+" \/>\r?\n/gm, '');
+		return source.replace(/^\/\/\/\s*<reference\s+path=(["'])[^"']+\1\s*\/>\s*\r?\n?/gm, '');
 	}
 
 	function emitValueChange(next: string): void {

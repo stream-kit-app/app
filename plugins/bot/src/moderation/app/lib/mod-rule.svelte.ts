@@ -100,15 +100,10 @@ export class ModRule {
 		});
 	}
 
-	toRecord(): ModRuleRecord {
-		if (this.id == null) {
-			throw new Error('Mod rule must be saved before converting to a record');
-		}
-
+	toRecordFields(): Omit<ModRuleRecord, 'id'> {
 		const now = new Date();
 
 		return {
-			id: this.id,
 			name: this.name.trim(),
 			type: 'custom',
 			enabled: this.enabled,
@@ -119,6 +114,14 @@ export class ModRule {
 			createdAt: this.createdAt ?? now,
 			updatedAt: this.updatedAt ?? now
 		};
+	}
+
+	toRecord(): ModRuleRecord {
+		if (this.id == null) {
+			throw new Error('Mod rule must be saved before converting to a record');
+		}
+
+		return { id: this.id, ...this.toRecordFields() };
 	}
 
 	open(): Modal {

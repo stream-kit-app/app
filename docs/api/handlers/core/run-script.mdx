@@ -84,7 +84,7 @@ See the full reference in [Plugin API](/docs/developers/plugin-api).
 
 ## Editor and types
 
-- **In-app editor** — Monaco with TypeScript checking and autocomplete for `app`, `context`, and trigger `data` (narrowed to triggers on the action).
+- **In-app editor** — Monaco with TypeScript checking and autocomplete for `app`, `context`, and trigger `data` (narrowed to triggers on the action). `app.plugins.tryGet('twitch')` (and other first-party plugin keys) is typed to that plugin's public API.
 - **Open in editor** — Writes a small project under app data (`scripts/actions/{actionId}/handlers/{handlerId}/`) and opens it in Cursor or VS Code. File changes sync back to the handler field automatically.
 
 Save the action first; **Open in editor** requires a persisted action ID.
@@ -147,13 +147,15 @@ Use `{greeting}` or `{normalizedMessage}` in subsequent handler fields.
 import type { ScriptContext } from '@stream-kit/script-api';
 
 export default async ({ app, context }: ScriptContext) => {
-  const twitch = app.plugins.tryGet<{ sendMessage(channel: string, message: string): Promise<void> }>('twitch');
-  const channel = typeof context[0]?.data === 'object' && context[0].data && 'channel' in context[0].data
-    ? String((context[0].data as { channel: unknown }).channel)
-    : '';
+  const twitch = app.plugins.tryGet('twitch');
+  const data = context[0]?.data;
+  const broadcasterId =
+    typeof data === 'object' && data && 'broadcasterId' in data
+      ? String((data as { broadcasterId: unknown }).broadcasterId)
+      : twitch?.userId;
 
-  if (twitch && channel) {
-    await twitch.sendMessage(channel, 'Script says hi!');
+  if (twitch && broadcasterId) {
+    await twitch.sendChatMessageAsBot(broadcasterId, 'Script says hi!');
   }
 };
 ```

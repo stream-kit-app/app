@@ -81,30 +81,64 @@ async function saveIdRecords<T extends RecordWithId>(
 	return saved;
 }
 
-async function saveUserRecords<T extends Record<string, unknown> & { userId: string }>(
+type UserKeyedRecord = { userId: string; id?: string };
+
+function dedupeByUserId<T extends UserKeyedRecord>(items: T[]): T[] {
+	const byUserId = new Map<string, T>();
+
+	for (const item of items) {
+		byUserId.set(item.userId, item);
+	}
+
+	return [...byUserId.values()];
+}
+
+function payloadWithoutId<T extends UserKeyedRecord>(item: T): Omit<T, 'id'> {
+	const { id: _id, ...data } = item;
+	return data;
+}
+
+/** Create or update only the given rows. Does not delete records missing from `items`. */
+async function upsertUserRecords<T extends UserKeyedRecord>(
+	records: PluginAppRecordCollectionApi,
+	items: T[]
+): Promise<Array<T & { id: string }>> {
+	const unique = dedupeByUserId(items);
+
+	if (unique.length === 0) {
+		return [];
+	}
+
+	const needsLookup = unique.some((item) => !hasRecordId(item.id));
+	const existing = needsLookup ? await records.list<T & { id: string }>() : [];
+	const existingByUserId = new Map(existing.map((record) => [record.userId, record]));
+
+	return Promise.all(
+		unique.map(async (item) => {
+			const recordId = hasRecordId(item.id) ? item.id : existingByUserId.get(item.userId)?.id;
+
+			if (recordId) {
+				const updated = await records.update<T>(recordId, payloadWithoutId(item) as Partial<T>);
+				return { ...item, id: updated.id };
+			}
+
+			const created = await records.create<T>(payloadWithoutId(item) as unknown as T);
+			return { ...item, id: created.id };
+		})
+	);
+}
+
+async function saveUserRecords<T extends UserKeyedRecord>(
 	records: PluginAppRecordCollectionApi,
 	items: T[]
 ): Promise<void> {
-	const existing = await records.list<T>();
-	const usedRecordIds = new Set<string>();
-
+	const unique = dedupeByUserId(items);
+	const saved = await upsertUserRecords(records, unique);
+	const usedRecordIds = new Set(saved.map((item) => item.id));
+	const existing = await records.list<T & { id: string }>();
 	await Promise.all(
-		items.map(async (item) => {
-			const match = existing.find(
-				(record) => record.userId === item.userId && !usedRecordIds.has(record.id)
-			);
-
-			if (match) {
-				usedRecordIds.add(match.id);
-				await records.update<T>(match.id, item);
-				return;
-			}
-
-			const created = await records.create<T>(item);
-			usedRecordIds.add(created.id);
-		})
+		existing.filter((item) => !usedRecordIds.has(item.id)).map((item) => records.delete(item.id))
 	);
-	await Promise.all(existing.filter((item) => !usedRecordIds.has(item.id)).map((item) => records.delete(item.id)));
 }
 
 export async function loadTiers(app: PluginAppApi): Promise<TierRecord[]> {
@@ -129,6 +163,13 @@ export async function loadUsers(app: PluginAppApi): Promise<UserRankingRecord[]>
 
 export async function saveUsers(app: PluginAppApi, users: UserRankingRecord[]): Promise<void> {
 	await saveUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.users), users);
+}
+
+export async function upsertUsers(
+	app: PluginAppApi,
+	users: UserRankingRecord[]
+): Promise<Array<UserRankingRecord & { id: string }>> {
+	return upsertUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.users), users);
 }
 
 export async function loadIgnoredUsers(app: PluginAppApi): Promise<IgnoredUserRecord[]> {

@@ -13,13 +13,18 @@ export const SCRIPT_TEMPLATE = `export default defineScript(async ({ app, contex
 });`;
 
 const SCRIPT_TIMEOUT_MS = 5_000;
+const TRIPLE_SLASH_REFERENCE = /^\/\/\/\s*<reference\s+path=(["'])[^"']+\1\s*\/>\s*\r?\n?/gm;
+
+function stripTripleSlashReferences(source: string): string {
+	return source.replace(TRIPLE_SLASH_REFERENCE, '');
+}
 
 function toRunnableJavaScript(source: string): string {
-	const { code } = transform(source, {
-		transforms: ['typescript']
+	const { code } = transform(stripTripleSlashReferences(source), {
+		transforms: ['typescript', 'imports']
 	});
 
-	return code.trim().replace(/^\s*export\s+default\s+/, 'const __script = ');
+	return code;
 }
 
 type ScriptHandler = (ctx: {
@@ -37,12 +42,20 @@ function compileScript(
 	const body = toRunnableJavaScript(source);
 
 	// Use Function + Promise.resolve so async user scripts work without AsyncFunction,
-	// which is unavailable in some plugin execution contexts.
+	// which is unavailable in some plugin execution contexts. Sucrase's `imports`
+	// transform emits `exports.default = …`, so we provide a local `exports` object.
 	const runner = new Function(
 		'app',
 		'context',
 		'defineScript',
-		`${body};\nreturn Promise.resolve(__script({ app, context }));`
+		`const exports = {};
+const module = { exports };
+${body};
+const __script = exports.default ?? module.exports.default ?? module.exports;
+if (typeof __script !== 'function') {
+	throw new Error('Script must export a default function');
+}
+return Promise.resolve(__script({ app, context }));`
 	) as (
 		app: PluginAppApi,
 		context: HandlerTriggerContext[],

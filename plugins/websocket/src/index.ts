@@ -1,20 +1,18 @@
+import type { WebSocketPluginApi, WebSocketPluginController } from './lib/connection-manager';
 import type { Plugin, PluginPageDefinition } from '@stream-kit/plugin';
 
 import { Connection } from './app/lib/connection.svelte';
 import { Connections } from './app/lib/connections.svelte';
 import ConnectionsPage from './app/ui/connections-page.svelte';
+import { configureFieldValueResolver } from './get-field-value';
 import { createSendMessageHandler } from './handler/send-message';
-import {
-	createWebSocketPluginController,
-	type WebSocketPluginApi,
-	type WebSocketPluginController
-} from './lib/connection-manager';
+import { createWebSocketPluginController } from './lib/connection-manager';
 import { loadConnections } from './lib/connections';
+import { setConnectionsService } from './lib/instances';
+import { clearWsEventHandlers } from './lib/websocket-setup';
 import { createConnectedTrigger } from './trigger/connected';
 import { createDisconnectedTrigger } from './trigger/disconnected';
 import { createMessageReceivedTrigger } from './trigger/message-received';
-import { setConnectionsService } from './lib/instances';
-import { configureFieldValueResolver } from './get-field-value';
 
 export type { WsMessageContext, WsConnectionStateContext } from './contexts';
 export type { WebSocketPluginApi } from './lib/connection-manager';
@@ -45,10 +43,12 @@ const plugin: Plugin = (app) => {
 			return controller?.getConnectionAttempts(id) ?? 0;
 		},
 		getReconnectSettings(id) {
-			return controller?.getReconnectSettings(id) ?? {
-				maxConnectRetries: 5,
-				reconnectDelaySec: 5
-			};
+			return (
+				controller?.getReconnectSettings(id) ?? {
+					maxConnectRetries: 5,
+					reconnectDelaySec: 5
+				}
+			);
 		},
 		getMaxConnectRetries(id) {
 			return controller?.getMaxConnectRetries(id) ?? 5;
@@ -140,12 +140,14 @@ const plugin: Plugin = (app) => {
 			await controller.boot();
 			await connectionsService.load();
 			await controller.connectAutoConnect();
+			pluginApp.actions.reactivateAll();
 		},
 		onReady: async () => {
 			await controller?.connectAutoConnect();
 		},
 		onDisable: async () => {
 			await controller?.disconnectAll();
+			clearWsEventHandlers();
 		},
 		onSave: async ({ app: pluginApp }) => {
 			if (!connectionsService) {

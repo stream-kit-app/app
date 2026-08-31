@@ -182,15 +182,10 @@ export class Command {
 		return definition;
 	}
 
-	toRecord(): CommandRecord {
-		if (this.id == null) {
-			throw new Error('Command must be saved before converting to a record');
-		}
-
+	toRecordFields(): Omit<CommandRecord, 'id'> {
 		const now = new Date();
 
 		return {
-			id: this.id,
 			name: this.name.trim(),
 			group: normalizeCommandGroup(this.group),
 			groupSortOrder: this.groupSortOrder,
@@ -206,6 +201,14 @@ export class Command {
 			createdAt: this.createdAt ?? now,
 			updatedAt: this.updatedAt ?? now
 		};
+	}
+
+	toRecord(): CommandRecord {
+		if (this.id == null) {
+			throw new Error('Command must be saved before converting to a record');
+		}
+
+		return { id: this.id, ...this.toRecordFields() };
 	}
 
 	captureFormSnapshot(): void {

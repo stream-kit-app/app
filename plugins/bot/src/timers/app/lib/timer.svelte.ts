@@ -138,15 +138,10 @@ export class Timer {
 		return definition;
 	}
 
-	toRecord(): TimerRecord {
-		if (this.id == null) {
-			throw new Error('Timer must be saved before converting to a record');
-		}
-
+	toRecordFields(): Omit<TimerRecord, 'id'> {
 		const now = new Date();
 
 		return {
-			id: this.id,
 			name: this.name.trim(),
 			handlers: this.handlers.map((handler) => handler.toStored()),
 			intervalMinSec: this.intervalMinSec,
@@ -158,6 +153,14 @@ export class Timer {
 			createdAt: this.createdAt ?? now,
 			updatedAt: this.updatedAt ?? now
 		};
+	}
+
+	toRecord(): TimerRecord {
+		if (this.id == null) {
+			throw new Error('Timer must be saved before converting to a record');
+		}
+
+		return { id: this.id, ...this.toRecordFields() };
 	}
 
 	open(): Modal {

@@ -1,14 +1,14 @@
+import type { WsConnectionStateContext, WsMessageContext } from '../contexts';
+import type { WsConnectionLogEntry } from './connection-logs';
+import type { WsConnection } from './connections';
+import type { BoundConnection } from './pooled-context';
+import type { WsReconnectSettings } from './settings';
 import type { PluginAppApi } from '@stream-kit/plugin';
 
-import type { WsConnectionStateContext, WsMessageContext } from '../contexts';
-import {
-	normalizeWsUrl,
-	type WsConnection
-} from './connections';
-import { createConnectionLogStore, type WsConnectionLogEntry } from './connection-logs';
+import { createConnectionLogStore } from './connection-logs';
+import { normalizeWsUrl } from './connections';
 import { WS_EVENTS } from './event-hub';
-import type { BoundConnection } from './pooled-context';
-import { getConnectionReconnectSettings, type WsReconnectSettings } from './settings';
+import { getConnectionReconnectSettings } from './settings';
 import { bindWebSocket, emitWsDisconnected, subscribeWsEvent } from './websocket-setup';
 
 type StateListener = () => void;
@@ -236,19 +236,11 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 
 		if (entry.connectAttempts >= settings.maxConnectRetries) {
 			entry.retriesExhausted = true;
-			setEntryStatus(
-				entry,
-				'error',
-				`${message} (${attemptLabel(entry)} attempts)`
-			);
+			setEntryStatus(entry, 'error', `${message} (${attemptLabel(entry)} attempts)`);
 			return false;
 		}
 
-		setEntryStatus(
-			entry,
-			'connecting',
-			`${message} (attempt ${attemptLabel(entry)})`
-		);
+		setEntryStatus(entry, 'connecting', `${message} (attempt ${attemptLabel(entry)})`);
 		return true;
 	}
 
@@ -259,18 +251,21 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 			return;
 		}
 
-		entry.reconnectTimer = setTimeout(() => {
-			entry.reconnectTimer = undefined;
-			const primaryId = getPrimaryConnectionId(entry);
+		entry.reconnectTimer = setTimeout(
+			() => {
+				entry.reconnectTimer = undefined;
+				const primaryId = getPrimaryConnectionId(entry);
 
-			if (!primaryId) {
-				return;
-			}
+				if (!primaryId) {
+					return;
+				}
 
-			void connectId(primaryId, false).catch(() => {
-				// Errors are handled inside connectId.
-			});
-		}, getEntrySettings(entry).reconnectDelaySec * 1_000);
+				void connectId(primaryId, false).catch(() => {
+					// Errors are handled inside connectId.
+				});
+			},
+			getEntrySettings(entry).reconnectDelaySec * 1_000
+		);
 	}
 
 	function clearReconnectTimer(entry: PoolEntry): void {
@@ -364,7 +359,9 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 
 			entry.connectionIds = new Set(grouped.map((connection) => connection.id));
 			entry.autoConnectIds = new Set(
-				grouped.filter((connection) => connection.autoConnect).map((connection) => connection.id)
+				grouped
+					.filter((connection) => connection.autoConnect)
+					.map((connection) => connection.id)
 			);
 
 			for (const id of [...entry.manualIds]) {
@@ -731,6 +728,8 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 		},
 		async disconnectAll() {
 			enabled = false;
+			unsubscribeLogEvents?.();
+			unsubscribeLogEvents = undefined;
 			suppressedIds.clear();
 
 			for (const url of [...pool.keys()]) {

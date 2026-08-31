@@ -1,6 +1,11 @@
 import type { MonacoExtraLib } from '@stream-kit/ui/monaco';
 
-import { pluginAppApiDts, triggerDataDts, triggerMap } from '@stream-kit/script-api/runtime';
+import {
+	pluginApisDts,
+	pluginAppApiDts,
+	triggerDataDts,
+	triggerMap
+} from '@stream-kit/script-api/runtime';
 
 /** Virtual project root — model URI and extra libs must share this prefix for Monaco IntelliSense. */
 export const SCRIPT_PROJECT_ROOT = 'file:///project';
@@ -103,12 +108,14 @@ export function buildScriptTypeDefinitionFiles(triggerIds: string[] = []): {
 	triggerDataDts: string;
 	handlerContextDts: string;
 	pluginAppApiDts: string;
+	pluginApisDts: string;
 	indexDts: string;
 } {
 	const handlerContextBody = buildHandlerContextDts(triggerIds);
 	const handlerContextDts = `/// <reference path="./trigger-data.d.ts" />\n\n${handlerContextBody}`;
 
 	const indexDtsContent = `/// <reference path="./plugin-app-api.d.ts" />
+/// <reference path="./plugin-apis.d.ts" />
 /// <reference path="./trigger-data.d.ts" />
 /// <reference path="./handler-context.d.ts" />
 
@@ -123,6 +130,7 @@ ${buildScriptIndexDts()}`;
 		triggerDataDts: stripTripleSlashReferences(triggerDataDts),
 		handlerContextDts,
 		pluginAppApiDts: pluginAppApiContent,
+		pluginApisDts: stripTripleSlashReferences(pluginApisDts),
 		indexDts: indexDtsContent
 	};
 }
@@ -184,6 +192,10 @@ export function buildScriptExtraLibs(options: BuildScriptExtraLibsOptions = {}):
 		{
 			content: types.pluginAppApiDts,
 			filePath: scriptApiLibPath('plugin-app-api.d.ts')
+		},
+		{
+			content: types.pluginApisDts,
+			filePath: scriptApiLibPath('plugin-apis.d.ts')
 		},
 		{
 			content: types.indexDts,

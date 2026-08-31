@@ -94,12 +94,11 @@ export class ModerationRules {
 		if (wasNew) {
 			rule.createdAt = now;
 			rule.updatedAt = now;
-			const record = rule.toRecord();
-			const { id: _id, ...payload } = record;
+			const fields = rule.toRecordFields();
 			const created = await this.requireApp().records.open(MOD_RULES_COLLECTION).create({
-				...payload,
-				createdAt: record.createdAt.toISOString(),
-				updatedAt: record.updatedAt.toISOString()
+				...fields,
+				createdAt: fields.createdAt.toISOString(),
+				updatedAt: fields.updatedAt.toISOString()
 			});
 			rule.id = created.id;
 			this.add(rule);

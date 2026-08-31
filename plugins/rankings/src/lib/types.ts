@@ -18,6 +18,7 @@ export type RankRecord = {
 };
 
 export type UserRankingRecord = {
+	id?: string;
 	userId: string;
 	username: string;
 	platform: RankingsPlatform;

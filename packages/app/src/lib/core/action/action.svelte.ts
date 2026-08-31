@@ -1,4 +1,5 @@
 import type { Modal } from '../modal';
+import type { HandlerBranch } from './action-handler.svelte';
 import type { HandlerTriggerContext } from './handler-context';
 import type {
 	ActionLayoutUpdate,
@@ -8,7 +9,9 @@ import type {
 	StoredActionTrigger
 } from './stored-action';
 import type { ActionFormErrors } from './validate-form';
+import type { HandlerValidationInput } from './validate-form';
 
+import { save } from '@tauri-apps/plugin-dialog';
 import {
 	deleteAction,
 	deleteActions,
@@ -22,11 +25,9 @@ import {
 	updateActionsQueue
 } from '$db/repositories/actions';
 
-import { save } from '@tauri-apps/plugin-dialog';
-
-import ActionForm from '$lib/components/core/action/action-form.svelte';
 import ActionFormFooter from '$lib/components/core/action/action-form-footer.svelte';
 import ActionFormHeader from '$lib/components/core/action/action-form-header.svelte';
+import ActionForm from '$lib/components/core/action/action-form.svelte';
 import { translate } from '$lib/i18n';
 
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
@@ -34,25 +35,31 @@ import { getApp } from '../registry';
 import { normalizeCloudFileRefsInHandlers } from '../user-files/normalize-cloud-file-refs';
 import { ActionExecution } from './action-execution.svelte';
 import { buildActionsExport, isExportableAction } from './action-export';
-import { ActionHandler, type HandlerBranch } from './action-handler.svelte';
+import { ActionHandler } from './action-handler.svelte';
 import { exportedActionToNewRecord, parseActionsExport } from './action-import';
-import { applyLayoutUpdates, buildDndLayout, compareActionsByLayout, dndLayoutToUpdates, getGroupOrder } from './action-layout';
+import {
+	applyLayoutUpdates,
+	buildDndLayout,
+	compareActionsByLayout,
+	dndLayoutToUpdates,
+	getGroupOrder
+} from './action-layout';
 import { ActionTrigger } from './action-trigger.svelte';
 import { resolveHandlerDefinition, resolveTriggerDefinition } from './definition-id';
 import { HandlerDefinitions } from './handler';
-import { handlerFromStored } from './handler-tree';
 import {
 	addHandlerToChain,
 	cloneHandlerInChain,
 	removeHandlerFromChain,
 	reorderBranchHandlersInChain
 } from './handler-chain-mutations';
+import { handlerFromStored } from './handler-tree';
 import { HandlerDefinition } from './handler/handler-definition.svelte';
 import { runHandlerChain } from './run-handler-chain';
 import { DEFAULT_ACTION_GROUP } from './stored-action';
 import { TriggerDefinitions } from './trigger';
 import { TriggerDefinition } from './trigger/trigger-definition.svelte';
-import { validateActionForm, type HandlerValidationInput } from './validate-form';
+import { validateActionForm } from './validate-form';
 
 type ActionFormSnapshot = {
 	name: string;
@@ -208,10 +215,6 @@ export class Actions {
 
 	deactivate(action: Action): void {
 		for (const trigger of action.triggers) {
-			if (!trigger.definition.isAvailable) {
-				continue;
-			}
-
 			trigger.definition.deactivate?.(action, trigger);
 		}
 	}
@@ -399,8 +402,7 @@ export class Actions {
 			name: input.name,
 			group: normalizeActionGroup(input.group),
 			enabled: input.enabled ?? true,
-			queueId:
-				input.queueId !== undefined ? input.queueId : app.actionQueues.defaultQueueId,
+			queueId: input.queueId !== undefined ? input.queueId : app.actionQueues.defaultQueueId,
 			ownerPluginKey: ownerPluginKey ?? null,
 			triggers: input.triggers,
 			handlers: input.handlers
@@ -496,8 +498,9 @@ export class Actions {
 
 	getSnapshot(): ActionRecord[] {
 		return this.items
-			.filter((action): action is Action & { id: number; syncId: string } =>
-				action.id != null && Boolean(action.syncId)
+			.filter(
+				(action): action is Action & { id: number; syncId: string } =>
+					action.id != null && Boolean(action.syncId)
 			)
 			.map((action) => ({
 				id: action.id,
@@ -586,7 +589,7 @@ export class Action {
 	enabled: boolean = $state(true);
 	queueId: number | null = $state(null);
 	ownerPluginKey?: string;
-	triggers: ActionTrigger[] = $state([]);
+	triggers: ActionTrigger[] = $state.raw([]);
 	handlers: ActionHandler[] = $state([]);
 
 	formErrors: ActionFormErrors | null = $state(null);
@@ -662,7 +665,11 @@ export class Action {
 		});
 
 		const handlers = record.handlers.map((stored) =>
-			handlerFromStored(stored, app.actions.actions, Action.createUnavailableHandlerDefinition)
+			handlerFromStored(
+				stored,
+				app.actions.actions,
+				Action.createUnavailableHandlerDefinition
+			)
 		);
 
 		return new Action({
@@ -819,13 +826,24 @@ export class Action {
 	}
 
 	open(): Modal {
+		const app = getApp();
+
 		if (this.hasUnavailableDefinitions) {
+			const shouldReactivate = this.id != null && this.enabled;
+
+			if (shouldReactivate) {
+				app.actions.deactivate(this);
+			}
+
 			this.rebindDefinitions();
+
+			if (shouldReactivate) {
+				app.actions.activate(this);
+			}
 		}
 
 		this.modalId =
 			this.id != null ? `action-${this.id}` : `action-draft-${crypto.randomUUID()}`;
-		const app = getApp();
 
 		this.captureFormSnapshot();
 
@@ -874,7 +892,13 @@ export class Action {
 	}
 
 	removeTrigger(triggerId: string): void {
-		this.triggers = this.triggers.filter((trigger) => trigger.id !== triggerId);
+		const trigger = this.triggers.find((item) => item.id === triggerId);
+
+		if (trigger) {
+			trigger.definition.deactivate?.(this, trigger);
+		}
+
+		this.triggers = this.triggers.filter((item) => item.id !== triggerId);
 	}
 
 	cloneTrigger(triggerId: string): void {

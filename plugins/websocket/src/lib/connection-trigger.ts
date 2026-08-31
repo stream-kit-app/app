@@ -31,7 +31,8 @@ export function activateConnectionStateTrigger<TContext = WsConnectionStateConte
 	}
 
 	const fireIfMatching = (context: TContext): void => {
-		if (trigger.definition.validate?.(trigger.conditions, context)) {
+		const matches = trigger.definition.validate?.(trigger.conditions, context) ?? false;
+		if (matches) {
 			action.fire(trigger, context);
 		}
 	};

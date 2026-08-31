@@ -29,15 +29,15 @@ import { exportedCommandToNewRecord, parseCommandsExport } from './command-impor
 import { Command } from './command.svelte';
 
 function serializeForCreate(command: Command): Record<string, unknown> {
-	const record = command.toRecord();
-	const { id, ...rest } = record;
+	const fields = command.toRecordFields();
 	return {
-		...rest,
-		...(id && isRecordsSyncId(id) ? { id } : {}),
-		createdAt: record.createdAt.toISOString(),
-		updatedAt: record.updatedAt.toISOString()
+		...fields,
+		...(command.id && isRecordsSyncId(command.id) ? { id: command.id } : {}),
+		createdAt: fields.createdAt.toISOString(),
+		updatedAt: fields.updatedAt.toISOString()
 	};
 }
+
 export type CommandRuntimeFactory = (app: PluginAppApi) => () => void;
 
 export type CommandRecordOptions = {

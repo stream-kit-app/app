@@ -13,6 +13,10 @@ For an **inbound** remote-control API (clients connect *to* Stream Kit), see the
 
 Configure connections under **Plugins → WebSocket**. Each connection has a name, URL, auto-connect, and reconnect settings (max attempts and delay). Turn on **Auto-connect** to connect when the plugin enables, or use **Connect** from the list. The plugin reconnects as needed.
 
+Open **Logs** on a connection to inspect traffic. JSON payloads show a one-line preview (nested objects as `{...}`, arrays as `[...]`); expand a row to see the full message. Copy still copies the original payload.
+
+Identical messages that arrive on the same connection within 250ms are ignored (some servers emit each event twice). Triggers and logs only see the first copy.
+
 ## Triggers
 
 | Trigger | Event |

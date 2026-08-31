@@ -299,12 +299,18 @@ export class WatchTimeTracker {
 		await this.syncChattersFromHelix(twitch);
 
 		const currentSlot = this.currentAwardSlot();
+		const seconds = this.rankings.settings.awardIntervalSeconds;
 		const pointsPerInterval = Math.max(
 			0,
-			Math.floor(
-				(this.rankings.settings.pointsPerMinute * this.rankings.settings.awardIntervalSeconds) / 60
-			)
+			Math.floor((this.rankings.settings.pointsPerMinute * seconds) / 60)
 		);
+		const awards: Array<{
+			userId: string;
+			username: string;
+			platform: 'twitch';
+			seconds: number;
+			points?: number;
+		}> = [];
 
 		for (const [key, viewer] of this.activeViewers) {
 			if (viewer.lastAwardSlot >= currentSlot) {
@@ -327,24 +333,15 @@ export class WatchTimeTracker {
 				continue;
 			}
 
-			await this.rankings.addWatchTime({
+			awards.push({
 				userId,
 				username: viewer.username,
 				platform: 'twitch',
-				seconds: this.rankings.settings.awardIntervalSeconds
-			});
-
-			if (pointsPerInterval <= 0) {
-				continue;
-			}
-
-			await this.rankings.addPoints({
-				userId,
-				username: viewer.username,
-				platform: 'twitch',
-				amount: pointsPerInterval,
-				source: 'watch-time'
+				seconds,
+				points: pointsPerInterval > 0 ? pointsPerInterval : undefined
 			});
 		}
+
+		await this.rankings.applyWatchTimeAwards(awards);
 	}
 }

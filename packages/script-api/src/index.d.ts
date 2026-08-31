@@ -1,4 +1,5 @@
 /// <reference path="./plugin-app-api.d.ts" />
+/// <reference path="./plugin-apis.d.ts" />
 /// <reference path="./trigger-data.d.ts" />
 
 /** One trigger payload passed to script handlers. */

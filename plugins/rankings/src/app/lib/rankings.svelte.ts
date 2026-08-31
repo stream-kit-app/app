@@ -32,7 +32,8 @@ import {
 	saveRanks,
 	saveSettings,
 	saveTiers,
-	saveUsers
+	saveUsers,
+	upsertUsers
 } from '../../lib/rankings-store';
 import { appendPointHistoryEntry, getUserPointHistory } from '../../lib/point-history';
 import { resolveTwitchChatTarget } from '../../lib/twitch-chat-target';
@@ -212,6 +213,22 @@ export class RankingsService {
 	async persistUsers(): Promise<void> {
 		const { app } = this.requireContext();
 		await this.persistRecords(() => saveUsers(app, this.users));
+	}
+
+	async persistDirtyUsers(users: UserRankingRecord[]): Promise<void> {
+		if (users.length === 0) {
+			return;
+		}
+
+		const { app } = this.requireContext();
+		await this.persistRecords(async () => {
+			const saved = await upsertUsers(app, users);
+			const savedByUserId = new Map(saved.map((user) => [user.userId, user]));
+			this.users = this.users.map((user) => {
+				const next = savedByUserId.get(user.userId);
+				return next ? { ...user, id: next.id } : user;
+			});
+		});
 	}
 
 	async persistIgnoredUsers(): Promise<void> {
@@ -690,7 +707,7 @@ export class RankingsService {
 			input.source,
 			input.source === 'watch-time' ? 'watch-time' : 'add'
 		);
-		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
+		await Promise.all([this.persistDirtyUsers([result.user]), this.persistPointHistory()]);
 
 		return result;
 	}
@@ -715,7 +732,7 @@ export class RankingsService {
 			input.source,
 			'set'
 		);
-		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
+		await Promise.all([this.persistDirtyUsers([result.user]), this.persistPointHistory()]);
 
 		return result;
 	}
@@ -742,7 +759,7 @@ export class RankingsService {
 			input.source,
 			'remove'
 		);
-		await Promise.all([this.persistUsers(), this.persistPointHistory()]);
+		await Promise.all([this.persistDirtyUsers([result.user]), this.persistPointHistory()]);
 
 		return result;
 	}
@@ -766,7 +783,68 @@ export class RankingsService {
 		};
 
 		this.users = this.users.map((entry) => (entry.userId === user.userId ? updated : entry));
-		await this.persistUsers();
+		await this.persistDirtyUsers([updated]);
+	}
+
+	async applyWatchTimeAwards(
+		inputs: Array<{
+			userId: string;
+			username: string;
+			platform: RankingsPlatform;
+			seconds: number;
+			points?: number;
+		}>
+	): Promise<void> {
+		if (inputs.length === 0) {
+			return;
+		}
+
+		const dirtyByUserId = new Map<string, UserRankingRecord>();
+		let historyChanged = false;
+
+		for (const input of inputs) {
+			if (this.isIgnored(input)) {
+				continue;
+			}
+
+			const seconds = Math.max(0, Math.floor(input.seconds));
+			const points = Math.max(0, Math.floor(input.points ?? 0));
+
+			if (seconds <= 0 && points <= 0) {
+				continue;
+			}
+
+			let user = this.upsertUser(input);
+
+			if (seconds > 0) {
+				user = {
+					...user,
+					watchTimeSeconds: user.watchTimeSeconds + seconds,
+					updatedAt: new Date().toISOString()
+				};
+				this.users = this.users.map((entry) => (entry.userId === user.userId ? user : entry));
+			}
+
+			if (points > 0) {
+				const result = await this.applyPointsMutation(
+					user,
+					user.totalPoints + points,
+					points,
+					'watch-time',
+					'watch-time'
+				);
+				user = result.user;
+				historyChanged = true;
+			}
+
+			dirtyByUserId.set(user.userId, user);
+		}
+
+		await this.persistDirtyUsers([...dirtyByUserId.values()]);
+
+		if (historyChanged) {
+			await this.persistPointHistory();
+		}
 	}
 
 	async createTier(input: Omit<TierRecord, 'id' | 'sortOrder'> & { sortOrder?: number }): Promise<TierRecord> {

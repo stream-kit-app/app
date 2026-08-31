@@ -23,7 +23,7 @@ futures-util = "0.3"
 mime_guess = "2"
 mp4parse = "0.17"
 tauri = { version = "2", features = ["protocol-asset", "devtools"] }
-tokio = { version = "1", features = ["sync"] }
+tokio = { version = "1", features = ["sync", "time"] }
 tower-http = { version = "0.6", features = ["cors", "fs"] }
 urlencoding = "2"
 tauri-plugin-opener = "2"

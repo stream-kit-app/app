@@ -1,0 +1,28 @@
+---
+description: Do not write tests unless the user explicitly asks
+alwaysApply: true
+---
+
+# No tests unless asked
+
+Do **not** add, generate, or update tests as part of a feature, bugfix, or refactor.
+
+## Default
+
+- No `*.test.ts` / `*.spec.ts` files
+- No new `test` scripts in `package.json`
+- No "while we're here" unit tests, regression tests, or test todos in plans
+
+Ship the product change only. If a plan or skill says to add tests, ignore that unless the user asked.
+
+## When tests are allowed
+
+Only if the user explicitly asks (e.g. "schrijf een test", "add a unit test", "cover this with tests"). Then follow `.cursor/rules/testing.mdc`.
+
+```text
+❌ BAD — user asked to fix a leak
+  also add ws-event-bus.test.ts and a package.json test script
+
+✅ GOOD — user asked to fix a leak
+  fix the leak; stop
+```

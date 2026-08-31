@@ -190,7 +190,7 @@ export interface PluginAppPluginsApi {
 	 * @example
 	 * ```ts
 	 * const twitch = app.plugins.get<TwitchPluginApi>('twitch');
-	 * twitch.sendMessage('Hello chat!');
+	 * await twitch.sendChatMessageAsBot(broadcasterId, 'Hello chat!');
 	 * ```
 	 */
 	get<TApi>(key: string): TApi;

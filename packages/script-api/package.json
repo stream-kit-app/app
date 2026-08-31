@@ -47,6 +47,18 @@
 			"import": "./src/plugin-app-api.d.ts",
 			"default": "./src/plugin-app-api.d.ts"
 		},
+		"./plugin-apis": {
+			"types": "./src/plugin-apis.d.ts",
+			"svelte": "./src/plugin-apis.d.ts",
+			"import": "./src/plugin-apis.d.ts",
+			"default": "./src/plugin-apis.d.ts"
+		},
+		"./plugin-apis.d.ts": {
+			"types": "./src/plugin-apis.d.ts",
+			"svelte": "./src/plugin-apis.d.ts",
+			"import": "./src/plugin-apis.d.ts",
+			"default": "./src/plugin-apis.d.ts"
+		},
 		"./runtime": {
 			"types": "./src/runtime.ts",
 			"svelte": "./src/runtime.ts",

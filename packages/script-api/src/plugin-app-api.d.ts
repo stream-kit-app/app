@@ -1,4 +1,5 @@
 /// <reference path="./trigger-data.d.ts" />
+/// <reference path="./plugin-apis.d.ts" />
 /// <reference path="./index.d.ts" />
 
 declare const BaseDirectory: {
@@ -222,9 +223,18 @@ interface PluginAppPluginsApi {
 	 * @example
 	 * ```ts
 	 * const twitch = app.plugins.get<TwitchPluginApi>('twitch');
-	 * twitch.sendMessage('Hello chat!');
+	 * await twitch.sendChatMessageAsBot(broadcasterId, 'Hello chat!');
 	 * ```
 	 */
+	get(key: 'core'): CorePluginApi;
+	get(key: 'discord'): DiscordPluginApi;
+	get(key: 'obs'): ObsPluginApi;
+	get(key: 'quotes'): QuotesPluginApi;
+	get(key: 'rankings'): RankingsPluginApi;
+	get(key: 'stream-deck'): StreamDeckPluginApi;
+	get(key: 'twitch'): TwitchPluginApi;
+	get(key: 'websocket'): WebSocketPluginApi;
+	get(key: 'youtube'): YouTubePluginApi;
 	get<TApi>(key: string): TApi;
 
 	/**
@@ -236,6 +246,15 @@ interface PluginAppPluginsApi {
 	 * if (obs) await obs.connect();
 	 * ```
 	 */
+	tryGet(key: 'core'): CorePluginApi | undefined;
+	tryGet(key: 'discord'): DiscordPluginApi | undefined;
+	tryGet(key: 'obs'): ObsPluginApi | undefined;
+	tryGet(key: 'quotes'): QuotesPluginApi | undefined;
+	tryGet(key: 'rankings'): RankingsPluginApi | undefined;
+	tryGet(key: 'stream-deck'): StreamDeckPluginApi | undefined;
+	tryGet(key: 'twitch'): TwitchPluginApi | undefined;
+	tryGet(key: 'websocket'): WebSocketPluginApi | undefined;
+	tryGet(key: 'youtube'): YouTubePluginApi | undefined;
 	tryGet<TApi>(key: string): TApi | undefined;
 
 	/**

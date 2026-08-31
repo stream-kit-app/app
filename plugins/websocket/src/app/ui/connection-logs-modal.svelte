@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { WsConnectionLogEntry, WsLogDirection } from '../../lib/connection-logs';
+	import { formatLogMessage } from '../../lib/format-log-message';
 	import type { Connection } from '../lib/connection.svelte';
 
 	import Icon from '@iconify/svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Button } from '@stream-kit/ui/button';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
@@ -27,6 +29,7 @@
 	let searchQuery = $state('');
 	let autoScroll = $state(true);
 	let copiedId = $state<string | null>(null);
+	const expandedIds = new SvelteSet<string>();
 
 	const logs = $derived.by(() => {
 		connections.logsRevision;
@@ -105,11 +108,11 @@
 		});
 	}
 
-	function parseJsonMessage(message: string): string | null {
-		try {
-			return JSON.stringify(JSON.parse(message), null, 2);
-		} catch {
-			return null;
+	function setExpanded(id: string, open: boolean) {
+		if (open) {
+			expandedIds.add(id);
+		} else {
+			expandedIds.delete(id);
 		}
 	}
 
@@ -303,8 +306,7 @@
 		{:else}
 			<div>
 				{#each filteredLogs as entry (entry.id)}
-					{@const displayMessage = parseJsonMessage(entry.message) ?? entry.message}
-					{@const isMultiline = displayMessage.includes('\n')}
+					{@const formatted = formatLogMessage(entry.message)}
 					<div
 						class={cn(
 							'group relative border-b border-rule px-4 py-2 transition-colors last:border-b-0',
@@ -363,16 +365,42 @@
 						</div>
 
 						<!-- Log Content -->
-						{#if isMultiline}
-							<pre
-								class="m-0 mt-1 overflow-x-auto rounded-none border border-rule bg-dark-950/40 p-2.5 font-mono text-xs text-dark-200"><code
-									>{displayMessage}</code
-								></pre>
+						{#if formatted.collapsible}
+							<details
+								class="group/msg mt-1"
+								ontoggle={(event) => {
+									setExpanded(
+										entry.id,
+										(event.currentTarget as HTMLDetailsElement).open
+									);
+								}}
+							>
+								<summary
+									class="flex cursor-pointer list-none items-start gap-1.5 pr-8 [&::-webkit-details-marker]:hidden"
+									aria-label={t('Show full message')}
+								>
+									<Icon
+										icon="ri:arrow-right-s-line"
+										class="mt-0.5 size-3.5 shrink-0 text-dark-400 transition-transform group-open/msg:rotate-90"
+									/>
+									<code
+										class="min-w-0 font-mono text-xs break-all whitespace-pre-wrap text-dark-100"
+									>
+										{formatted.preview}
+									</code>
+								</summary>
+								{#if expandedIds.has(entry.id)}
+									<pre
+										class="m-0 mt-1.5 overflow-x-auto rounded-none border border-rule bg-dark-950/40 p-2.5 font-mono text-xs text-dark-200"><code
+											>{formatted.getPretty()}</code
+										></pre>
+								{/if}
+							</details>
 						{:else}
 							<code
 								class="block pr-8 font-mono text-xs break-all whitespace-pre-wrap text-dark-100"
 							>
-								{displayMessage}
+								{formatted.preview}
 							</code>
 						{/if}
 					</div>

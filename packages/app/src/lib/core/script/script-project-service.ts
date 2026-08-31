@@ -10,9 +10,13 @@ import type { UnwatchFn } from '../filesystem/types';
 
 const HANDLER_FILE = 'handler.ts';
 const POLL_INTERVAL_MS = 1_000;
+const SCRIPT_API_DIR = 'node_modules/@stream-kit/script-api';
+
+const preparedProjectDirs = new Set<string>();
+const lastTypesFingerprint = new Map<string, string>();
 
 function stripEditorReferenceDirectives(source: string): string {
-	return source.replace(/^\/\/\/ <reference path="[^"]+" \/>\r?\n/gm, '');
+	return source.replace(/^\/\/\/\s*<reference\s+path=(["'])[^"']+\1\s*\/>\s*\r?\n?/gm, '');
 }
 
 const PACKAGE_JSON = {
@@ -60,84 +64,73 @@ function getFilesystem() {
 	return getApp().fs;
 }
 
-async function ensureParentDirs(relativePath: string): Promise<void> {
-	const fs = getFilesystem();
-	const parts = relativePath.split('/').filter(Boolean);
-
-	if (parts.length <= 1) {
+async function ensureProjectDirs(handlerId: string): Promise<void> {
+	if (preparedProjectDirs.has(handlerId)) {
 		return;
 	}
 
-	let current = '';
+	const fs = getFilesystem();
 
-	for (let index = 0; index < parts.length - 1; index++) {
-		current = current ? `${current}/${parts[index]}` : parts[index];
-
-		try {
-			await fs.mkdir(current, { baseDir: BaseDirectory.AppData, recursive: true });
-		} catch {
-			// Directory may already exist.
-		}
+	try {
+		await fs.mkdir(projectRelativePath(handlerId, SCRIPT_API_DIR), {
+			baseDir: BaseDirectory.AppData,
+			recursive: true
+		});
+	} catch {
+		// Directory may already exist.
 	}
+	preparedProjectDirs.add(handlerId);
+}
+
+function typesFingerprint(triggerIds: string[]): string {
+	return triggerIds.join('\0');
+}
+
+async function writeText(path: string, contents: string): Promise<void> {
+	await getFilesystem().writeTextFile(path, contents, {
+		baseDir: BaseDirectory.AppData,
+		create: true
+	});
 }
 
 async function writeProjectFiles(options: ScriptProjectSyncOptions): Promise<void> {
 	const { handlerId, source, actionTriggers = [] } = options;
-	const fs = getFilesystem();
 	const triggerIds = actionTriggers.map((trigger) => trigger.id);
-	const projectTypes = buildScriptProjectTypeFiles(triggerIds);
+	await ensureProjectDirs(handlerId);
+	await writeText(projectRelativePath(handlerId, HANDLER_FILE), stripEditorReferenceDirectives(source));
 
-	const files: Array<{ path: string; contents: string }> = [
-		{
-			path: projectRelativePath(handlerId, HANDLER_FILE),
-			contents: stripEditorReferenceDirectives(source)
-		},
-		{
-			path: projectRelativePath(handlerId, 'package.json'),
-			contents: JSON.stringify(PACKAGE_JSON, null, 2)
-		},
-		{
-			path: projectRelativePath(handlerId, 'tsconfig.json'),
-			contents: JSON.stringify(TSCONFIG, null, 2)
-		},
-		{
-			path: projectRelativePath(handlerId, 'node_modules/@stream-kit/script-api/package.json'),
-			contents: JSON.stringify(SCRIPT_API_PACKAGE_JSON, null, 2)
-		},
-		{
-			path: projectRelativePath(handlerId, 'node_modules/@stream-kit/script-api/index.d.ts'),
-			contents: projectTypes.indexDts
-		},
-		{
-			path: projectRelativePath(
-				handlerId,
-				'node_modules/@stream-kit/script-api/plugin-app-api.d.ts'
-			),
-			contents: projectTypes.pluginAppApiDts
-		},
-		{
-			path: projectRelativePath(
-				handlerId,
-				'node_modules/@stream-kit/script-api/trigger-data.d.ts'
-			),
-			contents: projectTypes.triggerDataDts
-		},
-		{
-			path: projectRelativePath(
-				handlerId,
-				'node_modules/@stream-kit/script-api/handler-context.d.ts'
-			),
-			contents: projectTypes.handlerContextDts
-		}
-	];
-
-	for (const file of files) {
-		await ensureParentDirs(file.path);
-		await fs.writeTextFile(file.path, file.contents, {
-			baseDir: BaseDirectory.AppData,
-			create: true
-		});
+	const fingerprint = typesFingerprint(triggerIds);
+	if (lastTypesFingerprint.get(handlerId) === fingerprint) {
+		return;
 	}
+
+	const projectTypes = buildScriptProjectTypeFiles(triggerIds);
+	await Promise.all([
+		writeText(projectRelativePath(handlerId, 'package.json'), JSON.stringify(PACKAGE_JSON, null, 2)),
+		writeText(projectRelativePath(handlerId, 'tsconfig.json'), JSON.stringify(TSCONFIG, null, 2)),
+		writeText(
+			projectRelativePath(handlerId, `${SCRIPT_API_DIR}/package.json`),
+			JSON.stringify(SCRIPT_API_PACKAGE_JSON, null, 2)
+		),
+		writeText(projectRelativePath(handlerId, `${SCRIPT_API_DIR}/index.d.ts`), projectTypes.indexDts),
+		writeText(
+			projectRelativePath(handlerId, `${SCRIPT_API_DIR}/plugin-app-api.d.ts`),
+			projectTypes.pluginAppApiDts
+		),
+		writeText(
+			projectRelativePath(handlerId, `${SCRIPT_API_DIR}/plugin-apis.d.ts`),
+			projectTypes.pluginApisDts
+		),
+		writeText(
+			projectRelativePath(handlerId, `${SCRIPT_API_DIR}/trigger-data.d.ts`),
+			projectTypes.triggerDataDts
+		),
+		writeText(
+			projectRelativePath(handlerId, `${SCRIPT_API_DIR}/handler-context.d.ts`),
+			projectTypes.handlerContextDts
+		)
+	]);
+	lastTypesFingerprint.set(handlerId, fingerprint);
 }
 
 export async function getScriptProjectPath(handlerId: string): Promise<string> {

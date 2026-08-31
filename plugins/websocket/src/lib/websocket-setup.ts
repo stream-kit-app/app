@@ -1,49 +1,11 @@
 import type { WsConnectionStateContext } from '../contexts';
+import type { BoundConnection } from './pooled-context';
 
 import { WS_EVENTS } from './event-hub';
-import { createPooledContext, type BoundConnection } from './pooled-context';
+import { createPooledContext } from './pooled-context';
+import { emitWsEvent } from './ws-event-bus';
 
-type WsEventHandler = (context: unknown) => void;
-
-const eventHandlers = new Map<string, Set<WsEventHandler>>();
-
-function emit(eventKey: string, context: unknown): void {
-	const handlers = eventHandlers.get(eventKey);
-
-	if (!handlers) {
-		return;
-	}
-
-	for (const handler of handlers) {
-		handler(context);
-	}
-}
-
-export function subscribeWsEvent<TContext>(
-	eventKey: string,
-	handler: (context: TContext) => void
-): () => void {
-	let handlers = eventHandlers.get(eventKey);
-
-	if (!handlers) {
-		handlers = new Set();
-		eventHandlers.set(eventKey, handlers);
-	}
-
-	const wrapped: WsEventHandler = (context) => {
-		handler(context as TContext);
-	};
-
-	handlers.add(wrapped);
-
-	return () => {
-		handlers?.delete(wrapped);
-
-		if (handlers?.size === 0) {
-			eventHandlers.delete(eventKey);
-		}
-	};
-}
+export { clearWsEventHandlers, emitWsEvent, subscribeWsEvent } from './ws-event-bus';
 
 function parseMessage(raw: string): { message: string; isJson: boolean; data?: unknown } {
 	try {
@@ -56,6 +18,8 @@ function parseMessage(raw: string): { message: string; isJson: boolean; data?: u
 
 export type { BoundConnection };
 
+const DUPLICATE_MESSAGE_WINDOW_MS = 250;
+
 function emitConnectionState(
 	eventKey: string,
 	connections: BoundConnection[],
@@ -65,7 +29,7 @@ function emitConnectionState(
 	const context = createPooledContext(connections, url, activeConnectionId);
 
 	if (context) {
-		emit(eventKey, context);
+		emitWsEvent(eventKey, context);
 	}
 }
 
@@ -100,8 +64,20 @@ export function bindWebSocket(
 		emitWsDisconnected(connections, url, activeConnectionId);
 	};
 
+	let lastMessage = '';
+	let lastMessageAt = 0;
+
 	const onMessage = (event: MessageEvent) => {
 		const raw = typeof event.data === 'string' ? event.data : String(event.data);
+		const now = Date.now();
+
+		if (raw === lastMessage && now - lastMessageAt < DUPLICATE_MESSAGE_WINDOW_MS) {
+			return;
+		}
+
+		lastMessage = raw;
+		lastMessageAt = now;
+
 		const parsed = parseMessage(raw);
 		const context = createPooledContext(connections, url, activeConnectionId);
 
@@ -109,7 +85,7 @@ export function bindWebSocket(
 			return;
 		}
 
-		emit(WS_EVENTS.MESSAGE, {
+		emitWsEvent(WS_EVENTS.MESSAGE, {
 			...context,
 			message: parsed.message,
 			isJson: parsed.isJson,

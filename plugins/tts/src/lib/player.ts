@@ -11,6 +11,9 @@ export type TtsPlaybackOptions = {
 	stopPlayback?: (sessionId: string) => Promise<void>;
 };
 
+/** Must stay at or above the Rust `play_audio` invoke timeout (125s). */
+const PLAYBACK_TIMEOUT_MS = 125_000;
+
 export class TtsPlayer {
 	private queue: QueueItem[] = [];
 	private playing = false;
@@ -69,6 +72,33 @@ export class TtsPlayer {
 		this.skipNext = true;
 	}
 
+	private async playWithTimeout(item: QueueItem): Promise<void> {
+		if (!this.playback) {
+			console.error('TTS playback is not configured.');
+			return;
+		}
+
+		let timedOut = false;
+		const timer = setTimeout(() => {
+			timedOut = true;
+			if (this.sessionId && this.stopPlayback) {
+				void this.stopPlayback(this.sessionId).catch((error: unknown) => {
+					console.warn('Failed to stop timed-out TTS playback', error);
+				});
+			}
+		}, PLAYBACK_TIMEOUT_MS);
+
+		try {
+			await this.playback(item.blob, item.volume);
+		} finally {
+			clearTimeout(timer);
+		}
+
+		if (timedOut) {
+			console.warn('TTS playback timed out; continuing with the next clip.');
+		}
+	}
+
 	private async playNext(): Promise<void> {
 		const item = this.queue.shift();
 
@@ -87,18 +117,13 @@ export class TtsPlayer {
 			return;
 		}
 
-		if (!this.playback) {
-			console.error('TTS playback is not configured.');
-			item.resolve();
-			await this.playNext();
-			return;
-		}
-
 		this.activeSession = true;
 
-		await this.playback(item.blob, item.volume).catch((error: unknown) => {
+		try {
+			await this.playWithTimeout(item);
+		} catch (error: unknown) {
 			console.error('Failed to play TTS audio', error);
-		});
+		}
 
 		this.activeSession = false;
 		item.resolve();

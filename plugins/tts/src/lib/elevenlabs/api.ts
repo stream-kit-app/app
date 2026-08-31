@@ -3,9 +3,29 @@ import type { ElevenLabsModel, ElevenLabsVoice } from './types';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 
 const DEFAULT_MODEL_ID = 'eleven_multilingual_v2';
+const SPEECH_FETCH_TIMEOUT_MS = 30_000;
 
 function createClient(apiKey: string): ElevenLabsClient {
 	return new ElevenLabsClient({ apiKey: apiKey.trim() });
+}
+
+function withTimeout<T>(work: Promise<T>, ms: number, message: string): Promise<T> {
+	return new Promise((resolve, reject) => {
+		const timer = setTimeout(() => {
+			reject(new Error(message));
+		}, ms);
+
+		work.then(
+			(value) => {
+				clearTimeout(timer);
+				resolve(value);
+			},
+			(error: unknown) => {
+				clearTimeout(timer);
+				reject(error);
+			}
+		);
+	});
 }
 
 async function streamToBlob(stream: ReadableStream<Uint8Array>): Promise<Blob> {
@@ -60,11 +80,19 @@ export async function fetchElevenLabsSpeech(
 	modelId = DEFAULT_MODEL_ID
 ): Promise<Blob> {
 	const client = createClient(apiKey);
-	const stream = await client.textToSpeech.convert(voiceId, {
-		text,
-		modelId,
-		outputFormat: 'mp3_44100_128'
-	});
+	const stream = await withTimeout(
+		client.textToSpeech.convert(voiceId, {
+			text,
+			modelId,
+			outputFormat: 'mp3_44100_128'
+		}),
+		SPEECH_FETCH_TIMEOUT_MS,
+		'ElevenLabs speech request timed out'
+	);
 
-	return streamToBlob(stream);
+	return withTimeout(
+		streamToBlob(stream),
+		SPEECH_FETCH_TIMEOUT_MS,
+		'ElevenLabs speech stream timed out'
+	);
 }

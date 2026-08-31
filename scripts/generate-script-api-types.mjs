@@ -80,29 +80,369 @@ type AppLifecycleContext = {
 };
 `;
 
+function extractNamedType(content, typeName, bodyStart) {
+	let depth = 0;
+	let end = bodyStart;
+
+	for (let i = bodyStart; i < content.length; i++) {
+		const char = content[i];
+		if (char === '{' || char === '(') depth++;
+		if (char === '}' || char === ')') depth--;
+		if (char === ';' && depth === 0) {
+			end = i;
+			break;
+		}
+	}
+
+	return {
+		name: typeName,
+		block: `type ${typeName} = ${content.slice(bodyStart, end).trim()};`
+	};
+}
+
 function extractExportTypes(content) {
 	const blocks = [];
 
 	for (const match of content.matchAll(/export type (\w+)\s*=\s*/g)) {
-		const typeName = match[1];
-		const bodyStart = match.index + match[0].length;
-		let depth = 0;
-		let end = bodyStart;
-
-		for (let i = bodyStart; i < content.length; i++) {
-			const char = content[i];
-			if (char === '{' || char === '(') depth++;
-			if (char === '}' || char === ')') depth--;
-			if (char === ';' && depth === 0) {
-				end = i;
-				break;
-			}
-		}
-
-		blocks.push(`type ${typeName} = ${content.slice(bodyStart, end).trim()};`);
+		blocks.push(extractNamedType(content, match[1], match.index + match[0].length).block);
 	}
 
 	return blocks;
+}
+
+/** Exported and file-local `type Name =` aliases (not `export type { Foo }` re-exports). */
+function extractTypeAliases(content) {
+	/** @type {Map<string, { block: string, exported: boolean }>} */
+	const aliases = new Map();
+
+	for (const match of content.matchAll(/^(export\s+)?type (\w+)\s*=\s*/gm)) {
+		const exported = Boolean(match[1]);
+		const extracted = extractNamedType(content, match[2], match.index + match[0].length);
+		const existing = aliases.get(extracted.name);
+		if (!existing || (exported && !existing.exported)) {
+			aliases.set(extracted.name, { block: extracted.block, exported });
+		}
+	}
+
+	return aliases;
+}
+
+function listTsFiles(dir, files = []) {
+	if (!fs.existsSync(dir)) {
+		return files;
+	}
+
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		const fullPath = path.join(dir, entry.name);
+
+		if (entry.isDirectory()) {
+			if (entry.name === 'node_modules' || entry.name === 'dist') {
+				continue;
+			}
+
+			listTsFiles(fullPath, files);
+			continue;
+		}
+
+		if (
+			entry.isFile() &&
+			entry.name.endsWith('.ts') &&
+			!entry.name.endsWith('.d.ts') &&
+			!entry.name.endsWith('.test.ts')
+		) {
+			files.push(fullPath);
+		}
+	}
+
+	return files;
+}
+
+function rewriteInlineImports(source) {
+	return source.replace(/import\(['"][^'"]+['"]\)\./g, '');
+}
+
+const TS_INTRINSICS = new Set([
+	'Promise',
+	'Record',
+	'Partial',
+	'Pick',
+	'Omit',
+	'Required',
+	'Readonly',
+	'Array',
+	'ReadonlyArray',
+	'Map',
+	'Set',
+	'WeakMap',
+	'WeakSet',
+	'Date',
+	'Error',
+	'Function',
+	'Object',
+	'String',
+	'Number',
+	'Boolean',
+	'Symbol',
+	'BigInt',
+	'Uint8Array',
+	'Int8Array',
+	'Uint16Array',
+	'Int16Array',
+	'Uint32Array',
+	'Int32Array',
+	'Float32Array',
+	'Float64Array',
+	'ArrayBuffer',
+	'SharedArrayBuffer',
+	'DataView',
+	'JSON',
+	'Math',
+	'RegExp',
+	'PromiseLike',
+	'ReturnType',
+	'Awaited',
+	'NonNullable',
+	'Extract',
+	'Exclude',
+	'Parameters',
+	'ConstructorParameters',
+	'InstanceType',
+	'ThisParameterType',
+	'Uppercase',
+	'Lowercase',
+	'Capitalize',
+	'Uncapitalize',
+	'WebSocket',
+	'Request',
+	'Response',
+	'Headers',
+	'URL',
+	'URLSearchParams',
+	'AbortSignal',
+	'AbortController'
+]);
+
+const PLUGIN_API_KNOWN_STUBS = {
+	SelectItem: '{ value: string; label: string; disabled?: boolean }',
+	ApiClient: 'unknown',
+	ChatClient: 'unknown',
+	EventSubWsListener: 'unknown',
+	TokenInfo: 'unknown',
+	OBSWebSocket: 'unknown',
+	YouTubeApiClient: 'unknown',
+	RankingsService: 'unknown',
+	QuotesService: 'unknown',
+	StreamDeckService: 'unknown',
+	Commands: 'unknown',
+	Timers: 'unknown',
+	ModerationRules: 'unknown',
+	Roles: 'unknown',
+	BotSettings: 'unknown'
+};
+
+function collectTypeIdentifiers(source) {
+	const withoutNoise = source
+		.replace(/`(?:\\.|[^`\\])*`/g, ' ')
+		.replace(/'(?:\\.|[^'\\])*'/g, ' ')
+		.replace(/"(?:\\.|[^"\\])*"/g, ' ')
+		.replace(/\/\*[\s\S]*?\*\//g, ' ')
+		.replace(/\/\/.*$/gm, ' ');
+	const names = new Set();
+
+	for (const match of withoutNoise.matchAll(/\b([A-Z][A-Za-z0-9]*)\b/g)) {
+		if (!TS_INTRINSICS.has(match[1])) {
+			names.add(match[1]);
+		}
+	}
+
+	return names;
+}
+
+function collectTypeAliasesFromFiles(filePaths) {
+	/** @type {Map<string, { block: string, exported: boolean }>} */
+	const aliases = new Map();
+
+	for (const filePath of filePaths) {
+		if (!fs.existsSync(filePath)) {
+			continue;
+		}
+
+		const content = stripImports(fs.readFileSync(filePath, 'utf8'));
+		for (const [name, alias] of extractTypeAliases(content)) {
+			const existing = aliases.get(name);
+			if (!existing || (alias.exported && !existing.exported)) {
+				aliases.set(name, {
+					block: rewriteInlineImports(alias.block),
+					exported: alias.exported
+				});
+			}
+		}
+	}
+
+	return aliases;
+}
+
+function collectReferencedTypeBlocks(rootTypeName, aliases, ambientNames) {
+	const blocks = [];
+	const seen = new Set(ambientNames);
+	const queue = [rootTypeName];
+
+	while (queue.length > 0) {
+		const name = queue.shift();
+		if (!name || seen.has(name)) {
+			continue;
+		}
+
+		seen.add(name);
+		const alias = aliases.get(name);
+		if (!alias) {
+			continue;
+		}
+
+		blocks.push(alias.block);
+		for (const ref of collectTypeIdentifiers(alias.block)) {
+			if (!seen.has(ref) && aliases.has(ref)) {
+				queue.push(ref);
+			}
+		}
+	}
+
+	return { blocks, declared: seen };
+}
+
+/**
+ * @returns {{
+ *   dts: string,
+ *   apis: Array<{ key: string, typeName: string }>
+ * }}
+ */
+function buildPluginApisDts(ambientNames) {
+	const extraApiFiles = [
+		{
+			key: 'core',
+			files: [path.join(root, 'packages/app/src/lib/types/core-plugin-api.ts')]
+		}
+	];
+
+	/** @type {Array<{ key: string, typeName: string, aliases: Map<string, string> }>} */
+	const pluginApis = [];
+	const pluginKeys = fs
+		.readdirSync(pluginsDir, { withFileTypes: true })
+		.filter((entry) => entry.isDirectory())
+		.map((entry) => entry.name);
+
+	for (const pluginDirName of pluginKeys) {
+		const manifestPath = path.join(pluginsDir, pluginDirName, 'manifest.json');
+		if (!fs.existsSync(manifestPath)) {
+			continue;
+		}
+
+		const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+		const pluginKey = typeof manifest.key === 'string' ? manifest.key : pluginDirName;
+		const srcDir = path.join(pluginsDir, pluginDirName, 'src');
+		const aliases = collectTypeAliasesFromFiles(listTsFiles(srcDir));
+
+		for (const [typeName, alias] of aliases) {
+			if (
+				!alias.exported ||
+				!typeName.endsWith('PluginApi') ||
+				typeName.endsWith('RegistrationApi')
+			) {
+				continue;
+			}
+
+			pluginApis.push({ key: pluginKey, typeName, aliases });
+			break;
+		}
+	}
+
+	for (const extra of extraApiFiles) {
+		if (pluginApis.some((entry) => entry.key === extra.key)) {
+			continue;
+		}
+
+		const aliases = collectTypeAliasesFromFiles(extra.files);
+		for (const [typeName, alias] of aliases) {
+			if (!alias.exported || !typeName.endsWith('PluginApi')) {
+				continue;
+			}
+
+			pluginApis.push({ key: extra.key, typeName, aliases });
+			break;
+		}
+	}
+
+	pluginApis.sort((a, b) => a.key.localeCompare(b.key));
+
+	const parts = [
+		'/// <reference path="./trigger-data.d.ts" />',
+		'/// <reference path="./plugin-app-api.d.ts" />',
+		'',
+		'/** First-party plugin public APIs for `app.plugins.get` / `tryGet` in Run script. */',
+		''
+	];
+	const emittedTypes = new Set(ambientNames);
+	/** @type {Set<string>} */
+	const unresolved = new Set();
+
+	for (const { typeName, aliases } of pluginApis) {
+		const { blocks, declared } = collectReferencedTypeBlocks(typeName, aliases, emittedTypes);
+		for (const name of declared) {
+			emittedTypes.add(name);
+		}
+
+		for (const block of blocks) {
+			parts.push(block);
+			parts.push('');
+			for (const ref of collectTypeIdentifiers(block)) {
+				if (
+					!emittedTypes.has(ref) &&
+					!aliases.has(ref) &&
+					!TS_INTRINSICS.has(ref)
+				) {
+					unresolved.add(ref);
+				}
+			}
+		}
+	}
+
+	const stubLines = [...unresolved]
+		.sort()
+		.filter((name) => !emittedTypes.has(name))
+		.map((name) => `type ${name} = ${PLUGIN_API_KNOWN_STUBS[name] ?? 'unknown'};`);
+
+	if (stubLines.length > 0) {
+		parts.splice(
+			5,
+			0,
+			'/** Stubs for external clients / services not available in the script editor. */',
+			...stubLines,
+			''
+		);
+	}
+
+	return {
+		dts: `${parts.join('\n').trim()}\n`,
+		apis: pluginApis.map(({ key, typeName }) => ({ key, typeName }))
+	};
+}
+
+function injectPluginApiOverloads(pluginAppApiDts, apis) {
+	if (apis.length === 0) {
+		return pluginAppApiDts;
+	}
+
+	const getOverloads = apis.map(({ key, typeName }) => `\tget(key: '${key}'): ${typeName};`).join('\n');
+	const tryGetOverloads = apis
+		.map(({ key, typeName }) => `\ttryGet(key: '${key}'): ${typeName} | undefined;`)
+		.join('\n');
+
+	return pluginAppApiDts
+		.replace(/(\t)get<TApi>\(key: string\): TApi;/, `${getOverloads}\n$1get<TApi>(key: string): TApi;`)
+		.replace(
+			/(\t)tryGet<TApi>\(key: string\): TApi \| undefined;/,
+			`${tryGetOverloads}\n$1tryGet<TApi>(key: string): TApi | undefined;`
+		);
 }
 
 function stripImports(content) {
@@ -451,8 +791,10 @@ function buildPluginAppApiDts() {
 		.join('\n');
 
 	// Reference sibling ambient files so this file is self-contained: trigger-data
-	// provides AppLifecycle*/ProcessEventContext, index provides HandlerTriggerContext.
+	// provides AppLifecycle*/ProcessEventContext, index provides HandlerTriggerContext,
+	// plugin-apis provides keyed `get`/`tryGet` plugin API types.
 	const references = `/// <reference path="./trigger-data.d.ts" />
+/// <reference path="./plugin-apis.d.ts" />
 /// <reference path="./index.d.ts" />
 `;
 
@@ -461,6 +803,7 @@ function buildPluginAppApiDts() {
 
 function buildIndexDts() {
 	return `/// <reference path="./plugin-app-api.d.ts" />
+/// <reference path="./plugin-apis.d.ts" />
 /// <reference path="./trigger-data.d.ts" />
 
 /** One trigger payload passed to script handlers. */
@@ -523,13 +866,14 @@ function toTemplateLiteral(content) {
 	return `\`${content.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\``;
 }
 
-/** @param {{ indexDts: string, pluginAppApiDts: string, triggerDataDts: string, triggerMap: Record<string, string> }} payload */
+/** @param {{ indexDts: string, pluginAppApiDts: string, triggerDataDts: string, pluginApisDts: string, triggerMap: Record<string, string> }} payload */
 function buildRuntimeGeneratedTs(payload) {
 	return `// Auto-generated by scripts/generate-script-api-types.mjs — do not edit.
 
 export const indexDts = ${toTemplateLiteral(payload.indexDts)};
 export const pluginAppApiDts = ${toTemplateLiteral(payload.pluginAppApiDts)};
 export const triggerDataDts = ${toTemplateLiteral(payload.triggerDataDts)};
+export const pluginApisDts = ${toTemplateLiteral(payload.pluginApisDts)};
 export const triggerMap = ${JSON.stringify(payload.triggerMap, null, '\t')} as const;
 `;
 }
@@ -568,10 +912,15 @@ function main() {
 	}
 
 	const triggerDataDts = buildTriggerDataDts();
-
-	fs.writeFileSync(path.join(scriptApiDir, 'trigger-data.d.ts'), triggerDataDts, 'utf8');
-	const pluginAppApiDts = buildPluginAppApiDts();
+	const ambientNames = collectDeclaredTypeNames(triggerDataDts);
+	ambientNames.add('PluginAppApi');
+	ambientNames.add('HandlerTriggerContext');
+	ambientNames.add('PluginAppPluginsApi');
+	const { dts: pluginApisDts, apis: pluginApis } = buildPluginApisDts(ambientNames);
+	const pluginAppApiDts = injectPluginApiOverloads(buildPluginAppApiDts(), pluginApis);
 	const indexDts = buildIndexDts();
+	fs.writeFileSync(path.join(scriptApiDir, 'trigger-data.d.ts'), triggerDataDts, 'utf8');
+	fs.writeFileSync(path.join(scriptApiDir, 'plugin-apis.d.ts'), pluginApisDts, 'utf8');
 	fs.writeFileSync(path.join(scriptApiDir, 'plugin-app-api.d.ts'), pluginAppApiDts, 'utf8');
 	fs.writeFileSync(path.join(scriptApiDir, 'index.d.ts'), indexDts, 'utf8');
 	fs.writeFileSync(
@@ -585,13 +934,14 @@ function main() {
 			indexDts,
 			pluginAppApiDts,
 			triggerDataDts,
+			pluginApisDts,
 			triggerMap
 		}),
 		'utf8'
 	);
 
 	console.log(
-		`Generated @stream-kit/script-api (${Object.keys(triggerMap).length} trigger mappings)`
+		`Generated @stream-kit/script-api (${Object.keys(triggerMap).length} trigger mappings, ${pluginApis.length} plugin APIs)`
 	);
 }
 

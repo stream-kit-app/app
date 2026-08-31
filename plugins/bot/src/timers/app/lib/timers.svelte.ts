@@ -109,12 +109,11 @@ export class Timers {
 		if (wasNew) {
 			timer.createdAt = now;
 			timer.updatedAt = now;
-			const record = timer.toRecord();
-			const { id: _id, ...payload } = record;
+			const fields = timer.toRecordFields();
 			const created = await this.requireApp().records.open(TIMERS_COLLECTION).create({
-				...payload,
-				createdAt: record.createdAt.toISOString(),
-				updatedAt: record.updatedAt.toISOString()
+				...fields,
+				createdAt: fields.createdAt.toISOString(),
+				updatedAt: fields.updatedAt.toISOString()
 			});
 			timer.id = created.id;
 			this.add(timer);

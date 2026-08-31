@@ -38,7 +38,7 @@ Choose a default **model** on the configure page; override per handler or use **
 
 Each handler supports a fixed voice or a **Variable** voice ID.
 
-Speak handlers finish only after their audio has finished playing. Use an [action queue](/docs/guide/action-queues) with **blocking** enabled when later actions must wait for that speech to end.
+Speak handlers finish after their audio has finished playing, or after a playback timeout (about two minutes) if the audio device hangs. A stalled ElevenLabs request is aborted after 30 seconds. In both cases the handler fails softly and the next clip or action can run — the TTS queue will not stay blocked. Use an [action queue](/docs/guide/action-queues) with **blocking** enabled when later actions must wait for that speech to end.
 
 Reference: [TTS handlers](/docs/api/handlers/tts).
 

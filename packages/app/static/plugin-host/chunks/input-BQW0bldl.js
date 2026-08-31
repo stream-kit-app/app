@@ -2642,7 +2642,7 @@ function oi(n, r) {
 		return r.modelUri ? Kr(e, r.modelUri) : e;
 	}
 	function le(e) {
-		return e.replace(/^\/\/\/ <reference path="[^"]+" \/>\r?\n/gm, "");
+		return e.replace(/^\/\/\/\s*<reference\s+path=(["'])[^"']+\1\s*\/>\s*\r?\n?/gm, "");
 	}
 	function ue(e) {
 		r.oninput && r.oninput({ currentTarget: { value: le(e) } });
