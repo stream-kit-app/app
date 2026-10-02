@@ -45,6 +45,7 @@
     "overlay-cloud-base-href",
     "pb-hook-handler-scope",
     "plugins-optional-core",
+    "pocketbase-superuser-env",
     "polite-corners-retire",
     "rankings-points-editor",
     "shy-shirts-divide",
