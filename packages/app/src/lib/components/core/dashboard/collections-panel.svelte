@@ -8,8 +8,11 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
+	import { CollectionCreateFormModel } from './collection-create.svelte';
 	import CollectionCreateForm from './collection-create-form.svelte';
+	import CollectionCreateFormFooter from './collection-create-form-footer.svelte';
 	import CollectionEditorForm from './collection-editor-form.svelte';
+	import CollectionEditorFormFooter from './collection-editor-form-footer.svelte';
 	import { app } from '$lib/core';
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
@@ -41,13 +44,16 @@
 	}
 
 	function openCreateCollection(): void {
+		const modalId = 'collection-create';
+
 		app
 			.createModal({
-				id: 'collection-create',
+				id: modalId,
 				title: t('Create collection'),
 				description: t('Create a collection to store key-value data for your actions.'),
 				content: CollectionCreateForm,
-				props: { collectionsApi, modalId: 'collection-create' },
+				footer: CollectionCreateFormFooter,
+				props: { form: new CollectionCreateFormModel(modalId, collectionsApi) },
 				size: 'md'
 			})
 			.open();
@@ -61,6 +67,7 @@
 				id: modalId,
 				title: t('Edit collection'),
 				content: CollectionEditorForm,
+				footer: CollectionEditorFormFooter,
 				props: { collectionName, collectionsApi, modalId },
 				size: 'lg'
 			})

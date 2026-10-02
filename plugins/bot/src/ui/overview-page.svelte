@@ -8,7 +8,6 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 
 	import { tryGetCommandsService } from '../commands/app/lib/get-commands';
@@ -38,7 +37,7 @@
 
 	const BOT_BASE_PATH = '/plugins/bot/bot';
 
-	let { app, title, description }: PluginCustomViewProps = $props();
+	let { app }: PluginCustomViewProps = $props();
 	const t = $derived(app.i18n.t);
 
 	let revision = $state(0);
@@ -122,11 +121,7 @@
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<Heading level="1" subTitle={description ?? t('Bot connection and settings')}>
-		{title ?? t('Overview')}
-	</Heading>
-
-	<div class="mt-8 grid gap-6 lg:grid-cols-2">
+	<div class="grid gap-6 lg:grid-cols-2">
 		<BotSectionCard
 			title={t('Connections')}
 			description={!isConfigured
@@ -134,10 +129,10 @@
 				: undefined}
 		>
 			<div class="flex flex-col gap-1 text-sm">
-				<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+				<div class="flex items-center justify-between gap-3 px-2 py-1.5">
 					<div class="flex min-w-0 items-center gap-3">
 						<div
-							class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+							class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 						>
 							<Icon icon="ri:twitch-line" class="size-4" aria-hidden="true" />
 						</div>
@@ -148,10 +143,10 @@
 					</Badge>
 				</div>
 
-				<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+				<div class="flex items-center justify-between gap-3 px-2 py-1.5">
 					<div class="flex min-w-0 items-center gap-3">
 						<div
-							class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+							class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 						>
 							<Icon icon="ri:youtube-line" class="size-4" aria-hidden="true" />
 						</div>
@@ -193,10 +188,10 @@
 			{/snippet}
 
 			<div class="grid gap-4">
-				<div class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5">
+				<div class="flex items-center justify-between gap-3 px-2 py-1.5">
 					<div class="flex min-w-0 items-center gap-3">
 						<div
-							class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+							class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
 						>
 							<Icon icon="ri:robot-2-line" class="size-4" aria-hidden="true" />
 						</div>

@@ -98,145 +98,146 @@
 			isCreating = false;
 		}
 	}
+
+	$effect(() => {
+		app.toolbar.set({
+			actions: [
+				{
+					id: 'back-to-overlays',
+					label: t('Back to overlays'),
+					icon: 'ri:arrow-left-line',
+					onClick: () => goto('/overlays')
+				}
+			]
+		});
+	});
 </script>
 
 <Container class="px-6 py-6" size="md">
-	<div class="flex flex-col gap-6">
-		<Button
-			class="w-fit"
-			size="sm"
-			variant="ghost"
-			icon="ri:arrow-left-line"
-			onclick={() => goto('/overlays')}
-		>
-			{t('Back to overlays')}
-		</Button>
+	<Panel tone="solid" class="grid gap-6 p-6">
+		<ToggleGroup
+			value={mode}
+			ariaLabel={t('Overlay create mode')}
+			items={modeItems}
+			onValueChange={selectMode}
+		/>
 
-		<Panel tone="solid" class="grid gap-6 p-6">
-			<ToggleGroup
-				value={mode}
-				ariaLabel={t('Overlay create mode')}
-				items={modeItems}
-				onValueChange={selectMode}
-			/>
+		<InputText
+			label={t('Name')}
+			value={name}
+			required
+			prependIcon="ri:price-tag-3-line"
+			oninput={(event) => {
+				name = event.currentTarget.value;
+			}}
+		/>
 
-			<InputText
-				label={t('Name')}
-				value={name}
-				required
-				prependIcon="ri:price-tag-3-line"
-				oninput={(event) => {
-					name = event.currentTarget.value;
-				}}
-			/>
-
-			{#if mode === 'choose'}
-				<div class="grid gap-3">
-					<p class="text-sm font-semibold text-dark-50">{t('Overlay')}</p>
-					<p class="text-sm text-dark-200">
-						{t('Pick a ready-made widget with configurable options. No build step required.')}
-					</p>
-					<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-						{#each OVERLAY_WIDGET_TEMPLATES as item (item.id)}
-							{@const isSelected = widgetTemplate === item.id}
-							<button
-								type="button"
-								aria-pressed={isSelected}
-								class={cn(
-									'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
-									isSelected
-										? 'border-primary bg-primary/10 ring-1 ring-primary/40'
-										: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'
-								)}
-								onclick={() => selectWidget(item.id)}
-							>
-								<div class="flex items-center justify-between gap-2">
-									<div
-										class={cn(
-											'flex size-10 items-center justify-center border border-rule transition-colors',
-											isSelected
-												? 'bg-primary/20 text-primary'
-												: 'bg-dark-800 text-dark-100 group-hover:text-primary'
-										)}
-									>
-										<Icon icon={item.icon} class="size-5" />
-									</div>
-									{#if isSelected}
-										<Icon
-											icon="ri:checkbox-circle-fill"
-											class="size-5 text-primary"
-										/>
-									{/if}
+		{#if mode === 'choose'}
+			<div class="grid gap-3">
+				<p class="text-sm font-semibold text-dark-50">{t('Overlay')}</p>
+				<p class="text-sm text-dark-200">
+					{t('Pick a ready-made widget with configurable options. No build step required.')}
+				</p>
+				<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					{#each OVERLAY_WIDGET_TEMPLATES as item (item.id)}
+						{@const isSelected = widgetTemplate === item.id}
+						<button
+							type="button"
+							aria-pressed={isSelected}
+							class={cn(
+								'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
+								isSelected
+									? 'border-primary bg-primary/10 ring-1 ring-primary/40'
+									: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'
+							)}
+							onclick={() => selectWidget(item.id)}
+						>
+							<div class="flex items-center justify-between gap-2">
+								<div
+									class={cn(
+										'flex size-10 items-center justify-center border border-rule transition-colors',
+										isSelected
+											? 'bg-primary/20 text-primary'
+											: 'bg-dark-800 text-dark-100 group-hover:text-primary'
+									)}
+								>
+									<Icon icon={item.icon} class="size-5" />
 								</div>
-								<div>
-									<p class="font-semibold text-white">{t(item.name)}</p>
-									<p class="mt-1 text-xs text-dark-200">{t(item.description)}</p>
-								</div>
-							</button>
-						{/each}
-					</div>
+								{#if isSelected}
+									<Icon
+										icon="ri:checkbox-circle-fill"
+										class="size-5 text-primary"
+									/>
+								{/if}
+							</div>
+							<div>
+								<p class="font-semibold text-dark-50">{t(item.name)}</p>
+								<p class="mt-1 text-xs text-dark-200">{t(item.description)}</p>
+							</div>
+						</button>
+					{/each}
 				</div>
-			{:else}
-				<div class="grid gap-3">
-					<p class="text-sm font-semibold text-dark-50">{t('Framework')}</p>
-					<p class="text-sm text-dark-200">
-						{t('Start from a framework scaffold and customize the project yourself.')}
-					</p>
-					<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-						{#each OVERLAY_FRAMEWORKS as item (item.id)}
-							{@const isSelected = framework === item.id}
-							<button
-								type="button"
-								aria-pressed={isSelected}
-								class={cn(
-									'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
-									isSelected
-										? 'border-primary bg-primary/10 ring-1 ring-primary/40'
-										: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'
-								)}
-								onclick={() => (framework = item.id)}
-							>
-								<div class="flex items-center justify-between gap-2">
-									<div
-										class={cn(
-											'flex size-10 items-center justify-center border border-rule transition-colors',
-											isSelected
-												? 'bg-primary/20 text-primary'
-												: 'bg-dark-800 text-dark-100 group-hover:text-primary'
-										)}
-									>
-										<Icon icon={getOverlayFrameworkIcon(item.id)} class="size-5" />
-									</div>
-									{#if isSelected}
-										<Icon
-											icon="ri:checkbox-circle-fill"
-											class="size-5 text-primary"
-										/>
-									{/if}
-								</div>
-								<div>
-									<p class="font-semibold text-white">{item.name}</p>
-									<p class="mt-1 text-xs text-dark-200">{item.description}</p>
-								</div>
-							</button>
-						{/each}
-					</div>
-				</div>
-			{/if}
-
-			<div class="flex flex-wrap items-center justify-end gap-2 border-t border-rule pt-5">
-				<Button variant="outline" onclick={() => goto('/overlays')}>
-					{t('Cancel')}
-				</Button>
-				<Button
-					icon="ri:add-line"
-					onclick={createOverlay}
-					disabled={isCreating || !name.trim()}
-					isLoading={isCreating}
-				>
-					{t('Create overlay')}
-				</Button>
 			</div>
-		</Panel>
-	</div>
+		{:else}
+			<div class="grid gap-3">
+				<p class="text-sm font-semibold text-dark-50">{t('Framework')}</p>
+				<p class="text-sm text-dark-200">
+					{t('Start from a framework scaffold and customize the project yourself.')}
+				</p>
+				<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					{#each OVERLAY_FRAMEWORKS as item (item.id)}
+						{@const isSelected = framework === item.id}
+						<button
+							type="button"
+							aria-pressed={isSelected}
+							class={cn(
+								'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
+								isSelected
+									? 'border-primary bg-primary/10 ring-1 ring-primary/40'
+									: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'
+							)}
+							onclick={() => (framework = item.id)}
+						>
+							<div class="flex items-center justify-between gap-2">
+								<div
+									class={cn(
+										'flex size-10 items-center justify-center border border-rule transition-colors',
+										isSelected
+											? 'bg-primary/20 text-primary'
+											: 'bg-dark-800 text-dark-100 group-hover:text-primary'
+									)}
+								>
+									<Icon icon={getOverlayFrameworkIcon(item.id)} class="size-5" />
+								</div>
+								{#if isSelected}
+									<Icon
+										icon="ri:checkbox-circle-fill"
+										class="size-5 text-primary"
+									/>
+								{/if}
+							</div>
+							<div>
+								<p class="font-semibold text-dark-50">{item.name}</p>
+								<p class="mt-1 text-xs text-dark-200">{item.description}</p>
+							</div>
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		<div class="flex flex-wrap items-center justify-end gap-2 border-t border-rule pt-5">
+			<Button variant="outline" onclick={() => goto('/overlays')}>
+				{t('Cancel')}
+			</Button>
+			<Button
+				icon="ri:add-line"
+				onclick={createOverlay}
+				disabled={isCreating || !name.trim()}
+				isLoading={isCreating}
+			>
+				{t('Create overlay')}
+			</Button>
+		</div>
+	</Panel>
 </Container>

@@ -51,7 +51,7 @@
 	{#if icon && iconPosition === 'start'}
 		{#if isLoading}
 			<Icon
-				icon="gg:spinner"
+				icon="ri:loader-4-line"
 				class={cn('animate-spin', iconClass)}
 				aria-hidden={children != null}
 			/>
@@ -60,7 +60,7 @@
 		{/if}
 	{:else if isLoading}
 		<Icon
-			icon="gg:spinner"
+			icon="ri:loader-4-line"
 			class={cn('animate-spin', iconClass)}
 			aria-hidden={children != null}
 		/>

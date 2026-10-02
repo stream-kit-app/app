@@ -24,7 +24,7 @@
 </script>
 
 <StatCard
-	icon="carbon:trigger"
+	icon="ri:flashlight-line"
 	{value}
 	href="/actions"
 	embedded

@@ -6,7 +6,7 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 
-	import PluginSettingsForm from '$lib/components/core/plugins/plugin-settings-form.svelte';
+	import { openPluginSettings } from '$lib/components/core/plugins/open-plugin-settings';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
@@ -32,19 +32,6 @@
 			plugin.missingDependencies(app).length > 0 ||
 			plugin.disabledDependencies(app).length > 0
 		);
-	}
-
-	function openSettings(plugin: RegisteredPlugin): void {
-		app
-			.createModal({
-				id: `plugin-settings-${plugin.key}`,
-				title: plugin.name,
-				description: plugin.description,
-				content: PluginSettingsForm,
-				props: { plugin },
-				size: 'lg'
-			})
-			.open();
 	}
 </script>
 
@@ -74,7 +61,7 @@
 						variant="outline"
 						size="badge"
 						icon="ri:settings-3-line"
-						onclick={() => openSettings(plugin)}
+						onclick={() => openPluginSettings(plugin)}
 					>
 						{t('Configure')}
 					</Button>

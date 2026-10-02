@@ -7,7 +7,6 @@
 	import type { HandlerFieldInstance } from '$lib/core/action/handler/field';
 	import type { FormEventHandler } from 'svelte/elements';
 
-	import { untrack } from 'svelte';
 	import { Debounced, watch } from 'runed';
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCode } from '@stream-kit/ui/input';
@@ -50,12 +49,12 @@
 	}: Props = $props();
 
 	let openingEditor = $state(false);
-	let syncingFromDisk = $state(false);
 
 	const handlerId = $derived(handler.id);
 	const actionTriggers = $derived(
 		action?.triggers.map((trigger) => ({ id: trigger.definition.id })) ?? []
 	);
+	const triggerFingerprint = $derived(actionTriggers.map((trigger) => trigger.id).join('\0'));
 	const extraLibs = $derived(buildScriptExtraLibs({ actionTriggers, handlerId }));
 	const modelUri = $derived(buildScriptHandlerUri(handlerId));
 	const sourceValue = $derived(String(field.value ?? ''));
@@ -97,55 +96,51 @@
 		}
 	}
 
-	$effect(() => {
-		const currentHandlerId = handlerId;
-		const triggers = actionTriggers;
-		const source = untrack(() => String(field.value ?? ''));
-		let unwatch: (() => void) | undefined;
-		let cancelled = false;
-
-		void syncScriptProjectToDisk(app, {
-			handlerId: currentHandlerId,
-			source,
-			actionTriggers: triggers
-		})
-			.then(() =>
-				watchScriptProject(currentHandlerId, (nextSource) => {
-					if (cancelled || syncingFromDisk) {
-						return;
-					}
-
-					syncingFromDisk = true;
-					field.value = nextSource;
-					syncingFromDisk = false;
-				})
-			)
-			.then((stop) => {
-				if (!cancelled) {
-					unwatch = stop;
-				} else {
-					stop();
-				}
-			})
-			.catch(() => {
-				// Best-effort disk sync and polling when the project path is not writable yet.
-			});
-
-		return () => {
-			cancelled = true;
-			unwatch?.();
-		};
-	});
-
+	// Start polling per handler; the service ignores the app's own writes, so only
+	// external edits (e.g. from "Open in editor") flow back into the field.
 	watch(
-		() => [handlerId, debouncedSource.current] as const,
-		([currentHandlerId, source]) => {
-			if (syncingFromDisk) {
-				return;
-			}
+		() => handlerId,
+		(currentHandlerId) => {
+			const source = sourceValue;
+			const triggers = actionTriggers;
+			let unwatch: (() => void) | undefined;
+			let cancelled = false;
 
 			void syncScriptProjectToDisk(app, {
 				handlerId: currentHandlerId,
+				source,
+				actionTriggers: triggers
+			})
+				.then(() =>
+					watchScriptProject(currentHandlerId, (nextSource) => {
+						if (!cancelled) {
+							field.value = nextSource;
+						}
+					})
+				)
+				.then((stop) => {
+					if (!cancelled) {
+						unwatch = stop;
+					} else {
+						stop();
+					}
+				})
+				.catch(() => {
+					// Best-effort disk sync and polling when the project path is not writable yet.
+				});
+
+			return () => {
+				cancelled = true;
+				unwatch?.();
+			};
+		}
+	);
+
+	watch(
+		() => [debouncedSource.current, triggerFingerprint] as const,
+		([source]) => {
+			void syncScriptProjectToDisk(app, {
+				handlerId,
 				source,
 				actionTriggers
 			}).catch(() => {

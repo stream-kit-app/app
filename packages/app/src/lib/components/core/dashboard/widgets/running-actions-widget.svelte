@@ -4,6 +4,8 @@
 
 	import Icon from '@iconify/svelte';
 
+	import { EmptyState } from '@stream-kit/ui/empty-state';
+
 	import { findHandler, flattenActionHandlers } from '$lib/core/action/handler-tree';
 	import { getApp } from '$lib/core/registry';
 	import { cn } from '$lib/utils';
@@ -49,7 +51,7 @@
 
 <div class="grid min-w-0 gap-3">
 	{#if runningActions.length === 0}
-		<p class="text-sm text-dark-400">{t('No actions running')}</p>
+		<EmptyState compact icon="ri:play-circle-line" title={t('No actions running')} />
 	{:else}
 		<ul class="grid gap-1.5">
 			{#each runningActions as action (action.id)}

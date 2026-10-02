@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { AuthModalForm } from './auth-modal-form.svelte';
+
 	import { Button } from '@stream-kit/ui/button';
 	import { InputText } from '@stream-kit/ui/input';
 
@@ -8,31 +10,22 @@
 	import { openLoginModal } from './open-auth-modals';
 
 	type Props = {
-		modalId?: string;
+		form: AuthModalForm;
 	};
 
-	let { modalId = 'auth-password-reset' }: Props = $props();
+	let { form }: Props = $props();
 
 	const { t } = useI18n();
 
-	let email = $state('');
-	let submitting = $state(false);
-
-	const canSubmit = $derived(email.trim().length > 0 && !submitting);
-
-	function closeModal(): void {
-		getApp().modals.get(modalId)?.close();
-	}
-
 	async function handleSubmit(event: Event): Promise<void> {
 		event.preventDefault();
-		if (!canSubmit) {
+		if (!form.canSubmit) {
 			return;
 		}
 
-		submitting = true;
+		form.submitting = true;
 		try {
-			await getApp().auth.requestPasswordReset(email.trim());
+			await getApp().auth.requestPasswordReset(form.email.trim());
 			getApp().toast.create({
 				title: t('Check your inbox'),
 				description: t(
@@ -40,7 +33,7 @@
 				),
 				variant: 'success'
 			});
-			closeModal();
+			form.close();
 			openLoginModal();
 		} catch (error) {
 			getApp().toast.create({
@@ -52,12 +45,12 @@
 				variant: 'error'
 			});
 		} finally {
-			submitting = false;
+			form.submitting = false;
 		}
 	}
 </script>
 
-<form class="grid gap-5" onsubmit={handleSubmit}>
+<form id={form.formId} class="grid gap-5" onsubmit={handleSubmit}>
 	<p class="text-sm text-dark-300">
 		{t('Enter your account email and we will send you a link to reset your password.')}
 	</p>
@@ -66,20 +59,12 @@
 		type="email"
 		autocomplete="email"
 		required
-		value={email}
-		oninput={(event) => (email = event.currentTarget.value)}
+		value={form.email}
+		oninput={(event) => (form.email = event.currentTarget.value)}
 	/>
-	<div class="flex flex-wrap items-center justify-between gap-2">
-		<button
-			type="button"
-			class="cursor-pointer text-sm text-primary hover:underline"
-			onclick={() => openLoginModal()}
-		>
+	<div>
+		<Button variant="link" size="sm" class="h-auto px-0" onclick={() => openLoginModal()}>
 			{t('Back to log in')}
-		</button>
-		<div class="flex flex-wrap justify-end gap-2">
-			<Button variant="outline" disabled={submitting} onclick={closeModal}>{t('Cancel')}</Button>
-			<Button type="submit" disabled={!canSubmit}>{t('Send reset link')}</Button>
-		</div>
+		</Button>
 	</div>
 </form>

@@ -157,15 +157,15 @@
 	{:else if config.type === 'checkbox'}
 		<div
 			class={cn(
-				'flex h-10 w-full items-center rounded-xl border bg-transparent px-4 text-primary-100',
+				'flex h-10 w-full items-center rounded-lg border bg-transparent px-3 text-primary-100',
 				'font-mono text-sm lowercase',
-				error ? 'border-red-500' : 'border-transparent'
+				error ? 'border-destructive' : 'border-transparent'
 			)}
 		>
 			<span class="truncate">{config.name}</span>
 		</div>
 		{#if error}
-			<p class="text-sm text-red-400">{t(error)}</p>
+			<p class="text-sm text-destructive-100">{t(error)}</p>
 		{/if}
 	{:else if config.type === 'select'}
 		<InputSelect
@@ -224,7 +224,7 @@
 				{@const renderableIndex = renderableIndexAt(index)}
 				<div class="grid gap-2">
 					<Label class="flex w-full min-w-0 items-baseline gap-x-1.5 font-mono text-base">
-						<span class="shrink-0 font-bold text-green-500 uppercase">
+						<span class="shrink-0 font-bold text-success-100 uppercase">
 							{renderableIndex === 0 ? t('if') : (child.operator ?? 'and')}
 						</span>
 						<span class="shrink-0 text-primary-100 italic">{config.name.toLowerCase()}</span>
@@ -235,10 +235,10 @@
 							/>
 						{/if}
 						{#if child.negate}
-							<span class="font-bold text-red-400 uppercase">{t('not')}</span>
+							<span class="font-bold text-destructive-100 uppercase">{t('not')}</span>
 						{/if}
 						{#if config.required}
-							<span class="text-red-400">*</span>
+							<span class="text-destructive-100">*</span>
 						{/if}
 					</Label>
 					<div class="flex items-start gap-2">
@@ -298,7 +298,7 @@
 					size="icon"
 					icon="ri:close-line"
 					aria-label={t('Remove')}
-					class="shrink-0 text-red-400"
+					class="shrink-0 text-destructive-100"
 					onclick={() => editor.removeChild(group, index)}
 				/>
 			</div>
@@ -315,7 +315,7 @@
 			<Dropdown.Content>
 				{#each editor.conditionDefinitions ?? [] as condition (condition.key)}
 					<Dropdown.Item onclick={() => editor.addCondition(group, condition.key)}>
-						{condition.name}{#if condition.required}<span class="text-red-400">
+						{condition.name}{#if condition.required}<span class="text-destructive-100">
 								*</span
 							>{/if}
 					</Dropdown.Item>

@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import { emitFeedback } from '../lib/api-bridge';
@@ -10,7 +11,7 @@ export function createShowOkHandler(app: PluginAppApi) {
 		name: 'Show OK',
 		fields: [aliasField()],
 		execute: async (_action, handler, context, next) => {
-			const alias = resolveFieldText(handler.fields, 'alias', context.data).trim();
+			const alias = resolveFieldText(handler.fields, 'alias', withActionVariables(context)).trim();
 			const payload = streamDeck.buildFeedbackPayload(alias || undefined, {});
 			await emitFeedback(app, 'showOk', payload);
 			next();
@@ -23,7 +24,7 @@ export function createShowAlertHandler(app: PluginAppApi) {
 		name: 'Show Alert',
 		fields: [aliasField()],
 		execute: async (_action, handler, context, next) => {
-			const alias = resolveFieldText(handler.fields, 'alias', context.data).trim();
+			const alias = resolveFieldText(handler.fields, 'alias', withActionVariables(context)).trim();
 			const payload = streamDeck.buildFeedbackPayload(alias || undefined, {});
 			await emitFeedback(app, 'showAlert', payload);
 			next();

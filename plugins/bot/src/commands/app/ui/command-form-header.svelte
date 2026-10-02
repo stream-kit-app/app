@@ -41,7 +41,7 @@
 				size="sm"
 				variant="outline"
 				onclick={handleClone}
-				icon="clarity:clone-line"
+				icon="ri:file-copy-line"
 			>
 				{t('Clone')}
 			</Button>

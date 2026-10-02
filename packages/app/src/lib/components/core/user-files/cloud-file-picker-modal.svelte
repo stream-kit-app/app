@@ -235,7 +235,7 @@
 						<li class="flex items-center gap-1 pr-2">
 							<button
 								type="button"
-								class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-dark-700/60"
+								class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-dark-700/40"
 								onclick={() => onSelect(file)}
 							>
 								<span

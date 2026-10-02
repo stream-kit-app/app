@@ -44,5 +44,6 @@ commands.allow = [
 	"api_server_broadcast",
 	"script_get_project_dir",
 	"script_get_scripts_dir",
-	"resolve_editor_commands"
+	"resolve_editor_commands",
+	"is_store_install"
 ]

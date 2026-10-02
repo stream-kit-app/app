@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import type { RankingsService } from '../app/lib/rankings.svelte';
@@ -104,7 +105,7 @@ export function createGetUserRankHandler(app: PluginAppApi, rankings: RankingsSe
 				context.actionVariables![positionVar] = '';
 			};
 
-			const identity = resolveUserTarget(handler.fields, context.data, rankings);
+			const identity = resolveUserTarget(handler.fields, withActionVariables(context), rankings);
 
 			if (!identity) {
 				app.toast.create({

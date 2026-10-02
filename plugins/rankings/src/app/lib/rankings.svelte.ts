@@ -57,12 +57,15 @@ function createRecordId(): string {
 	return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
 }
 
+
+const POINT_HISTORY_SAVE_DELAY_MS = 2_000;
 export class RankingsService {
 	tiers: TierRecord[] = $state([]);
 	ranks: RankRecord[] = $state([]);
 	users: UserRankingRecord[] = $state([]);
 	ignoredUsers: IgnoredUserRecord[] = $state([]);
-	pointHistory: PointHistoryEntry[] = $state([]);
+	// Replaced wholesale on every change; no deep proxy over the full history.
+	pointHistory: PointHistoryEntry[] = $state.raw([]);
 	settings: RankingsSettings = $state({
 		watchTimeEnabled: true,
 		pointsPerMinute: 1,
@@ -205,9 +208,25 @@ export class RankingsService {
 		this.pointHistory = pointHistory;
 	}
 
+	#pointHistorySaveTimer: ReturnType<typeof setTimeout> | undefined;
+
 	async persistPointHistory(): Promise<void> {
+		clearTimeout(this.#pointHistorySaveTimer);
+		this.#pointHistorySaveTimer = undefined;
+
 		const { store } = this.requireContext();
 		await savePointHistory(store, this.pointHistory);
+	}
+
+	/** Batch history writes from point awards (e.g. watch time for every viewer). */
+	schedulePointHistorySave(): void {
+		if (this.#pointHistorySaveTimer) {
+			return;
+		}
+
+		this.#pointHistorySaveTimer = setTimeout(() => {
+			void this.persistPointHistory();
+		}, POINT_HISTORY_SAVE_DELAY_MS);
 	}
 
 	async persistUsers(): Promise<void> {
@@ -707,7 +726,8 @@ export class RankingsService {
 			input.source,
 			input.source === 'watch-time' ? 'watch-time' : 'add'
 		);
-		await Promise.all([this.persistDirtyUsers([result.user]), this.persistPointHistory()]);
+		await this.persistDirtyUsers([result.user]);
+		this.schedulePointHistorySave();
 
 		return result;
 	}
@@ -732,7 +752,8 @@ export class RankingsService {
 			input.source,
 			'set'
 		);
-		await Promise.all([this.persistDirtyUsers([result.user]), this.persistPointHistory()]);
+		await this.persistDirtyUsers([result.user]);
+		this.schedulePointHistorySave();
 
 		return result;
 	}
@@ -759,7 +780,8 @@ export class RankingsService {
 			input.source,
 			'remove'
 		);
-		await Promise.all([this.persistDirtyUsers([result.user]), this.persistPointHistory()]);
+		await this.persistDirtyUsers([result.user]);
+		this.schedulePointHistorySave();
 
 		return result;
 	}
@@ -843,7 +865,7 @@ export class RankingsService {
 		await this.persistDirtyUsers([...dirtyByUserId.values()]);
 
 		if (historyChanged) {
-			await this.persistPointHistory();
+			this.schedulePointHistorySave();
 		}
 	}
 

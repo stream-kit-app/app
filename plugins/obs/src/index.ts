@@ -209,7 +209,8 @@ const plugin: Plugin = (app) => {
 				visible: () =>
 					!publicApi.isConnected &&
 					!publicApi.isConnecting &&
-					!publicApi.isWaitingForConnection
+					!publicApi.isWaitingForConnection &&
+					!publicApi.connectionError
 			},
 			{
 				type: 'alert',
@@ -231,8 +232,7 @@ const plugin: Plugin = (app) => {
 				name: 'Connection error',
 				description: 'Failed to connect to OBS Studio. Check host, port, and password.',
 				variant: 'error',
-				visible: () =>
-					Boolean(publicApi.connectionError) && !publicApi.isWaitingForConnection
+				visible: () => Boolean(publicApi.connectionError) && !publicApi.isConnected
 			},
 			{
 				type: 'text',
@@ -257,8 +257,8 @@ const plugin: Plugin = (app) => {
 				key: 'password',
 				inputType: 'password',
 				name: 'Password',
-				placeholder: 'OBS WebSocket password',
-				required: true,
+				placeholder: 'OBS WebSocket password (if auth enabled)',
+				required: false,
 				secret: true,
 				sync: 'device'
 			},

@@ -427,6 +427,18 @@
 	"Updates available": "Updates available",
 	"{count} plugin update(s) available.": "{count} plugin update(s) available.",
 	"Update check failed": "Update check failed",
+	"Updates": "Updates",
+	"Current version: {version}": "Current version: {version}",
+	"Check for app updates on startup": "Check for app updates on startup",
+	"You're up to date": "You're up to date",
+	"Stream Kit is up to date.": "Stream Kit is up to date.",
+	"Version {version} is available. Install and restart now?": "Version {version} is available. Install and restart now?",
+	"Install and restart": "Install and restart",
+	"Later": "Later",
+	"Could not check for updates": "Could not check for updates",
+	"Could not install the update": "Could not install the update",
+	"App updates are managed by the Microsoft Store.": "App updates are managed by the Microsoft Store.",
+	"Updates are not checked in development mode.": "Updates are not checked in development mode.",
 	"Update {name} from v{current} to v{next}? Installed plugins run with full access to Stream Kit and your system. Only update plugins from sources you trust.": "Update {name} from v{current} to v{next}? Installed plugins run with full access to Stream Kit and your system. Only update plugins from sources you trust.",
 	"{name} has been updated to v{version}.": "{name} has been updated to v{version}.",
 	"Remote manifest key '{remote}' does not match installed plugin '{installed}'.": "Remote manifest key '{remote}' does not match installed plugin '{installed}'.",
@@ -1106,5 +1118,6 @@
 	"You must be signed in to use cloud files.": "You must be signed in to use cloud files.",
 	"Invalid cloud file URL.": "Invalid cloud file URL.",
 	"Could not download cloud file ({status}).": "Could not download cloud file ({status}).",
-	"Cloud image": "Cloud image"
+	"Cloud image": "Cloud image",
+	"Settings saved": "Settings saved"
 }

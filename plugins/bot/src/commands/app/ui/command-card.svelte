@@ -5,6 +5,7 @@
 
 	import { tooltip, tooltipSnippet } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
+	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
@@ -122,9 +123,7 @@
 
 {#snippet definitionList({ title, definitions }: { title: string; definitions: Definition[] })}
 	<div class="flex flex-col gap-1.5">
-		<span class="text-[10px] font-semibold tracking-wider text-dark-400 uppercase">
-			{title} · {definitions.length}
-		</span>
+		<Eyebrow>{title} · {definitions.length}</Eyebrow>
 		<ul class="flex flex-col gap-1">
 			{#each definitions as { id, name, isAvailable } (id)}
 				<li class="flex items-center gap-2">
@@ -136,11 +135,7 @@
 					></span>
 					<span class={cn(!isAvailable && 'text-destructive-200')}>{name}</span>
 					{#if !isAvailable}
-						<span
-							class="rounded bg-destructive-800 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-destructive-200 uppercase"
-						>
-							{t('Unavailable')}
-						</span>
+						<Badge size="sm" variant="destructive">{t('Unavailable')}</Badge>
 					{/if}
 				</li>
 			{/each}
@@ -187,10 +182,10 @@
 	</div>
 
 	<div
-		class={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', {
-			'bg-destructive-900 text-destructive-200': isUnavailable,
-			'bg-dark-700 text-dark-400': !command.enabled && !isUnavailable,
-			'bg-dark-700 text-primary': command.enabled && !isUnavailable
+		class={cn('flex size-10 shrink-0 items-center justify-center border', {
+			'border-destructive-500/40 text-destructive-200': isUnavailable,
+			'border-rule text-dark-400': !command.enabled && !isUnavailable,
+			'border-rule text-primary': command.enabled && !isUnavailable
 		})}
 		aria-hidden="true"
 	>
@@ -266,7 +261,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				icon="clarity:clone-line"
+				icon="ri:file-copy-line"
 				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
 				aria-label={t('Clone command')}
 				onclick={handleClone}

@@ -5,7 +5,7 @@
 
 	import { Alert } from '@stream-kit/ui/alert';
 	import { Badge } from '@stream-kit/ui/badge';
-	import { Eyebrow } from '@stream-kit/ui/blueprint';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
 	import { InputCheckbox } from '@stream-kit/ui/input';
@@ -111,6 +111,48 @@
 		app.pageHeader.set({
 			title: overlay?.name ?? t('Configure overlay'),
 			segments: [t('Overlays')]
+		});
+	});
+
+	$effect(() => {
+		app.toolbar.set({
+			meta: overlay
+				? [
+						{ icon: getOverlayFrameworkIcon(framework), label: overlay.template },
+						isBuilt
+							? { icon: 'ri:checkbox-circle-line', label: t('Ready') }
+							: { icon: 'ri:error-warning-line', label: t('Not built') }
+					]
+				: [],
+			actions: [
+				{
+					id: 'back-to-overlays',
+					label: t('Back to overlays'),
+					icon: 'ri:arrow-left-line',
+					onClick: () => goto('/overlays')
+				}
+			],
+			primaryActions: [
+				{
+					id: 'open-in-editor',
+					label: t('Open in editor'),
+					icon: 'ri:code-box-line',
+					variant: 'outline',
+					disabled: openingEditor,
+					onClick: openInEditor
+				},
+				...(needsBuild
+					? [
+							{
+								id: 'build-overlay',
+								label: t('Build'),
+								icon: 'ri:hammer-line',
+								disabled: isBuilding,
+								onClick: buildOverlay
+							}
+						]
+					: [])
+			]
 		});
 	});
 
@@ -353,63 +395,12 @@
 </script>
 
 <Container class="px-6 py-6" size="lg">
-	<header class="mb-6 flex flex-wrap items-start justify-between gap-4">
-		<div class="space-y-2">
-			<Button variant="ghost" size="sm" icon="ri:arrow-left-line" onclick={() => goto('/overlays')}>
-				{t('Back to overlays')}
-			</Button>
-
-			{#if overlay}
-				<div class="flex items-center gap-3">
-					<div
-						class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-800 text-primary"
-					>
-						<Icon icon={getOverlayFrameworkIcon(framework)} class="size-5" />
-					</div>
-					<div class="flex flex-wrap items-center gap-1.5">
-						<Badge variant="secondary" size="sm">{overlay.template}</Badge>
-						{#if isBuilt}
-							<Badge variant="success" size="sm">{t('Ready')}</Badge>
-						{:else}
-							<Badge variant="warning" size="sm">{t('Not built')}</Badge>
-						{/if}
-					</div>
-				</div>
-			{/if}
-		</div>
-
-		<div class="flex flex-wrap items-center gap-2">
-			<Button
-				variant="outline"
-				size="sm"
-				icon="ri:code-box-line"
-				disabled={openingEditor}
-				isLoading={openingEditor}
-				onclick={() => void openInEditor()}
-			>
-				{t('Open in editor')}
-			</Button>
-			{#if needsBuild}
-				<Button
-					variant="outline"
-					size="sm"
-					icon="ri:hammer-line"
-					disabled={isBuilding}
-					isLoading={isBuilding}
-					onclick={() => void buildOverlay()}
-				>
-					{t('Build')}
-				</Button>
-			{/if}
-		</div>
-	</header>
-
 	{#if !overlay}
 		<p class="text-sm text-dark-300">{t('Overlay not found.')}</p>
 	{:else if isLoadingSettings}
 		<p class="text-sm text-dark-300">{t('Loading overlay settings…')}</p>
 	{:else if loadError}
-		<p class="text-sm text-red-400">{loadError}</p>
+		<p class="text-sm text-destructive-100">{loadError}</p>
 	{:else}
 		{#if overlayUnavailableReason}
 			<Alert variant="warning" class="mb-6">
@@ -439,7 +430,7 @@
 					{/if}
 				</div>
 
-				<div class="relative min-h-0 flex-1 overflow-hidden bg-[#0f0f12]">
+				<div class="relative min-h-0 flex-1 overflow-hidden bg-dark-950">
 					{#if isBuilt}
 						{#key previewKey}
 							<iframe
@@ -489,7 +480,7 @@
 				{/snippet}
 
 				{#if hasRecommendedActions}
-					<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+					<Panel tone="solid" class="overflow-hidden">
 						{@render sectionToggle(
 							sidebarCollapsed.recommended,
 							t('Recommended actions'),
@@ -540,7 +531,7 @@
 														</p>
 													{/if}
 													{#if entry.issues.length > 0}
-														<p class="text-xs text-red-400">{entry.issues.join(' ')}</p>
+														<p class="text-xs text-destructive-100">{entry.issues.join(' ')}</p>
 													{/if}
 												</div>
 											</div>
@@ -561,10 +552,10 @@
 								{/if}
 							</div>
 						{/if}
-					</section>
+					</Panel>
 				{/if}
 
-				<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+				<Panel tone="solid" class="overflow-hidden">
 					{@render sectionToggle(
 						sidebarCollapsed.browserUrl,
 						t('Browser source URL'),
@@ -587,9 +578,9 @@
 							</div>
 						</div>
 					{/if}
-				</section>
+				</Panel>
 
-				<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+				<Panel tone="solid" class="overflow-hidden">
 					{@render sectionToggle(
 						sidebarCollapsed.cloud,
 						t('Cloud browser source'),
@@ -654,10 +645,10 @@
 							{/if}
 						</div>
 					{/if}
-				</section>
+				</Panel>
 
 				{#if settings?.hasSettings}
-					<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+					<Panel tone="solid" class="overflow-hidden">
 						{@render sectionToggle(
 							sidebarCollapsed.settings,
 							t('Settings'),
@@ -672,7 +663,7 @@
 								{/key}
 							</div>
 						{/if}
-					</section>
+					</Panel>
 				{:else if settings}
 					<section class="rounded-none border border-dashed border-rule bg-dark-900/50 p-4">
 						<p class="text-sm text-dark-300">
@@ -682,7 +673,7 @@
 				{/if}
 
 				{#if settings && settings.testHandlers.length > 0}
-					<section class="overflow-hidden rounded-none border border-rule bg-dark-800">
+					<Panel tone="solid" class="overflow-hidden">
 						{@render sectionToggle(
 							sidebarCollapsed.test,
 							t('Test mode'),
@@ -716,7 +707,7 @@
 								</div>
 							</div>
 						{/if}
-					</section>
+					</Panel>
 				{/if}
 			</aside>
 		</div>

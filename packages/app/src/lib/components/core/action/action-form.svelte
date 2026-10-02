@@ -8,6 +8,7 @@
 	import { getActionGroups } from '$db/repositories/actions';
 
 	import { Button } from '@stream-kit/ui/button';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputSelect, InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
 	import { VariablePopover } from '@stream-kit/ui/variable-popover';
 
@@ -151,13 +152,12 @@
 		</div>
 
 		<div class="grid gap-3">
-
 			{#if action.formErrors?.triggers}
 				<p class="text-sm text-destructive-50">{action.formErrors.triggers}</p>
 			{/if}
 
 			{#if action.triggers.length === 0}
-				<p class="text-sm text-dark-300">{t('No triggers added yet.')}</p>
+				<EmptyState compact icon="ri:flashlight-line" title={t('No triggers added yet.')} />
 			{/if}
 
 			{#if action.triggers.length > 0}
@@ -173,7 +173,7 @@
 						class={cn(
 							'grid min-w-0 rounded-none border px-4 pt-4 pb-4 transition-colors duration-200',
 							{
-								'border-green-500 ring-1 ring-green-500/50':
+								'border-success-200 ring-1 ring-success-200/50':
 									trigger.definition.isAvailable &&
 									action.execution.state.activeTriggerId === trigger.id,
 								'border-rule':
@@ -196,7 +196,7 @@
 								class="flex min-w-0 flex-1 items-center gap-2 font-mono font-medium text-dark-50"
 							>
 								<span class="flex min-w-0 items-center gap-2">
-									<span class={cn('font-bold text-green-500')}>
+									<span class={'font-bold text-success-100'}>
 										{t('ON')}
 									</span>
 									<DefinitionIdPopover
@@ -218,7 +218,7 @@
 								<Button
 									variant="ghost"
 									size="icon"
-									icon="clarity:clone-line"
+									icon="ri:file-copy-line"
 									aria-label={t('Clone trigger')}
 									onclick={() => action.cloneTrigger(trigger.id)}
 									{@attach tooltip(() => t('Clone trigger'))}

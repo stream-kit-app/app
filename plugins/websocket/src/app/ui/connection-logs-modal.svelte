@@ -7,6 +7,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Button } from '@stream-kit/ui/button';
+	import { ToggleGroup, type ToggleGroupItem } from '@stream-kit/ui/toggle-group';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 	import { tooltip } from '@stream-kit/ui/attachments';
@@ -75,6 +76,13 @@
 		return list;
 	});
 
+	const filterItems = $derived<ToggleGroupItem<'all' | WsLogDirection>[]>([
+		{ value: 'all', label: `${t('All')} (${counts.all})` },
+		{ value: 'in', label: `${t('Received')} (${counts.in})`, icon: 'ri:arrow-left-down-line' },
+		{ value: 'out', label: `${t('Sent')} (${counts.out})`, icon: 'ri:arrow-right-up-line' },
+		{ value: 'system', label: `${t('System')} (${counts.system})`, icon: 'ri:terminal-line' }
+	]);
+
 	const directionLabels: Record<WsLogDirection, string> = {
 		in: t('Received'),
 		out: t('Sent'),
@@ -134,20 +142,12 @@
 		}
 	});
 
-	function handleClear() {
-		if (!connection.id) {
-			return;
-		}
-
-		connections.clearLogs(connection.id);
-	}
-
 	function handleSearchInput(event: Event) {
 		searchQuery = (event.currentTarget as HTMLInputElement).value;
 	}
 </script>
 
-<div class="grid h-[calc(100dvh-13.5rem)] min-h-72 grid-rows-[auto_auto_minmax(0,1fr)] gap-4">
+<div class="grid h-[calc(100dvh-18rem)] min-h-72 grid-rows-[auto_auto_minmax(0,1fr)] gap-4">
 	<!-- Header -->
 	<div class="flex items-center justify-between gap-3 border-b border-rule pb-2">
 		<div class="min-w-0 flex-1">
@@ -156,101 +156,17 @@
 			</h3>
 			<p class="mt-0.5 truncate font-mono text-xs text-dark-400">{connection.url}</p>
 		</div>
-		<div class="flex shrink-0 items-center gap-2">
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				onclick={handleClear}
-				class="flex items-center gap-1.5"
-			>
-				<Icon icon="ri:delete-bin-line" class="size-4" />
-				<span>{t('Clear logs')}</span>
-			</Button>
-		</div>
 	</div>
 
 	<!-- Toolbar -->
 	<div class="flex flex-col gap-3">
 		<div class="flex flex-wrap items-center gap-2">
-			<!-- All Filter -->
-			<Button
-				type="button"
-				variant="outline"
+			<ToggleGroup
 				size="sm"
-				class={cn(
-					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
-					filterDirection === 'all'
-						? 'border-dark-500 bg-dark-600 font-semibold text-dark-50'
-						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
-				)}
-				onclick={() => (filterDirection = 'all')}
-			>
-				<span>{t('All')}</span>
-				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
-					{counts.all}
-				</span>
-			</Button>
-
-			<!-- Received Filter -->
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				class={cn(
-					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
-					filterDirection === 'in'
-						? 'border-success-500/40 bg-success-500/15 font-semibold text-success-300'
-						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
-				)}
-				onclick={() => (filterDirection = 'in')}
-			>
-				<Icon icon="ri:arrow-left-down-line" class="size-3.5 text-success-400" />
-				<span>{t('Received')}</span>
-				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
-					{counts.in}
-				</span>
-			</Button>
-
-			<!-- Sent Filter -->
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				class={cn(
-					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
-					filterDirection === 'out'
-						? 'border-primary-500/40 bg-primary-500/15 font-semibold text-primary-300'
-						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
-				)}
-				onclick={() => (filterDirection = 'out')}
-			>
-				<Icon icon="ri:arrow-right-up-line" class="size-3.5 text-primary-400" />
-				<span>{t('Sent')}</span>
-				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
-					{counts.out}
-				</span>
-			</Button>
-
-			<!-- System Filter -->
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				class={cn(
-					'flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
-					filterDirection === 'system'
-						? 'border-dark-500/40 bg-dark-500/20 font-semibold text-dark-300'
-						: 'border-rule bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-dark-100'
-				)}
-				onclick={() => (filterDirection = 'system')}
-			>
-				<Icon icon="ri:terminal-line" class="size-3.5 text-dark-400" />
-				<span>{t('System')}</span>
-				<span class="border border-rule px-1 py-0.25 font-mono text-[10px] text-dark-400">
-					{counts.system}
-				</span>
-			</Button>
+				ariaLabel={t('Filter logs…')}
+				items={filterItems}
+				bind:value={filterDirection}
+			/>
 		</div>
 
 		<div class="flex shrink-0 items-center gap-4">
@@ -321,7 +237,6 @@
 								type="button"
 								variant="outline"
 								size="icon-sm"
-								class="flex size-7 cursor-pointer items-center justify-center rounded-md border border-rule bg-dark-800 text-dark-400 shadow-md transition-all hover:bg-dark-700 hover:text-dark-100"
 								aria-label={copiedId === entry.id ? t('Copied') : t('Copy message')}
 								onclick={() => handleCopy(entry.id, entry.message)}
 								{@attach tooltip(() =>

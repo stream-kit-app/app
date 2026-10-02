@@ -23,9 +23,9 @@ export const toastIconVariants = tv({
 	variants: {
 		variant: {
 			default: 'text-primary',
-			success: 'text-green-500',
-			error: 'text-red-500',
-			warning: 'text-amber-500',
+			success: 'text-success-400',
+			error: 'text-destructive-400',
+			warning: 'text-warning-400',
 			neutral: 'text-dark-300'
 		}
 	},

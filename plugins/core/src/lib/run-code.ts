@@ -65,51 +65,12 @@ return Promise.resolve(__script({ app, context }));`
 	return (app, context) => runner(app, context, defineScript);
 }
 
-function toCloneable(context: HandlerTriggerContext[]): HandlerTriggerContext[] {
-	try {
-		structuredClone(context);
-		return context;
-	} catch {
-		return JSON.parse(JSON.stringify(context)) as HandlerTriggerContext[];
-	}
-}
-
 function ensureActionVariables(context: HandlerTriggerContext): Record<string, string> {
 	if (!context.actionVariables) {
 		context.actionVariables = {};
 	}
 
 	return context.actionVariables;
-}
-
-function applyContextResult(
-	original: HandlerTriggerContext[],
-	updated: HandlerTriggerContext[]
-): void {
-	if (!Array.isArray(updated)) {
-		return;
-	}
-
-	original.forEach((context, index) => {
-		const next = updated[index];
-
-		if (!next) {
-			return;
-		}
-
-		if (
-			next.data &&
-			context.data &&
-			typeof next.data === 'object' &&
-			typeof context.data === 'object'
-		) {
-			Object.assign(context.data as object, next.data);
-		}
-
-		if (next.actionVariables) {
-			Object.assign(ensureActionVariables(context), next.actionVariables);
-		}
-	});
 }
 
 function applyScriptReturn(context: HandlerTriggerContext[], result: unknown): void {
@@ -128,6 +89,27 @@ function applyScriptReturn(context: HandlerTriggerContext[], result: unknown): v
 	}
 }
 
+function diffVariables(
+	before: Record<string, string>,
+	after: Record<string, string>
+): string[] {
+	const changes: string[] = [];
+
+	for (const [key, value] of Object.entries(after)) {
+		if (before[key] !== value) {
+			changes.push(`{${key}} = ${JSON.stringify(value)}`);
+		}
+	}
+
+	for (const key of Object.keys(before)) {
+		if (!(key in after)) {
+			changes.push(`{${key}} removed`);
+		}
+	}
+
+	return changes;
+}
+
 function timeoutAfter(ms: number): Promise<never> {
 	return new Promise((_, reject) => {
 		setTimeout(() => {
@@ -136,17 +118,29 @@ function timeoutAfter(ms: number): Promise<never> {
 	});
 }
 
+/**
+ * Run a user script against the live handler context. Scripts mutate `actionVariables`
+ * in place (the same object later handlers read), or return `{ key: value }`.
+ *
+ * @returns Human-readable action variable changes, for the action log.
+ */
 export async function runUserScript(
 	app: PluginAppApi,
 	source: string,
 	context: HandlerTriggerContext[]
-): Promise<void> {
+): Promise<string[]> {
+	for (const entry of context) {
+		ensureActionVariables(entry);
+	}
+
+	const before = { ...context[0]?.actionVariables };
+
 	try {
 		const runnable = compileScript(source);
-		const clone = toCloneable(context);
-		const result = await Promise.race([runnable(app, clone), timeoutAfter(SCRIPT_TIMEOUT_MS)]);
-		applyContextResult(context, clone);
+		const result = await Promise.race([runnable(app, context), timeoutAfter(SCRIPT_TIMEOUT_MS)]);
 		applyScriptReturn(context, result);
+
+		return diffVariables(before, context[0]?.actionVariables ?? {});
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error('Script execution failed', error);
@@ -155,5 +149,7 @@ export async function runUserScript(
 			description: message,
 			variant: 'error'
 		});
+
+		return [];
 	}
 }

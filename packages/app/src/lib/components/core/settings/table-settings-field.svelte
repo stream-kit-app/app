@@ -8,6 +8,7 @@
 	import type { PluginAppApi } from '$lib/core/plugins';
 
 	import { Button } from '@stream-kit/ui/button';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText, Label } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 	import { useI18n } from '$lib/i18n';
@@ -141,22 +142,25 @@
 
 		<ScrollArea orientation="vertical" viewportClasses="max-h-80">
 			{#if tableRows.loading}
-				<p class="px-3 py-6 text-sm text-dark-200">
+				<p class="px-3 py-6 text-sm text-dark-300">
 					{config.loadingPlaceholder ?? t('Loading…')}
 				</p>
 			{:else if filteredRows.length === 0}
-				<p class="px-3 py-6 text-sm text-dark-200">
-					{search.trim()
+				<EmptyState
+					compact
+					class="p-3"
+					icon={search.trim() ? 'ri:search-line' : 'ri:inbox-line'}
+					title={search.trim()
 						? t('No values match your search.')
 						: (config.emptyLabel ?? t('No values found.'))}
-				</p>
+				/>
 			{:else}
 				<ul>
 					{#each filteredRows as row (rowIdentity(row))}
 						<li
 							class={cn(
 								'grid items-center gap-3 border-b border-rule px-3 py-2 last:border-b-0',
-								'transition hover:bg-dark-700/50'
+								'transition hover:bg-dark-700/40'
 							)}
 							style={gridStyle}
 						>
@@ -192,7 +196,7 @@
 											size="icon-sm"
 											disabled={isBusy}
 											aria-label={action.ariaLabel ?? t('Copy')}
-											icon={isBusy ? 'gg:spinner' : (action.icon ?? 'ri:file-copy-line')}
+											icon={isBusy ? 'ri:loader-4-line' : (action.icon ?? 'ri:file-copy-line')}
 											iconClass={cn(isBusy && 'animate-spin')}
 											onclick={() => void runAction(action, row)}
 										/>

@@ -1,5 +1,5 @@
 import { interpolateVariables } from './interpolate-variables.js';
-import type { HandlerTriggerContext } from './handler-context.js';
+import { withActionVariables, type HandlerTriggerContext } from './handler-context.js';
 
 /** Key-value pair used by key-value handler fields. */
 export type KeyValueEntry = {
@@ -124,7 +124,7 @@ export function resolveFieldText(
 		return undefined;
 	}
 
-	return interpolateVariables(value, toVariables(context.data));
+	return interpolateVariables(value, toVariables(withActionVariables(context)));
 }
 
 /**

@@ -4,6 +4,7 @@
 	import Icon from '@iconify/svelte';
 
 	import { Eyebrow } from '@stream-kit/ui/blueprint';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import { getApp } from '$lib/core/registry';
 	import { cn } from '$lib/utils';
@@ -34,7 +35,7 @@
 	</Eyebrow>
 
 	{#if entries.length === 0}
-		<p class="text-sm text-dark-400">{emptyLabel}</p>
+		<EmptyState compact icon="ri:inbox-line" title={emptyLabel} />
 	{:else}
 		<ul class="grid gap-1.5">
 			{#each entries as entry, index (entry.jobId)}
@@ -46,7 +47,7 @@
 								'flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-none border px-3 py-2 text-left text-sm transition-colors',
 								variant === 'active'
 									? 'border-success-700/60 bg-success-950/40 text-success-50 hover:bg-success-950/60'
-									: 'border-rule bg-dark-900 text-dark-100 hover:bg-dark-800'
+									: 'border-rule bg-dark-900 text-dark-100 hover:bg-dark-700/40'
 							)}
 							onclick={() => openAction(entry.actionId)}
 						>

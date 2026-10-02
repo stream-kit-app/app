@@ -87,7 +87,7 @@ function H(C, w) {
 		{
 			let e = b(() => O("ms-auto shrink-0 transition-transform", X(r()) && "rotate-180"));
 			E(c, {
-				icon: "gg:chevron-down",
+				icon: "ri:arrow-down-s-line",
 				get class() {
 					return i(e);
 				}

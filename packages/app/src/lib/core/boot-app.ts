@@ -60,6 +60,8 @@ async function runBoot(): Promise<void> {
 			app.userFiles.clearFileToken();
 			return;
 		}
+		// Fresh session: drop any cached token or failure backoff from the previous one.
+		app.userFiles.clearFileToken();
 		void app.userFiles.ensureFileToken().catch(() => undefined);
 		void app.userFiles.syncCache();
 	});

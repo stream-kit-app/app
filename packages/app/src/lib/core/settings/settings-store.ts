@@ -4,6 +4,7 @@ const LOCALE_KEY = 'locale';
 const DEVELOPER_MODE_KEY = 'developerMode';
 const PLUGIN_DEV_MODE_KEY = 'pluginDevMode';
 const CHECK_PLUGIN_UPDATES_KEY = 'checkPluginUpdatesOnStartup';
+const CHECK_APP_UPDATES_KEY = 'checkAppUpdatesOnStartup';
 const OFFLINE_CLOUD_FILES_MIRROR_KEY = 'offlineCloudFilesMirror';
 const OFFLINE_CLOUD_FILES_MIRROR_USER_KEY = 'offlineCloudFilesMirrorUserId';
 
@@ -70,6 +71,14 @@ export async function getCheckPluginUpdatesOnStartup(): Promise<boolean> {
 
 export async function saveCheckPluginUpdatesOnStartup(enabled: boolean): Promise<void> {
 	await store.set(CHECK_PLUGIN_UPDATES_KEY, enabled);
+}
+
+export async function getCheckAppUpdatesOnStartup(): Promise<boolean> {
+	return (await store.get<boolean>(CHECK_APP_UPDATES_KEY)) ?? true;
+}
+
+export async function saveCheckAppUpdatesOnStartup(enabled: boolean): Promise<void> {
+	await store.set(CHECK_APP_UPDATES_KEY, enabled);
 }
 
 /** Device-local: mirror cloud media into AppData and prefer local paths at playback. Default off. */

@@ -147,10 +147,8 @@ export class ApiServerService {
 			payload: payload ?? {}
 		};
 
-		const data = JSON.stringify(frame);
-
 		if (clientIds && clientIds.length > 0) {
-			await invoke('api_server_send', { clientIds, data });
+			await invoke('api_server_send', { clientIds, data: JSON.stringify(frame) });
 			return;
 		}
 
@@ -165,7 +163,7 @@ export class ApiServerService {
 			return;
 		}
 
-		await invoke('api_server_send', { clientIds: targets, data });
+		await invoke('api_server_send', { clientIds: targets, data: JSON.stringify(frame) });
 	}
 
 	private registerBuiltins(): void {

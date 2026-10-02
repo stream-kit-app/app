@@ -43,7 +43,7 @@
 
 {#if ifCondition}
 	<Label class="flex flex-wrap items-baseline gap-x-1.5 font-mono text-base">
-		<DefinitionIdPopover id={handler.definition.id} class="font-bold text-green-500 uppercase" {t}>
+		<DefinitionIdPopover id={handler.definition.id} class="font-bold text-success-100 uppercase" {t}>
 			{t('if')}
 		</DefinitionIdPopover>
 		{#if pathText}
@@ -58,7 +58,7 @@
 			<span class="text-primary-100">{valueText}</span>
 		{/if}
 		{#if ifCondition.field.negate}
-			<span class="font-bold text-red-400 uppercase">{t('not')}</span>
+			<span class="font-bold text-destructive-100 uppercase">{t('not')}</span>
 		{/if}
 	</Label>
 {/if}

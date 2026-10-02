@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import type { QuotesService } from '../app/lib/quotes.svelte';
@@ -51,7 +52,7 @@ export function createDeleteQuoteHandler(app: PluginAppApi, quotes: QuotesServic
 			const channel = readContextString(data, 'channel');
 			const broadcasterId = readContextString(data, 'broadcasterId');
 			const asBot = getFieldValue(handler.fields, 'as-bot') === true;
-			const idField = resolveFieldText(handler.fields, 'quote-id', context.data).trim();
+			const idField = resolveFieldText(handler.fields, 'quote-id', withActionVariables(context)).trim();
 			const quoteId = resolveQuoteId(data, idField);
 			const replyValue = getFieldValue(handler.fields, 'reply');
 			const replyTemplate = typeof replyValue === 'string' ? replyValue.trim() : '';
@@ -80,7 +81,7 @@ export function createDeleteQuoteHandler(app: PluginAppApi, quotes: QuotesServic
 				const message = quotes.formatQuoteMessage(
 					deleted,
 					replyTemplate,
-					contextToVariables(context.data)
+					contextToVariables(withActionVariables(context))
 				);
 				sendChatMessage(app, { message, channel, broadcasterId, asBot });
 			}

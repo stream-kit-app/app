@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Role } from '../lib/role.svelte';
 
+	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Button } from '@stream-kit/ui/button';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText, Label } from '@stream-kit/ui/input';
 
 	import { getRolesService } from '../lib/get-roles';
@@ -61,21 +63,24 @@
 		</div>
 
 		{#if role.memberIds.length === 0}
-			<p class="text-sm text-dark-400">{t('No members yet.')}</p>
+			<EmptyState compact icon="ri:group-line" title={t('No members yet.')} />
 		{:else}
-			<ul class="flex flex-col gap-1">
+			<ul class="divide-y divide-rule rounded-none border border-rule">
 				{#each role.memberIds as memberId (memberId)}
-					<li class="flex items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-dark-700/40">
+					<li
+						class="flex items-center justify-between gap-3 px-3 py-1.5 transition-colors hover:bg-dark-700/40"
+					>
 						<span class="min-w-0 truncate text-sm text-dark-50">
 							{role.memberLabel(memberId)}
 						</span>
-						<button
-							type="button"
-							class="cursor-pointer text-sm text-dark-300 hover:text-destructive-50"
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							icon="ri:delete-bin-line"
+							aria-label={t('Remove')}
 							onclick={() => role.removeMember(memberId)}
-						>
-							{t('Remove')}
-						</button>
+							{@attach tooltip(() => t('Remove'))}
+						/>
 					</li>
 				{/each}
 			</ul>

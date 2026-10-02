@@ -66,7 +66,7 @@
 
 <Panel
 	tone="solid"
-	class="group/card flex flex-col overflow-hidden transition-colors hover:bg-dark-900/60"
+	class="group/card flex flex-col overflow-hidden transition-colors hover:bg-dark-700/40"
 >
 	<div class="flex items-start gap-3 border-b border-rule p-4">
 		<div

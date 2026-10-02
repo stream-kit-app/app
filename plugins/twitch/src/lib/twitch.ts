@@ -184,7 +184,15 @@ export function createTwitchPluginApi(
 			// WebSocket EventSub never resumes remote subscriptions. Leftovers from a previous
 			// session (fast restart, crash, or in-flight DELETE) cause Twitch 409 Conflict and
 			// block reward / follow / etc. triggers until cleared.
-			await api.eventSub.deleteAllSubscriptions();
+			await Promise.race([
+				api.eventSub.deleteAllSubscriptions(),
+				new Promise<never>((_, reject) => {
+					setTimeout(
+						() => reject(new Error('Timed out clearing EventSub subscriptions')),
+						15_000
+					);
+				})
+			]);
 		} catch (error) {
 			console.error('[twitch] Failed to clear stale EventSub subscriptions', error);
 		}
@@ -208,7 +216,10 @@ export function createTwitchPluginApi(
 				await originalSay(channel, chunk);
 			}
 		};
-		await chat.connect();
+		// Twurple's connect() only starts IRC; join must not block — if the socket
+		// keeps dying (e.g. WS 1006) the join rate limiter stays paused and
+		// await chat.join() never settles.
+		void chat.connect();
 
 		await clearStaleEventSubSubscriptions(client);
 
@@ -222,7 +233,7 @@ export function createTwitchPluginApi(
 			userId = info.userId ?? undefined;
 
 			if (info.userName) {
-				await chat.join(info.userName).catch(console.error);
+				void chat.join(info.userName).catch(console.error);
 			}
 		} catch (error) {
 			console.error(error);
@@ -371,11 +382,17 @@ export function createTwitchPluginApi(
 
 			const storedAccessToken = await store.get<string>(ACCESS_TOKEN_KEY);
 
+			// Never block app boot on Twitch networking. A hung IRC reconnect previously
+			// left the loading screen up forever while twurple kept retrying.
 			if (storedAccessToken) {
-				await connect(storedAccessToken);
+				void connect(storedAccessToken).catch((error) => {
+					console.error('[twitch] Failed to connect on boot', error);
+				});
 			}
 
-			await botAccountController.boot();
+			void botAccountController.boot().catch((error) => {
+				console.error('[twitch] Failed to boot bot account', error);
+			});
 		}
 	};
 

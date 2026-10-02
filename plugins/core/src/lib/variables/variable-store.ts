@@ -20,6 +20,10 @@ type UserVariableMap = Record<string, Record<string, string>>;
 type GlobalVariableRecord = { key: string; value: string };
 type UserVariableRecord = { username: string; key: string; value: string };
 
+function userRecordKey(username: string, key: string): string {
+	return `${username}\0${key}`;
+}
+
 export class VariableStore {
 	private store?: PluginStore;
 	private app?: PluginAppApi;
@@ -28,6 +32,11 @@ export class VariableStore {
 	private loaded = false;
 	private unsubscribeGlobalRecords?: () => void;
 	private unsubscribeUserRecords?: () => void;
+	// Record ids by variable key (`key` / `username\0key`), so writes skip a full list().
+	private globalRecordIds = new Map<string, string>();
+	private userRecordIds = new Map<string, string>();
+	// Record changes we emit ourselves must not trigger a full reload.
+	private selfWrites = 0;
 
 	bindStore(store: PluginStore, app: PluginAppApi): void {
 		this.store = store;
@@ -110,10 +119,13 @@ export class VariableStore {
 		this.globalVariables = Object.fromEntries(
 			globalRecords.map(({ key, value }) => [key, value])
 		);
+		this.globalRecordIds = new Map(globalRecords.map(({ id, key }) => [key, id]));
 		this.userVariables = {};
+		this.userRecordIds = new Map();
 
-		for (const { username, key, value } of userRecords) {
+		for (const { id, username, key, value } of userRecords) {
 			(this.userVariables[username] ??= {})[key] = value;
+			this.userRecordIds.set(userRecordKey(username, key), id);
 		}
 	}
 
@@ -124,12 +136,13 @@ export class VariableStore {
 
 		await this.migrate();
 		await this.reload();
-		this.unsubscribeGlobalRecords = this.globalRecords().onChange(() => {
-			void this.reload();
-		});
-		this.unsubscribeUserRecords = this.userRecords().onChange(() => {
-			void this.reload();
-		});
+		const reloadOnExternalChange = () => {
+			if (this.selfWrites === 0) {
+				void this.reload();
+			}
+		};
+		this.unsubscribeGlobalRecords = this.globalRecords().onChange(reloadOnExternalChange);
+		this.unsubscribeUserRecords = this.userRecords().onChange(reloadOnExternalChange);
 		this.loaded = true;
 	}
 
@@ -195,17 +208,15 @@ export class VariableStore {
 		}
 
 		if (scope === 'global') {
-			this.globalVariables[normalizedKey] = value;
-			const records = this.globalRecords();
-			const existing = (await records.list<GlobalVariableRecord>()).find(
-				(record) => record.key === normalizedKey
-			);
-
-			if (existing) {
-				await records.update<GlobalVariableRecord>(existing.id, { value });
-			} else {
-				await records.create({ key: normalizedKey, value });
+			if (this.globalVariables[normalizedKey] === value) {
+				return { ok: true };
 			}
+
+			this.globalVariables[normalizedKey] = value;
+			await this.writeRecord(this.globalRecords(), this.globalRecordIds, normalizedKey, {
+				key: normalizedKey,
+				value
+			});
 
 			return { ok: true };
 		}
@@ -217,20 +228,43 @@ export class VariableStore {
 		}
 
 		const userRecord = this.userVariables[username] ?? {};
-		userRecord[normalizedKey] = value;
-		this.userVariables[username] = userRecord;
-		const records = this.userRecords();
-		const existing = (await records.list<UserVariableRecord>()).find(
-			(record) => record.username === username && record.key === normalizedKey
-		);
 
-		if (existing) {
-			await records.update<UserVariableRecord>(existing.id, { value });
-		} else {
-			await records.create({ username, key: normalizedKey, value });
+		if (userRecord[normalizedKey] === value) {
+			return { ok: true };
 		}
 
+		userRecord[normalizedKey] = value;
+		this.userVariables[username] = userRecord;
+		await this.writeRecord(
+			this.userRecords(),
+			this.userRecordIds,
+			userRecordKey(username, normalizedKey),
+			{ username, key: normalizedKey, value }
+		);
+
 		return { ok: true };
+	}
+
+	private async writeRecord<T extends { value: string }>(
+		records: PluginAppRecordCollectionApi,
+		ids: Map<string, string>,
+		idKey: string,
+		data: T
+	): Promise<void> {
+		const id = ids.get(idKey);
+
+		this.selfWrites++;
+
+		try {
+			if (id) {
+				await records.update(id, { value: data.value });
+			} else {
+				const created = await records.create(data);
+				ids.set(idKey, created.id);
+			}
+		} finally {
+			this.selfWrites--;
+		}
 	}
 
 	listKeys(scope: VariableScope, context?: HandlerTriggerContext): string[] {

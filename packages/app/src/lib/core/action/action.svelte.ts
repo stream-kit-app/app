@@ -590,7 +590,7 @@ export class Action {
 	queueId: number | null = $state(null);
 	ownerPluginKey?: string;
 	triggers: ActionTrigger[] = $state.raw([]);
-	handlers: ActionHandler[] = $state([]);
+	handlers: ActionHandler[] = $state.raw([]);
 
 	formErrors: ActionFormErrors | null = $state(null);
 	execution = new ActionExecution();

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { AuthModalForm } from './auth-modal-form.svelte';
+
 	import { Button } from '@stream-kit/ui/button';
 	import { InputText } from '@stream-kit/ui/input';
 
@@ -8,38 +10,28 @@
 	import { openPasswordResetModal, openRegisterModal } from './open-auth-modals';
 
 	type Props = {
-		modalId?: string;
+		form: AuthModalForm;
 	};
 
-	let { modalId = 'auth-login' }: Props = $props();
+	let { form }: Props = $props();
 
 	const { t } = useI18n();
 
-	let email = $state('');
-	let password = $state('');
-	let submitting = $state(false);
-
-	const canSubmit = $derived(email.trim().length > 0 && password.length > 0 && !submitting);
-
-	function closeModal(): void {
-		getApp().modals.get(modalId)?.close();
-	}
-
 	async function handleSubmit(event: Event): Promise<void> {
 		event.preventDefault();
-		if (!canSubmit) {
+		if (!form.canSubmit) {
 			return;
 		}
 
-		submitting = true;
+		form.submitting = true;
 		try {
-			await getApp().auth.login({ email: email.trim(), password });
+			await getApp().auth.login({ email: form.email.trim(), password: form.password });
 			getApp().toast.create({
 				title: t('Logged in'),
 				description: t('Welcome back.'),
 				variant: 'success'
 			});
-			closeModal();
+			form.close();
 		} catch (error) {
 			getApp().toast.create({
 				title: t('Log in failed'),
@@ -47,48 +39,44 @@
 				variant: 'error'
 			});
 		} finally {
-			submitting = false;
+			form.submitting = false;
 		}
 	}
 </script>
 
-<form class="grid gap-5" onsubmit={handleSubmit}>
+<form id={form.formId} class="grid gap-5" onsubmit={handleSubmit}>
 	<InputText
 		label={t('Email')}
 		type="email"
 		autocomplete="email"
 		required
-		value={email}
-		oninput={(event) => (email = event.currentTarget.value)}
+		value={form.email}
+		oninput={(event) => (form.email = event.currentTarget.value)}
 	/>
 	<InputText
 		label={t('Password')}
 		type="password"
 		autocomplete="current-password"
 		required
-		value={password}
-		oninput={(event) => (password = event.currentTarget.value)}
+		value={form.password}
+		oninput={(event) => (form.password = event.currentTarget.value)}
 	/>
-	<div class="flex flex-wrap items-center justify-between gap-2">
-		<div class="flex flex-col items-start gap-1">
-			<button
-				type="button"
-				class="cursor-pointer text-sm text-primary hover:underline"
-				onclick={() => openRegisterModal()}
-			>
-				{t('Create account')}
-			</button>
-			<button
-				type="button"
-				class="cursor-pointer text-sm text-primary hover:underline"
-				onclick={() => openPasswordResetModal()}
-			>
-				{t('Forgot password?')}
-			</button>
-		</div>
-		<div class="flex flex-wrap justify-end gap-2">
-			<Button variant="outline" disabled={submitting} onclick={closeModal}>{t('Cancel')}</Button>
-			<Button type="submit" disabled={!canSubmit}>{t('Log in')}</Button>
-		</div>
+	<div class="flex flex-col items-start gap-1">
+		<Button
+			variant="link"
+			size="sm"
+			class="h-auto px-0"
+			onclick={() => openRegisterModal()}
+		>
+			{t('Create account')}
+		</Button>
+		<Button
+			variant="link"
+			size="sm"
+			class="h-auto px-0"
+			onclick={() => openPasswordResetModal()}
+		>
+			{t('Forgot password?')}
+		</Button>
 	</div>
 </form>

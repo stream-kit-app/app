@@ -10,6 +10,7 @@
 		Root as PopoverRoot,
 		Trigger as PopoverTrigger
 	} from '@stream-kit/ui/popover';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
 	import { resolveApp } from '$lib/components/core/action/resolve-app';
@@ -75,7 +76,7 @@
 		</div>
 
 		{#if entries.length === 0}
-			<p class="py-2 text-xs text-dark-400">{t('This collection has no entries yet.')}</p>
+			<EmptyState compact icon="ri:inbox-line" title={t('This collection has no entries yet.')} />
 		{:else}
 			<ScrollArea orientation="vertical" viewportClasses="max-h-56 overflow-hidden">
 				<ul class="grid gap-1">

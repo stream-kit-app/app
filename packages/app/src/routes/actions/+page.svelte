@@ -20,7 +20,9 @@
 		setActionGroupCollapsed
 	} from '$lib/components/core/action/action-group-collapse.svelte';
 	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
-	import ActionBulkEditDialog from '$lib/components/core/action/action-bulk-edit-dialog.svelte';
+	import { ActionBulkEditForm } from '$lib/components/core/action/action-bulk-edit.svelte';
+	import ActionBulkEditFormContent from '$lib/components/core/action/action-bulk-edit-form.svelte';
+	import ActionBulkEditFormFooter from '$lib/components/core/action/action-bulk-edit-form-footer.svelte';
 	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
 	import { applyDndMove } from '$lib/components/core/action/dnd-events';
 	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
@@ -41,8 +43,6 @@
 	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
 	let groupOrder = $state<string[]>(getGroupOrder(layout));
 	let isDragging = $state(false);
-	let bulkEditOpen = $state(false);
-	let bulkEditIds = $state<number[]>([]);
 	let isImporting = $state(false);
 
 	watch(
@@ -139,8 +139,29 @@
 			return;
 		}
 
-		bulkEditIds = ids;
-		bulkEditOpen = true;
+		const modalId = 'action-bulk-edit';
+		const form = new ActionBulkEditForm({
+			modalId,
+			selectedIds: ids,
+			groupOrder,
+			onApplied: () => {
+				selection.clearSelection();
+				layout = buildDndLayout(app.actions.items);
+				groupOrder = getGroupOrder(layout);
+			}
+		});
+
+		app
+			.createModal({
+				id: modalId,
+				title: t('Edit selected actions'),
+				description: t('{count} selected', { count: ids.length }),
+				content: ActionBulkEditFormContent,
+				footer: ActionBulkEditFormFooter,
+				props: { form },
+				size: 'sm'
+			})
+			.open();
 	}
 
 	function openGlobalBulkEdit(): void {
@@ -384,14 +405,3 @@
 		</DragDropProvider>
 	</Container>
 {/if}
-
-<ActionBulkEditDialog
-	bind:open={bulkEditOpen}
-	selectedIds={bulkEditIds}
-	{groupOrder}
-	onApplied={() => {
-		selection.clearSelection();
-		layout = buildDndLayout(app.actions.items);
-		groupOrder = getGroupOrder(layout);
-	}}
-/>

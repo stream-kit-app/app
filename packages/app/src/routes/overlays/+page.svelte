@@ -50,7 +50,7 @@
 	<Container class="px-6 py-6">
 		<CellGrid cols={3}>
 			{#each app.overlay.items as overlay (overlay.id)}
-				<Cell class="p-0 [&>article]:border-0 [&>article]:bg-transparent">
+				<Cell class="p-0 [&>*]:border-0 [&>*]:bg-transparent">
 					<OverlayCard {overlay} />
 				</Cell>
 			{/each}

@@ -6,25 +6,38 @@
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import QueueCard from '$lib/components/core/queue/queue-card.svelte';
-	import QueueEditDialog from '$lib/components/core/queue/queue-edit-dialog.svelte';
+	import { QueueEditForm } from '$lib/components/core/queue/queue-edit.svelte';
+	import QueueEditFormContent from '$lib/components/core/queue/queue-edit-form.svelte';
+	import QueueEditFormFooter from '$lib/components/core/queue/queue-edit-form-footer.svelte';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
 	const { t } = useI18n();
 
-	let dialogOpen = $state(false);
-	let editingQueue = $state<ActionQueueDefinition | null>(null);
-
 	const queues = $derived(app.actionQueues.definitions);
 
+	function openQueueModal(queue: ActionQueueDefinition | null): void {
+		const modalId = queue != null ? `queue-edit-${queue.id}` : 'queue-create';
+
+		app
+			.createModal({
+				id: modalId,
+				title: queue != null ? t('Edit queue') : t('New queue'),
+				description: t('Queues run their assigned actions in order.'),
+				content: QueueEditFormContent,
+				footer: QueueEditFormFooter,
+				props: { form: new QueueEditForm(modalId, queue) },
+				size: 'sm'
+			})
+			.open();
+	}
+
 	function openCreate(): void {
-		editingQueue = null;
-		dialogOpen = true;
+		openQueueModal(null);
 	}
 
 	function openEdit(queue: ActionQueueDefinition): void {
-		editingQueue = queue;
-		dialogOpen = true;
+		openQueueModal(queue);
 	}
 
 	$effect(() => {
@@ -60,5 +73,3 @@
 		</CellGrid>
 	</Container>
 {/if}
-
-<QueueEditDialog bind:open={dialogOpen} queue={editingQueue} />

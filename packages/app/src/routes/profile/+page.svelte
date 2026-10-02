@@ -398,8 +398,8 @@
 		<Button class="relative" onclick={() => openLoginModal()}>{t('Log in')}</Button>
 	</EmptyState>
 {:else}
-	<Container class="flex min-h-0 flex-1 flex-col overflow-y-auto py-8">
-		<div class="grid max-w-xl gap-6">
+	<Container class="px-6 py-6" size="sm">
+		<div class="grid gap-6">
 			<Panel tone="solid">
 				{#snippet header()}
 					<div class="flex items-center justify-between gap-3">
@@ -434,15 +434,16 @@
 									{t('Browse')}
 								</label>
 								{#if account.avatar || avatarFile || removeAvatar}
-									<button
-										type="button"
-										class="cursor-pointer text-sm text-primary hover:underline"
+									<Button
+										variant="link"
+										size="sm"
+										class="h-auto px-0"
 										onclick={onRemoveAvatar}
 									>
 										{removeAvatar
 											? t('Undo remove avatar')
 											: t('Remove avatar')}
-									</button>
+									</Button>
 								{/if}
 							</div>
 							<p class="text-xs text-dark-400">

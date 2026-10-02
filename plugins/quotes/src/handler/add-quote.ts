@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import type { QuotesService } from '../app/lib/quotes.svelte';
@@ -32,7 +33,7 @@ export function createAddQuoteHandler(app: PluginAppApi, quotes: QuotesService) 
 		],
 		execute: async (_action, handler, context, next) => {
 			const data = context.data as Record<string, unknown> | undefined;
-			const fromField = resolveFieldText(handler.fields, 'quote', context.data).trim();
+			const fromField = resolveFieldText(handler.fields, 'quote', withActionVariables(context)).trim();
 			const fromArg = readContextString(data, 'quote');
 			const text = fromField || fromArg || '';
 			const username = readContextString(data, 'user') ?? readContextString(data, 'username');
@@ -65,7 +66,7 @@ export function createAddQuoteHandler(app: PluginAppApi, quotes: QuotesService) 
 					const message = quotes.formatQuoteMessage(
 						record,
 						replyTemplate,
-						contextToVariables(context.data)
+						contextToVariables(withActionVariables(context))
 					);
 					sendChatMessage(app, { message, channel, broadcasterId, asBot });
 				}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { AuthModalForm } from './auth-modal-form.svelte';
+
 	import { Button } from '@stream-kit/ui/button';
 	import { InputText } from '@stream-kit/ui/input';
 
@@ -9,37 +11,20 @@
 	import { openLoginModal } from './open-auth-modals';
 
 	type Props = {
-		modalId?: string;
+		form: AuthModalForm;
 	};
 
-	let { modalId = 'auth-register' }: Props = $props();
+	let { form }: Props = $props();
 
 	const { t } = useI18n();
 
-	let name = $state('');
-	let email = $state('');
-	let password = $state('');
-	let passwordConfirm = $state('');
-	let submitting = $state(false);
-
-	const canSubmit = $derived(
-		email.trim().length > 0 &&
-			password.length > 0 &&
-			passwordConfirm.length > 0 &&
-			!submitting
-	);
-
-	function closeModal(): void {
-		getApp().modals.get(modalId)?.close();
-	}
-
 	async function handleSubmit(event: Event): Promise<void> {
 		event.preventDefault();
-		if (!canSubmit) {
+		if (!form.canSubmit) {
 			return;
 		}
 
-		if (password !== passwordConfirm) {
+		if (form.password !== form.passwordConfirm) {
 			getApp().toast.create({
 				title: t('Create account'),
 				description: t('Passwords do not match.'),
@@ -48,20 +33,20 @@
 			return;
 		}
 
-		submitting = true;
+		form.submitting = true;
 		try {
 			await getApp().auth.register({
-				email: email.trim(),
-				password,
-				passwordConfirm,
-				name: name.trim() || undefined
+				email: form.email.trim(),
+				password: form.password,
+				passwordConfirm: form.passwordConfirm,
+				name: form.name.trim() || undefined
 			});
 			getApp().toast.create({
 				title: t('Account created'),
 				description: t('You are now signed in.'),
 				variant: 'success'
 			});
-			closeModal();
+			form.close();
 		} catch (error) {
 			if (error instanceof AuthCreatedButSignInFailedError) {
 				getApp().toast.create({
@@ -71,7 +56,7 @@
 					),
 					variant: 'warning'
 				});
-				closeModal();
+				form.close();
 				openLoginModal();
 				return;
 			}
@@ -83,53 +68,45 @@
 				variant: 'error'
 			});
 		} finally {
-			submitting = false;
+			form.submitting = false;
 		}
 	}
 </script>
 
-<form class="grid gap-5" onsubmit={handleSubmit}>
+<form id={form.formId} class="grid gap-5" onsubmit={handleSubmit}>
 	<InputText
 		label={t('Name')}
 		autocomplete="name"
-		value={name}
-		oninput={(event) => (name = event.currentTarget.value)}
+		value={form.name}
+		oninput={(event) => (form.name = event.currentTarget.value)}
 	/>
 	<InputText
 		label={t('Email')}
 		type="email"
 		autocomplete="email"
 		required
-		value={email}
-		oninput={(event) => (email = event.currentTarget.value)}
+		value={form.email}
+		oninput={(event) => (form.email = event.currentTarget.value)}
 	/>
 	<InputText
 		label={t('Password')}
 		type="password"
 		autocomplete="new-password"
 		required
-		value={password}
-		oninput={(event) => (password = event.currentTarget.value)}
+		value={form.password}
+		oninput={(event) => (form.password = event.currentTarget.value)}
 	/>
 	<InputText
 		label={t('Confirm password')}
 		type="password"
 		autocomplete="new-password"
 		required
-		value={passwordConfirm}
-		oninput={(event) => (passwordConfirm = event.currentTarget.value)}
+		value={form.passwordConfirm}
+		oninput={(event) => (form.passwordConfirm = event.currentTarget.value)}
 	/>
-	<div class="flex flex-wrap items-center justify-between gap-2">
-		<button
-			type="button"
-			class="cursor-pointer text-sm text-primary hover:underline"
-			onclick={() => openLoginModal()}
-		>
+	<div>
+		<Button variant="link" size="sm" class="h-auto px-0" onclick={() => openLoginModal()}>
 			{t('Already have an account? Log in')}
-		</button>
-		<div class="flex flex-wrap justify-end gap-2">
-			<Button variant="outline" disabled={submitting} onclick={closeModal}>{t('Cancel')}</Button>
-			<Button type="submit" disabled={!canSubmit}>{t('Create account')}</Button>
-		</div>
+		</Button>
 	</div>
 </form>

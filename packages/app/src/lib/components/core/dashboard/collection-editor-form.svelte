@@ -16,7 +16,7 @@
 		modalId: string;
 	};
 
-	let { collectionName, collectionsApi, modalId }: Props = $props();
+	let { collectionName, collectionsApi }: Props = $props();
 
 	const { t } = useI18n();
 
@@ -74,10 +74,6 @@
 			}
 		};
 	});
-
-	function closeModal(): void {
-		getApp().modals.get(modalId)?.close();
-	}
 
 	function mutationErrorMessage(
 		reason: 'collection-not-found' | 'key-not-found' | 'invalid-input'
@@ -208,91 +204,6 @@
 				title: t('Entry deleted'),
 				variant: 'success'
 			});
-		} finally {
-			saving = false;
-		}
-	}
-
-	async function handleClearCollection(): Promise<void> {
-		if (!collectionsApi || !trimmedCollectionName || saving) {
-			return;
-		}
-
-		const confirmed = await getApp().confirm.ask({
-			title: t('Clear collection?'),
-			description: t('Are you sure you want to clear all entries in "{name}"?', {
-				name: trimmedCollectionName
-			}),
-			confirmLabel: t('Clear collection'),
-			cancelLabel: t('Cancel')
-		});
-
-		if (!confirmed) {
-			return;
-		}
-
-		saving = true;
-
-		try {
-			const result = await collectionsApi.clear(trimmedCollectionName);
-
-			if (!result.ok) {
-				getApp().toast.create({
-					title: t('Clear collection'),
-					description: mutationErrorMessage(result.reason),
-					variant: 'warning'
-				});
-				return;
-			}
-
-			cancelEditing();
-			getApp().toast.create({
-				title: t('Collection cleared'),
-				variant: 'success'
-			});
-		} finally {
-			saving = false;
-		}
-	}
-
-	async function handleDeleteCollection(): Promise<void> {
-		if (!collectionsApi || !trimmedCollectionName || saving) {
-			return;
-		}
-
-		const confirmed = await getApp().confirm.ask({
-			title: t('Delete collection?'),
-			description: t(
-				'Are you sure you want to delete the collection "{name}"? This cannot be undone.',
-				{ name: trimmedCollectionName }
-			),
-			confirmLabel: t('Delete'),
-			cancelLabel: t('Cancel')
-		});
-
-		if (!confirmed) {
-			return;
-		}
-
-		saving = true;
-
-		try {
-			const result = await collectionsApi.delete(trimmedCollectionName);
-
-			if (!result.ok) {
-				getApp().toast.create({
-					title: t('Delete collection?'),
-					description: mutationErrorMessage(result.reason),
-					variant: 'warning'
-				});
-				return;
-			}
-
-			getApp().toast.create({
-				title: t('Collection deleted'),
-				variant: 'success'
-			});
-			closeModal();
 		} finally {
 			saving = false;
 		}
@@ -430,29 +341,4 @@
 			{t('Add entry')}
 		</Button>
 	</div>
-</div>
-
-<div class="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-4">
-	<div class="flex flex-wrap gap-2">
-		<Button
-			variant="outline"
-			size="sm"
-			icon="ri:eraser-line"
-			disabled={saving || entries.length === 0}
-			onclick={() => void handleClearCollection()}
-		>
-			{t('Clear collection')}
-		</Button>
-		<Button
-			variant="outline"
-			size="sm"
-			icon="ri:delete-bin-line"
-			class="text-destructive-50 hover:text-destructive-50"
-			disabled={saving}
-			onclick={() => void handleDeleteCollection()}
-		>
-			{t('Delete')}
-		</Button>
-	</div>
-	<Button variant="outline" disabled={saving} onclick={closeModal}>{t('Close')}</Button>
 </div>

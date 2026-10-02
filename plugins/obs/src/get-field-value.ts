@@ -22,6 +22,11 @@ export function configureFieldValueResolver(app: PluginAppApi): void {
 	};
 }
 
+/** Trigger data plus global, user and action variables for `{variable}` interpolation. */
+export function resolveContextVariables(context: HandlerTriggerContext): Record<string, string> {
+	return resolveVariables(context);
+}
+
 export function resolveFieldText(
 	fields: HandlerFieldInstance[],
 	key: string,

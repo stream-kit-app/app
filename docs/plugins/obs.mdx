@@ -13,15 +13,26 @@ Open **Plugins → OBS**:
 
 | Setting | Description |
 | --- | --- |
-| Host | WebSocket host (`127.0.0.1` default). Supports full `ws://` or `wss://` URLs. |
-| Port | WebSocket port (`4455` default). Ignored when host is a full URL. |
-| Password | OBS WebSocket server password (required) |
+| Host | WebSocket host (`127.0.0.1` default). Use the IP only — do not put `ws://` or `:4455` in this field unless you paste a full URL. |
+| Port | WebSocket port (`4455` default). Ignored when host is a full `ws://` / `wss://` URL. |
+| Password | OBS WebSocket password. Required when authentication is enabled in OBS; leave empty if auth is off. |
 
-Use **Test connection**, **Connect**, or **Disconnect**. The plugin auto-connects on enable when host, port, and password are set, and keeps retrying every 5 seconds until OBS is available or you disconnect manually.
+Use **Test connection**, **Connect**, or **Disconnect**. The plugin auto-connects on enable when host and port are set, and keeps retrying every 5 seconds until OBS is available or you disconnect manually.
 
-The plugin reports **configured** when host, port, and password are all set. Connection status is shown separately in the settings alerts.
+The plugin reports **configured** when host and port are set. Connection status is shown separately in the settings alerts — auth or protocol errors show as **Connection error** (not “Waiting for OBS”).
 
-Enable the WebSocket server in OBS: **Tools → WebSocket Server Settings**, and enable authentication with a matching password.
+Enable the WebSocket server in OBS: **Tools → WebSocket Server Settings**. Copy the password from there into Stream Kit when authentication is enabled.
+
+### After an OBS update
+
+OBS often regenerates the WebSocket password (or migrates settings) when you update. If the connection worked before and suddenly fails:
+
+1. Open **Tools → WebSocket Server Settings** in OBS.
+2. Confirm the server is still enabled and note the port.
+3. Click **Show Connect Info** / copy the current password into Stream Kit.
+4. Use **Test connection**.
+
+If the password keeps changing after every OBS restart, check for a conflicting old `obs-websocket` plugin, or software that rewrites OBS config (commonly Logitech Logi Options+ / G Hub Plugin Service).
 
 ## Triggers
 

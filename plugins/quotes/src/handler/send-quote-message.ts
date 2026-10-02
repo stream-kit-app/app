@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import type { QuotesService } from '../app/lib/quotes.svelte';
@@ -79,9 +80,9 @@ export function createSendQuoteMessageHandler(app: PluginAppApi, quotes: QuotesS
 			const notFoundTemplate =
 				readTemplate(handler.fields, 'not-found') || 'Quote #{id} does not exist.';
 			const emptyTemplate = readTemplate(handler.fields, 'empty') || 'No quotes saved yet.';
-			const idField = resolveFieldText(handler.fields, 'quote-id', context.data).trim();
+			const idField = resolveFieldText(handler.fields, 'quote-id', withActionVariables(context)).trim();
 			const quoteId = resolveQuoteId(data, idField);
-			const contextVars = contextToVariables(context.data);
+			const contextVars = contextToVariables(withActionVariables(context));
 
 			if (!template) {
 				next();

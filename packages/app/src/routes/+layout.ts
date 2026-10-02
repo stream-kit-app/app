@@ -26,12 +26,12 @@ export const load = async () => {
 	app.menu.add({
 		path: '/',
 		title: 'Dashboard',
-		icon: 'material-symbols:dashboard'
+		icon: 'ri:dashboard-line'
 	});
 	app.menu.add({
 		path: '/actions',
 		title: 'Actions',
-		icon: 'carbon:trigger'
+		icon: 'ri:flashlight-line'
 	});
 	app.menu.add({
 		path: '/queues',

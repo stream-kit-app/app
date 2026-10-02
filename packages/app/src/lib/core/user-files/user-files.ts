@@ -20,6 +20,8 @@ import { UserFilesCache, parseCloudFilePath, sanitizeRecordId } from './user-fil
 const FILE_TOKEN_REFRESH_MARGIN_MS = 30_000;
 /** Conservative TTL when PocketBase does not expose expiry (tokens are short-lived). */
 const FILE_TOKEN_TTL_MS = 90_000;
+/** After a failed token request (e.g. expired session), don't hit the server again for a while. */
+const FILE_TOKEN_FAILURE_BACKOFF_MS = 60_000;
 const OFFLINE_SYNC_TOAST_ID = 'offline-cloud-files-sync';
 const OFFLINE_SYNC_TOAST_DISMISS_MS = 2_000;
 
@@ -122,6 +124,7 @@ export class UserFiles {
 	#fileTokenExpiresAt = 0;
 	/** Coalesce concurrent getToken calls (PocketBase auto-cancels duplicate keys). */
 	#fileTokenPromise: Promise<string> | null = null;
+	#fileTokenFailure: { error: unknown; retryAt: number } | null = null;
 	#isOfflineMirrorEnabled: () => boolean;
 	/** Only true while a sync started with `{ notify: true }` is in flight. */
 	#syncToastEnabled = false;
@@ -319,12 +322,26 @@ export class UserFiles {
 			return this.#fileTokenPromise;
 		}
 
+		if (!pb.authStore.isValid) {
+			throw new Error('Not signed in');
+		}
+
+		if (this.#fileTokenFailure && now < this.#fileTokenFailure.retryAt) {
+			throw this.#fileTokenFailure.error;
+		}
+
 		this.#fileTokenPromise = (async () => {
-			// requestKey: null — parallel overlay field resolves must not auto-cancel.
-			const token = await pb.files.getToken({ requestKey: null });
-			this.#fileToken = token;
-			this.#fileTokenExpiresAt = Date.now() + FILE_TOKEN_TTL_MS;
-			return token;
+			try {
+				// requestKey: null — parallel overlay field resolves must not auto-cancel.
+				const token = await pb.files.getToken({ requestKey: null });
+				this.#fileToken = token;
+				this.#fileTokenExpiresAt = Date.now() + FILE_TOKEN_TTL_MS;
+				this.#fileTokenFailure = null;
+				return token;
+			} catch (error) {
+				this.#fileTokenFailure = { error, retryAt: Date.now() + FILE_TOKEN_FAILURE_BACKOFF_MS };
+				throw error;
+			}
 		})().finally(() => {
 			this.#fileTokenPromise = null;
 		});
@@ -336,6 +353,7 @@ export class UserFiles {
 		this.#fileToken = null;
 		this.#fileTokenExpiresAt = 0;
 		this.#fileTokenPromise = null;
+		this.#fileTokenFailure = null;
 	}
 
 	async list(options?: UserFilesListOptions): Promise<UserFileRecord[]> {

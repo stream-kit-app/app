@@ -52,7 +52,7 @@
 						<li>
 							<button
 								type="button"
-								class="flex w-full cursor-pointer items-center gap-2.5 rounded-none px-1.5 py-1.5 text-left transition-colors hover:bg-dark-700/60"
+								class="flex w-full cursor-pointer items-center gap-2.5 rounded-none px-1.5 py-1.5 text-left transition-colors hover:bg-dark-700/40"
 								onclick={() => openUser(user)}
 							>
 								<span

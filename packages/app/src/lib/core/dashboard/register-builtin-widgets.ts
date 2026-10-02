@@ -12,7 +12,7 @@ const builtinDashboardWidgets: BuiltinWidgetDefinition[] = [
 	{
 		key: 'stat-actions',
 		title: 'Actions',
-		icon: 'carbon:trigger',
+		icon: 'ri:flashlight-line',
 		columns: 1,
 		component: StatActionsWidget
 	},

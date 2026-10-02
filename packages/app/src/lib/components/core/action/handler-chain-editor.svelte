@@ -20,6 +20,7 @@
 	} from '@dnd-kit-svelte/svelte';
 	import { watch } from 'runed';
 
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { Label } from '@stream-kit/ui/input';
 	import { VariablePopover } from '@stream-kit/ui/variable-popover';
 
@@ -165,13 +166,12 @@
 	</div>
 
 	<div class="grid gap-3">
-
 		{#if formErrors?.handlers}
 			<p class="text-sm text-destructive-50">{formErrors.handlers}</p>
 		{/if}
 
 		{#if host.handlers.length === 0}
-			<p class="text-sm text-dark-300">{t('No handlers added yet.')}</p>
+			<EmptyState compact icon="ri:list-check" title={t('No handlers added yet.')} />
 		{/if}
 
 		{#if host.handlers.length > 0}

@@ -428,6 +428,18 @@
 	"Updates available": "Updates beschikbaar",
 	"{count} plugin update(s) available.": "{count} plugin-update(s) beschikbaar.",
 	"Update check failed": "Updatecontrole mislukt",
+	"Updates": "Updates",
+	"Current version: {version}": "Huidige versie: {version}",
+	"Check for app updates on startup": "Bij opstarten controleren op app-updates",
+	"You're up to date": "Je bent up-to-date",
+	"Stream Kit is up to date.": "Stream Kit is up-to-date.",
+	"Version {version} is available. Install and restart now?": "Versie {version} is beschikbaar. Nu installeren en herstarten?",
+	"Install and restart": "Installeren en herstarten",
+	"Later": "Later",
+	"Could not check for updates": "Kon niet controleren op updates",
+	"Could not install the update": "De update kon niet worden geïnstalleerd",
+	"App updates are managed by the Microsoft Store.": "App-updates worden beheerd door de Microsoft Store.",
+	"Updates are not checked in development mode.": "Updates worden niet gecontroleerd in ontwikkelmodus.",
 	"Update {name} from v{current} to v{next}? Installed plugins run with full access to Stream Kit and your system. Only update plugins from sources you trust.": "Werk {name} bij van v{current} naar v{next}? Geïnstalleerde plugins draaien met volledige toegang tot Stream Kit en je systeem. Werk alleen plugins bij van bronnen die je vertrouwt.",
 	"{name} has been updated to v{version}.": "{name} is bijgewerkt naar v{version}.",
 	"Remote manifest key '{remote}' does not match installed plugin '{installed}'.": "Remote manifest-key '{remote}' komt niet overeen met geïnstalleerde plugin '{installed}'.",
@@ -1106,5 +1118,6 @@
 	"You must be signed in to use cloud files.": "Je moet ingelogd zijn om cloudbestanden te gebruiken.",
 	"Invalid cloud file URL.": "Ongeldige cloud-bestand-URL.",
 	"Could not download cloud file ({status}).": "Kon cloudbestand niet downloaden ({status}).",
-	"Cloud image": "Cloudafbeelding"
+	"Cloud image": "Cloudafbeelding",
+	"Settings saved": "Instellingen opgeslagen"
 }

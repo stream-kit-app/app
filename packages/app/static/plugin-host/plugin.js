@@ -820,6 +820,13 @@ function getCronNextRunLabel(value) {
     return void 0;
   }
 }
+function withActionVariables(context) {
+  const data = context.data && typeof context.data === "object" && !Array.isArray(context.data) ? context.data : {};
+  if (!context.actionVariables || Object.keys(context.actionVariables).length === 0) {
+    return data;
+  }
+  return { ...data, ...context.actionVariables };
+}
 function normalizeLookupKey(value) {
   return value.trim().replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
@@ -844,7 +851,7 @@ function resolveFieldText(fields, key, context, toVariables) {
   if (typeof value !== "string") {
     return void 0;
   }
-  return interpolateVariables(value, toVariables(context.data));
+  return interpolateVariables(value, toVariables(withActionVariables(context)));
 }
 function resolveOneOfFieldText(fields, key, context, toVariables) {
   const oneOf = getOneOfFieldValue(fields, key);
@@ -1134,5 +1141,6 @@ export {
   parseCommandMessage,
   resolveFieldText,
   resolveOneOfFieldText,
-  splitCronParts
+  splitCronParts,
+  withActionVariables
 };

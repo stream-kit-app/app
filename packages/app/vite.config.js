@@ -9,6 +9,8 @@ const workspaceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
 const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const host = process.env.TAURI_DEV_HOST;
+// Set by `scripts/tauri-dev.mjs` when 1420 is taken; Tauri's devUrl is overridden to match.
+const devPort = Number(process.env.STREAM_KIT_DEV_PORT) || 1420;
 
 const PRODUCTION_PUBLIC_ENV = {
 	PUBLIC_POCKETBASE_URL: 'https://api.stream-kit.app',
@@ -52,12 +54,12 @@ export default defineConfig(async ({ mode, command }) => {
 		// 1. prevent Vite from obscuring rust errors
 		clearScreen: false,
 
-		// 2. tauri expects a fixed port, fail if that port is not available
+		// 2. tauri expects the port from devUrl, fail if that port is not available
 		server: {
-			port: 1420,
+			port: devPort,
 			strictPort: true,
 			host: host || false,
-			hmr: host ? { protocol: 'ws', host, port: 1421 } : undefined,
+			hmr: host ? { protocol: 'ws', host, port: devPort + 1 } : undefined,
 			fs: {
 				allow: [workspaceRoot]
 			},

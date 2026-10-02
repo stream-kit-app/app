@@ -3,6 +3,8 @@ import type { Component } from 'svelte';
 import { getApp } from '$lib/core/registry';
 import { translate } from '$lib/i18n';
 
+import { AuthModalForm } from './auth-modal-form.svelte';
+import AuthModalFooter from './auth-modal-footer.svelte';
 import AuthLoginForm from './auth-login-form.svelte';
 import AuthPasswordResetForm from './auth-password-reset-form.svelte';
 import AuthRegisterForm from './auth-register-form.svelte';
@@ -15,7 +17,9 @@ function openAuthModal(options: {
 	id: string;
 	title: string;
 	description: string;
-	content: Component;
+	content: Component<any>;
+	submitLabel: string;
+	isValid: (form: AuthModalForm) => boolean;
 }): void {
 	getApp()
 		.createModal({
@@ -23,7 +27,11 @@ function openAuthModal(options: {
 			title: options.title,
 			description: options.description,
 			content: options.content,
-			props: { modalId: options.id },
+			footer: AuthModalFooter,
+			props: {
+				form: new AuthModalForm(options.id, options.isValid),
+				submitLabel: options.submitLabel
+			},
 			size: 'sm'
 		})
 		.open();
@@ -53,7 +61,9 @@ export function openLoginModal(): void {
 		id: AUTH_LOGIN_MODAL_ID,
 		title: translate('Log in'),
 		description: translate('Sign in to your Stream Kit account.'),
-		content: AuthLoginForm
+		content: AuthLoginForm,
+		submitLabel: translate('Log in'),
+		isValid: (form) => form.email.trim().length > 0 && form.password.length > 0
 	});
 }
 
@@ -72,7 +82,10 @@ export function openRegisterModal(): void {
 		id: AUTH_REGISTER_MODAL_ID,
 		title: translate('Create account'),
 		description: translate('Register a Stream Kit account to sync your profile.'),
-		content: AuthRegisterForm
+		content: AuthRegisterForm,
+		submitLabel: translate('Create account'),
+		isValid: (form) =>
+			form.email.trim().length > 0 && form.password.length > 0 && form.passwordConfirm.length > 0
 	});
 }
 
@@ -91,6 +104,8 @@ export function openPasswordResetModal(): void {
 		id: AUTH_PASSWORD_RESET_MODAL_ID,
 		title: translate('Reset password'),
 		description: translate('We will email you a link to choose a new password.'),
-		content: AuthPasswordResetForm
+		content: AuthPasswordResetForm,
+		submitLabel: translate('Send reset link'),
+		isValid: (form) => form.email.trim().length > 0
 	});
 }

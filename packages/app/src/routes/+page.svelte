@@ -2,6 +2,7 @@
 	import { Container } from '@stream-kit/ui/container';
 
 	import DashboardAddWidgetForm from '$lib/components/core/dashboard/dashboard-add-widget-form.svelte';
+	import DashboardAddWidgetFormFooter from '$lib/components/core/dashboard/dashboard-add-widget-form-footer.svelte';
 	import DashboardEmptyState from '$lib/components/core/dashboard/dashboard-empty-state.svelte';
 	import DashboardGrid from '$lib/components/core/dashboard/dashboard-grid.svelte';
 	import DashboardToolbar from '$lib/components/core/dashboard/dashboard-toolbar.svelte';
@@ -15,14 +16,19 @@
 	const isEmpty = $derived(app.dashboard.instances.length === 0);
 
 	function openAddWidgetModal(): void {
-		app.createModal({
-			id: 'dashboard-add-widget',
-			title: t('Add widget'),
-			description: t('Choose a widget to add to your dashboard.'),
-			content: DashboardAddWidgetForm,
-			props: { modalId: 'dashboard-add-widget' },
-			size: 'lg'
-		}).open();
+		const modalId = 'dashboard-add-widget';
+
+		app
+			.createModal({
+				id: modalId,
+				title: t('Add widget'),
+				description: t('Choose a widget to add to your dashboard.'),
+				content: DashboardAddWidgetForm,
+				footer: DashboardAddWidgetFormFooter,
+				props: { modalId },
+				size: 'lg'
+			})
+			.open();
 	}
 
 	$effect(() => {

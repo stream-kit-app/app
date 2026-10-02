@@ -60,7 +60,7 @@
 
 <Panel
 	tone="solid"
-	class="group/card grid grid-cols-[1fr_auto] items-center transition-colors hover:bg-dark-900/60"
+	class="group/card grid grid-cols-[1fr_auto] items-center transition-colors hover:bg-dark-700/40"
 >
 	<button
 		type="button"

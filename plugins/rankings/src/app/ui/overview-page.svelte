@@ -68,7 +68,7 @@
 								<li>
 									<button
 										type="button"
-										class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-dark-700/60"
+										class="flex w-full cursor-pointer items-center gap-3 px-2 py-2 text-left transition-colors hover:bg-dark-700/40"
 										onclick={() => openUser(user)}
 									>
 										<span
@@ -83,7 +83,7 @@
 										</span>
 										<div class="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
 											<span class="text-sm text-dark-300">
-												{user.totalPoints} pts · {formatWatchTime(user.watchTimeSeconds)}
+												{user.totalPoints} {t('pts')} · {formatWatchTime(user.watchTimeSeconds)}
 											</span>
 											{#if progress.rank}
 												<Badge variant="secondary" size="sm">{progress.rank.name}</Badge>
@@ -108,7 +108,7 @@
 						<ul class="flex flex-col gap-1">
 							{#each stats.tierDistribution as entry (entry.tier.id)}
 								<li
-									class="flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-sm"
+									class="flex items-center justify-between gap-3 px-2 py-2 text-sm"
 								>
 									<span class="font-medium text-dark-50">{entry.tier.name}</span>
 									<Badge variant="ghost" size="sm">{entry.count}</Badge>

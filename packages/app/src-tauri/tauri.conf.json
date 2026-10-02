@@ -46,6 +46,18 @@
 			"icons/128x128@2x.png",
 			"icons/icon.icns",
 			"icons/icon.ico"
-		]
+		],
+		"createUpdaterArtifacts": true
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUwMTA4NkM5RkI1NkMyODEKUldTQndsYjd5WVlRVU9jV0VmT21jWGZHMEZ6RUhlYlRGdTM2RE12dk1QSDgwM1pQQ0hxZUFBdmoK",
+			"endpoints": [
+				"https://github.com/stream-kit-app/app/releases/download/updater/latest.json"
+			],
+			"windows": {
+				"installMode": "passive"
+			}
+		}
 	}
 }

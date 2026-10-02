@@ -6,6 +6,7 @@
 	import { Panel } from '@stream-kit/ui/blueprint';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
@@ -31,12 +32,14 @@
 </script>
 
 {#if definitions.length === 0}
-	<Panel tone="solid" class="p-6 text-center text-dark-100">
-		<p class="font-semibold text-dark-50">{t('No widgets available')}</p>
-		<p class="mt-1 text-sm">
-			{t('All available widgets are already on your dashboard, or their plugins are disabled.')}
-		</p>
-	</Panel>
+	<EmptyState
+		class="p-0"
+		icon="ri:layout-grid-line"
+		title={t('No widgets available')}
+		description={t(
+			'All available widgets are already on your dashboard, or their plugins are disabled.'
+		)}
+	/>
 {:else}
 	<div class="grid gap-4 md:grid-cols-2">
 		{#each definitions as definition (definition.definitionId)}
@@ -71,7 +74,3 @@
 		{/each}
 	</div>
 {/if}
-
-<div class="mt-6 flex justify-end">
-	<Button variant="outline" onclick={closeModal}>{t('Cancel')}</Button>
-</div>

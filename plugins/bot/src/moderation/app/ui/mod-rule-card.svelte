@@ -72,9 +72,9 @@
 	</div>
 
 	<div
-		class={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', {
-			'bg-dark-700 text-dark-400': !rule.enabled,
-			'bg-dark-700 text-primary': rule.enabled
+		class={cn('flex size-10 shrink-0 items-center justify-center border border-rule', {
+			'text-dark-400': !rule.enabled,
+			'text-primary': rule.enabled
 		})}
 		aria-hidden="true"
 	>
@@ -114,7 +114,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				icon="clarity:clone-line"
+				icon="ri:file-copy-line"
 				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
 				aria-label={t('Clone rule')}
 				onclick={handleClone}

@@ -40,7 +40,7 @@
 
 <div class="relative min-w-0 p-2">
 	<div
-		class="group/card flex min-w-0 items-center gap-3 rounded-lg px-4 py-1.5 transition-colors hover:bg-dark-700/60"
+		class="group/card flex min-w-0 items-center gap-3 rounded-none px-4 py-1.5 transition-colors hover:bg-dark-700/40"
 	>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->

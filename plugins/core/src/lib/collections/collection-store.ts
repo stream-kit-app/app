@@ -41,6 +41,10 @@ export class CollectionStore {
 	private persistentCollections: CollectionRegistry = {};
 	private loaded = false;
 	private unsubscribeRecords?: () => void;
+	// Persistent collection name → record id, so writes skip a full list().
+	private recordIds = new Map<string, string>();
+	// Record changes we emit ourselves must not trigger a full reload.
+	private selfWrites = 0;
 	private createdListeners = new Set<CreatedListener>();
 	private changedListeners = new Set<ChangedListener>();
 	private deletedListeners = new Set<DeletedListener>();
@@ -106,6 +110,7 @@ export class CollectionStore {
 		) as CollectionRegistry;
 
 		this.persistentCollections = next;
+		this.recordIds = new Map(records.map(({ id, name }) => [name, id]));
 
 		if (notify) {
 			for (const collectionName of Object.keys(next)) {
@@ -128,6 +133,10 @@ export class CollectionStore {
 		await this.migrate();
 		await this.reloadPersistentCollections();
 		this.unsubscribeRecords = this.records().onChange(() => {
+			if (this.selfWrites > 0) {
+				return;
+			}
+
 			void this.reloadPersistentCollections(true);
 		});
 		this.loaded = true;
@@ -234,28 +243,39 @@ export class CollectionStore {
 		return this.get(collectionName, key) !== undefined;
 	}
 
-	private async persist(lifetime: CollectionLifetime): Promise<void> {
+	private async persist(lifetime: CollectionLifetime, collectionName: string): Promise<void> {
 		if (lifetime !== 'persistent') {
 			return;
 		}
 
 		const records = this.records();
-		const existing = await records.list<PersistentCollectionRecord>();
+		const data = this.persistentCollections[collectionName];
+		const id = this.recordIds.get(collectionName);
 
-		for (const [name, data] of Object.entries(this.persistentCollections)) {
-			const record = existing.find((item) => item.name === name);
+		this.selfWrites++;
 
-			if (record) {
-				await records.update<PersistentCollectionRecord>(record.id, { data: { ...data } });
-			} else {
-				await records.create({ name, data: { ...data } });
+		try {
+			if (!data) {
+				if (id) {
+					await records.delete(id);
+					this.recordIds.delete(collectionName);
+				}
+
+				return;
 			}
-		}
 
-		for (const record of existing) {
-			if (!Object.hasOwn(this.persistentCollections, record.name)) {
-				await records.delete(record.id);
+			if (id) {
+				await records.update<PersistentCollectionRecord>(id, { data: { ...data } });
+				return;
 			}
+
+			const created = await records.create<PersistentCollectionRecord>({
+				name: collectionName,
+				data: { ...data }
+			});
+			this.recordIds.set(collectionName, created.id);
+		} finally {
+			this.selfWrites--;
 		}
 	}
 
@@ -294,7 +314,7 @@ export class CollectionStore {
 		const registry =
 			lifetime === 'session' ? this.sessionCollections : this.persistentCollections;
 		registry[normalizedName] = {};
-		await this.persist(lifetime);
+		await this.persist(lifetime, normalizedName);
 
 		this.emitCreated({ collectionName: normalizedName, lifetime });
 
@@ -319,7 +339,7 @@ export class CollectionStore {
 		const changeType = previousValue === undefined ? 'set' : 'update';
 
 		data[normalizedKey] = value;
-		await this.persist(lifetime);
+		await this.persist(lifetime, normalizedName);
 
 		this.emitChanged({
 			collectionName: normalizedName,
@@ -358,7 +378,7 @@ export class CollectionStore {
 
 		const previousValue = data[normalizedKey];
 		data[normalizedKey] = value;
-		await this.persist(lifetime);
+		await this.persist(lifetime, normalizedName);
 
 		this.emitChanged({
 			collectionName: normalizedName,
@@ -393,7 +413,7 @@ export class CollectionStore {
 
 		const previousValue = data[normalizedKey];
 		delete data[normalizedKey];
-		await this.persist(lifetime);
+		await this.persist(lifetime, normalizedName);
 
 		this.emitChanged({
 			collectionName: normalizedName,
@@ -422,7 +442,7 @@ export class CollectionStore {
 			delete data[key];
 		}
 
-		await this.persist(lifetime);
+		await this.persist(lifetime, normalizedName);
 
 		if (hadKeys) {
 			this.emitChanged({
@@ -450,7 +470,7 @@ export class CollectionStore {
 			lifetime === 'session' ? this.sessionCollections : this.persistentCollections;
 
 		delete registry[normalizedName];
-		await this.persist(lifetime);
+		await this.persist(lifetime, normalizedName);
 
 		this.emitDeleted({ collectionName: normalizedName, lifetime });
 

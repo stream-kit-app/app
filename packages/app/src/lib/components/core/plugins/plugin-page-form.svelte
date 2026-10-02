@@ -3,6 +3,8 @@
 	import type { RegisteredPlugin } from '$lib/core/plugins/registered-plugin.svelte';
 	import type { SettingsContext, SettingsFieldInstance, SettingsFieldItem } from '$lib/core/settings';
 
+	import Icon from '@iconify/svelte';
+
 	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
 	import { app } from '$lib/core';
 	import {
@@ -43,11 +45,8 @@
 	let isLoading = $state(true);
 	let isSaving = $state(false);
 
+	// Field values are read reactively through `getValue`; don't rebuild per keystroke.
 	const context = $derived.by<SettingsContext>(() => {
-		for (const field of fieldInstances) {
-			void field.value;
-		}
-
 		const pluginContext = plugin.createContext(app);
 
 		return {
@@ -117,7 +116,7 @@
 			await plugin.saveFieldInstances(app, fieldInstances);
 
 			app.toast.create({
-				title: successMessage ?? 'Settings saved',
+				title: successMessage ?? t('Settings saved'),
 				variant: 'success'
 			});
 		} finally {
@@ -137,7 +136,12 @@
 		</header>
 	{/if}
 
-	{#if !isLoading}
+	{#if isLoading}
+		<div class="flex items-center gap-2 text-sm text-dark-300">
+			<Icon icon="ri:loader-4-line" class="size-4 animate-spin text-primary" aria-hidden="true" />
+			<span>{t('Loading…')}</span>
+		</div>
+	{:else}
 		<SettingsFieldGroup
 			{context}
 			items={fieldItems}

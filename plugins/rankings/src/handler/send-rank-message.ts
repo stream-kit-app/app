@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import type { RankingsService } from '../app/lib/rankings.svelte';
@@ -71,7 +72,7 @@ export function createLeaderboardMessageHandler(app: PluginAppApi, rankings: Ran
 		],
 		execute: async (_action, handler, context, next) => {
 			const data = context.data as Record<string, unknown> | undefined;
-			const prefix = resolveFieldText(handler.fields, 'prefix', context.data).trim();
+			const prefix = resolveFieldText(handler.fields, 'prefix', withActionVariables(context)).trim();
 			const asBot = getFieldValue(handler.fields, 'as-bot') === true;
 			const leaderboard = rankings.formatLeaderboardMessage();
 			const message = prefix ? `${prefix} ${leaderboard}` : leaderboard;

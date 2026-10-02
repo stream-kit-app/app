@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import { emitFeedback } from '../lib/api-bridge';
@@ -18,8 +19,8 @@ export function createSetButtonSettingsHandler(app: PluginAppApi) {
 			}
 		],
 		execute: async (_action, handler, context, next) => {
-			const alias = resolveFieldText(handler.fields, 'alias', context.data).trim();
-			const raw = resolveFieldText(handler.fields, 'settings-json', context.data).trim();
+			const alias = resolveFieldText(handler.fields, 'alias', withActionVariables(context)).trim();
+			const raw = resolveFieldText(handler.fields, 'settings-json', withActionVariables(context)).trim();
 
 			if (!raw) {
 				app.toast.create({

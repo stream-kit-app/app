@@ -5,7 +5,7 @@
 	import Icon from '@iconify/svelte';
 	import { invoke } from '@tauri-apps/api/core';
 
-	import { Eyebrow } from '@stream-kit/ui/blueprint';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
@@ -19,7 +19,7 @@
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
 
-	import PluginSettingsForm from './plugin-settings-form.svelte';
+	import { openPluginSettings } from './open-plugin-settings';
 
 	type Props = {
 		plugin: RegisteredPlugin;
@@ -72,17 +72,6 @@
 			statusRevision += 1;
 		});
 	});
-
-	function openSettings(): void {
-		app.createModal({
-			id: `plugin-settings-${plugin.key}`,
-			title: plugin.name,
-			description: plugin.description,
-			content: PluginSettingsForm,
-			props: { plugin },
-			size: 'lg'
-		}).open();
-	}
 
 	async function setPluginDevModeEnabled(enabled: boolean): Promise<void> {
 		const manifests = await invoke<InstalledPluginManifest[]>('list_installed_plugins');
@@ -188,12 +177,13 @@
 	}
 </script>
 
-<article
+<Panel
+	tone="solid"
 	class={cn(
-		'group/card flex flex-col overflow-hidden rounded-none border transition-colors',
+		'group/card flex flex-col overflow-hidden transition-colors',
 		hasDependencyIssues
-			? 'border-rule bg-dark-900/70 opacity-80 hover:bg-dark-900/80'
-			: 'border-rule bg-dark-800 hover:bg-dark-900/60'
+			? 'bg-dark-900/70 opacity-80 hover:bg-dark-900/80'
+			: 'hover:bg-dark-900/60'
 	)}
 >
 	<div class="flex items-start gap-3 p-4 pb-3">
@@ -247,12 +237,12 @@
 			{/each}
 		</div>
 		{#if hasMissingDependencies}
-			<p class="mt-2 text-xs text-red-400">
+			<p class="mt-2 text-xs text-destructive-100">
 				{t('Missing plugins')}: {missingDependencies.join(', ')}
 			</p>
 		{/if}
 		{#if hasDisabledDependencies}
-			<p class="mt-2 text-xs text-amber-400">
+			<p class="mt-2 text-xs text-warning-100">
 				{t('Disabled plugins')}: {disabledDependencies.join(', ')}
 			</p>
 		{/if}
@@ -295,7 +285,7 @@
 					variant={pendingUpdate ? 'ghost' : 'outline'}
 					class="min-w-0 flex-1"
 					icon="ri:settings-3-line"
-					onclick={openSettings}
+					onclick={() => openPluginSettings(plugin)}
 				>
 					<span class="truncate">{t('Configure')}</span>
 				</Button>
@@ -314,4 +304,4 @@
 			{/if}
 		</div>
 	{/if}
-</article>
+</Panel>

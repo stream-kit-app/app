@@ -37,19 +37,20 @@ export function isObsConnectionConfigured(
 function hasCompleteConnectionSettings(getValue: GetValue): boolean {
 	const host = String(getValue('host') ?? '').trim();
 	const port = String(getValue('port') ?? '').trim();
-	const password = String(getValue('password') ?? '').trim();
 
-	return Boolean(host && port && password);
+	return Boolean(host && port);
 }
 
-function readConnectionSettings(getValue: GetValue): { address: string; password: string } | null {
+function readConnectionSettings(
+	getValue: GetValue
+): { address: string; password: string | undefined } | null {
 	if (!hasCompleteConnectionSettings(getValue)) {
 		return null;
 	}
 
 	const host = String(getValue('host') ?? '127.0.0.1').trim() || '127.0.0.1';
 	const port = String(getValue('port') ?? '4455').trim() || '4455';
-	const password = String(getValue('password') ?? '').trim();
+	const password = String(getValue('password') ?? '').trim() || undefined;
 
 	if (!host) {
 		return null;
@@ -210,7 +211,7 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 
 		if (!settings) {
 			setState({
-				connectionError: 'Host, port, and password are required to connect to OBS.'
+				connectionError: 'Host and port are required to connect to OBS.'
 			});
 			return;
 		}
@@ -241,7 +242,9 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 		});
 
 		try {
-			const hello = await nextClient.connect(settings.address, settings.password);
+			const hello = await nextClient.connect(settings.address, settings.password, {
+				rpcVersion: 1
+			});
 			client = nextClient;
 			unbindEvents = bindObsWebSocket(nextClient);
 
@@ -279,7 +282,15 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 			return isConnecting;
 		},
 		get isWaitingForConnection() {
-			return autoConnectEnabled && !isConnected && !isConnecting;
+			// Only "waiting" when settings are complete, auto-retry is on, and there is no
+			// concrete connect/auth error (those should surface as Connection error).
+			return (
+				autoConnectEnabled &&
+				!isConnected &&
+				!isConnecting &&
+				!connectionError &&
+				hasCompleteConnectionSettings(getValue)
+			);
 		},
 		get connectionError() {
 			return connectionError;
@@ -327,7 +338,7 @@ export function createObsPluginApi(app: PluginAppApi): ObsPluginController {
 
 			if (!settings) {
 				setState({
-					connectionError: 'Host, port, and password are required to connect to OBS.'
+					connectionError: 'Host and port are required to connect to OBS.'
 				});
 				return false;
 			}

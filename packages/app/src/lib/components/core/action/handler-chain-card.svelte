@@ -55,9 +55,9 @@
 		variant === 'standalone' && 'rounded-none border px-4 py-4',
 		variant === 'embedded' && 'px-4 py-4',
 		variant === 'standalone' && {
-			'border-green-500 ring-1 ring-green-500/50':
+			'border-success-200 ring-1 ring-success-200/50':
 				handler.definition.isAvailable && executionState?.activeHandlerId === handler.id,
-			'border-green-600/70':
+			'border-success-400/70':
 				handler.definition.isAvailable &&
 				executionState?.activeHandlerId !== handler.id &&
 				executionState?.completedHandlerIds.includes(handler.id),
@@ -95,7 +95,7 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				icon="clarity:clone-line"
+				icon="ri:file-copy-line"
 				aria-label={t('Clone handler')}
 				onclick={() => host.cloneHandler(handler.id)}
 				{@attach tooltip(() => t('Clone handler'))}

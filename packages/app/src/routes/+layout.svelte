@@ -20,6 +20,7 @@
 	import { Toast } from '$lib/components/core/toast';
 	import { AppToolbar } from '$lib/components/core/toolbar';
 	import { app, bootApp } from '$lib/core';
+	import { appUpdater } from '$lib/core/updater/app-updater.svelte';
 	import {
 		centerBootWindow,
 		MAIN_WINDOW_CORNER_RADIUS_PX,
@@ -52,6 +53,7 @@
 
 			isRevealingWindow = false;
 			isAppReady = true;
+			void appUpdater.checkOnStartup();
 		})
 		.catch((error) => {
 			bootError = error instanceof Error ? error.message : String(error);
@@ -105,9 +107,13 @@
 		<TooltipProvider>
 			<div class="flex h-full w-full overflow-hidden">
 				<aside class="relative flex h-full w-64 shrink-0 flex-col border-r border-rule">
-					<section class="relative flex h-14 shrink-0 items-center border-b border-rule px-4">
+					<section
+						class="relative flex h-14 shrink-0 items-center border-b border-rule px-4"
+					>
 						<Crosshair position="top-right" size="sm" />
-						<span class="[&>span]:grid-cols-[28px_auto] [&>span]:gap-1.5 [&_svg]:h-7 [&_svg]:w-7 [&>span>span]:text-sm">
+						<span
+							class="[&_svg]:h-7 [&_svg]:w-7 [&>span]:grid-cols-[28px_auto] [&>span]:gap-1.5 [&>span>span]:text-sm"
+						>
 							<Logo />
 						</span>
 					</section>

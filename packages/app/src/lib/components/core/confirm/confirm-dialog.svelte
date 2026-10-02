@@ -24,7 +24,7 @@
 		<AlertDialog.Portal>
 			<AlertDialog.Overlay
 				class={cn(
-					'fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm duration-75',
+					'fixed inset-0 z-[70] bg-black/45 backdrop-blur-md duration-75',
 					'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0'
 				)}
 			/>

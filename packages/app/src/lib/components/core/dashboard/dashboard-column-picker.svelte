@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type { PluginWidgetColumns } from '$lib/core/plugins/types';
+	import type { ToggleGroupItem } from '@stream-kit/ui/toggle-group';
+
+	import { ToggleGroup } from '@stream-kit/ui/toggle-group';
 
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
@@ -15,31 +18,18 @@
 	const { t } = useI18n();
 
 	const options: PluginWidgetColumns[] = [1, 2, 3, 4, 5, 6];
+
+	const items: ToggleGroupItem[] = options.map((columns) => ({
+		value: String(columns),
+		label: String(columns)
+	}));
 </script>
 
-<div
-	class={cn(
-		'flex w-auto shrink-0 items-center gap-0.5 rounded-lg border border-border bg-dark-700 p-0.5',
-		'@max-[24rem]/widget:w-full',
-		className
-	)}
->
-	<span class="sr-only">{t('Width')}</span>
-	{#each options as columns (columns)}
-		<button
-			type="button"
-			class={cn(
-				'flex h-7 min-w-7 items-center justify-center rounded-md px-2 text-xs font-medium tabular-nums transition',
-				'@max-[24rem]/widget:min-w-0 @max-[24rem]/widget:flex-1 @max-[24rem]/widget:px-0',
-				value === columns
-					? 'bg-primary/20 text-primary-100 ring-1 ring-primary/30'
-					: 'text-dark-400 hover:bg-dark-700 hover:text-dark-100'
-			)}
-			aria-label={t('{count} columns', { count: columns })}
-			aria-pressed={value === columns}
-			onclick={() => onValueChange?.(columns)}
-		>
-			{columns}
-		</button>
-	{/each}
-</div>
+<ToggleGroup
+	size="sm"
+	{items}
+	value={String(value)}
+	ariaLabel={t('Width')}
+	class={cn('shrink-0 tabular-nums', className)}
+	onValueChange={(next) => onValueChange?.(Number(next) as PluginWidgetColumns)}
+/>

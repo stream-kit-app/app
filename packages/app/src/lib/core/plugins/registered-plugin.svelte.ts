@@ -139,14 +139,25 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		return this.customViews[key];
 	}
 
+	// Building the plugin app API is expensive (~150 bound functions); reuse it per app.
+	#context: { app: App; value: PluginSettingsContext } | undefined;
+
 	createContext(app: App): PluginSettingsContext {
-		return {
+		if (this.#context?.app === app) {
+			return this.#context.value;
+		}
+
+		const value: PluginSettingsContext = {
 			pluginKey: this.key,
 			app: createPluginAppApi(app, { pluginKey: this.key }),
 			store: this.storeFacade,
 			settings: this.storeFacade,
 			getValue: (key) => getSettingsFieldValue(this.fields, key)
 		};
+
+		this.#context = { app, value };
+
+		return value;
 	}
 
 	registerDefinitions(app: App): void {

@@ -28,6 +28,8 @@ export class ActionTrigger implements ConditionEditor {
 	definition: TriggerDefinition;
 
 	conditions: ConditionGroupNode = $state(emptyConditionGroup());
+	// Plain copy for validation; recomputed only when the conditions change, not per event.
+	#conditionsSnapshot = $derived($state.snapshot(this.conditions));
 
 	constructor(
 		definition: TriggerDefinition,
@@ -82,7 +84,7 @@ export class ActionTrigger implements ConditionEditor {
 			return true;
 		}
 
-		return this.definition.validate($state.snapshot(this.conditions), context, this);
+		return this.definition.validate(this.#conditionsSnapshot, context, this);
 	}
 
 	toStored(): StoredActionTrigger {

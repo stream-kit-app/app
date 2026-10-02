@@ -195,13 +195,16 @@ export class ConfigSync {
 		};
 
 		try {
+			const changedAdapters: SyncAdapter[] = [];
 			for (const adapter of this.#adapters) {
-				await runSyncAdapter(adapter, ctx);
+				if (await runSyncAdapter(adapter, ctx)) {
+					changedAdapters.push(adapter);
+				}
 			}
 			this.lastSyncedAt = new Date();
 			this.status = 'synced';
 			this.#clearRetry();
-			await this.#reloadRuntime();
+			await this.#reloadRuntime(changedAdapters);
 			this.#resolveFirstSync();
 		} catch (error) {
 			if (isPocketBaseAutoCancelled(error)) {
@@ -296,13 +299,14 @@ export class ConfigSync {
 		await this.sync();
 	}
 
-	async #reloadRuntime(): Promise<void> {
+	/** Reload only runtimes whose local rows changed; a no-op sync must not rebuild the UI. */
+	async #reloadRuntime(adapters: SyncAdapter[]): Promise<void> {
 		// First sync runs before plugins.boot(); reloading actions that early activates
 		// triggers against plugins that are not enabled yet (e.g. WebSocket).
 		if (!this.#app.lifecycle.started) {
 			return;
 		}
-		for (const adapter of this.#adapters) {
+		for (const adapter of adapters) {
 			await adapter.reload?.();
 		}
 	}

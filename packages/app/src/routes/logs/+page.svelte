@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CorePluginApi } from '@stream-kit/plugin';
 
+	import { watch } from 'runed';
 	import { Container } from '@stream-kit/ui/container';
 	import { LogViewer } from '@stream-kit/ui/log-viewer';
 
@@ -17,26 +18,27 @@
 		return core?.logs.getEntries() ?? [];
 	});
 
-	$effect(() => {
-		const api = core;
+	watch(
+		() => core,
+		(api) => {
+			if (!api) {
+				return;
+			}
 
-		if (!api) {
-			return;
-		}
-
-		revision = api.logs.revision;
-
-		return api.logs.subscribe(() => {
 			revision = api.logs.revision;
-		});
-	});
+
+			return api.logs.subscribe(() => {
+				revision = api.logs.revision;
+			});
+		}
+	);
 
 	async function handleClear(): Promise<void> {
 		await core?.logs.clear();
 	}
 </script>
 
-<Container class="p-6">
+<Container class="px-6 py-6">
 	<LogViewer
 		{entries}
 		title={t('Action logs')}

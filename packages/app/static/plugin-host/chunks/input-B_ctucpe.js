@@ -18,7 +18,7 @@ import { a as xt, n as St, r as Ct, t as wt } from "./popper-layer-force-mount-C
 import { t as Tt } from "./floating-layer-anchor-DbwYuEbg.js";
 import { i as Et, n as Dt, r as Ot } from "./popover-DdSwXLPz.js";
 import { t as kt } from "./scroll-area-BdFM74vQ.js";
-import { t as At } from "./button-B-E_J8cg.js";
+import { t as At } from "./button-DzdRL0h9.js";
 //#region ../../node_modules/.pnpm/bits-ui@2.18.1_@internation_a5a66d84ac7409b4078304c79e393e2b/node_modules/bits-ui/dist/bits/checkbox/checkbox.svelte.js
 var jt = ye({
 	component: "checkbox",
@@ -2780,16 +2780,18 @@ function oi(n, r) {
 	}), o(() => {
 		if (!p(H) || !p(ee)) return;
 		let e = ce(s() ?? "");
-		p(H).getValue() !== e && (re = !0, p(H).pushUndoStop(), p(H).executeEdits("external-sync", [{
+		if (p(H).getValue() === e) return;
+		re = !0;
+		let t = p(H).getSelections();
+		p(H).pushUndoStop(), p(H).executeEdits("external-sync", [{
 			range: p(H).getModel()?.getFullModelRange() ?? {
 				startLineNumber: 1,
 				startColumn: 1,
 				endLineNumber: 1,
 				endColumn: 1
 			},
-			text: e,
-			forceMoveMarkers: !0
-		}]), p(H).pushUndoStop(), re = !1);
+			text: e
+		}], t ?? void 0), p(H).pushUndoStop(), re = !1;
 	});
 	function ge() {
 		if (!p(H) || !p(V)) return;
@@ -2914,7 +2916,7 @@ function oi(n, r) {
 	var we = T(Se), Te = (n) => {
 		var r = ri(), i = T(r);
 		Z(i, {
-			icon: "gg:spinner",
+			icon: "ri:loader-4-line",
 			class: "size-5 animate-spin text-primary",
 			"aria-hidden": "true"
 		});
@@ -5076,7 +5078,7 @@ function Eo(n, r) {
 	var ee = t(V, 2), J = (t) => {
 		var n = Co(), i = T(n);
 		{
-			let e = K(() => p(d) ? "mdi:eye-off-outline" : "mdi:eye-outline");
+			let e = K(() => p(d) ? "ri:eye-off-line" : "ri:eye-line");
 			Z(i, {
 				get icon() {
 					return p(e);

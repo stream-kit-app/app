@@ -11,6 +11,7 @@ mod plugins;
 mod process_watcher;
 mod run_program;
 mod scripts;
+mod updater;
 
 use tauri::Manager;
 
@@ -115,12 +116,18 @@ pub fn run() {
             api_server::commands::api_server_broadcast,
             scripts::script_get_project_dir,
             scripts::script_get_scripts_dir,
-            editor::resolve_editor_commands
+            editor::resolve_editor_commands,
+            updater::is_store_install
         ])
         .setup(|app| {
             #[cfg(desktop)]
             app.handle()
                 .plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
+            #[cfg(desktop)]
+            app.handle()
+                .plugin(tauri_plugin_updater::Builder::new().build())?;
+            #[cfg(desktop)]
+            app.handle().plugin(tauri_plugin_process::init())?;
 
             app.manage(audio::AudioPlaybackState::new());
             app.manage(dev::PluginWatchers(std::sync::Mutex::new(

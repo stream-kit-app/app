@@ -29,6 +29,7 @@ export {
 export type { ConditionTree } from './command-context.js';
 export type { CommandMatch, ParsedCommandMessage } from './parse-command.js';
 export type { HandlerTriggerContext } from './handler-context.js';
+export { withActionVariables } from './handler-context.js';
 export type { CronFieldKey, CronPreset } from './cron.js';
 export type {
 	HandlerFieldInstance,

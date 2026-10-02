@@ -38,6 +38,8 @@
 		"global-shortcut:allow-is-registered",
 		"global-shortcut:allow-register",
 		"global-shortcut:allow-unregister",
+		"updater:default",
+		"process:allow-restart",
 		{
 			"identifier": "fs:scope",
 			"allow": [{ "path": "**" }]

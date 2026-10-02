@@ -7,7 +7,7 @@
 	import { useId } from 'bits-ui';
 	import { tick } from 'svelte';
 
-	import { Eyebrow } from '@stream-kit/ui/blueprint';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
@@ -255,12 +255,11 @@
 	}
 </script>
 
-<article
+<Panel
+	tone="solid"
 	class={cn(
-		'group/card flex flex-col overflow-hidden rounded-none border transition-colors',
-		hasDependencyIssues
-			? 'border-rule bg-dark-900/70 opacity-80 hover:bg-dark-900/80'
-			: 'border-rule bg-dark-800 hover:bg-dark-900/60'
+		'group/card flex flex-col overflow-hidden transition-colors hover:bg-dark-700/40',
+		hasDependencyIssues && 'bg-dark-900/70 opacity-80'
 	)}
 >
 	<div class="flex items-start gap-3 p-4 pb-3">
@@ -329,12 +328,12 @@
 					{t('Requires')}: {requiredPluginLabels}
 				</p>
 				{#if missingPlugins.length > 0}
-					<p class="text-xs text-red-400">
+					<p class="text-xs text-destructive-100">
 						{t('Missing plugins')}: {formatRequiredPluginLabels(app, missingPlugins)}
 					</p>
 				{/if}
 				{#if disabledPlugins.length > 0}
-					<p class="text-xs text-amber-400">
+					<p class="text-xs text-warning-100">
 						{t('Disabled plugins')}: {formatRequiredPluginLabels(app, disabledPlugins)}
 					</p>
 				{/if}
@@ -435,4 +434,4 @@
 			/>
 		</div>
 	</div>
-</article>
+</Panel>

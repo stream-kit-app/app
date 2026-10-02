@@ -88,7 +88,7 @@
 	>
 		{@render label(item, true)}
 		<Icon
-			icon="gg:chevron-down"
+			icon="ri:arrow-down-s-line"
 			class={cn('ms-auto shrink-0 transition-transform', isExpanded(item) && 'rotate-180')}
 		/>
 	</button>

@@ -10,7 +10,9 @@
 	type Props = HTMLAttributes<HTMLDivElement> & {
 		icon: string;
 		title: string;
-		description: string;
+		description?: string;
+		/** Smaller inline variant for empty lists inside forms and panels. */
+		compact?: boolean;
 		actionLabel?: string;
 		onAction?: () => void;
 		children?: Snippet;
@@ -20,6 +22,7 @@
 		icon,
 		title,
 		description,
+		compact = false,
 		actionLabel,
 		onAction,
 		children,
@@ -28,19 +31,33 @@
 	}: Props = $props();
 </script>
 
-<div {...restProps} class={cn('box-border flex min-h-full w-full flex-1 flex-col p-6', className)}>
+<div
+	{...restProps}
+	class={cn(
+		'box-border flex w-full flex-col',
+		compact ? 'p-0' : 'min-h-full flex-1 p-6',
+		className
+	)}
+>
 	<div
-		class="relative flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4 overflow-hidden rounded-none border border-dashed border-rule bg-dark-950 px-6 py-16 text-center"
+		class={cn(
+			'relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-none border border-dashed border-rule bg-dark-950 text-center',
+			compact ? 'gap-3 px-4 py-6' : 'gap-4 px-6 py-16'
+		)}
 	>
-		<div class="pointer-events-none opacity-30"></div>
 		<div
-			class="relative flex size-16 items-center justify-center border border-rule bg-dark-800 text-primary"
+			class={cn(
+				'relative flex items-center justify-center border border-rule bg-dark-800 text-primary',
+				compact ? 'size-10' : 'size-16'
+			)}
 		>
-			<Icon {icon} class="size-7" aria-hidden="true" />
+			<Icon {icon} class={compact ? 'size-5' : 'size-7'} aria-hidden="true" />
 		</div>
-		<div class="relative flex flex-col gap-1.5">
-			<p class="text-lg font-semibold text-dark-50">{title}</p>
-			<p class="text-sm text-dark-300">{description}</p>
+		<div class={cn('relative flex flex-col', compact ? 'gap-1' : 'gap-1.5')}>
+			<p class={cn('font-semibold text-dark-50', compact ? 'text-sm' : 'text-lg')}>{title}</p>
+			{#if description}
+				<p class={cn('text-dark-300', compact ? 'text-xs' : 'text-sm')}>{description}</p>
+			{/if}
 		</div>
 		{#if children}
 			<div class="relative flex flex-wrap items-center justify-center gap-2">

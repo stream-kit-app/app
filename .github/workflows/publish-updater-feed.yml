@@ -1,0 +1,45 @@
+name: Publish updater feed
+
+on:
+    release:
+        types:
+            - published
+
+permissions:
+    contents: write
+
+jobs:
+    publish-feed:
+        name: Copy latest.json to updater tag
+        runs-on: ubuntu-latest
+        if: github.event.release.tag_name != 'updater' && startsWith(github.event.release.tag_name, 'v')
+        steps:
+            - name: Download latest.json from published release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release download "${{ github.event.release.tag_name }}" \
+                    --repo "${{ github.repository }}" \
+                    --pattern latest.json \
+                    --dir updater-feed
+
+            - name: Ensure updater release exists
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  if gh release view updater --repo "${{ github.repository }}" >/dev/null 2>&1; then
+                    exit 0
+                  fi
+                  gh release create updater \
+                    --repo "${{ github.repository }}" \
+                    --title "Updater manifest" \
+                    --notes "Static Tauri updater feed. Installers live on versioned releases; this tag only hosts latest.json." \
+                    --latest=false
+
+            - name: Upload latest.json to updater tag
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release upload updater updater-feed/latest.json \
+                    --repo "${{ github.repository }}" \
+                    --clobber

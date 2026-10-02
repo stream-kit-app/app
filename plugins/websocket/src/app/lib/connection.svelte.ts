@@ -18,6 +18,7 @@ import {
 import ConnectionForm from '../ui/connection-form.svelte';
 import ConnectionFormFooter from '../ui/connection-form-footer.svelte';
 import ConnectionLogsModal from '../ui/connection-logs-modal.svelte';
+import ConnectionLogsModalFooter from '../ui/connection-logs-modal-footer.svelte';
 import { getConnectionsService } from './get-connections';
 
 export type ConnectionFormErrors = Partial<
@@ -106,7 +107,9 @@ export class Connection {
 					name: this.name.trim() || app.i18n.translate('Connection')
 				}),
 				content: ConnectionLogsModal,
-				props: { connection: this }
+				footer: ConnectionLogsModalFooter,
+				props: { connection: this, modalId: logsModalId },
+				size: 'lg'
 			});
 
 		modal.open();

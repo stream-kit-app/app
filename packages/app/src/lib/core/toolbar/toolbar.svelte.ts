@@ -36,11 +36,11 @@ export type ToolbarConfig = {
 };
 
 export class Toolbar {
-	public meta = $state<ToolbarMetaItem[]>([]);
-	public primaryActions = $state<ToolbarAction[]>([]);
-	public primaryComponents = $state<ToolbarComponent[]>([]);
-	public selectAll = $state<ToolbarSelectAll | null>(null);
-	public actions = $state<ToolbarAction[]>([]);
+	public meta = $state.raw<ToolbarMetaItem[]>([]);
+	public primaryActions = $state.raw<ToolbarAction[]>([]);
+	public primaryComponents = $state.raw<ToolbarComponent[]>([]);
+	public selectAll = $state.raw<ToolbarSelectAll | null>(null);
+	public actions = $state.raw<ToolbarAction[]>([]);
 
 	public hasToolbarRow = $derived(
 		this.primaryActions.length > 0 ||

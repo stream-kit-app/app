@@ -381,19 +381,25 @@
 
 		syncingFromOutside = true;
 
+		// Keep the caret where it was; replacing the full range would otherwise jump it.
+		const selections = editor.getSelections();
+
 		editor.pushUndoStop();
-		editor.executeEdits('external-sync', [
-			{
-				range: editor.getModel()?.getFullModelRange() ?? {
-					startLineNumber: 1,
-					startColumn: 1,
-					endLineNumber: 1,
-					endColumn: 1
-				},
-				text: next,
-				forceMoveMarkers: true
-			}
-		]);
+		editor.executeEdits(
+			'external-sync',
+			[
+				{
+					range: editor.getModel()?.getFullModelRange() ?? {
+						startLineNumber: 1,
+						startColumn: 1,
+						endLineNumber: 1,
+						endColumn: 1
+					},
+					text: next
+				}
+			],
+			selections ?? undefined
+		);
 		editor.pushUndoStop();
 		syncingFromOutside = false;
 	});
@@ -566,7 +572,7 @@
 				aria-live="polite"
 				aria-label={loadingLabel}
 			>
-				<Icon icon="gg:spinner" class="size-5 animate-spin text-primary" aria-hidden="true" />
+				<Icon icon="ri:loader-4-line" class="size-5 animate-spin text-primary" aria-hidden="true" />
 				<p class="text-xs text-dark-300">{loadingLabel}</p>
 			</div>
 		{/if}

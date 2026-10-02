@@ -1,11 +1,13 @@
 import {
 	clearPluginDevModes,
+	getCheckAppUpdatesOnStartup,
 	getCheckPluginUpdatesOnStartup,
 	getDeveloperMode,
 	getOfflineCloudFilesMirror,
 	getOfflineCloudFilesMirrorUserId,
 	getPluginDevModes,
 	removePluginDevMode,
+	saveCheckAppUpdatesOnStartup,
 	saveCheckPluginUpdatesOnStartup,
 	saveDeveloperMode,
 	saveOfflineCloudFilesMirror,
@@ -16,6 +18,7 @@ import {
 export class Settings {
 	developerMode = $state(false);
 	checkPluginUpdatesOnStartup = $state(true);
+	checkAppUpdatesOnStartup = $state(true);
 	/** Mirror cloud `user_files` to AppData and prefer local paths (device-local, default off). */
 	offlineCloudFilesMirror = $state(false);
 	/** Last account id used for the offline mirror (kept for logged-out local path reads). */
@@ -26,6 +29,7 @@ export class Settings {
 	async load(): Promise<void> {
 		this.developerMode = await getDeveloperMode();
 		this.checkPluginUpdatesOnStartup = await getCheckPluginUpdatesOnStartup();
+		this.checkAppUpdatesOnStartup = await getCheckAppUpdatesOnStartup();
 		this.offlineCloudFilesMirror = await getOfflineCloudFilesMirror();
 		this.offlineCloudFilesMirrorUserId = await getOfflineCloudFilesMirrorUserId();
 		this.pluginDevModes = await getPluginDevModes();
@@ -55,6 +59,11 @@ export class Settings {
 	async setCheckPluginUpdatesOnStartup(enabled: boolean): Promise<void> {
 		this.checkPluginUpdatesOnStartup = enabled;
 		await saveCheckPluginUpdatesOnStartup(enabled);
+	}
+
+	async setCheckAppUpdatesOnStartup(enabled: boolean): Promise<void> {
+		this.checkAppUpdatesOnStartup = enabled;
+		await saveCheckAppUpdatesOnStartup(enabled);
 	}
 
 	async setOfflineCloudFilesMirror(enabled: boolean): Promise<void> {

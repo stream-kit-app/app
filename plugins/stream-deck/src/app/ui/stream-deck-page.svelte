@@ -5,11 +5,10 @@
 	import { Alert } from '@stream-kit/ui/alert';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
-	import { Panel } from '@stream-kit/ui/blueprint';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 	import { Container } from '@stream-kit/ui/container';
 	import { DataTable } from '@stream-kit/ui/data-table';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
-	import { Heading } from '@stream-kit/ui/heading';
 
 	import { getStreamDeckService } from '../lib/get-stream-deck';
 
@@ -96,9 +95,9 @@
 	<span class="font-mono text-xs text-dark-300">{button.actionUUID || '—'}</span>
 {/snippet}
 
-<Container class="space-y-6 py-6">
+<Container class="space-y-6 px-6 py-6" size="md">
 	<section class="space-y-3">
-		<Heading level={2}>{t('Setup')}</Heading>
+		<Eyebrow>{t('Setup')}</Eyebrow>
 		<Alert
 			icon="ri:information-line"
 			title={t('API Server required')}
@@ -119,30 +118,30 @@
 	</section>
 
 	<section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-		<Panel tone="solid" class="px-4 py-3">
-			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Elgato plugin')}</p>
+		<Panel tone="flush" class="px-4 py-3">
+			<Eyebrow>{t('Elgato plugin')}</Eyebrow>
 			<div class="mt-2">
 				<Badge variant={status.pluginConnected ? 'success' : 'default'} size="sm">
 					{status.pluginConnected ? t('Connected') : t('Disconnected')}
 				</Badge>
 			</div>
 		</Panel>
-		<Panel tone="solid" class="px-4 py-3">
-			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Registered buttons')}</p>
-			<p class="mt-2 text-lg font-semibold text-dark-100">{status.buttonCount}</p>
+		<Panel tone="flush" class="px-4 py-3">
+			<Eyebrow>{t('Registered buttons')}</Eyebrow>
+			<p class="mt-2 font-mono text-lg font-semibold tabular-nums text-dark-100">{status.buttonCount}</p>
 		</Panel>
-		<Panel tone="solid" class="px-4 py-3">
-			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Last event')}</p>
+		<Panel tone="flush" class="px-4 py-3">
+			<Eyebrow>{t('Last event')}</Eyebrow>
 			<p class="mt-2 text-sm font-medium text-dark-100">{status.lastEventType ?? '—'}</p>
 		</Panel>
-		<Panel tone="solid" class="px-4 py-3">
-			<p class="text-xs tracking-wide text-dark-400 uppercase">{t('Last event at')}</p>
+		<Panel tone="flush" class="px-4 py-3">
+			<Eyebrow>{t('Last event at')}</Eyebrow>
 			<p class="mt-2 text-sm font-medium text-dark-100">{formatWhen(status.lastEventAt)}</p>
 		</Panel>
 	</section>
 
 	<section class="space-y-3">
-		<Heading level={2}>{t('Registered buttons')}</Heading>
+		<Eyebrow>{t('Registered buttons')}</Eyebrow>
 		{#if buttons.length === 0}
 			<EmptyState
 				icon="ri:keyboard-box-line"

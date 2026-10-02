@@ -369,9 +369,12 @@
 										onOpen={() => openEditRankModal(rank)}
 									/>
 								{:else}
-									<p class="px-2 py-3 text-sm text-dark-400">
-										{t('No ranks in this tier yet.')}
-									</p>
+									<EmptyState
+										compact
+										class="p-2"
+										icon="ri:medal-line"
+										title={t('No ranks in this tier yet.')}
+									/>
 								{/each}
 
 								<TierAddRankRow

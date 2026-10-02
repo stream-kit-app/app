@@ -23,6 +23,8 @@ env:
     # Match packages/app/.env.production (baked into the frontend at build time).
     PUBLIC_POCKETBASE_URL: https://api.stream-kit.app
     PUBLIC_SITE_URL: https://stream-kit.app
+    TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+    TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
 jobs:
     build-windows:
@@ -61,7 +63,7 @@ jobs:
               run: pnpm build:packages
 
             - name: Build and upload Tauri app
-              uses: tauri-apps/tauri-action@v0
+              uses: tauri-apps/tauri-action@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
@@ -71,6 +73,7 @@ jobs:
                   releaseBody: 'See the assets to download and install this version.'
                   releaseDraft: true
                   prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
+                  updaterJsonPreferNsis: true
                   args: --target x86_64-pc-windows-msvc --bundles nsis,msi
 
     publish-microsoft-store:

@@ -91,7 +91,7 @@
 		{@const containerKey = branchContainerKey(parentHandler.id, branch.key)}
 		<section class="grid min-w-0 gap-2 rounded-none border border-rule bg-dark-900/40 p-3">
 			<div class="flex flex-wrap items-center justify-between gap-2">
-				<Label class="font-mono text-sm font-bold text-green-500 uppercase">
+				<Label class="font-mono text-sm font-bold text-success-100 uppercase">
 					{branch.label}
 				</Label>
 				<DefinitionPickerDropdown

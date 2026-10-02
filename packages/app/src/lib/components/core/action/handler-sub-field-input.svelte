@@ -118,125 +118,130 @@
 	}
 </script>
 
-{#if config.type === 'text'}
-	{#if (config.variables && config.variables.length > 0) || config.useContextVariables}
-		<InputTextVariables
+<div class="grid min-w-0 gap-1.5">
+	{#if config.type === 'text'}
+		{#if (config.variables && config.variables.length > 0) || config.useContextVariables}
+			<InputTextVariables
+				label={config.name}
+				placeholder={config.placeholder}
+				required={config.required}
+				variables={resolveFieldVariables(config)}
+				bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
+				{error}
+			/>
+		{:else}
+			<InputText
+				label={config.name}
+				placeholder={config.placeholder}
+				required={config.required}
+				value={String(scalarValue ?? '')}
+				{error}
+				oninput={onTextInput()}
+			/>
+		{/if}
+	{:else if config.type === 'checkbox'}
+		<InputCheckbox
 			label={config.name}
+			bind:checked={() => Boolean(scalarValue), (next) => onValueChange(next)}
+			{error}
+		/>
+	{:else if config.type === 'switch'}
+		<InputSwitch
+			label={config.name}
+			bind:checked={() => Boolean(scalarValue), (next) => onValueChange(next)}
+			{error}
+		/>
+	{:else if config.type === 'select'}
+		<InputSelect
+			type="single"
+			label={config.name}
+			items={config.items}
 			placeholder={config.placeholder}
+			loadingPlaceholder={config.loadingPlaceholder}
+			searchPlaceholder={t('Search ...')}
+			noResultsLabel={t('No matches found')}
 			required={config.required}
-			variables={resolveFieldVariables(config)}
 			bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
 			{error}
 		/>
-	{:else}
-		<InputText
+	{:else if config.type === 'combobox'}
+		<InputTextSelect
+			label={config.name}
+			items={resolveHandlerSelectItems(config)}
+			placeholder={config.placeholder}
+			loadingPlaceholder={config.loadingPlaceholder}
+			allowCustomValue={config.allowCustomValue ?? true}
+			reloadKey={getItemsReloadKey(config)}
+			required={config.required}
+			bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
+			{error}
+		/>
+	{:else if config.type === 'select-file-or-folder'}
+		{@const cloudStorage = usesCloudFileStorage(config) && hasCloudFileAccess(app.auth)}
+		{@const fileValue = String(scalarValue ?? '')}
+		{@const hasLocalPath = cloudStorage && isLocalFilePath(fileValue)}
+		{@const displayFileValue = toDisplayCloudFileValue(app, fileValue)}
+		<InputFilePath
 			label={config.name}
 			placeholder={config.placeholder}
 			required={config.required}
-			value={String(scalarValue ?? '')}
+			mode={config.mode}
+			filters={config.filters}
+			value={displayFileValue}
+			onValueChange={(next) => onValueChange(toStoredCloudFileValue(String(next)))}
+			browseLabel={t('Browse')}
+			uploadLabel={hasLocalPath ? t('Upload to cloud') : t('Upload')}
+			cloudLabel={t('Cloud')}
+			emptyFileLabel={t('No file selected')}
+			emptyFolderLabel={t('No folder selected')}
+			onBrowse={() =>
+				app.fs.select({
+					type: config.mode,
+					filters: config.filters
+				})}
+			onUpload={
+				cloudStorage ? () => uploadLocalFileToCloud(config.filters, fileValue) : undefined
+			}
+			onCloudBrowse={cloudStorage ? () => pickCloudFileUrl(config.filters) : undefined}
 			{error}
-			oninput={onTextInput()}
+		/>
+	{:else if config.type === 'code'}
+		<InputCode
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			language={config.language}
+			value={String(scalarValue ?? '')}
+			oninput={onCodeInput()}
+			{error}
+		/>
+	{:else if config.type === 'json'}
+		<InputCode
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			language="json"
+			minHeight="8rem"
+			value={String(scalarValue ?? '')}
+			oninput={onCodeInput()}
+			variables={resolveFieldVariables(config)}
+			variablesTitle={t('Variables')}
+			variablesAriaLabel={t('Insert variable')}
+			formatLabel={t('Format')}
+			expandLabel={t('Expand')}
+			collapseLabel={t('Close')}
+			loadingLabel={t('Loading editor...')}
+			{error}
+		/>
+	{:else if config.type === 'color'}
+		<InputColor
+			label={config.name}
+			defaultValue={typeof config.defaultValue === 'string' ? config.defaultValue : '#000000'}
+			bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
+			{error}
 		/>
 	{/if}
-{:else if config.type === 'checkbox'}
-	<InputCheckbox
-		label={config.name}
-		bind:checked={() => Boolean(scalarValue), (next) => onValueChange(next)}
-		{error}
-	/>
-{:else if config.type === 'switch'}
-	<InputSwitch
-		label={config.name}
-		bind:checked={() => Boolean(scalarValue), (next) => onValueChange(next)}
-		{error}
-	/>
-{:else if config.type === 'select'}
-	<InputSelect
-		type="single"
-		label={config.name}
-		items={config.items}
-		placeholder={config.placeholder}
-		loadingPlaceholder={config.loadingPlaceholder}
-		searchPlaceholder={t('Search ...')}
-		noResultsLabel={t('No matches found')}
-		required={config.required}
-		bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
-		{error}
-	/>
-{:else if config.type === 'combobox'}
-	<InputTextSelect
-		label={config.name}
-		items={resolveHandlerSelectItems(config)}
-		placeholder={config.placeholder}
-		loadingPlaceholder={config.loadingPlaceholder}
-		allowCustomValue={config.allowCustomValue ?? true}
-		reloadKey={getItemsReloadKey(config)}
-		required={config.required}
-		bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
-		{error}
-	/>
-{:else if config.type === 'select-file-or-folder'}
-	{@const cloudStorage = usesCloudFileStorage(config) && hasCloudFileAccess(app.auth)}
-	{@const fileValue = String(scalarValue ?? '')}
-	{@const hasLocalPath = cloudStorage && isLocalFilePath(fileValue)}
-	{@const displayFileValue = toDisplayCloudFileValue(app, fileValue)}
-	<InputFilePath
-		label={config.name}
-		placeholder={config.placeholder}
-		required={config.required}
-		mode={config.mode}
-		filters={config.filters}
-		value={displayFileValue}
-		onValueChange={(next) => onValueChange(toStoredCloudFileValue(String(next)))}
-		browseLabel={t('Browse')}
-		uploadLabel={hasLocalPath ? t('Upload to cloud') : t('Upload')}
-		cloudLabel={t('Cloud')}
-		emptyFileLabel={t('No file selected')}
-		emptyFolderLabel={t('No folder selected')}
-		onBrowse={() =>
-			app.fs.select({
-				type: config.mode,
-				filters: config.filters
-			})}
-		onUpload={
-			cloudStorage ? () => uploadLocalFileToCloud(config.filters, fileValue) : undefined
-		}
-		onCloudBrowse={cloudStorage ? () => pickCloudFileUrl(config.filters) : undefined}
-		{error}
-	/>
-{:else if config.type === 'code'}
-	<InputCode
-		label={config.name}
-		placeholder={config.placeholder}
-		required={config.required}
-		language={config.language}
-		value={String(scalarValue ?? '')}
-		oninput={onCodeInput()}
-		{error}
-	/>
-{:else if config.type === 'json'}
-	<InputCode
-		label={config.name}
-		placeholder={config.placeholder}
-		required={config.required}
-		language="json"
-		minHeight="8rem"
-		value={String(scalarValue ?? '')}
-		oninput={onCodeInput()}
-		variables={resolveFieldVariables(config)}
-		variablesTitle={t('Variables')}
-		variablesAriaLabel={t('Insert variable')}
-		formatLabel={t('Format')}
-		expandLabel={t('Expand')}
-		collapseLabel={t('Close')}
-		loadingLabel={t('Loading editor...')}
-		{error}
-	/>
-{:else if config.type === 'color'}
-	<InputColor
-		label={config.name}
-		defaultValue={typeof config.defaultValue === 'string' ? config.defaultValue : '#000000'}
-		bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
-		{error}
-	/>
-{/if}
+	{#if config.description}
+		<p class="text-sm text-dark-100">{config.description}</p>
+	{/if}
+</div>

@@ -1,5 +1,5 @@
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
-import { interpolateVariables } from '@stream-kit/core';
+import { withActionVariables, interpolateVariables } from '@stream-kit/core';
 
 import type { RankingsService } from '../app/lib/rankings.svelte';
 import { contextToVariables, getFieldValue } from '../lib/get-field-value';
@@ -72,7 +72,7 @@ function createPointsExecute(
 	}) => Promise<unknown>
 ): HandlerDefinitionProps['execute'] {
 	return async (_action, handler, context, next) => {
-		const identity = resolveUserTarget(handler.fields, context.data, rankings);
+		const identity = resolveUserTarget(handler.fields, withActionVariables(context), rankings);
 
 		if (!identity) {
 			app.toast.create({
@@ -86,7 +86,7 @@ function createPointsExecute(
 
 		await mutate({
 			...identity,
-			amount: parseAmountFromField(handler.fields, 'amount', context.data),
+			amount: parseAmountFromField(handler.fields, 'amount', withActionVariables(context)),
 			source: parseSource(getFieldValue(handler.fields, 'source'))
 		});
 
@@ -119,7 +119,7 @@ export function createRemovePointsHandler(app: PluginAppApi, rankings: RankingsS
 		name: 'Remove points',
 		fields: createPointsHandlerFields(rankings),
 		execute: async (_action, handler, context, next) => {
-			const identity = resolveUserTarget(handler.fields, context.data, rankings);
+			const identity = resolveUserTarget(handler.fields, withActionVariables(context), rankings);
 
 			if (!identity) {
 				app.toast.create({
@@ -134,7 +134,7 @@ export function createRemovePointsHandler(app: PluginAppApi, rankings: RankingsS
 			try {
 				await rankings.removePoints({
 					...identity,
-					amount: parseAmountFromField(handler.fields, 'amount', context.data),
+					amount: parseAmountFromField(handler.fields, 'amount', withActionVariables(context)),
 					source: parseSource(getFieldValue(handler.fields, 'source'))
 				});
 			} catch (error) {

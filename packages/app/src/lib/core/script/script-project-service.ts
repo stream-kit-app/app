@@ -14,6 +14,12 @@ const SCRIPT_API_DIR = 'node_modules/@stream-kit/script-api';
 
 const preparedProjectDirs = new Set<string>();
 const lastTypesFingerprint = new Map<string, string>();
+// Last handler source written by the app, so the poller can ignore its own writes.
+const lastWrittenSource = new Map<string, string>();
+
+function normalizeSource(source: string): string {
+	return stripEditorReferenceDirectives(source).replace(/\r\n/g, '\n');
+}
 
 function stripEditorReferenceDirectives(source: string): string {
 	return source.replace(/^\/\/\/\s*<reference\s+path=(["'])[^"']+\1\s*\/>\s*\r?\n?/gm, '');
@@ -97,7 +103,11 @@ async function writeProjectFiles(options: ScriptProjectSyncOptions): Promise<voi
 	const { handlerId, source, actionTriggers = [] } = options;
 	const triggerIds = actionTriggers.map((trigger) => trigger.id);
 	await ensureProjectDirs(handlerId);
-	await writeText(projectRelativePath(handlerId, HANDLER_FILE), stripEditorReferenceDirectives(source));
+	const handlerSource = stripEditorReferenceDirectives(source);
+	if (lastWrittenSource.get(handlerId) !== normalizeSource(handlerSource)) {
+		lastWrittenSource.set(handlerId, normalizeSource(handlerSource));
+		await writeText(projectRelativePath(handlerId, HANDLER_FILE), handlerSource);
+	}
 
 	const fingerprint = typesFingerprint(triggerIds);
 	if (lastTypesFingerprint.get(handlerId) === fingerprint) {
@@ -182,7 +192,12 @@ export async function watchScriptProject(
 				const source = await fs.readTextFile(relativePath, {
 					baseDir: BaseDirectory.AppData
 				});
-				onChange(source);
+				const normalized = normalizeSource(source);
+
+				if (lastWrittenSource.get(handlerId) !== normalized) {
+					lastWrittenSource.set(handlerId, normalized);
+					onChange(source);
+				}
 			}
 
 			lastMtime = mtime;

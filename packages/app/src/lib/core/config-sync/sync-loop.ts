@@ -29,11 +29,15 @@ export function readRevision(value: unknown): number {
 /**
  * Shared LWW pass for one SyncAdapter: union of local / remote / tombstone ids,
  * apply remote wins, push local wins and tombstones.
+ *
+ * @returns Whether local rows may have changed, so the runtime needs a reload.
  */
 export async function runSyncAdapter<TLocal extends SyncLocalRow, TRemote extends SyncRemoteRow>(
 	adapter: SyncAdapter<TLocal, TRemote>,
 	ctx: SyncAdapterContext
-): Promise<void> {
+): Promise<boolean> {
+	// afterSync hooks may write local rows themselves; treat them as changing.
+	let localChanged = adapter.afterSync != null;
 	const localRows = await adapter.listLocal();
 	const tombs = await listConfigSyncTombstones(adapter.entityType);
 	const remotes = await adapter.listRemote(ctx);
@@ -91,11 +95,13 @@ export async function runSyncAdapter<TLocal extends SyncLocalRow, TRemote extend
 				if (local && !adapter.shouldSkipDelete?.(local)) {
 					await adapter.snapshotToTrash?.(syncId);
 					await adapter.deleteLocal(syncId);
+					localChanged = true;
 				}
 				await clearConfigSyncTombstone(adapter.entityType, syncId);
 			} else {
 				await adapter.upsertLocalFromSync(remote);
 				await clearConfigSyncTombstone(adapter.entityType, syncId);
+				localChanged = true;
 			}
 			continue;
 		}
@@ -114,4 +120,6 @@ export async function runSyncAdapter<TLocal extends SyncLocalRow, TRemote extend
 	}
 
 	await adapter.afterSync?.(ctx);
+
+	return localChanged;
 }

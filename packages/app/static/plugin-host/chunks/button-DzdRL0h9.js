@@ -78,7 +78,7 @@ function S(m, v) {
 				{
 					let t = p(() => _("animate-spin", v.iconClass)), r = p(() => v.children != null);
 					g(e, {
-						icon: "gg:spinner",
+						icon: "ri:loader-4-line",
 						get class() {
 							return n(t);
 						},
@@ -110,7 +110,7 @@ function S(m, v) {
 			{
 				let t = p(() => _("animate-spin", v.iconClass)), r = p(() => v.children != null);
 				g(e, {
-					icon: "gg:spinner",
+					icon: "ri:loader-4-line",
 					get class() {
 						return n(t);
 					},

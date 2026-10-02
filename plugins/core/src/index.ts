@@ -416,7 +416,7 @@ const plugin = (app: PluginAppApi) => {
 
 						name: 'Script',
 
-						children: [createRunScriptHandler(app)]
+						children: [createRunScriptHandler(ctx)]
 
 					},
 

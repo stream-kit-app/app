@@ -1,18 +1,22 @@
 <script lang="ts">
+	import type { ApiServerBind, ApiServerSettings } from '$lib/core/api-server';
+	import type { SettingsFieldItem } from '$lib/core/settings/field';
 	import type { SupportedLocale } from '$lib/i18n';
 
+	import { watch } from 'runed';
 	import { untrack } from 'svelte';
+
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+
 	import { SettingsFieldGroup } from '$lib/components/core/settings';
 	import { app } from '$lib/core';
-	import type { ApiServerBind, ApiServerSettings } from '$lib/core/api-server';
 	import { saveLocale } from '$lib/core/locale/store';
-	import type { SettingsFieldItem } from '$lib/core/settings/field';
 	import {
 		stopAllPluginDevWatchers,
 		syncPluginDevWatchers
 	} from '$lib/core/plugins/plugin-dev-watcher';
+	import { appUpdater } from '$lib/core/updater/app-updater.svelte';
 	import { useI18n } from '$lib/i18n';
 
 	const { t, getLocale, setLocale } = useI18n();
@@ -37,6 +41,42 @@
 					name: t('Language'),
 					type: 'select',
 					items: localeItems
+				}
+			]
+		},
+		{
+			type: 'section',
+			title: t('Updates'),
+			fields: [
+				{
+					type: 'alert',
+					key: 'appVersion',
+					name: t('Current version: {version}', {
+						version: appUpdater.currentVersion ?? '…'
+					})
+				},
+				{
+					type: 'alert',
+					key: 'storeUpdatesHelp',
+					name: t('App updates are managed by the Microsoft Store.'),
+					visible: () => appUpdater.isStoreInstall
+				},
+				{
+					key: 'checkAppUpdatesOnStartup',
+					name: t('Check for app updates on startup'),
+					type: 'checkbox',
+					visible: () => !appUpdater.isStoreInstall
+				},
+				{
+					type: 'button',
+					key: 'checkAppUpdates',
+					name:
+						appUpdater.isChecking || appUpdater.isInstalling
+							? t('Checking...')
+							: t('Check for updates'),
+					variant: 'outline',
+					onClick: () => appUpdater.check(),
+					visible: () => !appUpdater.isStoreInstall
 				}
 			]
 		},
@@ -110,6 +150,7 @@
 	let fieldValues = $state<Record<string, string | boolean>>({
 		locale: getLocale(),
 		developerMode: false,
+		checkAppUpdatesOnStartup: true,
 		apiServerEnabled: false,
 		apiServerPort: '7892',
 		apiServerBind: '127.0.0.1',
@@ -145,11 +186,13 @@
 		void (async () => {
 			await app.settings.ensureLoaded();
 			await app.apiServer.loadSettings();
+			await appUpdater.load();
 
 			if (!hasInteracted) {
 				fieldValues = {
 					locale: getLocale(),
 					developerMode: app.settings.developerMode,
+					checkAppUpdatesOnStartup: app.settings.checkAppUpdatesOnStartup,
 					apiServerEnabled: app.apiServer.settings.enabled,
 					apiServerPort: String(app.apiServer.settings.port),
 					apiServerBind: app.apiServer.settings.bind,
@@ -195,6 +238,24 @@
 		})();
 	});
 
+	watch(
+		() => ({
+			loaded: hasLoadedSettings,
+			enabled: Boolean(fieldValues.checkAppUpdatesOnStartup)
+		}),
+		({ loaded, enabled }) => {
+			if (!loaded) {
+				return;
+			}
+
+			if (enabled === app.settings.checkAppUpdatesOnStartup) {
+				return;
+			}
+
+			void app.settings.setCheckAppUpdatesOnStartup(enabled);
+		}
+	);
+
 	$effect(() => {
 		if (!hasLoadedSettings) {
 			return;
@@ -203,7 +264,9 @@
 		// Read field values before any early return so this effect re-runs on toggle.
 		const enabled = Boolean(fieldValues.apiServerEnabled);
 		const port = Number(fieldValues.apiServerPort);
-		const bind = (fieldValues.apiServerBind === '0.0.0.0' ? '0.0.0.0' : '127.0.0.1') as ApiServerBind;
+		const bind = (
+			fieldValues.apiServerBind === '0.0.0.0' ? '0.0.0.0' : '127.0.0.1'
+		) as ApiServerBind;
 		const token = String(fieldValues.apiServerToken ?? '');
 
 		if (!hasInteracted || suppressApiServerPersist) {

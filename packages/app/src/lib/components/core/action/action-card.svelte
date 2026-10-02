@@ -63,11 +63,7 @@
 					></span>
 					<span class={cn(!isAvailable && 'text-destructive-200')}>{name}</span>
 					{#if !isAvailable}
-						<span
-							class="rounded bg-destructive-800 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-destructive-200 uppercase"
-						>
-							{t('Unavailable')}
-						</span>
+						<Badge size="sm" variant="destructive">{t('Unavailable')}</Badge>
 					{/if}
 				</li>
 			{/each}
@@ -118,7 +114,7 @@
 
 	<button
 		type="button"
-		class="flex min-w-0 flex-1 flex-col gap-1 text-left"
+		class="flex min-w-0 flex-1 cursor-pointer flex-col gap-1 text-left"
 		onclick={() => action.open()}
 	>
 		<span class="flex items-center gap-1.5">
@@ -191,7 +187,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				icon="clarity:clone-line"
+				icon="ri:file-copy-line"
 				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
 				aria-label={t('Clone action')}
 				onclick={handleClone}

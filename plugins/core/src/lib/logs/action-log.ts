@@ -31,6 +31,8 @@ function dedupeEntriesById(entries: ActionLogEntry[]): ActionLogEntry[] {
 
 export class ActionLogService {
 	private entries: ActionLogEntry[] = [];
+	// Copy handed to readers; rebuilt lazily after a change instead of on every read.
+	private entriesSnapshot: ActionLogEntry[] | null = null;
 	private listeners = new Set<LogListener>();
 	private loaded = false;
 	private dirReady = false;
@@ -83,6 +85,7 @@ export class ActionLogService {
 			}
 
 			this.entries = dedupeEntriesById(parsed).slice(-MAX_MEMORY_ENTRIES);
+			this.entriesSnapshot = null;
 			this.diskLineCount = diskLineCount;
 			this.dirReady = true;
 
@@ -97,7 +100,9 @@ export class ActionLogService {
 	}
 
 	getEntries(): ActionLogEntry[] {
-		return dedupeEntriesById(this.entries);
+		this.entriesSnapshot ??= [...this.entries];
+
+		return this.entriesSnapshot;
 	}
 
 	subscribe(listener: LogListener): () => void {
@@ -109,6 +114,7 @@ export class ActionLogService {
 	}
 
 	private notify(): void {
+		this.entriesSnapshot = null;
 		this.revision += 1;
 
 		for (const listener of this.listeners) {

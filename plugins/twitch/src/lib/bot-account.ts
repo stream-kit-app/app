@@ -404,7 +404,11 @@ export function createTwitchBotAccountApi(
 
 			if (storedAccessToken) {
 
-				await connect(storedAccessToken);
+				void connect(storedAccessToken).catch((error) => {
+
+					console.error('[twitch] Failed to connect bot account on boot', error);
+
+				});
 
 			}
 

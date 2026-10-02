@@ -67,6 +67,8 @@ type HandlerFieldBase = {
 	 * When omitted, derived from `name` (for example `"Message"` → `"message"`).
 	 */
 	key?: string;
+	/** Optional help text rendered below the field in the handler editor. */
+	description?: string;
 	/** Placeholder text for text inputs. */
 	placeholder?: string;
 	/** Default value when the field is first added. */

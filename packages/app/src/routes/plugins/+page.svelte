@@ -81,7 +81,7 @@
 		{/if}
 		<CellGrid cols={4} class="border-rule">
 			{#each app.plugins.items as plugin (plugin.key)}
-				<Cell class="p-0 [&>article]:border-0 [&>article]:bg-transparent">
+				<Cell class="p-0 [&>*]:border-0 [&>*]:bg-transparent">
 					<PluginCard {plugin} />
 				</Cell>
 			{/each}

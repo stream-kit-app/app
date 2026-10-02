@@ -26,7 +26,8 @@ export {
 	RESERVED_COMMAND_ARG_NAMES,
 	resolveFieldText,
 	resolveOneOfFieldText,
-	splitCronParts
+	splitCronParts,
+	withActionVariables
 } from '@stream-kit/core';
 
 export {

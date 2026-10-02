@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import { emitFeedback } from '../lib/api-bridge';
@@ -17,8 +18,8 @@ export function createSetTitleHandler(app: PluginAppApi) {
 			}
 		],
 		execute: async (_action, handler, context, next) => {
-			const alias = resolveFieldText(handler.fields, 'alias', context.data).trim();
-			const title = resolveFieldText(handler.fields, 'title', context.data);
+			const alias = resolveFieldText(handler.fields, 'alias', withActionVariables(context)).trim();
+			const title = resolveFieldText(handler.fields, 'title', withActionVariables(context));
 
 			const payload = streamDeck.buildFeedbackPayload(alias || undefined, { title });
 			await emitFeedback(app, 'setTitle', payload);

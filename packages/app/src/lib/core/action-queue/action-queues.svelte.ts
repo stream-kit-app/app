@@ -65,8 +65,8 @@ class QueueRuntime {
 	pending: number = $state(0);
 	active: number = $state(0);
 	paused: boolean = $state(false);
-	pendingActions: QueuedActionEntry[] = $state([]);
-	activeActions: QueuedActionEntry[] = $state([]);
+	pendingActions: QueuedActionEntry[] = $state.raw([]);
+	activeActions: QueuedActionEntry[] = $state.raw([]);
 
 	private jobs: QueueJob[] = [];
 
@@ -125,6 +125,8 @@ class QueueRuntime {
 	}
 
 	private pump(): void {
+		const pendingBefore = this.jobs.length;
+
 		while (
 			!this.paused &&
 			(this.concurrency === QUEUE_CONCURRENCY_UNLIMITED || this.active < this.concurrency) &&
@@ -136,7 +138,8 @@ class QueueRuntime {
 				break;
 			}
 
-			this.syncPending();
+			// Count stays exact for event context; the entry list is rebuilt once below.
+			this.pending = this.jobs.length;
 			this.active += 1;
 			this.activeActions = [
 				...this.activeActions,
@@ -145,6 +148,10 @@ class QueueRuntime {
 
 			this.emit('job_started', job);
 			void this.runJob(job);
+		}
+
+		if (this.jobs.length !== pendingBefore) {
+			this.syncPending();
 		}
 	}
 

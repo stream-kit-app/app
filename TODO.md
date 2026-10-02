@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: 31 juli 2026 (overlay file settings + cloud)
+> Versie 0.1.0 — laatst bijgewerkt: 31 augustus 2026 (Tauri auto-update)
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -27,6 +27,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 - [x] Stream Deck plugin (triggers, feedback handlers, Elgato companion via API Server)
 - [x] Plugin-architectuur (built-in + externe zip-plugins)
 - [x] Plugin updates (manifest URL, check/install, startup check)
+- [x] Desktop auto-update (Tauri updater, signed GitHub NSIS, persistent `updater` feed)
 - [x] Dashboard (`/`) — stat cards, verbindingen, pluginstatus, running-actions widget
 - [x] i18n (NL + EN)
 - [x] Inbound WebSocket API server (remote control; plugin-extensible via `app.api`)
@@ -41,7 +42,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 
 - [~] Dashboard uitbreiden — basis + running-actions klaar; recente events-widget nog open
 - [x] Bot plugin — commands, timers, moderation, custom roles, built-in commands, overview settings
-- [~] Publieke installer + release-kanaal — alpha CI/builds (Windows); stabiel kanaal voor alle platformen nog open
+- [~] Publieke installer + release-kanaal — alpha CI/builds (Windows) + GitHub auto-update; stabiel kanaal voor alle platformen nog open
 - [~] Documentatie uitbreiden — plugins + guide + API-catalogus (alle triggers/handlers per plugin) klaar; onboarding/starter-templates nog open
 - [x] Import/export — acties + commands JSON import/export klaar
 - [ ] Stabiliseren van API's en database-schema's (richting v1.0)

@@ -22,7 +22,7 @@
 
 <div class="group/card flex min-w-0 flex-1 items-center gap-3 transition-colors">
 	<div
-		class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-dark-700 text-primary"
+		class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 		aria-hidden="true"
 	>
 		<Icon icon="ri:shield-user-line" class="size-5" />

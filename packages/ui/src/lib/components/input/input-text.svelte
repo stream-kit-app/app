@@ -168,7 +168,7 @@
 				onclick={() => (showPassword = !showPassword)}
 			>
 				<Icon
-					icon={showPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'}
+					icon={showPassword ? 'ri:eye-off-line' : 'ri:eye-line'}
 					class={inputIconSizeClasses[size]}
 				/>
 			</button>

@@ -449,7 +449,14 @@
 	{#each handler.fieldDefinitions ?? [] as config (config.key)}
 		{@const field = handler.getField(config.key)}
 		{#if field}
-			{@render fieldInput(config, field, handler.getFieldError(field.id, fieldErrors))}
+			{#if config.description}
+				<div class="grid min-w-0 gap-1.5">
+					{@render fieldInput(config, field, handler.getFieldError(field.id, fieldErrors))}
+					<p class="text-sm text-dark-100">{config.description}</p>
+				</div>
+			{:else}
+				{@render fieldInput(config, field, handler.getFieldError(field.id, fieldErrors))}
+			{/if}
 		{/if}
 	{/each}
 </div>

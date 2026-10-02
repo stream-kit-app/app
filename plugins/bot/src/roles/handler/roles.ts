@@ -1,3 +1,4 @@
+import { withActionVariables } from '@stream-kit/core';
 import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import type { Roles } from '../app/lib/roles.svelte';
@@ -29,8 +30,8 @@ export function createAddUserToRoleHandler(app: PluginAppApi, roles: Roles) {
 		name: 'Add user to role',
 		fields: [createUserTargetField(), createRoleSelectField(roles)],
 		execute: async (_action, handler, context, next) => {
-			const identity = resolveUserTarget(handler.fields, context.data);
-			const roleId = resolveRoleId(roles, handler.fields, context.data);
+			const identity = resolveUserTarget(handler.fields, withActionVariables(context));
+			const roleId = resolveRoleId(roles, handler.fields, withActionVariables(context));
 
 			if (!identity || !roleId) {
 				app.toast.create({
@@ -55,8 +56,8 @@ export function createRemoveUserFromRoleHandler(app: PluginAppApi, roles: Roles)
 		name: 'Remove user from role',
 		fields: [createUserTargetField(), createRoleSelectField(roles)],
 		execute: async (_action, handler, context, next) => {
-			const identity = resolveUserTarget(handler.fields, context.data);
-			const roleId = resolveRoleId(roles, handler.fields, context.data);
+			const identity = resolveUserTarget(handler.fields, withActionVariables(context));
+			const roleId = resolveRoleId(roles, handler.fields, withActionVariables(context));
 
 			if (!identity || !roleId) {
 				app.toast.create({
@@ -91,8 +92,8 @@ export function createUserInRoleHandler(app: PluginAppApi, roles: Roles) {
 		],
 		execute: async (_action, handler, context, next) => {
 			const resultVar = resolveOutputVar(handler.fields, 'resultVar', 'inRole');
-			const identity = resolveUserTarget(handler.fields, context.data);
-			const roleId = resolveRoleId(roles, handler.fields, context.data);
+			const identity = resolveUserTarget(handler.fields, withActionVariables(context));
+			const roleId = resolveRoleId(roles, handler.fields, withActionVariables(context));
 
 			if (!context.actionVariables) {
 				context.actionVariables = {};

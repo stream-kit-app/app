@@ -8,30 +8,37 @@
 		value: string | number;
 		label: string;
 		description?: string;
+		href?: string;
 	};
 
-	let { icon, value, label, description }: Props = $props();
+	let { icon, value, label, description, href }: Props = $props();
 </script>
 
-<Panel tone="flush" class="p-3">
-	<div class="flex min-w-0 items-start gap-2.5">
+{#snippet content()}
+	<div class="flex items-start gap-3">
 		<div
-			class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
-			aria-hidden="true"
+			class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
 		>
-			<Icon {icon} class="size-4" />
+			<Icon {icon} class="size-5" aria-hidden="true" />
 		</div>
 		<div class="min-w-0 flex-1">
-			<p
-				class="truncate font-mono text-base font-semibold tabular-nums tracking-tight text-dark-50"
-				title={String(value)}
-			>
-				{value}
-			</p>
-			<p class="truncate text-xs text-dark-300">{label}</p>
+			<p class="font-mono text-2xl font-semibold tabular-nums text-dark-50">{value}</p>
+			<p class="text-sm text-dark-100">{label}</p>
 			{#if description}
-				<p class="mt-0.5 truncate text-xs text-dark-400">{description}</p>
+				<p class="mt-0.5 text-xs text-dark-300">{description}</p>
 			{/if}
 		</div>
 	</div>
-</Panel>
+{/snippet}
+
+{#if href}
+	<a {href} class="block cursor-pointer">
+		<Panel tone="flush" class="p-4 transition-colors hover:bg-dark-700/40">
+			{@render content()}
+		</Panel>
+	</a>
+{:else}
+	<Panel tone="flush" class="p-4">
+		{@render content()}
+	</Panel>
+{/if}

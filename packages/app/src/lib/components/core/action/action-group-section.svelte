@@ -7,7 +7,7 @@
 	import Icon from '@iconify/svelte';
 	import { capitalize } from 'es-toolkit';
 
-	import { Eyebrow } from '@stream-kit/ui/blueprint';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
@@ -64,14 +64,10 @@
 	});
 </script>
 
-<section
+<Panel
+	tone="solid"
 	{@attach ref}
-	class={cn(
-		'overflow-hidden rounded-none',
-		isOverlay
-			? 'border border-rule bg-dark-800 shadow-2xl'
-			: 'border border-rule bg-dark-800'
-	)}
+	class={cn('overflow-hidden', isOverlay && 'shadow-2xl')}
 >
 	<div
 		class={cn(
@@ -177,4 +173,4 @@
 			</div>
 		</div>
 	{/if}
-</section>
+</Panel>

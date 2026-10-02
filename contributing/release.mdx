@@ -10,7 +10,9 @@ Stream Kit uses [Changesets](https://github.com/changesets/changesets) for versi
 ## Overview
 
 ```text
-PR with changeset → merge to main → Version Packages PR → merge → git tag (v*) → CI build → GitHub Release
+PR with changeset → merge to main → Version Packages PR → merge → git tag (v*) → CI build → GitHub Release (draft)
+                                                                                              ↓
+                                                                                    publish draft → updater feed (`updater` tag)
                                                                                               ↓
                                                                                     Microsoft Store (optional)
                                                                                               ↓
@@ -22,7 +24,8 @@ PR with changeset → merge to main → Version Packages PR → merge → git ta
 | Workflow                                                                        | Trigger                          | Purpose                                                                                               |
 | ------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | [`.github/workflows/release.yml`](../.github/workflows/release.yml)             | Push to `main`                   | Opens or updates a **Version Packages** PR; on merge, creates a `v*` git tag and dispatches the build |
-| [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` or manual dispatch | Builds Windows installers and optionally publishes an MSIX bundle to the Microsoft Store              |
+| [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml) | Push tag `v*` or manual dispatch | Builds signed Windows installers, updater signatures, and `latest.json`; optionally publishes an MSIX bundle to the Microsoft Store |
+| [`.github/workflows/publish-updater-feed.yml`](../.github/workflows/publish-updater-feed.yml) | Published GitHub Release | Copies `latest.json` to the persistent `updater` tag so in-app auto-update can find alpha prereleases |
 | [`.github/workflows/publish-npm.yml`](../.github/workflows/publish-npm.yml)       | Push tag `v*`                    | Publishes `@stream-kit/plugin`, `@stream-kit/core`, and `@stream-kit/ui` to the public npm registry   |
 | [`.github/workflows/publish-plugins.yml`](../.github/workflows/publish-plugins.yml) | Push tag `v*` or manual dispatch | Publishes first-party plugin distribution zips to GitHub distribution repos                           |
 
@@ -61,7 +64,7 @@ After the Version Packages PR merges, CI publishes all three packages to npm whe
 4. The Release workflow pushes a tag like `v0.1.0-alpha.1` to GitHub.
 5. The Release workflow explicitly dispatches **Build Release** for that tag.
 
-Publish the draft release on GitHub when you are ready to ship.
+Publish the draft release on GitHub when you are ready to ship. Publishing copies `latest.json` to the persistent `updater` release so installed apps can find the update. GitHub `/releases/latest` is not used: alpha tags are prereleases, and that endpoint ignores them.
 
 ### Build did not start?
 
@@ -111,9 +114,49 @@ After each `changeset version`, [`scripts/sync-app-version.mjs`](../scripts/sync
 - [`packages/app/src-tauri/Cargo.toml`](../packages/app/src-tauri/Cargo.toml)
 - [`packages/app/src-tauri/tauri.windows.conf.json`](../packages/app/src-tauri/tauri.windows.conf.json) — sets `bundle.windows.wix.version` to a numeric-only MSI version (e.g. `0.1.0-alpha.3` → `0.1.0.3`). WiX does not accept semver pre-release labels like `alpha`.
 
+## Auto-updates
+
+The desktop app checks [https://github.com/stream-kit-app/app/releases/download/updater/latest.json](https://github.com/stream-kit-app/app/releases/download/updater/latest.json) after launch (and from **Settings → Updates**). Windows GitHub installs download the NSIS updater artifact, prompt to install, then restart.
+
+Microsoft Store / MSIX installs skip this check — those updates go through the Store.
+
+The in-app updater only works for builds signed with the current updater key. Existing installs from before updater signing shipped must install one signed build manually.
+
+### Signing keys
+
+Generate a keypair once (do **not** commit the private key):
+
+```bash
+pnpm --filter @stream-kit/app tauri signer generate -w "$HOME/.tauri/stream-kit.key"
+```
+
+- Put the **public** key in [`packages/app/src-tauri/tauri.conf.json`](../packages/app/src-tauri/tauri.conf.json) (`plugins.updater.pubkey`).
+- Store the private key contents as GitHub secret `TAURI_SIGNING_PRIVATE_KEY`.
+- If the key has a password, store it as `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (omit or leave empty when the key has no password).
+- Losing the private key means already-installed apps can never receive a signed update.
+
+**Build Release** fails without `TAURI_SIGNING_PRIVATE_KEY` because `bundle.createUpdaterArtifacts` is enabled.
+
+### Local installer builds
+
+Release-style local builds need the same env vars:
+
+```bash
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/stream-kit.key)"
+# optional: export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="..."
+pnpm build
+pnpm tauri build
+```
+
+To skip updater artifacts (unsigned local installer only):
+
+```bash
+pnpm --filter @stream-kit/app tauri build -- --config "{\"bundle\":{\"createUpdaterArtifacts\":false}}"
+```
+
 ## Local builds
 
-Build Windows installers:
+Build Windows installers (requires updater signing env, see above):
 
 ```bash
 pnpm build
@@ -173,6 +216,8 @@ Then enable **Template repository** in the GitHub repo settings for the **Use th
 | `CHANGESET_GITHUB_TOKEN` | Optional PAT for creating Changesets PRs and pushing tags when org settings block `GITHUB_TOKEN` |
 | `NPM_TOKEN`              | npm automation token with publish access to `@stream-kit/plugin`, `@stream-kit/core`, and `@stream-kit/ui` |
 | `PLUGIN_PUBLISH_TOKEN`   | PAT with `repo` scope to push manifests and releases to `stream-kit-app/plugin-*` distribution repos (required for **Publish Plugins** CI; `GITHUB_TOKEN` cannot write to other repositories) |
+| `TAURI_SIGNING_PRIVATE_KEY` | Private minisign key used to sign Tauri updater artifacts (required for **Build Release**) |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Password for the updater private key (empty if the key has no password) |
 
 ### Plugin distribution repos (required for Publish Plugins CI)
 
@@ -207,8 +252,6 @@ See [Publish app updates to Microsoft Store with GitHub Actions](https://learn.m
 
 | Secret                               | Purpose                                                  |
 | ------------------------------------ | -------------------------------------------------------- |
-| `TAURI_SIGNING_PRIVATE_KEY`          | Tauri updater signing                                    |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Updater key password                                     |
 | Windows code signing certificate     | Signed NSIS/MSI on GitHub Releases (Store re-signs MSIX) |
 
 ## Microsoft Store setup
@@ -225,10 +268,11 @@ See [Publish app updates to Microsoft Store with GitHub Actions](https://learn.m
 
 | Platform        | Artifacts                         |
 | --------------- | --------------------------------- |
-| Windows         | `.msi`, `.exe` (NSIS)             |
+| Windows         | `.msi`, `.exe` (NSIS), `.sig` updater signatures, `latest.json` |
+| Updater feed    | `latest.json` on the persistent `updater` GitHub release (after the versioned draft is published) |
 | Microsoft Store | `.msixbundle` (x64, optional job) |
 
 ## Notes
 
 - `bundle.publisher` in Tauri config must not match `productName` (`Stream Kit`); use `Stream Kit B.V.`.
-- GitHub Releases are created as **drafts**; publish manually after verifying artifacts.
+- GitHub Releases are created as **drafts**; publish manually after verifying artifacts. The in-app updater feed updates only after that publish.

@@ -54,7 +54,17 @@ export async function resolveOverlayConfigForClients(
 	}
 
 	// One token fetch for all fields — avoids PocketBase auto-cancellation under Promise.all.
-	await app.userFiles.ensureFileToken().catch(() => undefined);
+	try {
+		await app.userFiles.ensureFileToken();
+	} catch (error) {
+		// Signed out or session expired: leave cloud refs unresolved instead of failing per field.
+		console.warn(
+			'Cloud file settings not resolved (no valid session):',
+			cloudKeys.map(([key]) => key).join(', '),
+			error instanceof Error ? error.message : error
+		);
+		return next;
+	}
 
 	await Promise.all(
 		cloudKeys.map(async ([key, value]) => {
