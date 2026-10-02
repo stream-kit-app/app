@@ -1,5 +1,11 @@
 # @stream-kit/pocketbase
 
+## 0.2.0-alpha.7
+
+### Minor Changes
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - AI action generator route (`POST /api/ai/generate-action`) and `ai_usage` collection
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes

@@ -23,10 +23,15 @@
     "@stream-kit/plugin-discord": "0.1.0-alpha.0",
     "@stream-kit/plugin-quotes": "0.1.0-alpha.1",
     "@stream-kit/plugin-stream-deck": "0.1.0-alpha.1",
-    "@stream-kit/pocketbase": "0.1.0"
+    "@stream-kit/pocketbase": "0.1.0",
+    "@stream-kit/plugin-ai-actions": "0.1.0-alpha.0"
   },
   "changesets": [
+    "action-editor-outline",
+    "ai-actions-plugin",
+    "ai-actions-route",
     "app-blueprint-alignment",
+    "app-theme-plugin-pages",
     "blueprint-design-system",
     "bright-news-kick",
     "config-sync-revision-files",
@@ -39,13 +44,18 @@
     "overlay-bundle-100mb",
     "overlay-cloud-base-href",
     "pb-hook-handler-scope",
+    "plugins-optional-core",
     "polite-corners-retire",
+    "rankings-points-editor",
     "shy-shirts-divide",
     "silent-moons-hug",
     "silver-spiders-sleep",
     "sixty-geese-enjoy",
     "tame-boxes-look",
+    "tauri-auto-updater",
     "tricky-moons-kiss",
+    "tts-elevenlabs-voices",
+    "ui-variable-autocomplete",
     "user-files-create-auth",
     "user-overlays-cloud"
   ]

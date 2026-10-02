@@ -1,5 +1,27 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.19
+
+### Minor Changes
+
+- [`728032f`](https://github.com/stream-kit-app/app/commit/728032f833cfb64c6f2ff3febdd45789d44c70cd) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Add in-app auto-updates for GitHub Windows installs (check on startup and from Settings).
+
+### Patch Changes
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Action editor: outline + detail panel instead of nested If cards, If handler with AND/OR condition groups (`condition-group` field, existing conditions are migrated), handler `outputs` and scope-aware `{variable}` suggestions. Adds `ConditionTreeNode`, `ConditionGroupFieldValue` and `HandlerOutputsSource` to the plugin SDK.
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - AI Actions plugin: describe an action in plain language and open the generated draft in the action editor. Adds `app.actions.openDraft`, `getTriggers`/`findTrigger`, `app.auth.send` and the `InputTextarea` UI component.
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Theme settings, a dedicated plugin detail page (`/plugins/[pluginKey]`), add-tile and widget menu on the dashboard, and remembered window size/position.
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - New UI components: `VariableAutocomplete` (also in Monaco JSON editors), `Widget`, `CopyButton` and a `masonry` attachment. Text inputs with variables now share the autocomplete instead of their own popover logic.
+
+- Updated dependencies [[`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5), [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5), [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5)]:
+    - @stream-kit/core@0.2.0-alpha.10
+    - @stream-kit/plugin@0.2.0-alpha.10
+    - @stream-kit/script-api@0.1.0-alpha.5
+    - @stream-kit/ui@0.2.0-alpha.10
+
 ## 0.1.0-alpha.18
 
 ### Patch Changes

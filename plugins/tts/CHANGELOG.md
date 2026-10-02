@@ -1,5 +1,16 @@
 # @stream-kit/plugin-tts
 
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - The core handlers plugin is now an optional dependency, so these plugins can be enabled on their own. Bot lists Twitch and YouTube as optional dependencies; Bot command and timer editors pick up the new variable autocomplete.
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - ElevenLabs voice library page with voice cloning and voice tuning, account widget, streamed audio playback and clearer speak errors. StreamElements settings moved to their own section.
+
+- Updated dependencies [[`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5)]:
+    - @stream-kit/core@0.2.0-alpha.10
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes

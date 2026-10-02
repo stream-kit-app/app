@@ -1,5 +1,16 @@
 # @stream-kit/ui
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - AI Actions plugin: describe an action in plain language and open the generated draft in the action editor. Adds `app.actions.openDraft`, `getTriggers`/`findTrigger`, `app.auth.send` and the `InputTextarea` UI component.
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - New UI components: `VariableAutocomplete` (also in Monaco JSON editors), `Widget`, `CopyButton` and a `masonry` attachment. Text inputs with variables now share the autocomplete instead of their own popover logic.
+
+- Updated dependencies [[`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5)]:
+    - @stream-kit/core@0.2.0-alpha.10
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
