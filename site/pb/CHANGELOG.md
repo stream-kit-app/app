@@ -1,5 +1,11 @@
 # @stream-kit/pocketbase
 
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- [`f8b2ac9`](https://github.com/stream-kit-app/app/commit/f8b2ac9434fa2d67627e74683ce6d032f8a68a33) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Docker image creates or updates the superuser on start from `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD`.
+
 ## 0.2.0-alpha.7
 
 ### Minor Changes
