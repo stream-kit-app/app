@@ -1,7 +1,7 @@
 {
   "key": "bot",
   "name": "Bot",
-  "version": "0.1.1-alpha.2",
+  "version": "0.2.0-alpha.8",
   "description": "Chat bot with commands, timers, and moderation.",
   "icon": "at-icons:bot",
   "entry": "dist/index.js",

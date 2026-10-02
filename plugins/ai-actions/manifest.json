@@ -1,7 +1,7 @@
 {
 	"key": "ai-actions",
 	"name": "AI Actions",
-	"version": "0.1.0-alpha.0",
+	"version": "0.1.0-alpha.1",
 	"description": "Describe an action in plain language and let AI build it.",
 	"icon": "ri:sparkling-2-line",
 	"entry": "dist/index.js",

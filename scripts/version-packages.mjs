@@ -29,3 +29,4 @@ const env = {
 
 run('pnpm exec changeset version', env);
 run('node scripts/sync-app-version.mjs', env);
+run('node scripts/sync-plugin-manifest-versions.mjs', env);

@@ -1,7 +1,7 @@
 {
   "key": "websocket",
   "name": "WebSocket",
-  "version": "0.1.1-alpha.2",
+  "version": "0.2.0-alpha.7",
   "description": "Persistent WebSocket connections with action triggers.",
   "icon": "ri:links-line",
   "entry": "dist/index.js",

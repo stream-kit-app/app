@@ -1,7 +1,7 @@
 {
 	"key": "discord",
 	"name": "Discord",
-	"version": "0.1.0-alpha.0",
+	"version": "0.1.0-alpha.2",
 	"description": "Discord bot messages, roles, and voice events.",
 	"icon": "ri:discord-fill",
 	"entry": "dist/index.js",

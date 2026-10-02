@@ -78,7 +78,7 @@ Keep `updateManifestUrl` stable across releases. Only `version`, `downloadUrl`, 
 
 ### Official Stream Kit plugins (PocketBase)
 
-1. Bump `version` in `plugins/{key}/manifest.json`.
+1. Add a changeset for the plugin package. `pnpm version-packages` copies the bumped `package.json` version into `plugins/{key}/manifest.json`; do not edit the manifest version by hand.
 2. Build the plugin zip (`pnpm package:plugins` or per-plugin package script).
 3. Upload the zip to PocketBase (`files` collection) via the admin UI or `pnpm --filter @stream-kit/site pb:seed`.
 4. Create or update the `plugin_versions` record, link the `files` record, and set `isLatest = true`.

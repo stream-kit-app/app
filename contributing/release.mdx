@@ -114,6 +114,8 @@ After each `changeset version`, [`scripts/sync-app-version.mjs`](../scripts/sync
 - [`packages/app/src-tauri/Cargo.toml`](../packages/app/src-tauri/Cargo.toml)
 - [`packages/app/src-tauri/tauri.windows.conf.json`](../packages/app/src-tauri/tauri.windows.conf.json) — sets `bundle.windows.wix.version` to a numeric-only MSI version (e.g. `0.1.0-alpha.3` → `0.1.0.3`). WiX does not accept semver pre-release labels like `alpha`.
 
+[`scripts/sync-plugin-manifest-versions.mjs`](../scripts/sync-plugin-manifest-versions.mjs) then copies each `plugins/*/package.json` version into that plugin's `manifest.json`. **Publish Plugins** tags distribution releases with the manifest version, so without this sync a plugin would be republished under its previous version and installed apps would not see the update.
+
 ## Auto-updates
 
 The desktop app checks [https://github.com/stream-kit-app/app/releases/download/updater/latest.json](https://github.com/stream-kit-app/app/releases/download/updater/latest.json) after launch (and from **Settings → Updates**). Windows GitHub installs download the NSIS updater artifact, prompt to install, then restart.
