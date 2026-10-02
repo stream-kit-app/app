@@ -5,6 +5,16 @@
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="color-scheme" content="dark" />
+		<script>
+			// Apply the saved theme before first paint (mirrored by $lib/core/theme).
+			try {
+				var savedTheme = localStorage.getItem('stream-kit.theme') === 'light' ? 'light' : 'dark';
+				document.documentElement.dataset.theme = savedTheme;
+				document.querySelector('meta[name="color-scheme"]').setAttribute('content', savedTheme);
+			} catch (error) {
+				document.documentElement.dataset.theme = 'dark';
+			}
+		</script>
 		<link rel="preconnect" href="https://fonts.bunny.net" />
 		<link
 			href="https://fonts.bunny.net/css?family=jetbrains-mono:400,500,600|outfit:500,600,700|plus-jakarta-sans:400,500,600,700,800&display=swap"
@@ -12,128 +22,233 @@
 		/>
 		<title>Tauri + SvelteKit + Typescript App</title>
 		<style>
-			#boot-splash {
+			/*
+			 * Shared by the static splash below and BootScreen (boot-screen.svelte).
+			 * Runs before layout.css loads, so token values are mirrored here.
+			 * Rounded corners and the drop shadow come from the native window (shadow: true).
+			 */
+			.boot-splash {
+				--boot-offset: 0ms;
+				--boot-bg: oklch(0.25 0.014 275); /* dark-800 */
+				--boot-fg: oklch(0.98 0.003 275); /* foreground */
+				--boot-muted: oklch(0.66 0.012 275); /* dark-300 */
+				--boot-brand: #fffa00;
+				--boot-track: oklch(1 0 0 / 0.06);
+
 				position: fixed;
 				inset: 0;
 				z-index: 200;
 				display: flex;
+				flex-direction: column;
 				align-items: center;
 				justify-content: center;
+				gap: 1.25rem;
+				padding: 1.5rem;
 				overflow: hidden;
-				background: oklch(0.06 0.004 264);
+				background: var(--boot-bg);
+				font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+				text-align: center;
 			}
 
-			#boot-splash .boot-grid {
+			/* Keep the splash content out of the render tree until Outfit is loaded, so the
+			   text never swaps from the fallback font. Unhiding restarts the animations. */
+			html:not(.boot-fonts-ready) .boot-splash > * {
+				display: none;
+			}
+
+			html[data-theme='light'] .boot-splash {
+				--boot-bg: oklch(0.985 0.002 275); /* light dark-950 */
+				--boot-fg: oklch(0.2 0.014 275); /* light foreground */
+				--boot-muted: oklch(0.48 0.013 275); /* light dark-300 */
+				--boot-brand: oklch(0.52 0.18 280); /* light primary — yellow is unreadable on white */
+				--boot-track: oklch(0.22 0.014 275 / 0.08);
+			}
+
+			.boot-splash .boot-emblem {
+				position: relative;
+				display: grid;
+				place-items: center;
+				width: 104px;
+				height: 104px;
+			}
+
+			.boot-splash .boot-spinner {
 				position: absolute;
 				inset: 0;
-				background-image:
-					linear-gradient(oklch(0.98 0.002 264 / 0.08) 1px, transparent 1px),
-					linear-gradient(90deg, oklch(0.98 0.002 264 / 0.08) 1px, transparent 1px);
-				background-size: 48px 48px;
-				mask-image: radial-gradient(circle at center, black 100%, transparent 72%);
+				overflow: visible;
+				animation:
+					boot-fade 400ms ease-out calc(var(--boot-offset) + 200ms) both,
+					boot-rotate 1.6s linear calc(var(--boot-offset) + 0ms) infinite;
 			}
 
-			#boot-splash .boot-content {
-				position: relative;
-				z-index: 10;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				gap: 2rem;
-				padding-inline: 1.5rem;
+			.boot-splash .boot-spinner-track {
+				fill: none;
+				stroke: var(--boot-track);
+				stroke-width: 2;
 			}
 
-			#boot-splash .boot-logo {
-				display: grid;
-				grid-template-columns: 50px auto;
-				align-items: center;
-				gap: 0.5rem;
+			.boot-splash .boot-spinner-arc {
+				fill: none;
+				stroke: var(--boot-brand);
+				stroke-width: 2;
+				stroke-linecap: round;
+				stroke-dasharray: 1 150;
+				animation: boot-dash 1.6s ease-in-out calc(var(--boot-offset) + 0ms) infinite;
 			}
 
-			#boot-splash .boot-logo img {
+			.boot-splash .boot-mark {
 				display: block;
-				width: 50px;
-				height: 50px;
+				width: 52px;
+				height: 52px;
+				animation:
+					boot-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--boot-offset) + 0ms) both,
+					boot-breathe 3.2s ease-in-out calc(var(--boot-offset) + 520ms) infinite;
 			}
 
-			#boot-splash .boot-logo span {
-				font-family: 'Outfit', sans-serif;
-				font-size: 1.125rem;
-				font-weight: 600;
-				letter-spacing: 0.025em;
-				text-transform: uppercase;
-				color: oklch(0.98 0.002 264);
-			}
-
-			#boot-splash .boot-status {
+			.boot-splash .boot-text {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
-				gap: 0.75rem;
-				width: 100%;
+				gap: 0.375rem;
+				max-width: 100%;
+				animation: boot-rise 400ms ease-out calc(var(--boot-offset) + 280ms) both;
 			}
 
-			#boot-splash .boot-bar {
-				position: relative;
-				width: 10rem;
-				height: 2px;
-				border-radius: 9999px;
-				background: oklch(0.3 0.015 264 / 0.6);
-				overflow: hidden;
+			.boot-splash .boot-title {
+				margin: 0;
+				font-size: 0.875rem;
+				font-weight: 600;
+				letter-spacing: 0.02em;
+				color: var(--boot-fg);
 			}
 
-			#boot-splash .boot-bar-fill {
-				position: absolute;
-				inset-block: 0;
-				width: 40%;
-				border-radius: 9999px;
-				background: #fffa00;
-				animation: boot-bar-slide 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-			}
-
-			#boot-splash .boot-label {
-				font-family: 'Outfit', sans-serif;
+			.boot-splash .boot-subtitle {
+				margin: 0;
 				font-size: 0.75rem;
 				font-weight: 500;
-				letter-spacing: 0.2em;
-				text-transform: uppercase;
-				color: oklch(0.55 0.015 264);
+				color: var(--boot-muted);
 			}
 
-			@keyframes boot-bar-slide {
+			@keyframes boot-fade {
 				from {
-					translate: -110% 0;
+					opacity: 0;
+				}
+			}
+
+			@keyframes boot-pop {
+				from {
+					opacity: 0;
+					scale: 0.8;
+				}
+			}
+
+			@keyframes boot-rise {
+				from {
+					opacity: 0;
+					translate: 0 4px;
+				}
+			}
+
+			@keyframes boot-breathe {
+				50% {
+					scale: 1.04;
+				}
+			}
+
+			@keyframes boot-rotate {
+				to {
+					rotate: 360deg;
+				}
+			}
+
+			/* Arc grows to ~70% of the ring, then sweeps off its tail. Circumference ≈ 138. */
+			@keyframes boot-dash {
+				0% {
+					stroke-dasharray: 1 150;
+					stroke-dashoffset: 0;
 				}
 
-				to {
-					translate: 260% 0;
+				50% {
+					stroke-dasharray: 96 150;
+					stroke-dashoffset: -34;
+				}
+
+				100% {
+					stroke-dasharray: 96 150;
+					stroke-dashoffset: -137;
 				}
 			}
 
 			@media (prefers-reduced-motion: reduce) {
-				#boot-splash .boot-bar-fill {
-					animation: none;
+				.boot-splash * {
+					animation: none !important;
+				}
+
+				.boot-splash .boot-spinner-arc {
+					stroke-dasharray: 40 150;
 				}
 			}
 		</style>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover" class="bg-background text-foreground">
-		<div id="boot-splash" aria-hidden="true">
-			<div class="boot-grid" aria-hidden="true"></div>
-			<div class="boot-content">
-				<div class="boot-logo">
-					<img src="/logo.svg" width="50" height="50" alt="" />
-					<span>Stream Kit</span>
-				</div>
-				<div class="boot-status">
-					<div class="boot-bar" aria-hidden="true">
-						<div class="boot-bar-fill"></div>
-					</div>
-					<p class="boot-label">Loading…</p>
-				</div>
+		<div id="boot-splash" class="boot-splash" aria-hidden="true">
+			<div class="boot-emblem">
+				<svg class="boot-spinner" viewBox="0 0 50 50">
+					<circle class="boot-spinner-track" cx="25" cy="25" r="22" />
+					<circle class="boot-spinner-arc" cx="25" cy="25" r="22" />
+				</svg>
+				<img class="boot-mark" src="/logo.svg" width="52" height="52" alt="" />
+			</div>
+			<div class="boot-text">
+				<p class="boot-title">Loading…</p>
+				<p class="boot-subtitle">Stream Kit</p>
 			</div>
 		</div>
+		<script>
+			// Runs after the font stylesheet (scripts wait for pending stylesheets), so the
+			// @font-face rules exist. The timeout keeps an offline start from hanging.
+			(function () {
+				var FONT_TIMEOUT_MS = 3000;
+
+				function loadFonts(faces) {
+					if (!document.fonts) {
+						return Promise.resolve();
+					}
+
+					var loaded = Promise.all(
+						faces.map(function (face) {
+							return document.fonts.load(face).catch(function () {});
+						})
+					);
+					var timeout = new Promise(function (resolve) {
+						setTimeout(resolve, FONT_TIMEOUT_MS);
+					});
+
+					return Promise.race([loaded, timeout]);
+				}
+
+				var splashFonts = loadFonts(['500 1em Outfit', '600 1em Outfit']);
+
+				splashFonts.then(function () {
+					window.__bootSplashStartedAt = performance.now();
+					document.documentElement.classList.add('boot-fonts-ready');
+				});
+
+				// Awaited by the root layout before the app UI is revealed.
+				window.__appFontsReady = Promise.all([
+					splashFonts,
+					loadFonts([
+						'400 1em "Plus Jakarta Sans"',
+						'500 1em "Plus Jakarta Sans"',
+						'600 1em "Plus Jakarta Sans"',
+						'700 1em "Plus Jakarta Sans"',
+						'700 1em Outfit',
+						'400 1em "JetBrains Mono"'
+					])
+				]);
+			})();
+		</script>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

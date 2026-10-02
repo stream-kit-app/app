@@ -11,6 +11,7 @@ export const Collections = {
 	Mfas: "_mfas",
 	Otps: "_otps",
 	Superusers: "_superusers",
+	AiUsage: "ai_usage",
 	Files: "files",
 	PluginReviews: "plugin_reviews",
 	PluginVersions: "plugin_versions",
@@ -104,6 +105,17 @@ export type SuperusersRecord = {
 	tokenKey: string
 	updated: IsoAutoDateString
 	verified?: boolean
+}
+
+export type AiUsageRecord = {
+	count?: number
+	created: IsoAutoDateString
+	day: string
+	id: string
+	inputTokens?: number
+	outputTokens?: number
+	updated: IsoAutoDateString
+	user: RecordIdString
 }
 
 export type FilesRecord = {
@@ -336,6 +348,7 @@ export type ExternalauthsResponse<Texpand = unknown> = Required<ExternalauthsRec
 export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemFields<Texpand>
 export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
+export type AiUsageResponse<Texpand = unknown> = Required<AiUsageRecord> & BaseSystemFields<Texpand>
 export type FilesResponse<Texpand = unknown> = Required<FilesRecord> & BaseSystemFields<Texpand>
 export type PluginReviewsResponse<Texpand = unknown> = Required<PluginReviewsRecord> & BaseSystemFields<Texpand>
 export type PluginVersionsResponse<Texpand = unknown> = Required<PluginVersionsRecord> & BaseSystemFields<Texpand>
@@ -359,6 +372,7 @@ export type CollectionRecords = {
 	_mfas: MfasRecord
 	_otps: OtpsRecord
 	_superusers: SuperusersRecord
+	ai_usage: AiUsageRecord
 	files: FilesRecord
 	plugin_reviews: PluginReviewsRecord
 	plugin_versions: PluginVersionsRecord
@@ -381,6 +395,7 @@ export type CollectionResponses = {
 	_mfas: MfasResponse
 	_otps: OtpsResponse
 	_superusers: SuperusersResponse
+	ai_usage: AiUsageResponse
 	files: FilesResponse
 	plugin_reviews: PluginReviewsResponse
 	plugin_versions: PluginVersionsResponse

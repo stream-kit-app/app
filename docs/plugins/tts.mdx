@@ -17,15 +17,62 @@ Open **Plugins → TTS → Configure** and set up one or more providers:
 | **StreamElements** | StreamElements overlay token |
 | **ElevenLabs** | ElevenLabs API key |
 
+Each provider is a panel you can open and close. While a panel is closed, a badge in its header shows the status, such as **Connected**, **Not configured** or **Runtime required**. All panels start closed.
+
+## ElevenLabs account widget
+
+Add the **ElevenLabs account** widget to the [dashboard](/docs/guide/dashboard) to see:
+
+- The linked account and its subscription tier
+- Credits used, credits left and the credit limit, with a usage bar
+- When your credits reset
+- Used voice slots
+
+Use **Update API key** in the widget to replace the key. Stream Kit checks the new key with ElevenLabs before saving it, and the settings page shows the new key right away. Restricted API keys need the **User: Read** permission for the widget.
+
 ## ElevenLabs voices
 
-After a valid API key:
+Open **TTS → ElevenLabs voices** in the sidebar to manage your voices:
 
-1. Open **Voices** on the configure page.
-2. Search and copy a voice ID from the table.
-3. In **TTS → ElevenLabs → Speak Text**, choose **Variable** for voice and use `{voiceId}` from context.
+- **Preview**: press play next to a voice to hear it. Voices without a hosted sample play a short test sentence instead.
+- **Tune**: give a voice its own stability, similarity, style, speed and speaker boost. Use **Test voice** in the dialog to hear the result before saving, and **Reset to default** to go back to the global tuning. Tuned voices get a **Tuned** badge.
+- **Model**: in the tuning dialog, pick the model this voice uses. The model chosen in an action wins; otherwise the voice's model is used, and then the default model from the TTS settings.
+- **Volume**: turn on **Custom volume** in the tuning dialog to give a voice its own volume. Otherwise it uses the ElevenLabs volume from the TTS settings.
+
+All TTS volume sliders (Local, StreamElements, ElevenLabs and per voice) go up to 200%. Above 100% the audio is amplified, which can clip on loud recordings.
+- **Audio tags**: in the tuning dialog, add tags such as `[heavy german accent]` or `[whispers]`. They are placed before every message spoken with that voice, but only when the model in use supports audio tags (Eleven v3 and newer). Pick such a model for the voice to make sure the tags are used. Older models skip them, so the tags are never read out loud.
+- **Add voice**: clone a voice from one or more audio samples (one to two minutes in total works best). Files over 10 MB are converted to mono WAV, trimmed to 5 minutes and split into parts automatically. ElevenLabs accepts up to 25 samples per voice. You must confirm you have the rights and consent to clone the voice. Optionally remove background noise.
+- **Delete**: cloned, generated and professional voices can be removed from your ElevenLabs account.
+- **Copy voice ID** for use in actions. In **TTS → ElevenLabs → Speak Text**, choose **Variable** for voice and use `{voiceId}` from context.
 
 Choose a default **model** on the configure page; override per handler or use **Use default model**.
+
+Per-voice tuning is stored in Stream Kit and synced with your Stream Kit account, not at ElevenLabs.
+
+## ElevenLabs voice settings
+
+Tune the default voice under **ElevenLabs → Voice tuning** on the configure page and use **Test voice** to hear the result before saving.
+
+| Setting | Range | Default | Effect |
+| --- | --- | --- | --- |
+| **Stability** | 0–1 | 0.5 | Lower is more expressive, higher is more consistent |
+| **Similarity** | 0–1 | 0.75 | How closely the output follows the original voice |
+| **Style exaggeration** | 0–1 | 0 | Amplifies the speaker's style; higher values add latency |
+| **Speed** | 0.7–1.2 | 1 | Speaking rate |
+| **Speaker boost** | on/off | on | Boosts similarity to the original speaker |
+
+These are the defaults for every voice. Tuning a voice on the **ElevenLabs voices** page overrides them for that voice. Settings are applied in this order: global defaults, then per-voice tuning, then per-action overrides.
+
+**TTS → ElevenLabs → Speak Text** can override stability, similarity, style, and speed per action. Leave a field empty to use the default; variables from the trigger work too. Values outside the range are clamped, and anything that is not a number falls back to the default.
+
+## ElevenLabs privacy
+
+**Don't store messages and audio at ElevenLabs** is on by default:
+
+- **Enterprise accounts** use zero-retention mode (`enable_logging=false`). ElevenLabs does not store the text or the generated audio.
+- **Other accounts** don't support zero retention. Stream Kit detects this once, then removes each message (text and audio) from your ElevenLabs history right after it is generated. For a short moment the item exists in your history. If removal fails you get one warning per session.
+
+Turn the switch off if you want to keep TTS messages in your ElevenLabs history.
 
 ## Handlers
 
@@ -38,7 +85,7 @@ Choose a default **model** on the configure page; override per handler or use **
 
 Each handler supports a fixed voice or a **Variable** voice ID.
 
-Speak handlers finish after their audio has finished playing, or after a playback timeout (about two minutes) if the audio device hangs. A stalled ElevenLabs request is aborted after 30 seconds. In both cases the handler fails softly and the next clip or action can run — the TTS queue will not stay blocked. Use an [action queue](/docs/guide/action-queues) with **blocking** enabled when later actions must wait for that speech to end.
+Speak handlers finish after their audio has finished playing, or after a playback timeout (about two minutes) if the audio device hangs. A stalled ElevenLabs request is aborted after 30 seconds. Failed ElevenLabs or StreamElements requests and missing voices show an error toast. In all these cases the handler fails softly and the next clip or action can run — the TTS queue will not stay blocked. Use an [action queue](/docs/guide/action-queues) with **blocking** enabled when later actions must wait for that speech to end.
 
 Reference: [TTS handlers](/docs/api/handlers/tts).
 

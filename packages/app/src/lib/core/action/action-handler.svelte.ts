@@ -15,6 +15,8 @@ export class ActionHandler {
 	fields: HandlerFieldInstance[] = $state([]);
 	thenHandlers: ActionHandler[] = $state([]);
 	elseHandlers: ActionHandler[] = $state([]);
+	/** When `false`, the next handler starts without waiting for this one. */
+	blocking = $state(true);
 
 	constructor(
 		definition: HandlerDefinition,
@@ -23,6 +25,7 @@ export class ActionHandler {
 			fields?: HandlerFieldInstance[];
 			thenHandlers?: ActionHandler[];
 			elseHandlers?: ActionHandler[];
+			blocking?: boolean;
 		}
 	) {
 		this.id = props?.id ?? crypto.randomUUID();
@@ -34,6 +37,7 @@ export class ActionHandler {
 				: props?.fields?.map((field) => ({ ...field })) ?? [];
 		this.thenHandlers = props?.thenHandlers ?? [];
 		this.elseHandlers = props?.elseHandlers ?? [];
+		this.blocking = props?.blocking ?? true;
 	}
 
 	get fieldDefinitions() {
@@ -72,6 +76,10 @@ export class ActionHandler {
 			fields: $state.snapshot(this.fields)
 		};
 
+		if (!this.blocking) {
+			stored.blocking = false;
+		}
+
 		if (this.thenHandlers.length > 0) {
 			stored.thenHandlers = this.thenHandlers.map((handler) => handler.toStored());
 		}
@@ -87,7 +95,8 @@ export class ActionHandler {
 		return new ActionHandler(source.definition, {
 			fields: structuredClone($state.snapshot(source.fields)),
 			thenHandlers: source.thenHandlers.map((handler) => ActionHandler.clone(handler)),
-			elseHandlers: source.elseHandlers.map((handler) => ActionHandler.clone(handler))
+			elseHandlers: source.elseHandlers.map((handler) => ActionHandler.clone(handler)),
+			blocking: source.blocking
 		});
 	}
 }

@@ -7,6 +7,7 @@
 
 	import { cn } from '../../utils';
 	import { Button } from '../button';
+	import { COPIED_ICON, COPY_ICON } from '../copy-button';
 	import { InputSwitch, InputText } from '../input';
 	import { ScrollArea } from '../scroll-area';
 
@@ -303,7 +304,7 @@
 
 	<ScrollArea
 		orientation="vertical"
-		class="h-full min-h-0 overflow-hidden rounded-none border border-rule bg-dark-900 font-mono text-sm leading-normal shadow-inner"
+		class="h-full min-h-0 overflow-hidden rounded-xl border border-rule bg-dark-900 font-mono text-sm leading-normal shadow-inner"
 		viewportClasses="h-full"
 	>
 		{#if entries.length === 0}
@@ -354,11 +355,11 @@
 							>
 								{#if copiedId === entry.id}
 									<Icon
-										icon="ri:check-line"
-										class="size-4 animate-in text-success-400 duration-150 zoom-in-50"
+										icon={COPIED_ICON}
+										class="size-4 text-success-400"
 									/>
 								{:else}
-									<Icon icon="ri:file-copy-line" class="size-4" />
+									<Icon icon={COPY_ICON} class="size-4" />
 								{/if}
 							</Button>
 						</div>

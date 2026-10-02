@@ -10,7 +10,12 @@ import type { SettingsFormErrors } from '../settings/validate-settings';
 import type { PluginSettingsContext } from './context';
 import type { PluginSource, RegisterPluginOptions } from './installed-plugin';
 import type { PluginStore } from './store';
-import type { PluginMenuItemDefinition, PluginPublicApi, PluginRegistration, PluginWidgetDefinition } from './types';
+import type {
+	PluginMenuItemDefinition,
+	PluginPublicApi,
+	PluginRegistration,
+	PluginWidgetDefinition
+} from './types';
 import type { LazyStore } from '@tauri-apps/plugin-store';
 import type { Component } from 'svelte';
 
@@ -24,13 +29,38 @@ import {
 	withGeneratedSettingsKeys
 } from '../settings/settings-field';
 import { validateSettingsFields } from '../settings/validate-settings';
-import { createPluginAppApi } from './app-api';
 import { createPluginStore } from './store';
 
 const ENABLED_KEY = '__enabled';
 const SETTINGS_COLLECTION = 'settings';
 /** Fixed 15-char syncId for the account-scoped settings document per plugin. */
-const ACCOUNT_SETTINGS_SYNC_ID = 'accountsettings';
+/**
+ * Pre-fix sync id shared by every plugin. `plugin_records.sync_id` is globally unique,
+ * so only the first plugin could store it; read it once and migrate to a per-plugin id.
+ */
+const LEGACY_ACCOUNT_SETTINGS_SYNC_ID = 'accountsettings';
+
+/** 32-bit FNV-1a, as a base36 string. */
+function fnv1a36(value: string, seed: number): string {
+	let hash = seed >>> 0;
+
+	for (let index = 0; index < value.length; index++) {
+		hash ^= value.charCodeAt(index);
+		hash = Math.imul(hash, 0x01000193) >>> 0;
+	}
+
+	return hash.toString(36).padStart(7, '0');
+}
+
+/**
+ * Deterministic per-plugin sync id (15 chars, `[a-z0-9]`), so every device writes the
+ * same record for a plugin's account settings.
+ */
+function accountSettingsSyncId(pluginKey: string): string {
+	const input = `account-settings:${pluginKey}`;
+
+	return `s${fnv1a36(input, 0x811c9dc5)}${fnv1a36(input, 0x9e3779b9)}`.slice(0, 15);
+}
 const SETTINGS_KEY_MIGRATION = '__settings_stable_keys_v1';
 export class RegisteredPlugin<TApi = PluginPublicApi> {
 	key: string;
@@ -41,6 +71,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 	source: PluginSource;
 	installPath?: string;
 	dependencies: string[];
+	optionalDependencies: string[];
 	fieldItems: SettingsFieldItem[];
 	fields: SettingsFieldInstance[] = $state([]);
 	formErrors: SettingsFormErrors | null = $state(null);
@@ -86,7 +117,8 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		this.name = props.name;
 		this.description = props.description;
 		this.icon = props.icon;
-		this.dependencies = props.dependencies ?? [];
+		this.dependencies = options.dependencies ?? [];
+		this.optionalDependencies = options.optionalDependencies ?? [];
 		this.fieldItems = withGeneratedSettingsKeys(props.settings, this.key);
 		this.api = props.api;
 		this.isConfiguredResolver = props.isConfigured;
@@ -139,7 +171,6 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		return this.customViews[key];
 	}
 
-	// Building the plugin app API is expensive (~150 bound functions); reuse it per app.
 	#context: { app: App; value: PluginSettingsContext } | undefined;
 
 	createContext(app: App): PluginSettingsContext {
@@ -149,7 +180,7 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 
 		const value: PluginSettingsContext = {
 			pluginKey: this.key,
-			app: createPluginAppApi(app, { pluginKey: this.key }),
+			app: app.plugins.appApi(app, this.key),
 			store: this.storeFacade,
 			settings: this.storeFacade,
 			getValue: (key) => getSettingsFieldValue(this.fields, key)
@@ -350,12 +381,18 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		await this.store.set(SETTINGS_KEY_MIGRATION, true);
 	}
 
-	private async loadAccountSettings(app: App): Promise<Record<string, SettingsFieldInstance['value']>> {
+	private async loadAccountSettings(
+		app: App
+	): Promise<Record<string, SettingsFieldInstance['value']>> {
 		try {
 			const records = app.records.open(this.key, SETTINGS_COLLECTION);
-			const row = await records.get<{ values?: Record<string, SettingsFieldInstance['value']> }>(
-				ACCOUNT_SETTINGS_SYNC_ID
-			);
+			const row =
+				(await records.get<{ values?: Record<string, SettingsFieldInstance['value']> }>(
+					accountSettingsSyncId(this.key)
+				)) ??
+				(await records.get<{ values?: Record<string, SettingsFieldInstance['value']> }>(
+					LEGACY_ACCOUNT_SETTINGS_SYNC_ID
+				));
 			return row?.values && typeof row.values === 'object' ? { ...row.values } : {};
 		} catch {
 			return {};
@@ -367,11 +404,17 @@ export class RegisteredPlugin<TApi = PluginPublicApi> {
 		values: Record<string, SettingsFieldInstance['value']>
 	): Promise<void> {
 		const records = app.records.open(this.key, SETTINGS_COLLECTION);
-		const existing = await records.get(ACCOUNT_SETTINGS_SYNC_ID);
+		const syncId = accountSettingsSyncId(this.key);
+		const existing = await records.get(syncId);
 		if (existing) {
-			await records.update(ACCOUNT_SETTINGS_SYNC_ID, { values });
+			await records.update(syncId, { values });
 		} else {
-			await records.create({ id: ACCOUNT_SETTINGS_SYNC_ID, values });
+			await records.create({ id: syncId, values });
+		}
+
+		// Values now live on the per-plugin record; drop this plugin's legacy record.
+		if (await records.get(LEGACY_ACCOUNT_SETTINGS_SYNC_ID)) {
+			await records.delete(LEGACY_ACCOUNT_SETTINGS_SYNC_ID);
 		}
 	}
 

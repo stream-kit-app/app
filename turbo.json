@@ -48,14 +48,21 @@
 			],
 			"outputs": ["dist/**"]
 		},
-		"build": {
-			"dependsOn": [
-				"@stream-kit/core#build",
-				"@stream-kit/plugin#build",
-				"@stream-kit/ui#build"
-			],
+		"@stream-kit/plugin#build:runtime": {
+			"dependsOn": ["@stream-kit/core#build"],
 			"inputs": [
 				"src/**",
+				"scripts/**",
+				"package.json",
+				"../app/src/lib/core/filesystem/**"
+			],
+			"outputs": ["dist/index.js"]
+		},
+		"build": {
+			"dependsOn": ["@stream-kit/core#build", "@stream-kit/plugin#build:runtime"],
+			"inputs": [
+				"src/**",
+				"../../packages/app/src/lib/**",
 				"manifest.json",
 				"vite.build.config.js",
 				"package.json",
@@ -64,7 +71,7 @@
 			"outputs": ["dist/**"]
 		},
 		"@stream-kit/app#build:plugin-host": {
-			"dependsOn": ["@stream-kit/ui#build", "@stream-kit/plugin#build"],
+			"dependsOn": ["@stream-kit/plugin#build:runtime"],
 			"inputs": [
 				"scripts/build-plugin-host.mjs",
 				"scripts/sync-plugin-host-modules.mjs",
@@ -78,11 +85,7 @@
 			"outputs": ["static/plugin-host/**"]
 		},
 		"dev": {
-			"dependsOn": [
-				"@stream-kit/core#build",
-				"@stream-kit/plugin#build",
-				"@stream-kit/ui#build"
-			],
+			"dependsOn": ["@stream-kit/core#build", "@stream-kit/plugin#build:runtime"],
 			"cache": false,
 			"persistent": true
 		},
@@ -105,8 +108,7 @@
 				"//#bootstrap",
 				"@stream-kit/app#build:plugin-host",
 				"@stream-kit/core#build",
-				"@stream-kit/plugin#build",
-				"@stream-kit/ui#build"
+				"@stream-kit/plugin#build:runtime"
 			],
 			"cache": false,
 			"persistent": true
@@ -117,7 +119,7 @@
 			"persistent": true
 		},
 		"@stream-kit/site#dev": {
-			"dependsOn": ["//#bootstrap", "@stream-kit/ui#build"],
+			"dependsOn": ["//#bootstrap"],
 			"cache": false,
 			"persistent": true
 		},

@@ -1,3 +1,5 @@
+/// <reference path="./prettier-plugin-svelte-browser.d.ts" />
+
 import type { EditorView } from '@codemirror/view';
 import { Facet } from '@codemirror/state';
 

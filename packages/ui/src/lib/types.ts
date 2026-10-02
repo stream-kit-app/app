@@ -11,6 +11,12 @@ export type SelectItemsSource =
 export type HandlerFieldVariable = {
 	key: string;
 	label: string;
+	/** Optional help text shown next to the variable in the picker. */
+	description?: string;
+	/** Picker section, for example `Trigger`, `Action` or `Global`. */
+	group?: string;
+	/** True when the variable is only set on some execution paths (for example one IF branch). */
+	maybe?: boolean;
 };
 
 export type NavItemChild = {

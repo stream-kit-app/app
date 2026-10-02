@@ -80,7 +80,7 @@ export const streamKitEditorTheme = EditorView.theme(
 			padding: '0.1em 0.35em',
 			borderRadius: '0.25rem',
 			fontSize: '0.92em',
-			color: '#c3e88d'
+			color: 'var(--syntax-string)'
 		},
 		'.cm-tooltip .hljs': {
 			background: 'transparent',
@@ -88,54 +88,58 @@ export const streamKitEditorTheme = EditorView.theme(
 			fontSize: '12px'
 		},
 		'.cm-tooltip .hljs-keyword, .cm-tooltip .hljs-selector-tag, .cm-tooltip .hljs-built_in': {
-			color: '#c792ea'
+			color: 'var(--syntax-keyword)'
 		},
 		'.cm-tooltip .hljs-title, .cm-tooltip .hljs-title.function_, .cm-tooltip .hljs-function': {
-			color: '#82aaff'
+			color: 'var(--syntax-function)'
 		},
 		'.cm-tooltip .hljs-type, .cm-tooltip .hljs-class .hljs-title, .cm-tooltip .hljs-number': {
-			color: '#ffcb6b'
+			color: 'var(--syntax-type)'
 		},
 		'.cm-tooltip .hljs-string, .cm-tooltip .hljs-regexp, .cm-tooltip .hljs-symbol': {
-			color: '#c3e88d'
+			color: 'var(--syntax-string)'
 		},
 		'.cm-tooltip .hljs-literal, .cm-tooltip .hljs-params': {
-			color: '#f78c6c'
+			color: 'var(--syntax-constant)'
 		},
 		'.cm-tooltip .hljs-comment, .cm-tooltip .hljs-quote': {
-			color: '#64748b',
+			color: 'var(--syntax-comment)',
 			fontStyle: 'italic'
 		},
 		'.cm-tooltip .hljs-operator, .cm-tooltip .hljs-punctuation': {
-			color: '#89ddff'
+			color: 'var(--syntax-operator)'
 		},
 		'.cm-tooltip .hljs-variable, .cm-tooltip .hljs-attr, .cm-tooltip .hljs-attribute': {
-			color: '#e2e8f0'
+			color: 'var(--syntax-name)'
 		},
 		'.cm-tooltip .hljs-tag, .cm-tooltip .hljs-name': {
-			color: '#f07178'
+			color: 'var(--syntax-tag)'
 		},
 		'.cm-tooltip-autocomplete': {
 			'& > ul > li[aria-selected]': {
 				backgroundColor: 'color-mix(in srgb, var(--color-primary) 18%, transparent)',
-				color: '#f8fafc'
+				color: 'var(--syntax-selected)'
 			}
 		},
 		'.cm-diagnostic': {
 			padding: '4px 8px'
 		},
 		'.cm-diagnostic-error': {
-			borderLeft: '3px solid #f87171'
+			borderLeft: '3px solid var(--syntax-lint-error)'
 		},
 		'.cm-diagnostic-warning': {
-			borderLeft: '3px solid #fbbf24'
+			borderLeft: '3px solid var(--syntax-lint-warning)'
 		},
 		'.cm-diagnostic-info': {
-			borderLeft: '3px solid #60a5fa'
+			borderLeft: '3px solid var(--syntax-lint-info)'
 		},
 		'.cm-foldGutter .cm-gutterElement': {
 			padding: '0 4px',
 			cursor: 'pointer'
+		},
+		'.cm-panels': {
+			backgroundColor: 'var(--color-dark-800)',
+			color: 'var(--color-dark-50)'
 		},
 		'.cm-panel.cm-search': {
 			backgroundColor: 'var(--color-dark-800)',
@@ -167,6 +171,5 @@ export const streamKitEditorTheme = EditorView.theme(
 		'.cm-searchMatch-selected': {
 			backgroundColor: 'color-mix(in srgb, var(--color-primary) 42%, transparent)'
 		}
-	},
-	{ dark: true }
+	}
 );

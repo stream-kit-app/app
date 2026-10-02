@@ -17,6 +17,6 @@ export function resolveTranslate(prop?: TranslateFn): TranslateFn {
 	try {
 		return useI18n().t;
 	} catch {
-		return (key) => key;
+		return ((key: string) => key) as TranslateFn;
 	}
 }

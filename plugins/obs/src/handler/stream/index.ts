@@ -57,6 +57,16 @@ export const createSendStreamCaptionHandler = (app: PluginAppApi) =>
 export const createGetStreamStatusHandler = (app: PluginAppApi) =>
 	({
 		name: 'Get Stream Status',
+		outputs: [
+			{ key: 'streamActive' },
+			{ key: 'streamReconnecting' },
+			{ key: 'streamTimecode' },
+			{ key: 'streamDuration' },
+			{ key: 'streamCongestion' },
+			{ key: 'streamBytes' },
+			{ key: 'streamSkippedFrames' },
+			{ key: 'streamTotalFrames' }
+		],
 		execute: async (_action, _handler, context, next) => {
 			const response = await callObsWithResponse<{
 				outputActive?: boolean;
@@ -90,6 +100,13 @@ export const createGetStreamStatusHandler = (app: PluginAppApi) =>
 export const createGetRecordStatusHandler = (app: PluginAppApi) =>
 	({
 		name: 'Get Record Status',
+		outputs: [
+			{ key: 'recordActive' },
+			{ key: 'recordPaused' },
+			{ key: 'recordTimecode' },
+			{ key: 'recordDuration' },
+			{ key: 'recordBytes' }
+		],
 		execute: async (_action, _handler, context, next) => {
 			const response = await callObsWithResponse<{
 				outputActive?: boolean;

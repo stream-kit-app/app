@@ -110,7 +110,7 @@
 					{#if normalizedValue}
 						<Icon
 							icon={isValid ? 'ri:check-line' : 'ri:alert-line'}
-							class={cn('size-5 shrink-0', isValid ? 'text-green-400' : 'text-amber-400')}
+							class={cn('size-5 shrink-0', isValid ? 'text-green-400 light:text-green-700' : 'text-amber-400 light:text-amber-700')}
 						/>
 					{/if}
 					<Icon

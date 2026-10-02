@@ -1,11 +1,17 @@
 services:
-  pocketbase:
-    image: ghcr.io/stream-kit-app/pocketbase:latest
-    ports:
-      - '8090:8090'
-    volumes:
-      - pb_data:/pb/pb_data
-    restart: unless-stopped
+    pocketbase:
+        image: ghcr.io/stream-kit-app/pocketbase:latest
+        ports:
+            - '8090:8090'
+        environment:
+            # AI actions (`pb_hooks/ai_actions.pb.js`); leave empty to disable the route.
+            ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+            AI_MODEL: ${AI_MODEL:-claude-sonnet-5-5}
+        volumes:
+            - pb_data:/pb/pb_data
+        restart: unless-stopped
+        env_file:
+            - .env
 
 volumes:
-  pb_data:
+    pb_data:

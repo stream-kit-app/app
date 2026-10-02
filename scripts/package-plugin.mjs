@@ -72,10 +72,12 @@ function getFilterName(key) {
 		core: '@stream-kit/plugin-handlers',
 		discord: '@stream-kit/plugin-discord',
 		obs: '@stream-kit/plugin-obs',
+		rankings: '@stream-kit/plugin-rankings',
 		tts: '@stream-kit/plugin-tts',
 		twitch: '@stream-kit/plugin-twitch',
 		websocket: '@stream-kit/plugin-websocket',
-		youtube: '@stream-kit/plugin-youtube'
+		youtube: '@stream-kit/plugin-youtube',
+		'ai-actions': '@stream-kit/plugin-ai-actions'
 	};
 
 	return filters[key];

@@ -31,7 +31,9 @@ export function isSettingsFieldSection(
 export function flattenSettingsFieldItems(
 	items: SettingsFieldItem[] | undefined
 ): SettingsFieldDefinition[] {
-	return (items ?? []).flatMap((item) => (isSettingsFieldSection(item) ? item.fields : [item]));
+	return (items ?? []).flatMap((item) =>
+		isSettingsFieldSection(item) ? flattenSettingsFieldItems(item.fields) : [item]
+	);
 }
 
 export function withGeneratedSettingsKeys(
@@ -64,7 +66,7 @@ export function filterVisibleFieldItems(
 				continue;
 			}
 
-			const fields = item.fields.filter((field) => isSettingsFieldVisible(field, context));
+			const fields = filterVisibleFieldItems(item.fields, context);
 
 			if (fields.length === 0) {
 				continue;
@@ -239,7 +241,7 @@ function withGeneratedSettingsItemKey(
 		return {
 			...definition,
 			fields: ((definition.fields as unknown[] | undefined) ?? []).map((field, index) =>
-				withGeneratedSettingsFieldKey(
+				withGeneratedSettingsItemKey(
 					field,
 					`${scope}.${String(definition.title ?? 'section')}.${index}`,
 					used
@@ -258,8 +260,7 @@ function withGeneratedSettingsFieldKey(
 ): SettingsFieldDefinition {
 	const definition = field as Record<string, unknown>;
 	const explicitKey = typeof definition.key === 'string' ? definition.key.trim() : '';
-	const isPassword =
-		definition.type === 'text' && definition.inputType === 'password';
+	const isPassword = definition.type === 'text' && definition.inputType === 'password';
 	const sync =
 		definition.sync === 'account' || definition.sync === 'device'
 			? definition.sync

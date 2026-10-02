@@ -114,7 +114,7 @@ Steps:
 2. `dts-bundle-generator` — bundles `src/index.ts` → `dist/index.d.ts` using `tsconfig.api.json`
 3. `scripts/build-runtime.mjs` — bundles `src/runtime.ts` → `dist/index.js` (same entry as `static/plugin-host/plugin.js`)
 
-`pnpm dev` watches both `packages/app/src/lib/**` and `packages/plugin/src/**`.
+`pnpm dev` builds `dist/index.d.ts` once in the background and then only rebuilds the runtime (`build:runtime`) when `packages/plugin/src/**` changes. To keep the declarations in sync with app changes while working on the public API, run `pnpm --filter @stream-kit/plugin dev:types`.
 
 ## Type generation
 

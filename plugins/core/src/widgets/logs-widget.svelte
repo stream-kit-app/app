@@ -2,6 +2,8 @@
 	import type { CorePluginApi } from '../lib/plugin-api';
 	import type { PluginWidgetProps } from '@stream-kit/plugin';
 
+	import { WidgetStat } from '@stream-kit/ui/widget';
+
 	let { app }: PluginWidgetProps = $props();
 
 	const t = $derived(app.i18n.t);
@@ -31,7 +33,9 @@
 	});
 </script>
 
-<a href="/logs" class="block text-sm transition hover:opacity-90">
-	<p class="text-2xl font-semibold text-dark-50">{String(logCount)}</p>
-	<p class="mt-1 text-xs text-dark-300">{t('View all log entries')}</p>
-</a>
+<WidgetStat
+	label={t('Log entries')}
+	value={logCount}
+	hint={t('View all log entries')}
+	href="/logs"
+/>

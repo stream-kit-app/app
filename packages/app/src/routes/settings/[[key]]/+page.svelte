@@ -8,6 +8,7 @@
 
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { CopyButton } from '@stream-kit/ui/copy-button';
 
 	import { SettingsFieldGroup } from '$lib/components/core/settings';
 	import { app } from '$lib/core';
@@ -323,13 +324,7 @@
 		};
 	}
 
-	async function copyWsUrl(): Promise<void> {
-		const url = app.apiServer.wsUrlWithToken;
-		if (!url) {
-			return;
-		}
-
-		await navigator.clipboard.writeText(url);
+	function notifyWsUrlCopied(): void {
 		app.toast.create({
 			title: t('Copied'),
 			description: t('WebSocket URL copied to clipboard.'),
@@ -377,15 +372,16 @@
 
 		{#if fieldValues.apiServerEnabled}
 			<div class="flex max-w-xl flex-wrap gap-2">
-				<Button
-					type="button"
+				<CopyButton
 					variant="outline"
-					icon="ri:file-copy-line"
+					size="default"
+					value={() => app.apiServer.wsUrlWithToken || undefined}
+					copiedLabel={t('Copied')}
 					disabled={!app.apiServer.status.running}
-					onclick={() => void copyWsUrl()}
+					onCopied={notifyWsUrlCopied}
 				>
 					{t('Copy WebSocket URL')}
-				</Button>
+				</CopyButton>
 				<Button
 					type="button"
 					variant="outline"

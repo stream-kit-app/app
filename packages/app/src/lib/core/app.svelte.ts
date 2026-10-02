@@ -23,12 +23,12 @@ import { OAuth } from './oauth';
 import { Opener } from './opener';
 import { ApiServerService } from './api-server';
 import { OverlayService } from './overlay/overlay-service.svelte';
-import { createPluginAppApi } from './plugins/app-api';
 import { PluginMenuPages } from './plugins/plugin-menu-pages.svelte';
 import { Plugins } from './plugins/plugins.svelte';
 import { ProcessWatcher } from './process';
 import { HotkeyManager } from './hotkeys';
 import { Settings } from './settings';
+import { Theme } from './theme';
 import { Toast } from './toast';
 import { LocalTts } from './tts';
 import { UserFiles } from './user-files';
@@ -43,6 +43,7 @@ export class App extends Bootable {
 	public actionQueues = new ActionQueues();
 	public dashboard = new Dashboard();
 	public settings = new Settings();
+	public theme = new Theme();
 	public auth = new Auth();
 	public records = new PluginRecordsService();
 	public configSync = new ConfigSync(this);
@@ -110,9 +111,7 @@ export class App extends Bootable {
 		try {
 			// Scope records/API to the install key so factory-captured `app` works in
 			// triggers/handlers and lifecycle code that closes over the plugin factory arg.
-			const registration = await plugin(
-				createPluginAppApi(this, { pluginKey: options.key })
-			);
+			const registration = await plugin(this.plugins.appApi(this, options.key));
 			this.plugins.register(registration, options);
 		} catch (error) {
 			console.warn('Failed to load plugin', error);

@@ -18,7 +18,8 @@ export {
 	addHandlerToChain,
 	removeHandlerFromChain,
 	cloneHandlerInChain,
-	reorderBranchHandlersInChain
+	reorderBranchHandlersInChain,
+	type HandlerInsertTarget
 } from '../../action/handler-chain-mutations';
 export {
 	getGlobalVariables,
@@ -26,6 +27,7 @@ export {
 	getPrecedingActionVariablesForHandler,
 	mergeContextVariables
 } from '../../action/variable-helpers';
+export { computeVariableScopes, getHandlerOutputs } from '../../action/variable-scope';
 export {
 	hasHandlerErrors,
 	isFieldValueEmpty,

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PluginWidgetProps } from '$lib/core/plugins/types';
 
-	import StatCard from '../stat-card.svelte';
+	import { WidgetStat } from '@stream-kit/ui/widget';
+
 	import { getApp } from '$lib/core/registry';
 
 	let { app }: PluginWidgetProps = $props();
@@ -14,19 +15,12 @@
 
 		return { total: items.length, enabled };
 	});
-
-	const value = $derived(
-		t('{enabled} of {total} enabled', {
-			enabled: actionStats.enabled,
-			total: actionStats.total
-		})
-	);
 </script>
 
-<StatCard
-	icon="ri:flashlight-line"
-	{value}
+<WidgetStat
+	label={t('Enabled')}
+	value={actionStats.enabled}
+	total={actionStats.total}
+	hint={t('View all actions')}
 	href="/actions"
-	embedded
-	description={t('View all actions')}
 />

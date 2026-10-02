@@ -34,8 +34,7 @@ export function createVoiceOneOfField(
 				field: {
 					type: 'text',
 					name: 'Voice ID',
-					placeholder: '{voiceId}',
-					useContextVariables: true
+					placeholder: '{voiceId}'
 				}
 			}
 		]

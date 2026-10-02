@@ -34,7 +34,7 @@
 			aria-labelledby={label ? `${id}-label` : undefined}
 			aria-invalid={error ? true : undefined}
 			class={cn(
-				'inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-none border p-[2px] transition-colors outline-none',
+				'inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-full border p-[2px] transition-colors outline-none',
 				'data-[state=checked]:border-primary data-[state=checked]:bg-primary/15',
 				error
 					? cn(inputFieldBorderError, 'data-[state=unchecked]:bg-destructive/15')
@@ -45,7 +45,7 @@
 		>
 			<Switch.Thumb
 				class={cn(
-					'pointer-events-none block size-4 shrink-0 rounded-none transition-transform',
+					'pointer-events-none block size-4 shrink-0 rounded-full transition-transform',
 					'data-[state=checked]:translate-x-[19px] data-[state=unchecked]:-translate-x-[1px]',
 					'data-[state=unchecked]:bg-dark-400',
 					'data-[state=checked]:bg-primary'

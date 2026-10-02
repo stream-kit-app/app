@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { DndDragEvent } from '$lib/components/core/action/dnd-events';
 	import type { DndWidgetItem } from '$lib/core/dashboard/dashboard-layout';
-	import type { PluginWidgetColumns } from '$lib/core/plugins/types';
 
 	import {
 		DragDropProvider,
@@ -11,9 +10,8 @@
 	} from '@dnd-kit-svelte/svelte';
 	import { watch } from 'runed';
 
-	import { Alert } from '@stream-kit/ui/alert';
-
 	import { applyDndMove } from '$lib/components/core/action/dnd-events';
+	import DashboardAddTile from '$lib/components/core/dashboard/dashboard-add-tile.svelte';
 	import DashboardWidgetCard from '$lib/components/core/dashboard/dashboard-widget-card.svelte';
 	import DashboardWidgetItem from '$lib/components/core/dashboard/dashboard-widget-item.svelte';
 	import { app } from '$lib/core';
@@ -26,12 +24,12 @@
 	import { useI18n } from '$lib/i18n';
 
 	type Props = {
-		editMode?: boolean;
+		onAddWidget?: () => void;
 	};
 
 	const SORTABLE_TYPE = 'dashboard-widget';
 
-	let { editMode = false }: Props = $props();
+	let { onAddWidget }: Props = $props();
 
 	const { t } = useI18n();
 
@@ -40,6 +38,8 @@
 	let list = $state<DndWidgetItem[]>([]);
 	let isDragging = $state(false);
 	let isSavingLayout = $state(false);
+
+	const canAddWidgets = $derived(app.dashboard.getAddableDefinitions(app).length > 0);
 
 	const sortedInstances = $derived(
 		[...app.dashboard.instances].sort(
@@ -63,19 +63,11 @@
 	}
 
 	function handleDragOver(event: DndDragEvent): void {
-		if (!editMode) {
-			return;
-		}
-
 		list = applyDndMove(list, event);
 	}
 
 	async function handleDragEnd(): Promise<void> {
 		isDragging = false;
-
-		if (!editMode) {
-			return;
-		}
 
 		const instances = instancesFromDndItems(list);
 		const updates = buildLayoutUpdates(instances);
@@ -115,82 +107,64 @@
 		await app.dashboard.removeInstance(id);
 	}
 
-	async function handleColumnsChange(id: number, columns: PluginWidgetColumns): Promise<void> {
+	async function handleColumnsChange(id: number, columns: 1 | 2): Promise<void> {
 		await app.dashboard.setColumns(id, columns);
 	}
 </script>
 
-{#if editMode}
-	<Alert
-		class="mb-4"
-		icon="ri:sparkling-2-line"
-		description={t(
-			'Drag widgets to reorder. Pick a width from 1 to 6 columns, or remove widgets you no longer need.'
-		)}
-	/>
-{/if}
-
-<div class="relative">
-	{#if editMode}
+<!--
+	Masonry: tiny implicit rows + per-card row spans (`masonryItem` on the card).
+	Column count follows the dashboard width via container queries.
+-->
+<div class="@container/dashboard relative">
+	{#if isDragging}
 		<div
-			class="boot-grid pointer-events-none absolute inset-0 rounded-none opacity-30"
+			class="boot-grid pointer-events-none absolute -inset-2 rounded-xl opacity-30"
 			aria-hidden="true"
 		></div>
 	{/if}
 
-	{#if editMode}
-		<DragDropProvider
-			{sensors}
-			onDragStart={handleDragStart}
-			onDragOver={handleDragOver}
-			onDragEnd={() => void handleDragEnd()}
+	<DragDropProvider
+		{sensors}
+		onDragStart={handleDragStart}
+		onDragOver={handleDragOver}
+		onDragEnd={() => void handleDragEnd()}
+	>
+		<div
+			class="relative grid auto-rows-[4px] grid-cols-1 gap-x-4 @2xl/dashboard:grid-cols-2 @6xl/dashboard:grid-cols-3 @[108rem]/dashboard:grid-cols-4"
 		>
-			<div class="relative grid grid-cols-6 gap-5">
-				{#each list as entry, index (entry.id)}
+			{#each list as entry, index (entry.id)}
+				{@const definition = app.dashboard.resolveDefinition(entry.instance.definitionId)}
+				{@const unavailable =
+					definition != null && !app.dashboard.isDefinitionAvailable(definition, app)}
+				<DashboardWidgetItem
+					id={entry.id}
+					{index}
+					item={entry}
+					{definition}
+					{unavailable}
+					sortableType={SORTABLE_TYPE}
+					onRemove={() => void handleRemove(entry.instance.id)}
+					onColumnsChange={(columns) =>
+						void handleColumnsChange(entry.instance.id, columns)}
+				/>
+			{/each}
+
+			{#if canAddWidgets}
+				<DashboardAddTile onclick={() => onAddWidget?.()} />
+			{/if}
+		</div>
+
+		<DragOverlay>
+			{#snippet children(source)}
+				{@const entry = list.find((item) => item.id === source.id)}
+				{#if entry}
 					{@const definition = app.dashboard.resolveDefinition(
 						entry.instance.definitionId
 					)}
-					{@const unavailable =
-						definition != null && !app.dashboard.isDefinitionAvailable(definition, app)}
-					<DashboardWidgetItem
-						id={entry.id}
-						{index}
-						item={entry}
-						{definition}
-						{unavailable}
-						sortableType={SORTABLE_TYPE}
-						onRemove={() => void handleRemove(entry.instance.id)}
-						onColumnsChange={(columns) =>
-							void handleColumnsChange(entry.instance.id, columns)}
-					/>
-				{/each}
-			</div>
-
-			<DragOverlay>
-				{#snippet children(source)}
-					{@const entry = list.find((item) => item.id === source.id)}
-					{#if entry}
-						{@const definition = app.dashboard.resolveDefinition(
-							entry.instance.definitionId
-						)}
-						<DashboardWidgetCard
-							instance={entry.instance}
-							{definition}
-							editMode={true}
-							isOverlay={true}
-						/>
-					{/if}
-				{/snippet}
-			</DragOverlay>
-		</DragDropProvider>
-	{:else}
-		<div class="grid grid-cols-6 gap-5">
-			{#each sortedInstances as instance (instance.id)}
-				{@const definition = app.dashboard.resolveDefinition(instance.definitionId)}
-				{@const unavailable =
-					definition != null && !app.dashboard.isDefinitionAvailable(definition, app)}
-				<DashboardWidgetCard {instance} {definition} {unavailable} editMode={false} />
-			{/each}
-		</div>
-	{/if}
+					<DashboardWidgetCard instance={entry.instance} {definition} isOverlay={true} />
+				{/if}
+			{/snippet}
+		</DragOverlay>
+	</DragDropProvider>
 </div>

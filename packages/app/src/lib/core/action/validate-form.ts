@@ -9,6 +9,7 @@ import type { HandlerFieldInstance, ResolvedHandlerFieldDefinition } from './han
 import { translate } from '$lib/i18n';
 
 import type { HandlerFieldFormErrors } from './action-handler.svelte';
+import { isConditionGroupNode } from './condition-tree';
 import { isHandlerFieldValueEmpty } from './handler-field';
 
 export type ConditionFormErrors = {
@@ -48,6 +49,10 @@ export function isFieldValueEmpty(
 	if (definition.type === 'text-select-text') {
 		const compound = value as { path: string; type: string; value: string };
 
+		if (definition.valuelessOperators?.includes(compound.type)) {
+			return !compound.path.trim();
+		}
+
 		return (
 			!compound.path.trim() || !compound.type.trim() || !compound.value.trim()
 		);
@@ -56,6 +61,24 @@ export function isFieldValueEmpty(
 	const compound = value as { type: string; value: string };
 
 	return !compound.type.trim() || !compound.value.trim();
+}
+
+/** Every condition in a handler condition group must be filled in, whether or not it is `required`. */
+function validateConditionLeaves(
+	conditions: ConditionGroupNode,
+	definitions: ResolvedConditionDefinition[]
+): Record<string, string> {
+	const fieldErrors: Record<string, string> = {};
+
+	for (const leaf of collectLeaves(conditions)) {
+		const definition = definitions.find((item) => item.key === leaf.key);
+
+		if (definition && isFieldValueEmpty(definition, leaf.value)) {
+			fieldErrors[leaf.id] = translate('{field} is required', { field: definition.name });
+		}
+	}
+
+	return fieldErrors;
 }
 
 function validateConditionTree(
@@ -111,6 +134,18 @@ function validateHandlerFields(
 			errors.fieldErrors[instance.id] = translate('{field} is required', {
 				field: definition.name
 			});
+			continue;
+		}
+
+		if (definition.type === 'condition-group' && isConditionGroupNode(instance.value)) {
+			// Condition errors are keyed by condition node id, like trigger conditions.
+			Object.assign(
+				errors.fieldErrors,
+				validateConditionLeaves(
+					instance.value,
+					definition.conditions as ResolvedConditionDefinition[]
+				)
+			);
 		}
 	}
 

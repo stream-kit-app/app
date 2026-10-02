@@ -13,8 +13,12 @@
 	};
 
 	let { cols = 2, class: className, children, ...restProps }: Props = $props();
+
+	const styles = $derived(cellGridVariants({ cols }));
 </script>
 
-<div class={cn(cellGridVariants({ cols }), className)} {...restProps}>
-	{@render children?.()}
+<div class={cn(styles.frame(), className)} {...restProps}>
+	<div class={styles.grid()}>
+		{@render children?.()}
+	</div>
 </div>

@@ -15,6 +15,7 @@ import InputText from './input-text.svelte';
 import InputTextList from './input-text-list.svelte';
 import InputTextSelect from './input-text-select.svelte';
 import InputTextSelectText from './input-text-select-text.svelte';
+import InputTextarea from './input-textarea.svelte';
 import InputTextVariables from './input-text-variables.svelte';
 import Label from './label.svelte';
 
@@ -37,6 +38,7 @@ export {
 	InputTextList,
 	InputTextSelect,
 	InputTextSelectText,
+	InputTextarea,
 	InputTextVariables,
 	Label
 };

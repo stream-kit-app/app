@@ -7,7 +7,7 @@
 		DragOverlay,
 		KeyboardSensor,
 		PointerSensor
-	} from '@stream-kit/plugin/action-ui/dnd-kit';
+	} from '@dnd-kit-svelte/svelte';
 	import { watch } from 'runed';
 
 	import ActionGroupSection from '@stream-kit/plugin/action-ui/action-group-section.svelte';
@@ -338,7 +338,7 @@
 							groupActionIds={tierRankIds}
 							{selection}
 							collapsed={collapsedGroups.current[tierId] ?? false}
-							onCollapsedChange={(value) => setTierGroupCollapsed(tierId, value)}
+							onCollapsedChange={(value: boolean) => setTierGroupCollapsed(tierId, value)}
 						>
 							{#snippet headerActions()}
 								<Button

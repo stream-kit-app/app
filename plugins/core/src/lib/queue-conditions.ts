@@ -1,4 +1,4 @@
-import type { ConditionDefinition, PluginAppApi } from '@stream-kit/plugin';
+import type { ConditionDefinition, FieldValue, PluginAppApi } from '@stream-kit/plugin';
 import type { ActionQueueEventContext } from '@stream-kit/plugin';
 import type { HandlerFieldDefinition } from '@stream-kit/plugin';
 
@@ -23,9 +23,9 @@ export function queueFilterCondition(app: PluginAppApi): ConditionDefinition {
 
 export function evaluateQueueFilterMatch(
 	context: ActionQueueEventContext,
-	value: string
+	value: FieldValue
 ): boolean {
-	const filter = value.trim();
+	const filter = typeof value === 'string' ? value.trim() : '';
 
 	if (!filter || filter === QUEUE_ANY) {
 		return true;

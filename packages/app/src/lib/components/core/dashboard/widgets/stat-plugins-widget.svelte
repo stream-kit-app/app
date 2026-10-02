@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PluginWidgetProps } from '$lib/core/plugins/types';
 
-	import StatCard from '../stat-card.svelte';
+	import { WidgetStat } from '@stream-kit/ui/widget';
+
 	import { getApp } from '$lib/core/registry';
 
 	let { app }: PluginWidgetProps = $props();
@@ -14,19 +15,12 @@
 
 		return { total: enabledPlugins.length, configured };
 	});
-
-	const value = $derived(
-		t('{configured} of {total} configured', {
-			configured: pluginStats.configured,
-			total: pluginStats.total
-		})
-	);
 </script>
 
-<StatCard
-	icon="ri:plug-line"
-	{value}
+<WidgetStat
+	label={t('Configured')}
+	value={pluginStats.configured}
+	total={pluginStats.total}
+	hint={t('View all plugins')}
 	href="/plugins"
-	embedded
-	description={t('View all plugins')}
 />

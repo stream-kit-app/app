@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { PluginWidgetProps } from '$lib/core/plugins/types';
 
-	import PluginStatusList from '../plugin-status-list.svelte';
 	import { getApp } from '$lib/core/registry';
+
+	import PluginStatusList from '../plugin-status-list.svelte';
 
 	let { app }: PluginWidgetProps = $props();
 

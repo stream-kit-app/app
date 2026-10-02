@@ -54,7 +54,7 @@ function resolveTriggerDataType(triggerIds: string[]): string {
 	const contextTypes = [
 		...new Set(
 			triggerIds
-				.map((trigger) => triggerMap[trigger as keyof typeof triggerMap])
+				.map((trigger): string | undefined => triggerMap[trigger as keyof typeof triggerMap])
 				.filter((type): type is string => Boolean(type))
 		)
 	];

@@ -61,6 +61,11 @@
 			"svelte": "./src/lib/components/container/index.ts",
 			"import": "./src/lib/components/container/index.ts"
 		},
+		"./copy-button": {
+			"types": "./src/lib/components/copy-button/index.ts",
+			"svelte": "./src/lib/components/copy-button/index.ts",
+			"import": "./src/lib/components/copy-button/index.ts"
+		},
 		"./data-table": {
 			"types": "./src/lib/components/data-table/index.ts",
 			"svelte": "./src/lib/components/data-table/index.ts",
@@ -114,6 +119,11 @@
 			"svelte": "./src/lib/components/popover/index.ts",
 			"import": "./src/lib/components/popover/index.ts"
 		},
+		"./variable-autocomplete": {
+			"types": "./src/lib/components/variable-autocomplete/index.ts",
+			"svelte": "./src/lib/components/variable-autocomplete/index.ts",
+			"import": "./src/lib/components/variable-autocomplete/index.ts"
+		},
 		"./variable-popover": {
 			"types": "./src/lib/components/variable-popover/index.ts",
 			"svelte": "./src/lib/components/variable-popover/index.ts",
@@ -148,6 +158,11 @@
 		"./types": {
 			"types": "./src/lib/types.ts",
 			"import": "./src/lib/types.ts"
+		},
+		"./widget": {
+			"types": "./src/lib/components/widget/index.ts",
+			"svelte": "./src/lib/components/widget/index.ts",
+			"import": "./src/lib/components/widget/index.ts"
 		}
 	},
 	"files": [

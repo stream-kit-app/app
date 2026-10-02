@@ -20,6 +20,7 @@ export type RemotePluginManifest = {
 	icon?: string;
 	entry: string;
 	dependencies: string[];
+	optionalDependencies: string[];
 	streamKitVersion?: string;
 	updateManifestUrl?: string;
 	downloadUrl?: string;

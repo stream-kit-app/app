@@ -66,7 +66,7 @@
 		width: 1.25rem;
 		height: 1.25rem;
 		border-radius: 0.375rem;
-		border: 1px solid rgb(255 255 255 / 0.12);
+		border: 1px solid var(--color-rule-strong);
 		box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2);
 	}
 </style>

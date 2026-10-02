@@ -43,7 +43,9 @@ const workspaceRoot = path.resolve(root, '../..');
 await esbuild.build({
 	...shared,
 	entryPoints: [path.resolve(workspaceRoot, 'packages/plugin/src/runtime.ts')],
-	outfile: path.resolve(outDir, 'plugin.js')
+	outfile: path.resolve(outDir, 'plugin.js'),
+	// Resolved through the import map to core.js, so plugins share one copy of core.
+	external: ['@stream-kit/core']
 });
 
 console.log(`Built plugin host assets in ${outDir}`);

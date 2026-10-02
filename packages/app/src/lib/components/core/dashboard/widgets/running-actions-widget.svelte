@@ -5,10 +5,10 @@
 	import Icon from '@iconify/svelte';
 
 	import { EmptyState } from '@stream-kit/ui/empty-state';
+	import { WidgetFooterLink, WidgetList, WidgetRow } from '@stream-kit/ui/widget';
 
 	import { findHandler, flattenActionHandlers } from '$lib/core/action/handler-tree';
 	import { getApp } from '$lib/core/registry';
-	import { cn } from '$lib/utils';
 
 	let { app }: PluginWidgetProps = $props();
 
@@ -49,42 +49,37 @@
 	}
 </script>
 
-<div class="grid min-w-0 gap-3">
+<div class="flex min-w-0 flex-1 flex-col gap-3">
 	{#if runningActions.length === 0}
 		<EmptyState compact icon="ri:play-circle-line" title={t('No actions running')} />
 	{:else}
-		<ul class="grid gap-1.5">
+		<WidgetList>
 			{#each runningActions as action (action.id)}
-				<li>
-					<button
-						type="button"
-						class={cn(
-							'flex w-full min-w-0 cursor-pointer flex-col gap-1 rounded-none border border-success-700/60 bg-success-950/40 px-3 py-2 text-left text-sm transition-colors'
-						)}
-						onclick={() => action.open()}
-					>
-						<span class="flex min-w-0 items-center gap-2 text-success-50">
-							<span
-								class="size-2 shrink-0 animate-pulse rounded-full bg-success-400"
-								aria-hidden="true"
-							></span>
-							<span class="truncate font-medium">{getActionName(action)}</span>
-							<Icon
-								icon="ri:arrow-right-s-line"
-								class="ms-auto size-4 shrink-0 text-success-300/70"
-								aria-hidden="true"
-							/>
+				<WidgetRow
+					title={getActionName(action)}
+					description={getStepLabel(action)}
+					class="bg-success-900/40 ring-1 ring-success-600/50 ring-inset hover:bg-success-900/70"
+					onclick={() => action.open()}
+				>
+					{#snippet leading()}
+						<span
+							class="flex size-7 shrink-0 items-center justify-center"
+							aria-hidden="true"
+						>
+							<span class="size-2 animate-pulse rounded-full bg-success-200"></span>
 						</span>
-						<span class="truncate ps-4 text-xs text-success-200/80">
-							{getStepLabel(action)}
-						</span>
-					</button>
-				</li>
+					{/snippet}
+					{#snippet trailing()}
+						<Icon
+							icon="ri:arrow-right-s-line"
+							class="size-4 text-dark-300"
+							aria-hidden="true"
+						/>
+					{/snippet}
+				</WidgetRow>
 			{/each}
-		</ul>
+		</WidgetList>
 	{/if}
 
-	<a href="/actions" class="text-xs text-dark-300 transition hover:text-dark-100">
-		{t('View all actions')}
-	</a>
+	<WidgetFooterLink href="/actions" class="mt-auto">{t('View all actions')}</WidgetFooterLink>
 </div>

@@ -41,8 +41,7 @@ export function createUserTargetField(): HandlerFieldDefinition {
 					type: 'text',
 					name: 'Username or user ID',
 					placeholder: '{user}',
-					required: true,
-					useContextVariables: true
+					required: true
 				}
 			}
 		]

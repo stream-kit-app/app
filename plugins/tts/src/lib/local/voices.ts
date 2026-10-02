@@ -1,12 +1,13 @@
 import type {
+	HandlerFieldDefinition,
 	PluginSettingsFieldDefinition,
+	SelectItem,
 	SettingsContext,
 	SettingsVisibilityContext
 } from '@stream-kit/plugin';
-import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
-import { local } from './service';
 import { createVoiceOneOfField } from '../voice-one-of-field';
+import { local } from './service';
 
 export function formatLocalVoiceLabel(voice: {
 	id: string;
@@ -91,4 +92,3 @@ export function localVoiceSelectSettingsField(
 		itemsReload: () => local.getInstalledVoices().length
 	};
 }
-

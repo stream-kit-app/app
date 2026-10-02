@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	import { Panel } from '@stream-kit/ui/blueprint';
+	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 
 	import { cn } from '@stream-kit/plugin/utils';
 
@@ -11,18 +11,19 @@
 		children: Snippet;
 		actions?: Snippet;
 		class?: string;
+		bodyClass?: string;
 	};
 
-	let { title, description, children, actions, class: className }: Props = $props();
+	let { title, description, children, actions, class: className, bodyClass }: Props = $props();
 </script>
 
-<Panel tone="solid" class={cn('overflow-hidden', className)}>
+<Panel tone="solid" class={cn('flex min-w-0 flex-col overflow-hidden', className)}>
 	{#snippet header()}
-		<div class="flex flex-wrap items-start justify-between gap-3">
-			<div class="min-w-0">
-				<h2 class="text-base font-semibold text-dark-50">{title}</h2>
+		<div class="flex min-h-8 flex-wrap items-center justify-between gap-3">
+			<div class="flex min-w-0 flex-col gap-1.5">
+				<Eyebrow>{title}</Eyebrow>
 				{#if description}
-					<p class="mt-0.5 text-sm text-dark-300">{description}</p>
+					<p class="text-sm text-dark-300">{description}</p>
 				{/if}
 			</div>
 			{#if actions}
@@ -32,7 +33,7 @@
 			{/if}
 		</div>
 	{/snippet}
-	<div class="bg-dark-900/50 px-4 py-3">
+	<div class={cn('flex-1 p-4', bodyClass)}>
 		{@render children()}
 	</div>
 </Panel>

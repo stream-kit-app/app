@@ -3,14 +3,15 @@
 	import type { RankedUser } from '../lib/ranked-user.svelte';
 
 	import { Badge } from '@stream-kit/ui/badge';
-	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
+	import { CellGrid, Eyebrow } from '@stream-kit/ui/blueprint';
 	import { DataTable } from '@stream-kit/ui/data-table';
 
 	import { formatWatchTime } from '../../lib/extract-user';
 	import { orderRanks, resolveProgress } from '../../lib/ranking-engine';
 	import { formatSourceLabel } from '../../lib/source-labels';
 	import { getRankingsService } from '../lib/get-rankings';
-	import RankingsStatCard from './rankings-stat-card.svelte';
+	import { platformIcon } from '../lib/leaderboard-format';
+	import RankingsStatCell from './rankings-stat-cell.svelte';
 
 	type Props = {
 		rankedUser: RankedUser;
@@ -24,6 +25,7 @@
 
 	const user = $derived(rankings.getUser(rankedUser.userId));
 	const history = $derived(rankings.getUserHistory(rankedUser.userId));
+	const position = $derived(rankings.getUserLeaderboardPosition(rankedUser.userId));
 	const progress = $derived(
 		user ? resolveProgress(user.totalPoints, orderRanks(rankings.tiers, rankings.ranks)) : null
 	);
@@ -86,46 +88,36 @@
 
 {#if user && progress}
 	<div class="flex flex-col gap-6">
-		<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-			<RankingsStatCard icon="ri:coin-line" value={user.totalPoints} label={t('Points')} />
-			<Panel tone="flush" class="p-3">
-				<div class="flex min-w-0 items-start gap-2.5">
-					<div
-						class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
-						aria-hidden="true"
-					>
-						<span class="text-xs font-semibold">#</span>
-					</div>
-					<div class="min-w-0 flex-1 space-y-1">
-						<p class="truncate text-xs text-dark-300">{t('Rank')}</p>
-						<div class="flex flex-wrap items-center gap-1">
-							{#if progress.rank}
-								<Badge variant="secondary" size="sm">{progress.rank.name}</Badge>
-							{:else}
-								<Badge variant="outline" size="sm">{t('Unranked')}</Badge>
-							{/if}
-							{#if progress.tier}
-								<Badge variant="outline" size="sm">{progress.tier.name}</Badge>
-							{/if}
-						</div>
-					</div>
+		<CellGrid cols={4}>
+			<RankingsStatCell
+				icon="ri:coin-line"
+				label={t('Points')}
+				value={user.totalPoints.toLocaleString()}
+				description={position != null ? t('#{position} on the leaderboard', { position }) : undefined}
+			/>
+			<RankingsStatCell icon="ri:award-line" label={t('Rank')}>
+				<div class="flex min-h-8 flex-wrap items-center gap-1">
+					{#if progress.rank}
+						<Badge variant="secondary">{progress.rank.name}</Badge>
+					{:else}
+						<Badge variant="outline">{t('Unranked')}</Badge>
+					{/if}
+					{#if progress.tier}
+						<Badge variant="outline">{progress.tier.name}</Badge>
+					{/if}
 				</div>
-			</Panel>
-			<RankingsStatCard
+			</RankingsStatCell>
+			<RankingsStatCell
 				icon="ri:time-line"
-				value={formatWatchTime(user.watchTimeSeconds)}
 				label={t('Watch time')}
+				value={formatWatchTime(user.watchTimeSeconds)}
 			/>
-			<RankingsStatCard
-				icon={user.platform === 'twitch'
-					? 'ri:twitch-line'
-					: user.platform === 'youtube'
-						? 'ri:youtube-line'
-						: 'ri:user-line'}
-				value={user.platform.charAt(0).toUpperCase() + user.platform.slice(1)}
+			<RankingsStatCell
+				icon={platformIcon(user.platform)}
 				label={t('Platform')}
+				value={user.platform.charAt(0).toUpperCase() + user.platform.slice(1)}
 			/>
-		</div>
+		</CellGrid>
 
 		<div class="flex flex-col gap-3">
 			<Eyebrow>{t('Point history')}</Eyebrow>

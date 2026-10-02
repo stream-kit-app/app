@@ -121,7 +121,8 @@ export function createTestRedemptionContext(app: PluginAppApi): RedemptionContex
 export function createTestCommandContext(app: PluginAppApi): CommandContext {
 	return {
 		...createTestChatMessageContext(app),
-		command: '!test'
+		command: '!test',
+		args: {}
 	};
 }
 

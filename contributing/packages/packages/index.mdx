@@ -50,7 +50,7 @@ Root `build:packages` uses [Turborepo](https://turbo.build) (`turbo.json`) with 
 5. First-party plugins under `plugins/*` (`@stream-kit/plugin-*`, excluding `plugin-template`)
 6. `@stream-kit/app build:plugin-host` — import map + host bundles in `static/plugin-host/`
 
-During development, `pnpm dev` builds plugins (cached on warm runs), then starts persistent watchers for core/plugin/ui/plugins, PocketBase, the marketing site, and the Tauri app. Docs are opt-in via `pnpm dev:all` or `pnpm dev:docs`.
+During development, `pnpm dev` only pre-builds plugins that have no `dist/` yet (the plugin watchers rebuild on start and the app hot-reloads), then starts persistent watchers for core/plugin/plugins, PocketBase, the marketing site, and the Tauri app. Docs are opt-in via `pnpm dev:all` or `pnpm dev:docs`.
 
 ## Related documentation
 

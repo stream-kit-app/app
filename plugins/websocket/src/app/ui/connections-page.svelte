@@ -32,7 +32,9 @@
 					label: t('Add Connection'),
 					icon: 'ri:add-fill',
 					variant: 'outline',
-					onClick: () => Connection.createDraft().open()
+					onClick: () => {
+						Connection.createDraft().open();
+					}
 				}
 			]
 		});

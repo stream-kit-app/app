@@ -60,6 +60,11 @@ function migrateFieldScalarValue(value: HandlerFieldScalarValue): HandlerFieldSc
 		}));
 	}
 
+	// Condition groups (IF) postdate the maps → collections rename.
+	if ('kind' in value) {
+		return value;
+	}
+
 	return {
 		...value,
 		path: migrateInterpolatedText(value.path),

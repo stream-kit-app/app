@@ -20,11 +20,13 @@ Bind animations to `data-[state=open]` / `data-[state=closed]` (or equivalent st
 <div
   class={cn(
     'duration-300',
-    'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
+    'data-[state=closed]:animate-out data-[state=closed]:fill-mode-forwards data-[state=closed]:fade-out-0',
     'data-[state=open]:animate-in data-[state=open]:fade-in-0'
   )}
 />
 ```
+
+Always add **`data-[state=closed]:fill-mode-forwards`** next to `animate-out`. tw-animate-css defaults to `animation-fill-mode: none`, so once the exit animation ends the element snaps back to full opacity/position for a frame before bits-ui unmounts it — a visible flicker when closing modals, dialogs and tooltips.
 
 Common combinations:
 

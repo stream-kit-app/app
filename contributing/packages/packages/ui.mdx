@@ -58,6 +58,7 @@ import { Button, Alert, tooltipSnippet } from '@stream-kit/ui';
 | `@stream-kit/ui/codemirror` | CodeMirror editor helpers |
 | `@stream-kit/ui/command` | Command palette primitives |
 | `@stream-kit/ui/container` | Layout container |
+| `@stream-kit/ui/copy-button` | `CopyButton`, `CopyFeedback`, shared copy/copied icons |
 | `@stream-kit/ui/dialog` | Dialog |
 | `@stream-kit/ui/dropdown` | Dropdown menu |
 | `@stream-kit/ui/heading` | Heading |
@@ -92,6 +93,10 @@ import { tooltipSnippet } from '@stream-kit/ui/attachments';
 ```
 
 Pass `tooltipSnippet(snippet, arg)` rather than building HTML strings in JavaScript. Use string tooltips only for trivial one-line text.
+
+## Copy to clipboard
+
+All copy actions use `CopyButton` (or `CopyFeedback` + `COPY_ICON` / `COPIED_ICON` for custom triggers) from `@stream-kit/ui/copy-button`, so they share one icon pair, the green copied state, and the 2 second feedback window. `InputText copyable` uses the same helpers.
 
 ## Peer dependencies
 

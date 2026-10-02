@@ -52,3 +52,10 @@ export type AuthUpdatePasswordInput = {
 	password: string;
 	passwordConfirm: string;
 };
+
+export type AuthSendOptions = {
+	method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+	/** JSON-serializable request body. */
+	body?: unknown;
+	signal?: AbortSignal;
+};

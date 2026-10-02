@@ -14,6 +14,7 @@ import {
 	reorderBranchHandlersInChain,
 	runHandlerChain,
 	type HandlerBranch,
+	type HandlerInsertTarget,
 	validateHandlerFields
 } from '@stream-kit/plugin/action';
 import type { CommandPermissions, CommandRecord, CommandSource } from './stored-command';
@@ -270,6 +271,7 @@ export class Command {
 						? app.i18n.translate('Edit {name}', { name: this.name })
 						: app.i18n.translate('New Command'),
 				content: CommandForm,
+				size: 'xl',
 				header: CommandFormHeader,
 				footer: CommandFormFooter,
 				props: { command: this },
@@ -301,10 +303,7 @@ export class Command {
 		getCommandsService().requireApp().modal.get(this.modalId)?.close();
 	}
 
-	addHandler(
-		definition: HandlerDefinition,
-		target?: { parentId: string; branch: HandlerBranch }
-	): void {
+	addHandler(definition: HandlerDefinition, target?: HandlerInsertTarget): void {
 		this.handlers = addHandlerToChain(this.handlers, definition, target);
 	}
 

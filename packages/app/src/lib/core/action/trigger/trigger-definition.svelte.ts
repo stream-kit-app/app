@@ -1,7 +1,12 @@
 import type { Action } from '../action.svelte';
 import type { ActionTrigger } from '../action-trigger.svelte';
 import type { ConditionDefinition, ConditionGroupNode, ResolvedConditionDefinition } from './condition';
-import type { TriggerDefinitionProps, TriggerTestFn, TriggerValidateFormFn } from './types';
+import type {
+	TriggerDefinitionProps,
+	TriggerTestFn,
+	TriggerValidateFormFn,
+	TriggerVariablesSource
+} from './types';
 
 import { slugify, uniqueSlug } from '$lib/utils';
 
@@ -80,6 +85,7 @@ export class TriggerDefinition {
 	activate?: (action: Action, trigger: ActionTrigger) => void;
 	deactivate?: (action: Action, trigger: ActionTrigger) => void;
 	onTest?: TriggerTestFn;
+	variables?: TriggerVariablesSource;
 
 	children = new TriggerDefinitions();
 
@@ -95,6 +101,7 @@ export class TriggerDefinition {
 		this.activate = props.activate;
 		this.deactivate = props.deactivate;
 		this.onTest = props.onTest;
+		this.variables = props.variables;
 
 		props.children?.forEach((child) => this.children.add(child, { idScope: this.id }));
 	}
@@ -128,7 +135,7 @@ export class TriggerDefinition {
 	}
 }
 
-function resolveConditionDefinitions(
+export function resolveConditionDefinitions(
 	conditions: ConditionDefinition[] | ResolvedConditionDefinition[] | undefined
 ): ResolvedConditionDefinition[] | undefined {
 	const usedKeys = new Set<string>();

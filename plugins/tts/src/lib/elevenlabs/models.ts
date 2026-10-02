@@ -1,10 +1,12 @@
 import type {
+	HandlerFieldDefinition,
+	PluginSettingsFieldDefinition,
+	SelectItem,
 	SettingsContext,
-	SettingsFieldDefinition,
 	SettingsVisibilityContext
 } from '@stream-kit/plugin';
-import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
+import { getTrimmedValue } from '../settings-helpers';
 import { fetchElevenLabsModels } from './api';
 import { elevenlabs } from './service';
 
@@ -47,7 +49,7 @@ export function elevenlabsModelSelectField(
 
 function elevenlabsModelSelectSettingsItems(): (context: SettingsContext) => Promise<SelectItem[]> {
 	return async (context) => {
-		const apiKey = String(context.getValue('elevenlabsApiKey') ?? '').trim();
+		const apiKey = getTrimmedValue(context.getValue, 'elevenlabsApiKey');
 
 		if (!apiKey) {
 			return [];
@@ -74,11 +76,11 @@ export function elevenlabsModelSelectSettingsField(
 		required?: boolean;
 		visible?: (context: SettingsVisibilityContext) => boolean;
 	} = {}
-): SettingsFieldDefinition {
+): PluginSettingsFieldDefinition {
 	return {
 		...(options.key ? { key: options.key } : {}),
 		type: 'select',
-		name: options.name ?? 'Elevenlabs model ID',
+		name: options.name ?? 'ElevenLabs model',
 		placeholder: options.emptyLabel ?? 'Select a model',
 		loadingPlaceholder: 'Loading models…',
 		required: options.required,

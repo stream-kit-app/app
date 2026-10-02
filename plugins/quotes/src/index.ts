@@ -20,7 +20,6 @@ const plugin: Plugin = (app) => {
 		name: 'Quotes',
 		description: 'Save and recall memorable chat quotes.',
 		icon: 'ri:double-quotes-l',
-		dependencies: ['core', 'bot', 'twitch'],
 		isConfigured: () => quotesService.isReady,
 		api: {
 			quotes: quotesService

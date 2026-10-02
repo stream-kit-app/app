@@ -9,6 +9,13 @@ import type {
 import type { ConditionGroupNode } from './trigger/condition';
 import { isOneOfFieldValue } from '@stream-kit/core';
 
+import {
+	cloneConditionGroup,
+	emptyConditionGroup,
+	isConditionGroupNode,
+	textSelectTextToConditionGroup
+} from './condition-tree';
+
 function normalizeOneOfFieldValue(
 	definition: ResolvedHandlerFieldDefinition,
 	oneOf: OneOfFieldValue
@@ -87,6 +94,7 @@ export function createHandlerFields(
 	return (definitions ?? []).map((definition) => {
 		const existing = stored?.find((field) => field.key === definition.key);
 		const value =
+			migrateConditionGroupFieldValue(definition, existing?.value) ??
 			coerceLegacyOneOfFieldValue(definition, existing?.value) ??
 			migrateOneOfFieldValue(definition, stored) ??
 			initHandlerFieldValue(definition);
@@ -97,6 +105,24 @@ export function createHandlerFields(
 			value: normalizeHandlerFieldValue(definition, value)
 		};
 	});
+}
+
+/** Converts a stored single `text-select-text` value into a condition group (IF before AND/OR). */
+function migrateConditionGroupFieldValue(
+	definition: ResolvedHandlerFieldDefinition,
+	value: HandlerFieldValue | undefined
+): HandlerFieldValue | undefined {
+	if (definition.type !== 'condition-group' || value === undefined || isConditionGroupNode(value)) {
+		return undefined;
+	}
+
+	const conditionKey = definition.migrateFromTextSelectText;
+
+	if (!conditionKey || typeof value !== 'object' || !('path' in value)) {
+		return undefined;
+	}
+
+	return textSelectTextToConditionGroup(value, conditionKey);
 }
 
 function coerceLegacyOneOfFieldValue(
@@ -133,6 +159,12 @@ function coerceLegacyOneOfFieldValue(
 function initInnerHandlerFieldValue(
 	definition: HandlerFieldDefinition
 ): HandlerFieldScalarValue {
+	if (definition.type === 'condition-group') {
+		return definition.defaultValue
+			? cloneConditionGroup(definition.defaultValue)
+			: emptyConditionGroup();
+	}
+
 	if (definition.defaultValue !== undefined) {
 		return definition.defaultValue as HandlerFieldScalarValue;
 	}
@@ -309,6 +341,10 @@ export function isHandlerFieldValueEmpty(
 		const activeValue = oneOf.values[oneOf.variant];
 
 		return isInnerHandlerFieldValueEmpty(activeVariant.field, activeValue);
+	}
+
+	if (definition.type === 'condition-group') {
+		return !isConditionGroupNode(value) || value.children.length === 0;
 	}
 
 	if (definition.type === 'key-value-list') {

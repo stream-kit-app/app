@@ -1,10 +1,16 @@
 import type { Action } from '../action.svelte';
 import type { ActionTrigger } from '../action-trigger.svelte';
 import type { TriggerFormErrors } from '../validate-form';
+import type { VariableDefinition } from '../handler/field';
 import type { ConditionDefinition, ConditionGroupNode, ResolvedConditionDefinition } from './condition';
 
 /** Test function invoked from the action editor to preview trigger context. */
 export type TriggerTestFn = (action: Action, trigger: ActionTrigger) => unknown;
+
+/** Static or per-trigger list of variables a trigger provides to its handlers. */
+export type TriggerVariablesSource =
+	| VariableDefinition[]
+	| ((trigger: ActionTrigger) => VariableDefinition[]);
 
 /** Validate trigger condition form values before saving an action. */
 export type TriggerValidateFormFn = (
@@ -58,6 +64,11 @@ export type TriggerDefinitionProps<TContext = unknown> = {
 	deactivate?: (action: Action, trigger: ActionTrigger) => void;
 	/** Return sample context for the Test button in the action editor. */
 	onTest?: TriggerTestFn;
+	/**
+	 * Variables this trigger provides, shown in variable autocomplete. When omitted, variables are
+	 * derived from the `onTest` sample context.
+	 */
+	variables?: TriggerVariablesSource;
 };
 
 /** Trigger definition after ids and condition keys are resolved at registration time. */

@@ -6,7 +6,7 @@
 	import Icon from '@iconify/svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 
-	import { cn } from '../../utils';
+	import { cn, itemActive, itemBase, itemHover } from '../../utils';
 	import NavLink from './nav-link.svelte';
 
 	type Props = HTMLAttributes<HTMLElement> & {
@@ -60,8 +60,9 @@
 			type="button"
 			onclick={item.onClick}
 			class={cn(
-				'relative flex w-full cursor-pointer items-center gap-2.5 rounded-none px-3 py-1.5 text-left text-sm font-medium text-dark-200',
-				'hover:bg-dark-900/60 hover:text-dark-100',
+				'relative flex w-full cursor-pointer items-center gap-2.5 px-3 py-1.5 text-left text-sm font-medium text-dark-200',
+				itemBase,
+				itemHover,
 				className
 			)}
 		>
@@ -80,10 +81,10 @@
 		onclick={() => toggleExpanded(item.path)}
 		aria-expanded={isExpanded(item)}
 		class={cn(
-			'relative flex w-full cursor-pointer items-center gap-2.5 rounded-none px-3 py-1.5 text-left text-sm font-medium text-dark-200',
-			'hover:bg-dark-900/60 hover:text-dark-100',
-			hasActiveChild(item) &&
-				'bg-dark-900 text-foreground before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-primary'
+			'relative flex w-full cursor-pointer items-center gap-2.5 px-3 py-1.5 text-left text-sm font-medium text-dark-200',
+			itemBase,
+			itemHover,
+			hasActiveChild(item) && itemActive
 		)}
 	>
 		{@render label(item, true)}

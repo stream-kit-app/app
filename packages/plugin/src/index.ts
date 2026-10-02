@@ -30,12 +30,14 @@ export type { ActionHandler } from '../../app/src/lib/core/action/action-handler
 export type {
 	TriggerDefinitionProps,
 	TriggerTestFn,
-	TriggerValidateFormFn
+	TriggerValidateFormFn,
+	TriggerVariablesSource
 } from '../../app/src/lib/core/action/trigger/types';
 export type {
 	HandlerDefinitionProps,
 	HandlerExecuteFn,
-	HandlerNext
+	HandlerNext,
+	HandlerOutputsSource
 } from '../../app/src/lib/core/action/handler/types';
 export type {
 	MenuItem,
@@ -167,7 +169,8 @@ export type {
 	HandlerOneOfVariantDefinition,
 	KeyValueEntry,
 	OneOfFieldValue,
-	TextSelectTextFieldValue
+	TextSelectTextFieldValue,
+	VariableDefinition
 } from '../../app/src/lib/core/action/handler/field';
 export type { CronFieldKey, CronPreset } from '@stream-kit/core';
 export type { PluginDbClient } from '../../app/src/lib/core/plugins/plugin-app-api.types';

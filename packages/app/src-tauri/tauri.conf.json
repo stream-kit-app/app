@@ -14,13 +14,13 @@
 			{
 				"label": "main",
 				"title": "Stream Kit",
-				"width": 480,
-				"height": 200,
+				"width": 300,
+				"height": 340,
 				"center": true,
 				"decorations": false,
-				"shadow": false,
+				"shadow": true,
 				"devtools": true,
-				"backgroundColor": "#0f0f12"
+				"backgroundColor": "#121319"
 			}
 		],
 		"security": {

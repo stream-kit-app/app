@@ -16,7 +16,5 @@ await esbuild.build({
 	format: 'esm',
 	platform: 'neutral',
 	logLevel: 'silent',
-	alias: {
-		'@stream-kit/core': path.resolve(root, '../core/src/index.ts')
-	}
+	external: ['@stream-kit/core']
 });

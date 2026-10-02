@@ -114,6 +114,9 @@ export class OverlayService {
 
 	port = DEFAULT_OVERLAY_PORT;
 
+	/** Overlay ids created or imported this session and not opened yet (shown with a "New" label). */
+	newIds: Record<string, boolean> = $state({});
+
 	/** Overlay ids currently published to the cloud. */
 	cloudPublished: Record<string, boolean> = $state({});
 
@@ -543,6 +546,24 @@ export class OverlayService {
 
 	}
 
+	isNew(overlayId: string): boolean {
+		return this.newIds[overlayId] ?? false;
+	}
+
+	markNew(overlayId: string): void {
+		this.newIds = { ...this.newIds, [overlayId]: true };
+	}
+
+	/** Clears the "New" label once the user opened the overlay. */
+	markSeen(overlayId: string): void {
+		if (!this.newIds[overlayId]) {
+			return;
+		}
+
+		const { [overlayId]: _, ...rest } = this.newIds;
+		this.newIds = rest;
+	}
+
 
 
 	async startServer(port = this.port): Promise<OverlayServerStatus> {
@@ -592,6 +613,7 @@ export class OverlayService {
 			widgetTemplate: input.widgetTemplate
 		});
 
+		this.markNew(record.id);
 		await this.refresh();
 		await this.syncConfigToServer(record.id, record.config);
 		await this.ensurePublishedToCloud(record.id);
@@ -985,6 +1007,8 @@ export class OverlayService {
 		});
 
 
+
+		this.markNew(record.id);
 
 		await this.refresh();
 

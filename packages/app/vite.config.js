@@ -41,7 +41,7 @@ function assertProductionPublicEnv(mode, command) {
 }
 
 // https://vite.dev/config/
-export default defineConfig(async ({ mode, command }) => {
+export default defineConfig(({ mode, command }) => {
 	assertProductionPublicEnv(mode, command);
 
 	return {

@@ -4,6 +4,7 @@ import type {
 	PluginAppRecordCollectionApi,
 	PluginStore
 } from '@stream-kit/plugin';
+import { createSubscriber } from 'svelte/reactivity';
 
 import { extractUsername } from './extract-username';
 import { resolveTriggerContextVariables, resolveVariables } from './resolve-variables';
@@ -37,6 +38,18 @@ export class VariableStore {
 	private userRecordIds = new Map<string, string>();
 	// Record changes we emit ourselves must not trigger a full reload.
 	private selfWrites = 0;
+	private keyListeners = new Set<() => void>();
+	// Lets `listKeys('global')` re-run inside `$derived` when global keys change.
+	private subscribeKeys = createSubscriber((update) => {
+		this.keyListeners.add(update);
+		return () => this.keyListeners.delete(update);
+	});
+
+	private notifyKeysChanged(): void {
+		for (const listener of this.keyListeners) {
+			listener();
+		}
+	}
 
 	bindStore(store: PluginStore, app: PluginAppApi): void {
 		this.store = store;
@@ -127,6 +140,8 @@ export class VariableStore {
 			(this.userVariables[username] ??= {})[key] = value;
 			this.userRecordIds.set(userRecordKey(username, key), id);
 		}
+
+		this.notifyKeysChanged();
 	}
 
 	async load(): Promise<void> {
@@ -212,7 +227,13 @@ export class VariableStore {
 				return { ok: true };
 			}
 
+			const isNewKey = !(normalizedKey in this.globalVariables);
 			this.globalVariables[normalizedKey] = value;
+
+			if (isNewKey) {
+				this.notifyKeysChanged();
+			}
+
 			await this.writeRecord(this.globalRecords(), this.globalRecordIds, normalizedKey, {
 				key: normalizedKey,
 				value
@@ -269,6 +290,7 @@ export class VariableStore {
 
 	listKeys(scope: VariableScope, context?: HandlerTriggerContext): string[] {
 		if (scope === 'global') {
+			this.subscribeKeys();
 			return Object.keys(this.globalVariables);
 		}
 

@@ -8,12 +8,47 @@
 
 	import { OverlayCard, OverlayInstallButton } from '$lib/components/core/overlay';
 	import { app } from '$lib/core';
+	import {
+		overlayNeedsAttention,
+		resolveOverlayStatus
+	} from '$lib/components/core/overlay/overlay-status';
 	import { useI18n } from '$lib/i18n';
 
 	const { t } = useI18n();
 
+	const attentionIds = $derived(
+		new Set(
+			app.overlay.items
+				.filter((overlay) => overlayNeedsAttention(resolveOverlayStatus(overlay)))
+				.map((overlay) => overlay.id)
+		)
+	);
+	// Overlays that need a build or are missing plugins come first; the rest keep their order.
+	const sortedOverlays = $derived(
+		[...app.overlay.items].sort(
+			(a, b) => Number(attentionIds.has(b.id)) - Number(attentionIds.has(a.id))
+		)
+	);
+
 	$effect(() => {
 		app.toolbar.set({
+			meta:
+				app.overlay.items.length > 0
+					? [
+							{
+								icon: 'ri:layout-masonry-line',
+								label: t('{count} overlays', { count: app.overlay.items.length })
+							},
+							...(attentionIds.size > 0
+								? [
+										{
+											icon: 'ri:error-warning-line',
+											label: t('{count} need attention', { count: attentionIds.size })
+										}
+									]
+								: [])
+						]
+					: [],
 			primaryComponents: [
 				{
 					id: 'overlay-install',
@@ -49,8 +84,8 @@
 {:else}
 	<Container class="px-6 py-6">
 		<CellGrid cols={3}>
-			{#each app.overlay.items as overlay (overlay.id)}
-				<Cell class="p-0 [&>*]:border-0 [&>*]:bg-transparent">
+			{#each sortedOverlays as overlay (overlay.id)}
+				<Cell class="p-0">
 					<OverlayCard {overlay} />
 				</Cell>
 			{/each}

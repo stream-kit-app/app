@@ -2,9 +2,11 @@ import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
 import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
-import type { HandlerDefinitionProps, HandlerExecuteFn } from './types';
+import type { HandlerDefinitionProps, HandlerExecuteFn, HandlerOutputsSource } from './types';
 
 import { slugify, uniqueSlug } from '$lib/utils';
+
+import { resolveConditionDefinitions } from '../trigger/trigger-definition.svelte';
 
 type HandlerDefinitionInput = HandlerDefinitionProps & { id?: string };
 type HandlerDefinitionAddOptions = {
@@ -54,6 +56,7 @@ export class HandlerDefinition {
 
 	fields?: ResolvedHandlerFieldDefinition[];
 	execute?: HandlerExecuteFn;
+	outputs?: HandlerOutputsSource;
 
 	children = new HandlerDefinitions();
 
@@ -62,6 +65,7 @@ export class HandlerDefinition {
 		this.name = props.name;
 		this.fields = resolveFieldDefinitions(props.fields);
 		this.execute = props.execute;
+		this.outputs = props.outputs;
 
 		props.children?.forEach((child) => this.children.add(child, { idScope: this.id }));
 	}
@@ -95,6 +99,9 @@ function resolveFieldDefinitions(
 	return fields?.map((field) => {
 		return {
 			...field,
+			...(field.type === 'condition-group'
+				? { conditions: resolveConditionDefinitions(field.conditions) ?? [] }
+				: {}),
 			key:
 				'key' in field && typeof field.key === 'string'
 					? field.key

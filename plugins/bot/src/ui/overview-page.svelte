@@ -110,13 +110,11 @@
 	});
 
 	async function saveSettings(): Promise<void> {
-		const context = app.plugins.getSettingsContext('bot');
-
-		if (!context || !settings) {
+		if (!settings) {
 			return;
 		}
 
-		await settings.save(context.store);
+		await settings.save();
 	}
 </script>
 

@@ -193,7 +193,6 @@ export const createSendToOverlayHandler = (app: App) =>
 						field: {
 							type: 'json',
 							name: 'Payload',
-							useContextVariables: true,
 							placeholder: '{"username":"{username}","message":"{message}"}'
 						}
 					},
@@ -203,7 +202,6 @@ export const createSendToOverlayHandler = (app: App) =>
 						field: {
 							type: 'text',
 							name: 'Variable',
-							useContextVariables: true,
 							placeholder: '{message}'
 						}
 					}

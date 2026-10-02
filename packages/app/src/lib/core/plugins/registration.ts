@@ -2,12 +2,9 @@ import type { PluginRegistration } from './types';
 
 import { z } from 'zod';
 
-const widgetColumnsSchema = z.union([
-	z.literal(1),
-	z.literal(2),
-	z.literal(3),
-	z.literal(4)
-]);
+import { PLUGIN_WIDGET_COLUMNS } from './types';
+
+const widgetColumnsSchema = z.literal(PLUGIN_WIDGET_COLUMNS);
 
 const widgetSchema = z
 	.object({
@@ -46,7 +43,6 @@ const registrationSchema = z
 		name: z.string(),
 		description: z.string().optional(),
 		icon: z.string().optional(),
-		dependencies: z.array(z.string()).optional(),
 		triggers: z.array(z.unknown()).optional(),
 		handlers: z.array(z.unknown()).optional(),
 		menuItems: z.array(menuItemSchema).optional(),
@@ -63,25 +59,29 @@ const registrationSchema = z
 	})
 	.loose();
 
+export type ParsedPluginRegistration<TApi> =
+	| { ok: true; value: PluginRegistration<TApi> }
+	| { ok: false; error: string };
+
 export function parsePluginRegistration<TApi = unknown>(
 	value: unknown
-): PluginRegistration<TApi> | null {
+): ParsedPluginRegistration<TApi> {
 	const result = registrationSchema.safeParse(value);
 
 	if (!result.success) {
-		return null;
+		return { ok: false, error: z.prettifyError(result.error) };
 	}
 
 	const registration = result.data as PluginRegistration<TApi>;
 
 	for (const widget of registration.widgets ?? []) {
 		if (!registration.customViews?.[widget.view]) {
-			console.warn(
-				`Plugin "${registration.name}" widget "${widget.key}" references unknown custom view "${widget.view}"`
-			);
-			return null;
+			return {
+				ok: false,
+				error: `widget "${widget.key}" references unknown custom view "${widget.view}"`
+			};
 		}
 	}
 
-	return registration;
+	return { ok: true, value: registration };
 }

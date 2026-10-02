@@ -1,13 +1,100 @@
 import { Jr as e, Lr as t, On as n, cr as r, nr as i, or as a } from "./chunks/client-xxWnFgeR.js";
 import { a as o } from "./chunks/dist-7Fg9me4U.js";
+//#region src/lib/core/action/condition-tree.ts
+function s() {
+	return {
+		kind: "group",
+		id: "root",
+		children: []
+	};
+}
+function c(e, t) {
+	return (e.type === "select-text" || e.type === "text-select-text") && typeof t == "object" && !!t;
+}
+function l(e) {
+	return e.defaultValue === void 0 ? e.type === "text-select-text" ? {
+		path: "",
+		type: "equals",
+		value: ""
+	} : e.type === "select-text" ? {
+		type: "",
+		value: ""
+	} : e.type === "checkbox" ? !0 : (e.type === "cron-expression" || e.type, "") : c(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
+}
+function u(e, t) {
+	return e?.find((e) => e.key === t);
+}
+function d(e, t, n) {
+	let r = u(n, t);
+	r && e.children.push({
+		kind: "condition",
+		id: crypto.randomUUID(),
+		key: t,
+		value: l(r),
+		...e.children.length > 0 ? { operator: "and" } : {}
+	});
+}
+function f(e) {
+	e.id === "root" && e.children.push({
+		kind: "group",
+		id: crypto.randomUUID(),
+		children: [],
+		...e.children.length > 0 ? { operator: "and" } : {}
+	});
+}
+function p(e) {
+	for (let [t, n] of e.children.entries()) t === 0 ? delete n.operator : n.operator ||= "and", n.kind === "group" && p(n);
+}
+function ee(e, t) {
+	e.children.splice(t, 1), p(e);
+}
+function te(e, t) {
+	e.operator = t;
+}
+function m(e) {
+	return typeof e == "object" && !!e && "kind" in e && e.kind === "group" && "children" in e && Array.isArray(e.children);
+}
+function h(e) {
+	let t = (e) => e.kind === "group" ? {
+		...e,
+		id: crypto.randomUUID(),
+		children: e.children.map(t)
+	} : {
+		...e,
+		id: crypto.randomUUID(),
+		value: typeof e.value == "object" ? { ...e.value } : e.value
+	};
+	return {
+		...e,
+		children: e.children.map(t)
+	};
+}
+function g(e, t) {
+	return {
+		kind: "group",
+		id: "root",
+		children: [{
+			kind: "condition",
+			id: crypto.randomUUID(),
+			key: t,
+			value: {
+				path: e.path,
+				type: e.type,
+				value: e.value
+			},
+			...e.negate ? { negate: !0 } : {}
+		}]
+	};
+}
+//#endregion
 //#region src/lib/core/action/handler-field.ts
-function s(e, t) {
+function _(e, t) {
 	if (e.type !== "one-of") return t;
 	let n = e.defaultVariant ?? e.variants[0]?.id ?? "", r = e.variants.find((e) => e.id === t.variant), i = t.values[t.variant];
-	if (r && i !== void 0 && !p(r.field, i)) return t;
+	if (r && i !== void 0 && !x(r.field, i)) return t;
 	for (let n of e.variants) {
 		let e = t.values[n.id];
-		if (e !== void 0 && !p(n.field, e)) return t.variant === n.id ? t : {
+		if (e !== void 0 && !x(n.field, e)) return t.variant === n.id ? t : {
 			...t,
 			variant: n.id
 		};
@@ -17,48 +104,53 @@ function s(e, t) {
 		variant: n
 	};
 }
-function c(e, t) {
-	return e.type === "one-of" && o(t) ? s(e, t) : t;
+function v(e, t) {
+	return e.type === "one-of" && o(t) ? _(e, t) : t;
 }
-function l(e, t) {
+function y(e, t) {
 	return (e ?? []).map((e) => {
-		let n = t?.find((t) => t.key === e.key), r = u(e, n?.value) ?? f(e, t) ?? ee(e);
+		let n = t?.find((t) => t.key === e.key), r = ne(e, n?.value) ?? re(e, n?.value) ?? ae(e, t) ?? ie(e);
 		return {
 			id: n?.id ?? crypto.randomUUID(),
 			key: e.key,
-			value: c(e, r)
+			value: v(e, r)
 		};
 	});
 }
-function u(e, t) {
+function ne(e, t) {
+	if (e.type !== "condition-group" || t === void 0 || m(t)) return;
+	let n = e.migrateFromTextSelectText;
+	if (!(!n || typeof t != "object" || !("path" in t))) return g(t, n);
+}
+function re(e, t) {
 	if (t === void 0 || e.type !== "one-of" || o(t) || typeof t != "string" && typeof t != "number" && typeof t != "boolean") return t;
 	let n = e.defaultVariant ?? e.variants[0]?.id ?? "", r = t, i = {};
-	for (let t of e.variants) i[t.id] = t.id === n ? r : d(t.field);
+	for (let t of e.variants) i[t.id] = t.id === n ? r : b(t.field);
 	return {
 		variant: n,
 		values: i
 	};
 }
-function d(e) {
-	return e.defaultValue === void 0 ? e.type === "key-value-list" ? [] : e.type === "slider" ? e.defaultValue ?? e.min : e.type === "text-select-text" ? {
+function b(e) {
+	return e.type === "condition-group" ? e.defaultValue ? h(e.defaultValue) : s() : e.defaultValue === void 0 ? e.type === "key-value-list" ? [] : e.type === "slider" ? e.defaultValue ?? e.min : e.type === "text-select-text" ? {
 		path: "",
 		type: "equals",
 		value: "",
 		negate: !1
 	} : e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" || e.type === "color" ? "" : !1 : e.defaultValue;
 }
-function ee(e) {
+function ie(e) {
 	if (e.type === "one-of") {
 		let t = e.defaultVariant ?? e.variants[0]?.id ?? "", n = {};
-		for (let t of e.variants) n[t.id] = d(t.field);
+		for (let t of e.variants) n[t.id] = b(t.field);
 		return {
 			variant: t,
 			values: n
 		};
 	}
-	return d(e);
+	return b(e);
 }
-function f(e, t) {
+function ae(e, t) {
 	if (!(e.type !== "one-of" || !t?.length || !e.migrateFrom?.length) && !t.some((t) => t.key === e.key)) for (let n of e.migrateFrom) {
 		let r = /* @__PURE__ */ new Map();
 		for (let e of n.keys) {
@@ -71,39 +163,40 @@ function f(e, t) {
 		let i = e.defaultVariant ?? e.variants[0]?.id ?? "";
 		for (let r of n.keys) {
 			let a = n.variantMap[r], o = t.find((e) => e.key === r)?.value;
-			if (a && typeof o == "string" && o.trim() && !p(e.variants.find((e) => e.id === a)?.field, o)) {
+			if (a && typeof o == "string" && o.trim() && !x(e.variants.find((e) => e.id === a)?.field, o)) {
 				i = a;
 				break;
 			}
 		}
 		let a = {};
-		for (let t of e.variants) a[t.id] = r.get(t.id) ?? d(t.field);
+		for (let t of e.variants) a[t.id] = r.get(t.id) ?? b(t.field);
 		return {
 			variant: i,
 			values: a
 		};
 	}
 }
-function p(e, t) {
-	return !e || e.type === "one-of" ? !0 : g({
+function x(e, t) {
+	return !e || e.type === "one-of" ? !0 : w({
 		...e,
 		key: "inner"
 	}, t);
 }
-function m(e, t) {
+function S(e, t) {
 	return e?.find((e) => e.key === t);
 }
-function h(e, t) {
+function C(e, t) {
 	return e.find((e) => e.key === t)?.value;
 }
-function g(e, t) {
+function w(e, t) {
 	if (e.type === "one-of") {
 		if (!t || typeof t != "object" || !("variant" in t) || !("values" in t)) return !0;
 		let n = t, r = e.variants.find((e) => e.id === n.variant);
 		if (!r) return !0;
 		let i = n.values[n.variant];
-		return p(r.field, i);
+		return x(r.field, i);
 	}
+	if (e.type === "condition-group") return !m(t) || t.children.length === 0;
 	if (e.type === "key-value-list") return !Array.isArray(t) || t.length === 0 ? !0 : t.every((e) => !e.key.trim());
 	if (e.type === "text-select-text") {
 		if (!t || typeof t != "object" || !("path" in t)) return !0;
@@ -112,11 +205,11 @@ function g(e, t) {
 	}
 	return e.type === "text" || e.type === "select" || e.type === "combobox" || e.type === "select-file-or-folder" || e.type === "code" || e.type === "json" || e.type === "hotkey" || e.type === "color" ? !String(t ?? "").trim() : !1;
 }
-function _(e) {
-	return e.children.flatMap((e) => e.kind === "condition" ? [e] : _(e));
+function T(e) {
+	return e.children.flatMap((e) => e.kind === "condition" ? [e] : T(e));
 }
-function v(e) {
-	return e.fields ? e.fields : e.config ? _(e.config).map((e) => ({
+function E(e) {
+	return e.fields ? e.fields : e.config ? T(e.config).map((e) => ({
 		id: e.id,
 		key: e.key,
 		value: typeof e.value == "object" && e.value !== null && "value" in e.value ? String(e.value.value) : e.value
@@ -124,7 +217,7 @@ function v(e) {
 }
 //#endregion
 //#region src/lib/core/action/action-handler.svelte.ts
-var y = class t {
+var D = class t {
 	id;
 	definition;
 	#e = r(i([]));
@@ -148,10 +241,17 @@ var y = class t {
 	set elseHandlers(e) {
 		a(this.#n, e, !0);
 	}
+	#r = r(!0);
+	get blocking() {
+		return n(this.#r);
+	}
+	set blocking(e) {
+		a(this.#r, e, !0);
+	}
 	constructor(e, t) {
 		this.id = t?.id ?? crypto.randomUUID(), this.definition = e;
-		let n = l(e.fields, t?.fields);
-		this.fields = n.length > 0 ? n : t?.fields?.map((e) => ({ ...e })) ?? [], this.thenHandlers = t?.thenHandlers ?? [], this.elseHandlers = t?.elseHandlers ?? [];
+		let n = y(e.fields, t?.fields);
+		this.fields = n.length > 0 ? n : t?.fields?.map((e) => ({ ...e })) ?? [], this.thenHandlers = t?.thenHandlers ?? [], this.elseHandlers = t?.elseHandlers ?? [], this.blocking = t?.blocking ?? !0;
 	}
 	get fieldDefinitions() {
 		return this.definition.fields;
@@ -160,7 +260,7 @@ var y = class t {
 		return this.fields.find((t) => t.key === e);
 	}
 	getFieldDefinition(e) {
-		return m(this.definition.fields, e);
+		return S(this.definition.fields, e);
 	}
 	getFieldError(e, t) {
 		return t?.fieldErrors[e];
@@ -181,29 +281,39 @@ var y = class t {
 			handlerTypeId: this.definition.id,
 			fields: e(this.fields)
 		};
-		return this.thenHandlers.length > 0 && (t.thenHandlers = this.thenHandlers.map((e) => e.toStored())), this.elseHandlers.length > 0 && (t.elseHandlers = this.elseHandlers.map((e) => e.toStored())), t;
+		return this.blocking || (t.blocking = !1), this.thenHandlers.length > 0 && (t.thenHandlers = this.thenHandlers.map((e) => e.toStored())), this.elseHandlers.length > 0 && (t.elseHandlers = this.elseHandlers.map((e) => e.toStored())), t;
 	}
 	static clone(n) {
 		return new t(n.definition, {
 			fields: structuredClone(e(n.fields)),
 			thenHandlers: n.thenHandlers.map((e) => t.clone(e)),
-			elseHandlers: n.elseHandlers.map((e) => t.clone(e))
+			elseHandlers: n.elseHandlers.map((e) => t.clone(e)),
+			blocking: n.blocking
 		});
 	}
 };
 //#endregion
 //#region src/lib/utils.ts
-function b(e, t = "item") {
+function O(e, t = "item") {
 	return (e ?? t).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || t;
 }
-function x(e, t, n = "item") {
-	let r = b(e, n), i = r, a = 2;
+function k(e, t, n = "item") {
+	let r = O(e, n), i = r, a = 2;
 	for (; t.has(i);) i = `${r}-${a}`, a += 1;
 	return t.add(i), i;
 }
 //#endregion
+//#region src/lib/core/action/trigger/trigger-definition.svelte.ts
+function oe(e) {
+	let t = /* @__PURE__ */ new Set();
+	return e?.map((e) => ({
+		...e,
+		key: "key" in e && typeof e.key == "string" ? e.key : k(e.name, t, "condition")
+	}));
+}
+//#endregion
 //#region src/lib/core/action/handler/handler-definition.svelte.ts
-var te = class {
+var se = class {
 	#e = r([]);
 	get items() {
 		return n(this.#e);
@@ -214,11 +324,11 @@ var te = class {
 	add(e, t = {}) {
 		let n = {
 			...e,
-			id: w(e.id, e.name, t.idScope, "handler"),
-			fields: C(e.fields)
+			id: le(e.id, e.name, t.idScope, "handler"),
+			fields: j(e.fields)
 		};
 		if (this.find(n.id)) throw Error(`Handler definition with id ${n.id} already exists`);
-		let r = new S(n);
+		let r = new A(n);
 		return this.items = [...this.items, r], r;
 	}
 	find(e) {
@@ -230,7 +340,7 @@ var te = class {
 	remove(e) {
 		this.items = this.items.filter((t) => t.id !== e);
 	}
-}, S = class {
+}, A = class {
 	id;
 	name;
 	#e = r(!0);
@@ -242,9 +352,10 @@ var te = class {
 	}
 	fields;
 	execute;
-	children = new te();
+	outputs;
+	children = new se();
 	constructor(e) {
-		this.id = e.id, this.name = e.name, this.fields = C(e.fields), this.execute = e.execute, e.children?.forEach((e) => this.children.add(e, { idScope: this.id }));
+		this.id = e.id, this.name = e.name, this.fields = j(e.fields), this.execute = e.execute, this.outputs = e.outputs, e.children?.forEach((e) => this.children.add(e, { idScope: this.id }));
 	}
 	get isGroup() {
 		return this.children.items.length > 0;
@@ -257,83 +368,103 @@ var te = class {
 		for (let t of this.children.items) t.setAvailable(e);
 	}
 };
-function C(e) {
+function j(e) {
 	let t = /* @__PURE__ */ new Set();
 	return e?.map((e) => ({
 		...e,
-		key: "key" in e && typeof e.key == "string" ? e.key : x(e.name, t, "field")
+		...e.type === "condition-group" ? { conditions: oe(e.conditions) ?? [] } : {},
+		key: "key" in e && typeof e.key == "string" ? e.key : k(e.name, t, "field")
 	}));
 }
-function ne(e, t, n = "item") {
-	let r = b(e, n);
+function ce(e, t, n = "item") {
+	let r = O(e, n);
 	return t ? `${t}:${r}` : r;
 }
-function w(e, t, n, r = "item") {
+function le(e, t, n, r = "item") {
 	if (e) {
-		let t = b(e, r);
+		let t = O(e, r);
 		return n ? `${n}:${t}` : t;
 	}
-	return ne(t, n, r);
+	return ce(t, n, r);
 }
 //#endregion
 //#region src/lib/core/action/run-handler-chain.ts
-async function T(e, t, n, r) {
-	let i = async (a) => {
-		if (a >= e.length) return;
-		let o = e[a];
-		if (!o.definition.isAvailable || !o.definition.execute) {
-			await i(a + 1);
-			return;
-		}
-		let s = !1, c, l = () => {
-			s || (s = !0, r?.onHandlerComplete?.(o, a), c?.());
-		}, u = new Promise((e) => {
-			c = e;
+async function ue(e, t, n, r) {
+	let i = [], a = async (e, i, a) => {
+		let o = !1, s, c = () => {
+			o || (o = !0, r?.onHandlerComplete?.(e, i), s?.());
+		}, l = new Promise((e) => {
+			s = e;
 		});
-		r?.onHandlerStart?.(o, a);
 		try {
-			let e = o.definition.execute(t, o, n, l);
-			if (e instanceof Promise && await e, !s) {
-				r?.onHandlerComplete?.(o, a);
+			let r = a(t, e, n, c);
+			if (r instanceof Promise && await r, !o) {
+				c();
 				return;
 			}
-			await u, await i(a + 1);
+			await l;
+		} catch (t) {
+			c(), r?.onHandlerError?.(e, i, t), console.error("Handler execution failed", t);
+		}
+	}, o = async (s) => {
+		if (s >= e.length) return;
+		let c = e[s];
+		if (!c.definition.isAvailable || !c.definition.execute) {
+			await o(s + 1);
+			return;
+		}
+		if (r?.onHandlerStart?.(c, s), !c.blocking && s < e.length - 1) {
+			i.push(a(c, s, c.definition.execute)), await o(s + 1);
+			return;
+		}
+		let l = !1, u, d = () => {
+			l || (l = !0, r?.onHandlerComplete?.(c, s), u?.());
+		}, f = new Promise((e) => {
+			u = e;
+		});
+		try {
+			let e = c.definition.execute(t, c, n, d);
+			if (e instanceof Promise && await e, !l) {
+				r?.onHandlerComplete?.(c, s);
+				return;
+			}
+			await f, await o(s + 1);
 		} catch (e) {
-			r?.onHandlerComplete?.(o, a), r?.onHandlerError?.(o, a, e), console.error("Handler execution failed", e), await i(a + 1);
+			r?.onHandlerComplete?.(c, s), r?.onHandlerError?.(c, s, e), console.error("Handler execution failed", e), await o(s + 1);
 		}
 	};
-	await i(0);
+	await o(0), await Promise.allSettled(i);
 }
 //#endregion
 //#region src/lib/core/action/definition-id.ts
-function E(e) {
+function M(e) {
 	return e.split(":").map((e) => e.replace(/-\d+$/, "") || e).join(":");
 }
-function D(e, t) {
+function N(e, t) {
 	let n = e.find(t);
 	if (n) return n;
-	let r = E(t);
+	let r = M(t);
 	if (r !== t) return e.find(r);
 }
 //#endregion
 //#region src/lib/core/action/handler-tree.ts
-function O(e, t) {
+function P(e, t) {
 	for (let n of e) {
 		if (n.id === t) return n;
-		let e = O(n.children.items, t);
+		let e = P(n.children.items, t);
 		if (e) return e;
 	}
 }
-function k(e, t) {
+function F(e, t) {
 	for (let n of e) {
 		if (n.id === t) return n;
-		let e = k(n.thenHandlers, t);
+		let e = F(n.thenHandlers, t);
 		if (e) return e;
-		let r = k(n.elseHandlers, t);
+		let r = F(n.elseHandlers, t);
 		if (r) return r;
 	}
 }
-function A(e, t, n = null, r = null) {
+function I(e, t, n = null, r = null) {
 	for (let i = 0; i < e.length; i += 1) {
 		let a = e[i];
 		if (a.id === t) return {
@@ -342,136 +473,190 @@ function A(e, t, n = null, r = null) {
 			parent: n,
 			branch: r
 		};
-		let o = A(a.thenHandlers, t, a, "then");
+		let o = I(a.thenHandlers, t, a, "then");
 		if (o) return o;
-		let s = A(a.elseHandlers, t, a, "else");
+		let s = I(a.elseHandlers, t, a, "else");
 		if (s) return s;
 	}
 	return null;
 }
-function j(e, t, n) {
-	return M(e, (e) => D(t, e), n);
+function L(e, t, n) {
+	return R(e, (e) => N(t, e), n);
 }
-function M(e, t, n) {
-	return new y(t(e.handlerTypeId) ?? n(e.handlerTypeId), {
+function R(e, t, n) {
+	return new D(t(e.handlerTypeId) ?? n(e.handlerTypeId), {
 		id: e.id,
-		fields: v(e),
-		thenHandlers: (e.thenHandlers ?? []).map((e) => M(e, t, n)),
-		elseHandlers: (e.elseHandlers ?? []).map((e) => M(e, t, n))
+		fields: E(e),
+		thenHandlers: (e.thenHandlers ?? []).map((e) => R(e, t, n)),
+		elseHandlers: (e.elseHandlers ?? []).map((e) => R(e, t, n)),
+		blocking: e.blocking !== !1
 	});
 }
-function N(e) {
+function z(e) {
 	return e.flatMap((e) => [
 		e,
-		...N(e.thenHandlers),
-		...N(e.elseHandlers)
+		...z(e.thenHandlers),
+		...z(e.elseHandlers)
 	]);
 }
 //#endregion
 //#region src/lib/core/action/handler-chain-mutations.ts
-function P(e, t, n) {
-	let r = new y(t);
-	if (!n) return [...e, r];
-	let i = k(e, n.parentId);
-	if (!i) return e;
-	let a = i.getBranchHandlers(n.branch);
-	return i.setBranchHandlers(n.branch, [...a, r]), [...e];
+function B(e, t, n) {
+	let r = new D(t), i = n?.afterId ? I(e, n.afterId) : null;
+	if (i) {
+		let t = [
+			...i.handlers.slice(0, i.index + 1),
+			r,
+			...i.handlers.slice(i.index + 1)
+		];
+		return i.parent && i.branch ? (i.parent.setBranchHandlers(i.branch, t), [...e]) : t;
+	}
+	if (!n?.parentId || !n.branch) return [...e, r];
+	let a = F(e, n.parentId);
+	if (!a) return e;
+	let o = a.getBranchHandlers(n.branch);
+	return a.setBranchHandlers(n.branch, [...o, r]), [...e];
 }
-function F(e, t) {
-	let n = A(e, t);
+function V(e, t) {
+	let n = I(e, t);
 	if (!n) return e;
 	let r = n.handlers.filter((e) => e.id !== t);
 	return n.parent && n.branch ? (n.parent.setBranchHandlers(n.branch, r), [...e]) : r;
 }
-function I(e, t) {
-	let n = A(e, t);
+function H(e, t) {
+	let n = I(e, t);
 	if (!n) return e;
-	let r = y.clone(n.handlers[n.index]), i = [
+	let r = D.clone(n.handlers[n.index]), i = [
 		...n.handlers.slice(0, n.index + 1),
 		r,
 		...n.handlers.slice(n.index + 1)
 	];
 	return n.parent && n.branch ? (n.parent.setBranchHandlers(n.branch, i), [...e]) : i;
 }
-function L(e, t, n, r) {
-	let i = k(e, t);
+function U(e, t, n, r) {
+	let i = F(e, t);
 	return i ? (i.setBranchHandlers(n, r), [...e]) : e;
 }
 //#endregion
-//#region src/lib/core/action/variable-helpers.ts
-function R(e) {
+//#region src/lib/core/action/variable-scope.ts
+var W = "Action";
+function G(e) {
 	return e.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/\b\w/g, (e) => e.toUpperCase());
 }
-function z(e) {
+function K(e) {
+	let t = e.definition.outputs;
+	return t ? (typeof t == "function" ? t({ getFieldValue: (t) => C(e.fields, t) }) : t).map((e) => ({
+		...e,
+		key: e.key.trim()
+	})).filter((e) => e.key.length > 0) : de(e);
+}
+function de(e) {
+	let t = [], n = C(e.fields, "target-name");
+	typeof n == "string" && n.trim() && t.push({ key: n.trim() });
+	let r = C(e.fields, "scope"), i = C(e.fields, "variable-name");
+	return r === "action" && typeof i == "string" && i.trim() && t.push({ key: i.trim() }), t;
+}
+function fe(e) {
+	return {
+		key: e.key,
+		label: e.label ?? G(e.key),
+		description: e.description,
+		group: W
+	};
+}
+function pe(e, t) {
+	let n = /* @__PURE__ */ new Map();
+	for (let [r, i] of e) {
+		let e = t.get(r);
+		n.set(r, {
+			...i,
+			maybe: !e || i.maybe || e.maybe || void 0
+		});
+	}
+	for (let [e, r] of t) n.has(e) || n.set(e, {
+		...r,
+		maybe: !0
+	});
+	return n;
+}
+function me(e) {
+	return [...e.values()].sort((e, t) => e.key.localeCompare(t.key));
+}
+function q(e, t, n) {
+	let r = t;
+	for (let t of e) {
+		n.set(t.id, me(r)), (t.thenHandlers.length > 0 || t.elseHandlers.length > 0) && (r = pe(q(t.thenHandlers, new Map(r), n), q(t.elseHandlers, new Map(r), n)));
+		let e = K(t);
+		if (e.length > 0) {
+			r = new Map(r);
+			for (let t of e) r.set(t.key, fe(t));
+		}
+	}
+	return r;
+}
+function J(e, t) {
+	let n = /* @__PURE__ */ new Map();
+	return q(e, new Map(t.map((e) => [e.key, e])), n), n;
+}
+//#endregion
+//#region src/lib/core/action/variable-helpers.ts
+var he = "Global";
+function ge(e) {
 	let t = e.plugins.tryGet("core");
 	return t ? t.variables.listKeys("global").map((e) => ({
 		key: e,
-		label: R(e)
+		label: G(e),
+		group: he
 	})) : [];
 }
-function B(e, t) {
-	return U(e.slice(0, t));
+function _e(e, t) {
+	let n = /* @__PURE__ */ new Set(), r = [];
+	for (let i of e.slice(0, t)) for (let e of K(i)) n.has(e.key) || (n.add(e.key), r.push({
+		key: e.key,
+		label: e.label ?? G(e.key),
+		description: e.description,
+		group: W
+	}));
+	return r;
 }
-function V(e, t) {
-	return U(H(e, t) ?? []);
+function Y(e, t) {
+	return J(e, []).get(t) ?? [];
 }
-function H(e, t, n = []) {
-	for (let r = 0; r < e.length; r += 1) {
-		let i = e[r];
-		if (i.id === t) return [...n, ...e.slice(0, r)];
-		let a = [...n, ...e.slice(0, r)], o = H(i.thenHandlers, t, a);
-		if (o !== null) return o;
-		let s = H(i.elseHandlers, t, a);
-		if (s !== null) return s;
-	}
-	return null;
-}
-function U(e) {
-	let t = [], n = /* @__PURE__ */ new Set();
-	for (let r of e) {
-		let e = h(r.fields, "target-name");
-		if (typeof e == "string") {
-			let r = e.trim();
-			r && !n.has(r) && (n.add(r), t.push({
-				key: r,
-				label: R(r)
-			}));
-		}
-		let i = h(r.fields, "scope"), a = h(r.fields, "variable-name");
-		if (i === "action" && typeof a == "string") {
-			let e = a.trim();
-			e && !n.has(e) && (n.add(e), t.push({
-				key: e,
-				label: R(e)
-			}));
-		}
-	}
-	return t;
-}
-function W(...e) {
+function ve(...e) {
 	let t = /* @__PURE__ */ new Set(), n = [];
 	for (let r of e) for (let e of r) t.has(e.key) || (t.add(e.key), n.push(e));
 	return n.sort((e, t) => e.key.localeCompare(t.key));
 }
 //#endregion
 //#region src/lib/i18n.ts
-var [re, ie] = t(), G = null;
-function K(e, t) {
-	return G ? G.t(e, t) : e;
+var [ye, be] = t(), X = null;
+function Z(e, t) {
+	return X ? X.t(e, t) : e;
 }
 //#endregion
 //#region src/lib/core/action/validate-form.ts
-function q(e, t) {
+function Q(e) {
+	return e.children.flatMap((e) => e.kind === "condition" ? [e] : Q(e));
+}
+function $(e, t) {
 	if (e.type === "checkbox") return !1;
 	if (e.type === "text" || e.type === "select" || e.type === "cron-expression" || e.type === "hotkey") return !String(t ?? "").trim();
 	if (e.type === "text-select-text") {
-		let e = t;
-		return !e.path.trim() || !e.type.trim() || !e.value.trim();
+		let n = t;
+		return e.valuelessOperators?.includes(n.type) ? !n.path.trim() : !n.path.trim() || !n.type.trim() || !n.value.trim();
 	}
 	let n = t;
 	return !n.type.trim() || !n.value.trim();
 }
-function J(e, t) {
+function xe(e, t) {
+	let n = {};
+	for (let r of Q(e)) {
+		let e = t.find((e) => e.key === r.key);
+		e && $(e, r.value) && (n[r.id] = Z("{field} is required", { field: e.name }));
+	}
+	return n;
+}
+function Se(e, t) {
 	let n = {
 		fieldErrors: {},
 		missingFields: []
@@ -482,64 +667,16 @@ function J(e, t) {
 			r.required && n.missingFields.push(r.name);
 			continue;
 		}
-		r.required && g(r, t.value) && (n.fieldErrors[t.id] = K("{field} is required", { field: r.name }));
+		if (r.required && w(r, t.value)) {
+			n.fieldErrors[t.id] = Z("{field} is required", { field: r.name });
+			continue;
+		}
+		r.type === "condition-group" && m(t.value) && Object.assign(n.fieldErrors, xe(t.value, r.conditions));
 	}
 	return n;
 }
-function Y(e) {
+function Ce(e) {
 	return e.missingFields.length > 0 || Object.keys(e.fieldErrors).length > 0;
 }
 //#endregion
-//#region src/lib/core/action/condition-tree.ts
-function X() {
-	return {
-		kind: "group",
-		id: "root",
-		children: []
-	};
-}
-function ae(e, t) {
-	return (e.type === "select-text" || e.type === "text-select-text") && typeof t == "object" && !!t;
-}
-function Z(e) {
-	return e.defaultValue === void 0 ? e.type === "text-select-text" ? {
-		path: "",
-		type: "equals",
-		value: ""
-	} : e.type === "select-text" ? {
-		type: "",
-		value: ""
-	} : e.type === "checkbox" ? !0 : (e.type === "cron-expression" || e.type, "") : ae(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
-}
-function Q(e, t) {
-	return e?.find((e) => e.key === t);
-}
-function oe(e, t, n) {
-	let r = Q(n, t);
-	r && e.children.push({
-		kind: "condition",
-		id: crypto.randomUUID(),
-		key: t,
-		value: Z(r),
-		...e.children.length > 0 ? { operator: "and" } : {}
-	});
-}
-function se(e) {
-	e.id === "root" && e.children.push({
-		kind: "group",
-		id: crypto.randomUUID(),
-		children: [],
-		...e.children.length > 0 ? { operator: "and" } : {}
-	});
-}
-function $(e) {
-	for (let [t, n] of e.children.entries()) t === 0 ? delete n.operator : n.operator ||= "and", n.kind === "group" && $(n);
-}
-function ce(e, t) {
-	e.children.splice(t, 1), $(e);
-}
-function le(e, t) {
-	e.operator = t;
-}
-//#endregion
-export { y as ActionHandler, S as HandlerDefinition, oe as addConditionToGroup, se as addGroupToRoot, P as addHandlerToChain, I as cloneHandlerInChain, l as createHandlerFields, X as emptyConditionGroup, k as findHandler, O as findHandlerDefinition, A as findHandlerLocation, N as flattenActionHandlers, Q as getConditionDefinition, z as getGlobalVariables, h as getHandlerFieldValue, B as getPrecedingActionVariables, V as getPrecedingActionVariablesForHandler, j as handlerFromStored, M as handlerFromStoredWithResolver, Y as hasHandlerErrors, Z as initConditionValue, q as isFieldValueEmpty, W as mergeContextVariables, v as migrateLegacyHandlerFields, $ as normalizeConditionGroupOperators, ce as removeConditionChild, F as removeHandlerFromChain, L as reorderBranchHandlersInChain, T as runHandlerChain, le as setConditionOperator, J as validateHandlerFields };
+export { D as ActionHandler, A as HandlerDefinition, d as addConditionToGroup, f as addGroupToRoot, B as addHandlerToChain, H as cloneHandlerInChain, J as computeVariableScopes, y as createHandlerFields, s as emptyConditionGroup, F as findHandler, P as findHandlerDefinition, I as findHandlerLocation, z as flattenActionHandlers, u as getConditionDefinition, ge as getGlobalVariables, C as getHandlerFieldValue, K as getHandlerOutputs, _e as getPrecedingActionVariables, Y as getPrecedingActionVariablesForHandler, L as handlerFromStored, R as handlerFromStoredWithResolver, Ce as hasHandlerErrors, l as initConditionValue, $ as isFieldValueEmpty, ve as mergeContextVariables, E as migrateLegacyHandlerFields, p as normalizeConditionGroupOperators, ee as removeConditionChild, V as removeHandlerFromChain, U as reorderBranchHandlersInChain, ue as runHandlerChain, te as setConditionOperator, Se as validateHandlerFields };

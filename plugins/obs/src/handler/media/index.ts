@@ -227,6 +227,9 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 	({
 		name: 'Set Media Input File',
 		fields: [mediaInputSelectField(app), mediaFileOneOfField(), restartMediaPlaybackField()],
+		outputs: [
+			{ key: 'mediaFilePath' }
+		],
 		execute: async (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'media-input', context);
 			const filePath = resolveOneOfFieldText(handler.fields, 'media-file', context);
@@ -418,6 +421,11 @@ export const createGetMediaStatusHandler = (app: PluginAppApi) =>
 	({
 		name: 'Get Media Status',
 		fields: [mediaInputSelectField(app)],
+		outputs: [
+			{ key: 'mediaState' },
+			{ key: 'mediaDuration' },
+			{ key: 'mediaCursor' }
+		],
 		execute: async (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'media-input', context);
 

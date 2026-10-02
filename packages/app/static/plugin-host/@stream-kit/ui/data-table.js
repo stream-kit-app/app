@@ -1,8 +1,8 @@
 import { $n as e, Dt as t, Hr as n, On as r, Qr as i, Qt as a, Vr as o, Wn as s, Zn as c, Zr as l, a as u, cn as d, dt as f, hn as p, jt as m, on as h, pr as g, pt as _, un as v } from "../../chunks/client-xxWnFgeR.js";
 import "../../chunks/disclose-version-YhYaTdgb.js";
-import { t as y } from "../../chunks/utils-DJt177zd.js";
+import { t as y } from "../../chunks/utils-DcMuIKIs.js";
 import { t as b } from "../../chunks/scroll-area-BdFM74vQ.js";
-import { a as x } from "../../chunks/blueprint-qjjnrFIJ.js";
+import { a as x } from "../../chunks/blueprint-D6AKVM53.js";
 //#region ../ui/src/lib/components/data-table/data-table.svelte
 var S = v("<div class=\"border-b border-rule px-4 py-3\"><!></div>"), C = v("<th> </th>"), w = v("<td><!></td>"), T = v("<tr class=\"transition-colors hover:bg-dark-700/40\"></tr>"), E = v("<table class=\"min-w-full text-sm\"><thead class=\"sticky top-0 z-10 border-b border-rule bg-background\"><tr></tr></thead><tbody class=\"divide-y divide-rule\"></tbody></table>"), D = v("<p class=\"mt-1 text-sm text-dark-400\"> </p>"), O = v("<div class=\"px-4 py-10 text-center\"><p class=\"text-sm font-medium text-dark-300\"> </p> <!></div>"), k = v("<section><!> <!></section>");
 function A(v, A) {
@@ -67,7 +67,7 @@ function A(v, A) {
 	};
 	m(I, (e) => {
 		A.data.length > 0 ? e(L) : e(R, -1);
-	}), i(N), s((e) => f(N, 1, e), [() => _(y("overflow-hidden rounded-none border border-rule", A.class))]), d(v, N), o();
+	}), i(N), s((e) => f(N, 1, e), [() => _(y("overflow-hidden rounded-xl border border-rule", A.class))]), d(v, N), o();
 }
 //#endregion
 export { A as DataTable };

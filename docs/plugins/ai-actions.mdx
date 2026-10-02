@@ -1,0 +1,48 @@
+---
+title: AI Actions
+description: Describe an action in plain language and let AI build a draft you can review in the action editor.
+---
+
+# AI Actions
+
+The AI Actions plugin turns a description such as "when someone types !hug in chat, play hug.mp3 and reply in chat" into a draft [action](/docs/guide/actions). The draft opens in the regular action editor, so you can check and adjust the triggers, conditions and handlers before you save.
+
+## Requirements
+
+- A signed-in Stream Kit account with an active subscription
+- The plugins whose triggers and handlers you want to use (for example [Twitch](/docs/plugins/twitch) for chat, [OBS](/docs/plugins/obs) for scenes)
+
+## Pages
+
+Open **AI Actions** in the sidebar:
+
+| Page | Description |
+| --- | --- |
+| **Create with AI** | Describe an action, generate a draft, and manage unpublished drafts |
+
+## How it works
+
+1. The plugin collects the triggers and handlers of your **enabled** plugins, including field options such as OBS scenes.
+2. Your description and that list are sent to the Stream Kit cloud, which asks Claude (Anthropic) to build the action.
+3. The result is checked against your installed triggers and handlers. When something does not match, the AI gets one chance to correct it.
+4. The draft is stored under **Drafts** and opens in the action editor.
+5. When you save it in the editor, the action is published to your actions and removed from **Drafts**.
+
+## Drafts
+
+Every generated action is kept as a draft until you publish it, so you can close the editor and come back later. From the **Drafts** list you can open a draft in the editor again or delete it. Drafts sync with your Stream Kit account like other plugin data.
+
+Anything the AI could not build (for example a handler from a plugin you have not enabled) is listed under **Check the draft**.
+
+## Example prompts
+
+- When someone types !hug in chat, play hug.mp3 and reply with a hug message
+- When someone follows: if their name is bob, say hi bob, otherwise welcome them by name
+- When a raid has more than 10 viewers, switch to the OBS scene Raid
+
+## Limits
+
+- Generations are limited per account per day; the page shows how many are left.
+- Descriptions can be up to 2000 characters.
+- Branching (If handlers) can be nested up to three levels deep.
+- Always review the draft before saving: the AI can pick the wrong trigger or option.

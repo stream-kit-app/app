@@ -1,8 +1,9 @@
 import { $n as e, Hr as t, On as n, Qr as r, Qt as i, Vr as a, Wn as o, Z as s, Zn as c, Zr as l, a as u, cn as d, dt as f, hn as p, jt as m, o as h, on as g, pr as _, pt as v, un as y } from "../../chunks/client-xxWnFgeR.js";
 import "../../chunks/disclose-version-YhYaTdgb.js";
 import { t as b } from "../../chunks/Icon-AeqJGRQj.js";
-import { t as x } from "../../chunks/utils-DJt177zd.js";
-import { t as S } from "../../chunks/button-DzdRL0h9.js";
+import { t as x } from "../../chunks/utils-DcMuIKIs.js";
+import { t as S } from "../../chunks/button-rY2iKe1u.js";
+import "../../chunks/button-BWDTVjor.js";
 //#region ../ui/src/lib/components/empty-state/empty-state.svelte
 var C = new Set([
 	"$$slots",
@@ -73,8 +74,8 @@ function D(y, D) {
 	}), r(j), r(A), o((e, t, n, r) => {
 		f(j, 1, e), f(M, 1, t), f(P, 1, n), f(F, 1, r), g(I, D.title);
 	}, [
-		() => v(x("relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-none border border-dashed border-rule bg-dark-950 text-center", O() ? "gap-3 px-4 py-6" : "gap-4 px-6 py-16")),
-		() => v(x("relative flex items-center justify-center border border-rule bg-dark-800 text-primary", O() ? "size-10" : "size-16")),
+		() => v(x("relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-rule bg-dark-950 text-center", O() ? "gap-3 px-4 py-6" : "gap-4 px-6 py-16")),
+		() => v(x("relative flex items-center justify-center rounded-md border border-rule bg-dark-800 text-primary", O() ? "size-10" : "size-16")),
 		() => v(x("relative flex flex-col", O() ? "gap-1" : "gap-1.5")),
 		() => v(x("font-semibold text-dark-50", O() ? "text-sm" : "text-lg"))
 	]), d(y, A), a();

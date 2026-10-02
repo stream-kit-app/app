@@ -90,6 +90,11 @@ export function createUserInRoleHandler(app: PluginAppApi, roles: Roles) {
 				defaultValue: 'inRole'
 			}
 		],
+		outputs: ({ getFieldValue: getValue }) => {
+			const resultVar = getValue('resultVar');
+
+			return [{ key: typeof resultVar === 'string' && resultVar.trim() ? resultVar : 'inRole' }];
+		},
 		execute: async (_action, handler, context, next) => {
 			const resultVar = resolveOutputVar(handler.fields, 'resultVar', 'inRole');
 			const identity = resolveUserTarget(handler.fields, withActionVariables(context));

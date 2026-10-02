@@ -5,7 +5,6 @@
 
 	import PluginComponentHost from '$lib/components/core/plugins/plugin-component-host.svelte';
 	import { app } from '$lib/core';
-	import { createPluginAppApi } from '$lib/core/plugins/app-api';
 
 	type Props = {
 		definition: DashboardWidgetDefinition;
@@ -14,8 +13,8 @@
 
 	let { definition, unavailable = false }: Props = $props();
 
-	const pluginApp = createPluginAppApi(app);
-	const View = definition.component;
+	const pluginApp = $derived(app.plugins.appApi(app, definition.pluginKey));
+	const View = $derived(definition.component);
 </script>
 
 {#if unavailable}

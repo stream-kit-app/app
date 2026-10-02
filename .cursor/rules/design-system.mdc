@@ -20,7 +20,7 @@ Use `@stream-kit/ui/blueprint` primitives — do not reinvent rails, crosshairs,
 | `SectionRule` | Full-width horizontal hairline between sections (optional crosshairs) |
 | `Crosshair` | `+` markers at rail/rule intersections and panel corners |
 | `CellGrid` / `Cell` | Collapsed-border schematic grids (shared borders, no card gaps) |
-| `Panel` | Sharp-cornered bordered surface; optional header rule + corner crosshairs. Tone: `default` (marketing), `solid` (app cards), `flush` (nested) |
+| `Panel` | Rounded (`rounded-xl`) bordered surface; optional header rule + corner crosshairs. Tone: `default` (marketing), `solid` (app cards, `bg-surface`), `flush` (nested) |
 | `Eyebrow` | Mono uppercase label with optional index (`01 / FEATURES`) |
 
 Utilities (from `packages/ui/src/styles/blueprint.css`, imported via app/site `layout.css`):
@@ -30,17 +30,26 @@ Utilities (from `packages/ui/src/styles/blueprint.css`, imported via app/site `l
 - `blueprint-ticks` — ruler tick marks along a rule
 - `blueprint-rule-x` / `blueprint-rule-y` — full-bleed escape rules
 
-## Radius (hybrid)
+## Radius
 
-- **Structural surfaces** (`Panel`, cell grids, data-table, empty-state, floating menus, alerts, nav items): `rounded-none`.
-- **Controls** (buttons, inputs, badges): keep a small radius (`rounded-lg` / `rounded-md`). The theme `--radius-xl` is tightened so leftover `rounded-xl` classes still read sharp.
-- Do not reintroduce `rounded-xl border border-dark-600 bg-dark-800` floating cards — use `Panel tone="solid"`.
+- **Surfaces** (`Panel`, cell grids, data-table, empty-state, floating menus, popovers, dialogs, alerts, toasts, cards): `rounded-xl`.
+- **Controls** (buttons, inputs, tabs, toggle groups): `rounded-lg`.
+- **Items and rows** (nav items, dropdown/select/command items, handler rows, list rows): `rounded-md`.
+- Do not use `rounded-none` for UI chrome. Do not hand-roll `rounded-xl border border-dark-600 bg-dark-800` floating cards — use `Panel tone="solid"`.
+
+## Item states
+
+Interactive items (nav, dropdown, select/command, handler rows) share one recipe from `@stream-kit/ui` (`itemBase`, `itemHover`, `itemHighlighted`, `itemActive` in `packages/ui/src/lib/utils.ts`):
+
+- Hover / keyboard highlight: `bg-item-hover text-dark-50` (translucent white lift)
+- Active / selected: `bg-item-active text-item-active-foreground` (neutral translucent grey, stronger than hover) — no primary rails or borders
+- List rows and cards: `hover:bg-dark-700/40`
 
 ## Rules
 
 1. **Rails once** — draw vertical rails via a single `GridFrame` in the marketing layout, never per section. App shell uses a left-nav rail instead.
 2. **Hairlines vs UI borders** — schematic lines use `border-rule` / `bg-rule` / `text-rule-strong`. Interactive UI chrome (inputs, buttons, dialogs) keeps `border-border`. Floating menus keep `border-dark-600` for readable edges above content.
-3. **Sharp structure** — structural frames use `rounded-none`. Radius stays on controls.
+3. **Rounded structure** — surfaces use `rounded-xl`, controls `rounded-lg`, items `rounded-md` (see Radius).
 4. **Collapsed grids over gapped cards** — prefer `CellGrid` + `Cell` over `gap-4` floating cards for feature matrices and marketplace grids. Exception: drag-and-drop dashboard grids stay gapped.
 5. **Eyebrow anatomy** — section intros: `Eyebrow` (optional index) → `h2` in `font-outfit` → muted lede → content.
 6. **No decorative gradients** outside ambient backgrounds (`blueprint-grid`, `boot-ambient`). Do not add purple/blue glow blobs on marketing sections.

@@ -12,6 +12,8 @@ export type ToolbarAction = {
 	variant?: 'default' | 'outline' | 'destructive' | 'ghost';
 	size?: 'default' | 'sm' | 'lg' | 'xs';
 	disabled?: boolean;
+	/** Show a spinner in place of the icon while an action runs. */
+	loading?: boolean;
 	onClick: () => void | Promise<void>;
 };
 

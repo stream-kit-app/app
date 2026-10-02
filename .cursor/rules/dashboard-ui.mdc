@@ -22,17 +22,17 @@ Reuse `@stream-kit/ui/blueprint` — do not invent parallel card/rail systems:
 | Metric / feature matrices | `CellGrid` / `Cell` or dense `@stream-kit/ui/data-table` |
 | Page / section labels | `Eyebrow` or mono uppercase labels |
 | Hairlines | `border-rule` for schematic dividers; `border-border` for interactive chrome |
-| Icon wells | `border border-rule` squares, not `rounded-lg bg-dark-700` blobs |
+| Icon wells | `rounded-md border border-rule`, not `rounded-lg bg-dark-700` blobs |
 
 ## Desktop app shell
 
 The desktop chrome lives in `packages/app/src/routes/+layout.svelte` (left nav + content column). Do **not** wrap it in marketing `GridFrame`.
 
-1. **Sidebar** — `w-64`, `border-r border-rule`, logo row separated by a hairline, `Crosshair` at the rail/header join.
-2. **Nav** — rail active indicator (left primary hairline), not pill backgrounds. Section labels: mono uppercase. Item labels stay sentence case.
+1. **Sidebar** — `w-64`, `border-r border-rule`, logo row separated by a hairline. No crosshairs in the app shell.
+2. **Nav** — active and hover use the shared item states (`bg-dark-700`, `rounded-md`), same as dropdown items and action handler rows. No primary rail or border. Section labels: mono uppercase. Item labels stay sentence case.
 3. **Page header** — `border-b border-rule`, breadcrumb separators as mono `/` in `text-rule-strong`.
 4. **Toolbar** — hairline rows via `border-rule`.
-5. **Cards** — app list cards (`stat-card`, `plugin-card`, `overlay-card`, `queue-card`, `dashboard-widget-card`, `action-group-section`) use `Panel tone="solid"` / `border-rule` + hover via background shift, not `hover:border-dark-500`.
+5. **Cards** — app list cards (`plugin-card`, `overlay-card`, `queue-card`, `dashboard-widget-card`, `action-group-section`) use `Panel tone="solid"` / `border-rule` + hover via background shift, not `hover:border-dark-500`.
 
 ## Layout expectations (cloud `/app`)
 
@@ -43,12 +43,25 @@ When building `site/src/routes/app/**` (beyond overlay hosting):
 3. **Main content** — `Panel`s and tables, not floating gapped marketing cards.
 4. **No marketing footer / download CTA** inside `/app`.
 
+## Dashboard widgets
+
+The shell (`dashboard-widget-card.svelte`) owns the chrome; widget components render **only their body**.
+
+- **Layout**: masonry grid in `dashboard-grid.svelte` — `auto-rows-[4px]`, `gap-x-4`, 1–4 columns via `@container/dashboard` queries; each card uses the `masonryItem` attachment (`@stream-kit/ui/attachments`). Widths are narrow (1) or wide (`@2xl/dashboard:col-span-2`); stored `columns` ≥ 2 = wide.
+- **No edit mode**: always sortable like Actions. Drag handle (`ri:draggable`) and ⋯ menu (Narrow/Wide, Remove) sit in the header and appear on `group-hover/card` / `focus-within`. Add via toolbar button or the dashed add tile at the end of the grid.
+- **Shell**: `Panel tone="solid"`, header `px-4 pt-3.5 pb-2` without a divider, `size-7 rounded-md bg-primary/10 text-primary` icon well, `text-sm` title; description is a tooltip on the title. Dragged card leaves a dashed placeholder; overlay gets `shadow-2xl ring-1 ring-primary/40`.
+- **Body building blocks** — use `@stream-kit/ui/widget`, do not hand-roll rows or stat links:
+  - `WidgetStat` — eyebrow label + mono `tabular-nums` value (+ optional `total`, `hint`, `href`).
+  - `WidgetList` + `WidgetRow` — `rounded-md` rows, `hover:bg-dark-700/40` when `href`/`onclick` is set. Whole row is clickable; buttons in `trailing` stay clickable.
+  - `WidgetFooterLink` — "View all …" link at the bottom (`class="mt-auto"`).
+- Empty and unavailable states: `EmptyState compact`. No `hover:opacity-*`, no `rounded-none` rows.
+
 ## Density
 
 - Prefer compact rows, tabular numerals for metrics (`font-mono` or `tabular-nums`).
 - Empty lists use `@stream-kit/ui/empty-state`.
 - Prefer `@stream-kit/ui` controls (`Button`, `Badge`, `Input`, `DataTable`) over custom markup.
-- **Keep DnD grids gapped** (`dashboard-grid`) — collapsed borders destroy drop affordances. Convert static card matrices (plugins, overlays list) to `CellGrid`.
+- **Keep DnD grids gapped** (the `dashboard-grid` masonry uses `gap-x-4` + a 16px `masonryItem` gap) — collapsed borders destroy drop affordances. Convert static card matrices (plugins, overlays list) to `CellGrid`.
 
 ## Anti-patterns
 

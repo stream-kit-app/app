@@ -10,9 +10,10 @@
 	let revision = $state(0);
 
 	const twitch = $derived(
-		app.plugins.tryGet<{ isConnected?: boolean; subscribe?: (listener: () => void) => () => void }>(
-			'twitch'
-		)
+		app.plugins.tryGet<{
+			isConnected?: boolean;
+			subscribe?: (listener: () => void) => () => void;
+		}>('twitch')
 	);
 	const youtube = $derived(
 		app.plugins.tryGet<{

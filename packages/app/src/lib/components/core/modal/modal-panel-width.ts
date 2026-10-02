@@ -3,6 +3,8 @@ export const MODAL_PANEL_WIDTH = {
 	sm: '28rem',
 	md: '42rem',
 	lg: '48rem',
+	/** Wide editors with a side-by-side layout (action handler outline + detail). */
+	xl: 'min(72rem, 95vw)',
 	full: '50%'
 } as const;
 

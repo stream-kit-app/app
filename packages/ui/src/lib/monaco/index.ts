@@ -1,6 +1,11 @@
 export { configureMonacoTypescript } from './configure-types';
 export type { ConfigureMonacoTypescriptOptions } from './configure-types';
-export { streamKitMonacoTheme } from './theme';
+export {
+	defineStreamKitMonacoThemes,
+	STREAM_KIT_MONACO_THEMES,
+	streamKitMonacoLightTheme,
+	streamKitMonacoTheme
+} from './theme';
 export { ensureMonacoEnvironment } from './setup';
 export { warmupMonacoTypescript } from './warmup-typescript';
 export {
@@ -10,3 +15,4 @@ export {
 	withMonacoProjectReference
 } from './script-reference';
 export type { MonacoExtraLib } from './types';
+export { registerModelVariables } from './variable-completion';

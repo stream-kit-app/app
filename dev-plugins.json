@@ -1,6 +1,7 @@
 {
 	"plugins": [
 		"plugins/core",
+		"plugins/ai-actions",
 		"plugins/bot",
 		"plugins/discord",
 		"plugins/obs",

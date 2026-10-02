@@ -5,6 +5,8 @@ import type {
 	Operator,
 	ResolvedConditionDefinition
 } from './trigger/condition';
+import type { HandlerFieldVariable } from './handler/field';
+import type { ConditionEditor } from './condition-editor';
 
 export function emptyConditionGroup(): ConditionGroupNode {
 	return {
@@ -112,4 +114,70 @@ export function removeConditionChild(group: ConditionGroupNode, index: number): 
 
 export function setConditionOperator(node: ConditionNode, operator: Operator): void {
 	node.operator = operator;
+}
+
+export function isConditionGroupNode(value: unknown): value is ConditionGroupNode {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'kind' in value &&
+		value.kind === 'group' &&
+		'children' in value &&
+		Array.isArray(value.children)
+	);
+}
+
+/** Deep copy with fresh node ids (the root keeps `root`), for defaults shared across instances. */
+export function cloneConditionGroup(group: ConditionGroupNode): ConditionGroupNode {
+	const cloneNode = (node: ConditionNode): ConditionNode =>
+		node.kind === 'group'
+			? { ...node, id: crypto.randomUUID(), children: node.children.map(cloneNode) }
+			: {
+					...node,
+					id: crypto.randomUUID(),
+					value: typeof node.value === 'object' ? { ...node.value } : node.value
+				};
+
+	return { ...group, children: group.children.map(cloneNode) };
+}
+
+/** Wraps a single `{ path, type, value, negate }` condition as a group with one condition. */
+export function textSelectTextToConditionGroup(
+	value: { path: string; type: string; value: string; negate?: boolean },
+	conditionKey: string
+): ConditionGroupNode {
+	return {
+		kind: 'group',
+		id: 'root',
+		children: [
+			{
+				kind: 'condition',
+				id: crypto.randomUUID(),
+				key: conditionKey,
+				value: { path: value.path, type: value.type, value: value.value },
+				...(value.negate ? { negate: true } : {})
+			}
+		]
+	};
+}
+
+/** Condition editor for a condition group stored outside a trigger (for example an IF field). */
+export function createConditionEditor(
+	definitions: ResolvedConditionDefinition[],
+	options: {
+		getFieldError?: (nodeId: string) => string | undefined;
+		getVariables?: () => HandlerFieldVariable[];
+	} = {}
+): ConditionEditor {
+	return {
+		conditionDefinitions: definitions,
+		getConditionDefinition: (key) => getConditionDefinition(definitions, key),
+		getFieldError: (nodeId, errors) =>
+			errors?.conditionFields[nodeId] ?? options.getFieldError?.(nodeId),
+		getVariables: options.getVariables,
+		addCondition: (group, conditionKey) => addConditionToGroup(group, conditionKey, definitions),
+		addGroup: (group) => addGroupToRoot(group),
+		removeChild: (group, index) => removeConditionChild(group, index),
+		setOperator: (node, operator) => setConditionOperator(node, operator)
+	};
 }

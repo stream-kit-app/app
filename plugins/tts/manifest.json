@@ -5,9 +5,8 @@
   "description": "Text-to-speech via StreamElements, ElevenLabs, or local voices.",
   "icon": "ri:speak-line",
   "entry": "dist/index.js",
-  "dependencies": [
-    "core"
-  ],
+  "dependencies": [],
+  "optionalDependencies": ["core"],
   "streamKitVersion": ">=0.1.0",
   "updateManifestUrl": "https://stream-kit.app/api/plugins/tts/manifest.json"
 }

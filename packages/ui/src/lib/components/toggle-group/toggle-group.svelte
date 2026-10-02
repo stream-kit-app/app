@@ -5,6 +5,7 @@
 	import Icon from '@iconify/svelte';
 
 	import { cn } from '../../utils';
+	import { inputFieldSurface } from '../input/input-field-classes';
 
 	type Props = {
 		value?: T;
@@ -37,7 +38,9 @@
 
 <div
 	class={cn(
-		'inline-flex w-fit rounded-none border border-rule bg-dark-900/50 p-1 shadow-inner',
+		'inline-flex w-fit rounded-lg border border-border p-1',
+		inputFieldSurface,
+		size === 'sm' ? 'h-8' : 'h-10',
 		className
 	)}
 	role="group"
@@ -51,11 +54,11 @@
 			disabled={item.disabled}
 			aria-pressed={isSelected}
 			class={cn(
-				'inline-flex cursor-pointer items-center gap-2 rounded-lg font-medium transition',
+				'inline-flex h-full cursor-pointer items-center gap-2 rounded-md font-medium transition',
 				'disabled:cursor-not-allowed disabled:opacity-50',
-				size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3.5 py-2 text-sm',
+				size === 'sm' ? 'px-2.5 text-xs' : 'px-3.5 text-sm',
 				isSelected
-					? 'bg-dark-700 text-dark-50 shadow-sm'
+					? 'bg-dark-600 text-dark-50 shadow-sm'
 					: 'text-dark-300 hover:text-dark-100'
 			)}
 			onclick={() => select(item.value)}

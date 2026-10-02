@@ -1,13 +1,14 @@
 import type {
+	HandlerFieldDefinition,
+	PluginSettingsFieldDefinition,
+	SelectItem,
 	SettingsContext,
-	SettingsFieldDefinition,
 	SettingsVisibilityContext
 } from '@stream-kit/plugin';
-import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
+import { createVoiceOneOfField } from '../voice-one-of-field';
 import { fetchStreamElementsVoices } from './api';
 import { streamelements } from './service';
-import { createVoiceOneOfField } from '../voice-one-of-field';
 
 export async function loadVoiceItems(): Promise<SelectItem[]> {
 	if (!streamelements.isConfigured) {
@@ -78,7 +79,7 @@ export function voiceSelectSettingsField(
 		required?: boolean;
 		visible?: (context: SettingsVisibilityContext) => boolean;
 	} = {}
-): SettingsFieldDefinition {
+): PluginSettingsFieldDefinition {
 	return {
 		...(options.key ? { key: options.key } : {}),
 		type: 'select',

@@ -79,6 +79,44 @@ When `id` is set on a definition, it is appended to the parent scope (`twitch:ch
 
 Legacy actions that still reference old index-based IDs (for example `twitch:twitch-4:chat-1:chat-message-1`) are migrated automatically on startup.
 
+## Settings sections
+
+Group settings fields with `type: 'section'`. Sections can open and close, show a status badge, and contain nested sections (one level deep):
+
+```ts
+settings: [
+	{
+		type: 'section',
+		title: 'ElevenLabs',
+		icon: 'ri:voiceprint-line',
+		collapsible: true,
+		badge: ({ getValue }) =>
+			getValue('apiKey')
+				? { label: 'Connected', variant: 'success' }
+				: { label: 'Not configured', variant: 'outline' },
+		fields: [
+			{ key: 'apiKey', type: 'text', inputType: 'password', name: 'API key' },
+			{
+				type: 'section',
+				title: 'Advanced',
+				collapsible: true,
+				fields: [/* … */]
+			}
+		]
+	}
+]
+```
+
+| Option | Description |
+| --- | --- |
+| `collapsible` | Render the section as a panel that opens and closes |
+| `defaultOpen` | Initial open state. Collapsible sections start closed (`false`) by default. A function is resolved once when the section first renders |
+| `badge` | Status badge in the header (`label`, optional `variant`), also visible while closed |
+| `icon` | Iconify icon next to the title |
+| `fields` | Fields or nested sections. Field keys do not depend on nesting |
+
+A closed section opens automatically when one of its fields fails validation.
+
 ## Persistence with PluginStore
 
 Most plugins should persist data through the lifecycle `store` (`PluginStore`), backed by `plugin.{key}.json`:
@@ -123,7 +161,7 @@ See [Plugin getting started](/docs/developers/plugin-getting-started#filesystem-
 | Hook | When it runs |
 |------|----------------|
 | `onLoad` | After settings are hydrated from the plugin store during startup |
-| `onEnable` | When the plugin is enabled and dependencies are satisfied (startup and manual toggle) |
+| `onEnable` | When the plugin is enabled and its manifest `dependencies` are enabled (startup and manual toggle). Plugins start after their dependencies. |
 | `onReady` | After all plugins have enabled and actions are loaded |
 | `onDisable` | When the plugin is disabled |
 | `onSave` | After plugin settings are written to the store |
@@ -200,6 +238,29 @@ app.i18n.t('Commands'); // in Svelte templates/components
 app.i18n.translate('Saved'); // in .ts modules
 ```
 
+### Copy to clipboard
+
+Use `CopyButton` from `@stream-kit/ui/copy-button` for any "copy this value" action, so it looks and behaves like the rest of the app: a copy icon with a tooltip that turns into a green double check for two seconds after copying.
+
+```svelte
+<script lang="ts">
+	import { CopyButton } from '@stream-kit/ui/copy-button';
+</script>
+
+<!-- Icon-only, with tooltip -->
+<CopyButton
+	value={voice.id}
+	label={t('Copy voice ID')}
+	copiedLabel={t('Copied')}
+	onCopied={() => app.toast.create({ title: t('Voice ID copied'), variant: 'success' })}
+/>
+
+<!-- With visible text; `value` can also be a function that resolves on click -->
+<CopyButton variant="outline" value={() => buildUrl()}>{t('Copy URL')}</CopyButton>
+```
+
+`CopyButton` accepts the regular `Button` props (`variant`, `size`, `disabled`, `class`). It stops click propagation, so it is safe inside clickable cards. For read-only fields, use `<InputText copyable copyLabel={…} copiedLabel={…} />`. When you need a custom trigger, use `CopyFeedback` (copied state per key) together with `COPY_ICON` and `COPIED_ICON` from the same module.
+
 ## Dashboard widgets
 
 Plugins can register dashboard widgets alongside menu pages. Widgets reuse `customViews` for their Svelte components.
@@ -218,7 +279,7 @@ const plugin: Plugin = (app) => ({
       title: 'My Widget',
       description: 'Optional subtitle in the add-widget dialog',
       icon: 'ri:layout-grid-line',
-      columns: 2, // default width: 1 | 2 | 3 | 4 | 5 | 6
+      columns: 2, // default width: 1 (narrow) | 2 (wide)
       view: 'my-widget'
     }
   ]
@@ -236,6 +297,36 @@ Widget components receive `PluginWidgetProps`:
 </script>
 ```
 
+The dashboard draws the card, header (icon, title, description as tooltip) and the drag/menu controls — your component renders only the body. `columns` sets the default width: `1` is narrow (one masonry column), `2` is wide (two columns). Cards size to their content, so keep widgets compact. Use the building blocks from `@stream-kit/ui/widget` so your widget matches the core ones:
+
+| Component | Use for |
+| --- | --- |
+| `WidgetStat` | A single metric: `label`, `value`, optional `total` (`3 / 12`), `hint` and `href` |
+| `WidgetList` + `WidgetRow` | Compact rows with `icon` (or `leading` snippet), `title`, `description` and a `trailing` snippet for badges/buttons. Pass `href` or `onclick` to make the row clickable |
+| `WidgetFooterLink` | "View all …" link at the bottom of the widget |
+
+```svelte
+<script lang="ts">
+  import type { PluginWidgetProps } from '@stream-kit/plugin';
+  import { EmptyState } from '@stream-kit/ui/empty-state';
+  import { WidgetFooterLink, WidgetList, WidgetRow } from '@stream-kit/ui/widget';
+
+  let { app }: PluginWidgetProps = $props();
+  const t = $derived(app.i18n.t);
+</script>
+
+{#if items.length === 0}
+  <EmptyState compact icon="ri:inbox-line" title={t('Nothing here yet')} />
+{:else}
+  <WidgetList>
+    {#each items as item (item.id)}
+      <WidgetRow icon="ri:star-line" title={item.name} href={item.href} />
+    {/each}
+  </WidgetList>
+{/if}
+<WidgetFooterLink href="/plugins/my-plugin/items">{t('View all')}</WidgetFooterLink>
+```
+
 Users place widget instances on the dashboard from the app UI. Layout (order and column width) is persisted in SQLite. See [Dashboard](/docs/guide/dashboard).
 
 ### Actions and modals
@@ -243,6 +334,8 @@ Users place widget instances on the dashboard from the app UI. Layout (order and
 ```ts
 const handler = app.actions.findHandler('send-message');
 const handlers = app.actions.getHandlers();
+const trigger = app.actions.findTrigger('twitch:twitch:chat:chat-message');
+const triggers = app.actions.getTriggers();
 
 const modal =
   app.modal.get('edit-item') ??
@@ -377,12 +470,19 @@ await app.auth.register({
 });
 await app.auth.logout();
 stop();
+
+// Authenticated call to a custom Stream Kit cloud route (PocketBase hook)
+const result = await app.auth.send<{ ok: boolean }>('/api/my-route', {
+  method: 'POST',
+  body: { hello: 'world' }
+});
 ```
 
 | Member | Description |
 | --- | --- |
 | `user` | Public profile, or `null` when logged out |
 | `isAuthenticated` | Whether a session is active |
+| `send(path, options?)` | Authenticated request to a Stream Kit cloud route. Rejects with an `Error` carrying the HTTP `status` and server message |
 | `login` / `register` / `logout` | Session helpers (throw on failure) |
 | `onChange` | Subscribe to auth changes (fires immediately) |
 
@@ -503,6 +603,8 @@ onEnable: async ({ app, pluginKey }) => {
 | `create(input)` | Create a new action record |
 | `update(id, input)` | Update an existing action by database id |
 | `deleteByOwner(pluginKey)` | Delete all actions owned by a plugin |
+| `openDraft(input, { onSaved? })` | Open the action editor with an unsaved draft. The user saves it; the result is user-owned (no `ownerPluginKey`). `onSaved(record)` runs once after the first save |
+| `getTriggers()` / `findTrigger(id)` | Read registered trigger definitions |
 
 Owned actions are removed when the plugin is **uninstalled** (not when disabled). Use `group: pluginKey` so seeded actions are easy to find in the Actions UI.
 
@@ -511,6 +613,12 @@ Owned actions are removed when the plugin is **uninstalled** (not when disabled)
 ```ts
 const context = app.plugins.getSettingsContext('bot');
 await context?.store.set('key', value);
+```
+
+To change a value that is also a settings field, use `app.plugins.setSettingValue`. It updates the settings form, persists the value, and runs the plugin's `onSave` hook:
+
+```ts
+await app.plugins.setSettingValue('tts', 'elevenlabsApiKey', newKey);
 ```
 
 ## Manifest contract
@@ -605,6 +713,62 @@ migrateFrom: [
 ```
 
 Nested `one-of` fields inside variants are not supported in v1.
+
+### `condition-group` (AND/OR conditions)
+
+Use `condition-group` when a handler needs one or more conditions combined with AND/OR, like the core **If** handler. Users can add conditions, negate them and group them; the value is a condition tree (`ConditionGroupNode`).
+
+```ts
+{
+	type: 'condition-group',
+	name: 'Condition',
+	required: true,
+	conditions: [
+		{
+			key: 'compare',
+			type: 'text-select-text',
+			name: 'Compare',
+			items: [
+				{ value: 'equals', label: 'Equals' },
+				{ value: 'isEmpty', label: 'Is empty' }
+			],
+			valuelessOperators: ['isEmpty']
+		}
+	]
+}
+```
+
+Set `migrateFromTextSelectText: '<condition key>'` when a field that used to store a single `text-select-text` value becomes a condition group; stored values are converted on load.
+
+### Variable autocomplete
+
+Text, text-select-text, key-value-list, condition-group and JSON fields offer `{variable}` autocomplete for every variable in scope. Set `variables: false` on a field to turn it off (for example a field that holds a variable *name*). On `text` and `json` fields, `variables` can also be an array of extra variables to suggest. `useContextVariables` is deprecated and no longer needed.
+
+## Handler outputs and trigger variables
+
+Declare which variables a handler sets so later handlers can autocomplete them. Use a function when the key comes from a field value:
+
+```ts
+export const createLookupHandler = () =>
+	({
+		name: 'Lookup user',
+		fields: [{ type: 'text', name: 'Target name', defaultValue: 'user', variables: false }],
+		outputs: ({ getFieldValue }) => {
+			const target = getFieldValue('target-name');
+			return typeof target === 'string' ? [{ key: target }] : [];
+		},
+		execute: async (_action, handler, context, next) => {
+			// ... sets context.actionVariables[target]
+			next();
+		}
+	}) satisfies HandlerDefinitionProps;
+```
+
+Static outputs are a plain array: `outputs: [{ key: 'streamActive' }, { key: 'streamDuration' }]`. A variable set in only one branch of an If handler is suggested as *maybe* to handlers after the If.
+
+Triggers derive their variables from `onTest` sample data. When a trigger has no useful sample, declare them with `variables: [{ key: 'username', description: 'Chatter login' }]` (or a function of the configured trigger).
+
+Handlers without `outputs` still get basic suggestions from `target-name`, or `variable-name` with action scope, but declaring `outputs` is preferred.
 
 ## Command parsing
 

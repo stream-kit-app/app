@@ -66,7 +66,7 @@
 	<Container class="px-6 py-6" size="md">
 		<CellGrid cols={1}>
 			{#each queues as queue (queue.id)}
-				<Cell class="p-0 *:border-0 *:bg-transparent">
+				<Cell class="p-0 *:rounded-none *:border-0 *:bg-transparent">
 					<QueueCard {queue} onEdit={openEdit} />
 				</Cell>
 			{/each}

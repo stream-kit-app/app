@@ -3,31 +3,61 @@
 
 	import Icon from '@iconify/svelte';
 
-	import { Panel } from '@stream-kit/ui/blueprint';
-	import { Badge } from '@stream-kit/ui/badge';
-	import { Button } from '@stream-kit/ui/button';
+	import { panelVariants } from '@stream-kit/ui/blueprint';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
+	import { InputText } from '@stream-kit/ui/input';
 
 	import { app } from '$lib/core';
+	import { isWideWidget } from '$lib/core/dashboard/dashboard-layout';
 	import { useI18n } from '$lib/i18n';
+	import { cn } from '$lib/utils';
 
 	type Props = {
 		modalId?: string;
 	};
 
+	const SEARCH_THRESHOLD = 6;
+
 	let { modalId = 'dashboard-add-widget' }: Props = $props();
 
 	const { t } = useI18n();
 
+	let query = $state('');
+	let addingId = $state<string | null>(null);
+
 	const definitions = $derived(app.dashboard.getAddableDefinitions(app));
+
+	const filtered = $derived.by(() => {
+		const needle = query.trim().toLowerCase();
+
+		if (!needle) {
+			return definitions;
+		}
+
+		return definitions.filter((definition) =>
+			[definition.title, definition.description ?? '']
+				.map((text) => t(text).toLowerCase())
+				.some((text) => text.includes(needle))
+		);
+	});
 
 	function closeModal(): void {
 		app.modals.get(modalId)?.close();
 	}
 
 	async function handleAdd(definition: DashboardWidgetDefinition): Promise<void> {
-		await app.dashboard.addInstance(definition.definitionId);
-		closeModal();
+		if (addingId) {
+			return;
+		}
+
+		addingId = definition.definitionId;
+
+		try {
+			await app.dashboard.addInstance(definition.definitionId);
+			closeModal();
+		} finally {
+			addingId = null;
+		}
 	}
 </script>
 
@@ -41,36 +71,63 @@
 		)}
 	/>
 {:else}
-	<div class="grid gap-4 md:grid-cols-2">
-		{#each definitions as definition (definition.definitionId)}
-			<Panel tone="solid" class="flex flex-col gap-4 p-4">
-				<div class="flex items-start gap-3">
-					<div
-						class="flex size-10 shrink-0 items-center justify-center border border-rule"
+	<div class="flex flex-col gap-4">
+		{#if definitions.length > SEARCH_THRESHOLD}
+			<InputText
+				prependIcon="ri:search-line"
+				placeholder={t('Search widgets')}
+				value={query}
+				oninput={(event) => (query = event.currentTarget.value)}
+			/>
+		{/if}
+
+		{#if filtered.length === 0}
+			<EmptyState compact icon="ri:search-line" title={t('No widgets found')} />
+		{:else}
+			<div class="grid gap-3 md:grid-cols-2">
+				{#each filtered as definition (definition.definitionId)}
+					<button
+						type="button"
+						class={cn(
+							panelVariants({ tone: 'solid' }),
+							'group/card flex cursor-pointer items-start gap-3 p-4 text-left transition-colors hover:bg-dark-700/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-wait disabled:opacity-60'
+						)}
+						disabled={addingId !== null}
+						onclick={() => void handleAdd(definition)}
 					>
-						<Icon icon={definition.icon ?? 'ri:layout-grid-line'} class="h-5 w-5" />
-					</div>
-					<div class="min-w-0 flex-1">
-						<h2 class="font-semibold text-dark-50">{t(definition.title)}</h2>
-						{#if definition.description}
-							<p class="mt-1 text-sm text-dark-100">{t(definition.description)}</p>
-						{/if}
-					</div>
-				</div>
-
-				<div class="flex flex-col gap-2 text-sm">
-					<div class="flex items-center justify-between gap-3">
-						<span class="text-dark-100">{t('Width')}</span>
-						<Badge variant="default">
-							{t('{count} columns wide', { count: definition.defaultColumns })}
-						</Badge>
-					</div>
-				</div>
-
-				<div class="mt-auto flex flex-wrap gap-2">
-					<Button onclick={() => void handleAdd(definition)}>{t('Add')}</Button>
-				</div>
-			</Panel>
-		{/each}
+						<span
+							class="flex size-9 shrink-0 items-center justify-center rounded-md border border-rule bg-dark-900/60 text-primary"
+							aria-hidden="true"
+						>
+							<Icon icon={definition.icon ?? 'ri:layout-grid-line'} class="size-5" />
+						</span>
+						<span class="flex min-w-0 flex-1 flex-col gap-1">
+							<span class="font-semibold text-dark-50">{t(definition.title)}</span>
+							{#if definition.description}
+								<span class="line-clamp-2 text-sm text-dark-300">
+									{t(definition.description)}
+								</span>
+							{/if}
+							<!-- Eyebrow styling inline: <p> is not allowed inside <button>. -->
+							<span
+								class="mt-1.5 font-mono text-[11px] leading-none font-medium tracking-[0.14em] text-muted-foreground uppercase"
+							>
+								{isWideWidget(definition.defaultColumns) ? t('Wide') : t('Narrow')}
+							</span>
+						</span>
+						<Icon
+							icon={addingId === definition.definitionId
+								? 'ri:loader-4-line'
+								: 'ri:add-line'}
+							class={cn(
+								'mt-0.5 size-4 shrink-0 text-dark-400 transition-colors group-hover/card:text-primary',
+								addingId === definition.definitionId && 'animate-spin text-primary'
+							)}
+							aria-hidden="true"
+						/>
+					</button>
+				{/each}
+			</div>
+		{/if}
 	</div>
 {/if}

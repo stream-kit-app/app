@@ -1,4 +1,10 @@
+<script lang="ts" module>
+	/** New overlays already scrolled into view, so returning to the list does not jump again. */
+	const scrolledIntoView = new Set<string>();
+</script>
+
 <script lang="ts">
+	import type { Attachment } from 'svelte/attachments';
 	import type { SaveOverlayInput } from '$db/repositories/overlays';
 	import type { OverlayFrameworkId } from '$lib/core/overlay';
 
@@ -7,10 +13,10 @@
 	import { useId } from 'bits-ui';
 	import { tick } from 'svelte';
 
-	import { Eyebrow, Panel } from '@stream-kit/ui/blueprint';
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
+	import * as Dropdown from '@stream-kit/ui/dropdown';
 	import { InputText } from '@stream-kit/ui/input';
 
 	import { app } from '$lib/core';
@@ -18,11 +24,18 @@
 	import type { OverlayManifest } from '$lib/core/overlay/overlay-manifest';
 	import {
 		disabledRequiredPlugins,
-		formatRequiredPluginLabels,
 		missingRequiredPlugins
 	} from '$lib/core/overlay/overlay-dependencies';
 	import { useI18n } from '$lib/i18n';
 	import { cn } from '$lib/utils';
+
+	import {
+		overlayNeedsAttention,
+		overlayNeedsBuild,
+		overlayStatusDotClasses,
+		overlayStatusLabels,
+		resolveOverlayStatus
+	} from './overlay-status';
 
 	type Props = {
 		overlay: SaveOverlayInput;
@@ -36,16 +49,33 @@
 	let isEditingName = $state(false);
 	let isSavingName = $state(false);
 	let openingEditor = $state(false);
+	let openingFolder = $state(false);
 	let exporting = $state(false);
+	let menuOpen = $state(false);
 
 	const nameInputId = useId();
 
 	const framework = $derived(overlay.template as OverlayFrameworkId);
-	const needsBuild = $derived(framework !== 'vanilla');
+	const needsBuild = $derived(overlayNeedsBuild(overlay));
+	const detailPath = $derived(`/overlays/${overlay.id}`);
+	const status = $derived(resolveOverlayStatus(overlay));
+	const needsAttention = $derived(overlayNeedsAttention(status));
+	const isNew = $derived(app.overlay.isNew(overlay.id));
+	const isOpening = $derived(openingEditor || openingFolder);
+
+	const revealIfNew: Attachment<HTMLElement> = (element) => {
+		if (!isNew || scrolledIntoView.has(overlay.id)) {
+			return;
+		}
+
+		scrolledIntoView.add(overlay.id);
+		requestAnimationFrame(() => {
+			element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		});
+	};
 	const browserSourceUrl = $derived(app.overlay.getUrl(overlay.id));
 	const cloudUrl = $derived(app.overlay.getCloudUrl(overlay.id));
 	const isCloudPublished = $derived(app.overlay.isCloudPublished(overlay.id));
-	const isBuilt = $derived(app.overlay.isBuilt(overlay.id));
 	const isBuilding = $derived(app.overlay.buildingId === overlay.id);
 	const dependencyManifest = $derived({
 		requiredPlugins: overlay.requiredPlugins ?? []
@@ -55,7 +85,6 @@
 
 		return app.overlay.getOverlayUnavailableReason(overlay.requiredPlugins ?? []);
 	});
-	const hasDependencyIssues = $derived(overlayUnavailableReason !== null);
 	const missingPlugins = $derived.by(() => {
 		void app.overlay.dependenciesRevision;
 
@@ -66,9 +95,7 @@
 
 		return disabledRequiredPlugins(dependencyManifest, app);
 	});
-	const requiredPluginLabels = $derived(
-		formatRequiredPluginLabels(app, overlay.requiredPlugins ?? [])
-	);
+	const unavailablePlugins = $derived(new Set([...missingPlugins, ...disabledPlugins]));
 
 	$effect(() => {
 		overlay.id;
@@ -83,6 +110,10 @@
 			nameDraft = overlay.name;
 		}
 	});
+
+	function markSeen(): void {
+		app.overlay.markSeen(overlay.id);
+	}
 
 	async function startEditingName(): Promise<void> {
 		nameDraft = overlay.name;
@@ -169,10 +200,13 @@
 			});
 		} finally {
 			openingEditor = false;
+			menuOpen = false;
 		}
 	}
 
 	async function openFolder(): Promise<void> {
+		openingFolder = true;
+
 		try {
 			await app.overlay.openProjectFolder(overlay.id);
 		} catch (error) {
@@ -181,6 +215,15 @@
 				description: error instanceof Error ? error.message : String(error),
 				variant: 'error'
 			});
+		} finally {
+			openingFolder = false;
+			menuOpen = false;
+		}
+	}
+
+	function keepMenuOpenWhileOpening(event: Event): void {
+		if (isOpening) {
+			event.preventDefault();
 		}
 	}
 
@@ -255,183 +298,249 @@
 	}
 </script>
 
-<Panel
-	tone="solid"
+<div
 	class={cn(
-		'group/card flex flex-col overflow-hidden transition-colors hover:bg-dark-700/40',
-		hasDependencyIssues && 'bg-dark-900/70 opacity-80'
+		'group/card relative flex h-full flex-col transition-colors',
+		isNew
+			? 'bg-primary/8 hover:bg-primary/12'
+			: 'hover:bg-dark-700/40'
 	)}
+	{@attach revealIfNew}
 >
-	<div class="flex items-start gap-3 p-4 pb-3">
-		<div
-			class="flex size-10 shrink-0 items-center justify-center border border-rule text-primary"
-		>
-			<Icon icon={getOverlayFrameworkIcon(framework)} class="size-5" />
-		</div>
+	{#if isNew}
+		<span
+			class="pointer-events-none absolute inset-0 ring-2 ring-primary ring-inset"
+			aria-hidden="true"
+		></span>
+	{/if}
+	<div class="flex flex-1 flex-col gap-4 p-5">
+		<div class="flex items-start gap-3">
+			<a
+				href={detailPath}
+				onclick={markSeen}
+				class="relative flex size-10 shrink-0 items-center justify-center rounded-md border border-rule text-primary"
+				aria-hidden="true"
+				tabindex="-1"
+			>
+				<Icon icon={getOverlayFrameworkIcon(framework)} class="size-5" />
+				{#if needsAttention}
+					<span
+						class={cn(
+							'absolute -top-1 -right-1 size-2.5 rounded-full ring-2 ring-background',
+							overlayStatusDotClasses[status]
+						)}
+					></span>
+				{/if}
+			</a>
 
-		<div class="min-w-0 flex-1 space-y-2">
-			{#if isEditingName}
-				<InputText
-					id={nameInputId}
-					size="sm"
-					aria-label={t('Name')}
-					value={nameDraft}
-					disabled={isSavingName}
-					oninput={(event) => {
-						nameDraft = event.currentTarget.value;
-					}}
-					onblur={() => void finishEditingName()}
-					onkeydown={handleNameKeydown}
-				/>
-			{:else}
-				<div class="flex min-w-0 items-center gap-1">
-					<h2 class="min-w-0 flex-1 truncate text-base font-semibold text-dark-50">
-						{overlay.name}
-					</h2>
+			<div class="min-w-0 flex-1">
+				{#if isEditingName}
+					<InputText
+						id={nameInputId}
+						size="sm"
+						aria-label={t('Name')}
+						value={nameDraft}
+						disabled={isSavingName}
+						oninput={(event) => {
+							nameDraft = event.currentTarget.value;
+						}}
+						onblur={() => void finishEditingName()}
+						onkeydown={handleNameKeydown}
+					/>
+				{:else}
+					<div class="flex min-w-0 items-center gap-2">
+						<a
+							href={detailPath}
+							onclick={markSeen}
+							class="min-w-0 truncate text-base font-semibold text-dark-50 transition-colors hover:text-primary"
+						>
+							{overlay.name}
+						</a>
+						{#if isNew}
+							<Badge size="sm" class="shrink-0 gap-1.5 border-primary/40 bg-primary/25 font-semibold">
+								<span class="size-1.5 rounded-full bg-primary"></span>
+								{t('New')}
+							</Badge>
+						{/if}
+					</div>
+				{/if}
+				<p class="mt-1 flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-dark-400">
+					<span class="truncate">{overlay.template}</span>
+					{#if overlay.expectedEvents.length > 0}
+						<span class="text-rule-strong">/</span>
+						<span class="shrink-0">
+							{t('{count} events', { count: overlay.expectedEvents.length })}
+						</span>
+					{/if}
+					{#if isCloudPublished}
+						<span class="text-rule-strong">/</span>
+						<span class="inline-flex shrink-0 items-center gap-0.5 text-primary">
+							<Icon icon="ri:cloud-line" class="size-3" />
+							{t('Cloud')}
+						</span>
+					{/if}
+				</p>
+			</div>
+
+			<Dropdown.Root bind:open={menuOpen}>
+				{#snippet trigger({ props })}
 					<Button
+						{...props}
 						variant="ghost"
 						size="icon-sm"
-						icon="ri:pencil-line"
-						class="shrink-0 text-dark-300 hover:text-dark-50"
-						aria-label={t('Rename overlay')}
-						onclick={() => void startEditingName()}
-						{@attach tooltip(() => t('Rename overlay'))}
+						icon="ri:more-2-fill"
+						class="-mt-1 -mr-2 shrink-0 text-dark-400 hover:text-dark-50"
+						aria-label={t('More actions')}
 					/>
-				</div>
-			{/if}
-
-			<div class="flex flex-wrap items-center gap-1.5">
-				<Badge variant="secondary" size="sm">{overlay.template}</Badge>
-				{#if isBuilt}
-					<Badge variant="success" size="sm">{t('Ready')}</Badge>
-				{:else}
-					<Badge variant="warning" size="sm">{t('Not built')}</Badge>
-				{/if}
-				{#if isCloudPublished}
-					<Badge variant="secondary" size="sm">{t('Cloud')}</Badge>
-				{/if}
-				{#if overlay.expectedEvents.length > 0}
-					<Badge variant="ghost" size="sm">
-						<Icon icon="ri:flashlight-line" />
-						{t('{count} events', { count: overlay.expectedEvents.length })}
-					</Badge>
-				{/if}
-				{#if hasDependencyIssues}
-					<Badge variant="destructive" size="sm">
-						<Icon icon="ri:error-warning-line" />
-						{t('Unavailable')}
-					</Badge>
-				{/if}
-			</div>
-			{#if hasDependencyIssues && requiredPluginLabels}
-				<p class="text-xs text-dark-400">
-					{t('Requires')}: {requiredPluginLabels}
-				</p>
-				{#if missingPlugins.length > 0}
-					<p class="text-xs text-destructive-100">
-						{t('Missing plugins')}: {formatRequiredPluginLabels(app, missingPlugins)}
-					</p>
-				{/if}
-				{#if disabledPlugins.length > 0}
-					<p class="text-xs text-warning-100">
-						{t('Disabled plugins')}: {formatRequiredPluginLabels(app, disabledPlugins)}
-					</p>
-				{/if}
-			{/if}
+				{/snippet}
+				<Dropdown.Content
+					align="end"
+					class="min-w-48"
+					onInteractOutside={keepMenuOpenWhileOpening}
+					onEscapeKeydown={keepMenuOpenWhileOpening}
+				>
+					<Dropdown.Item
+						class="flex items-center gap-2"
+						disabled={isOpening}
+						onclick={() => void startEditingName()}
+					>
+						<Icon icon="ri:pencil-line" class="size-4" />
+						{t('Rename overlay')}
+					</Dropdown.Item>
+					<Dropdown.Item
+						class="flex items-center gap-2"
+						closeOnSelect={false}
+						disabled={isOpening}
+						onclick={() => void openInEditor()}
+					>
+						<Icon
+							icon={openingEditor ? 'ri:loader-4-line' : 'ri:code-box-line'}
+							class={cn('size-4', openingEditor && 'animate-spin')}
+						/>
+						{t('Open in editor')}
+					</Dropdown.Item>
+					<Dropdown.Item
+						class="flex items-center gap-2"
+						closeOnSelect={false}
+						disabled={isOpening}
+						onclick={() => void openFolder()}
+					>
+						<Icon
+							icon={openingFolder ? 'ri:loader-4-line' : 'ri:folder-open-line'}
+							class={cn('size-4', openingFolder && 'animate-spin')}
+						/>
+						{t('Open folder')}
+					</Dropdown.Item>
+					<Dropdown.Item
+						class="flex items-center gap-2"
+						disabled={exporting || isOpening}
+						onclick={() => void downloadZip()}
+					>
+						<Icon icon="ri:download-2-line" class="size-4" />
+						{t('Download ZIP')}
+					</Dropdown.Item>
+					<Dropdown.Item
+						class="flex items-center gap-2 text-destructive-100"
+						disabled={isOpening}
+						onclick={() => void deleteOverlay()}
+					>
+						<Icon icon="ri:delete-bin-line" class="size-4" />
+						{t('Delete')}
+					</Dropdown.Item>
+				</Dropdown.Content>
+			</Dropdown.Root>
 		</div>
-	</div>
 
-	<div class="border-t border-rule bg-dark-900/50 px-4 py-3">
-		<Eyebrow class="mb-2">{t('Browser source URL')}</Eyebrow>
-		<div class="min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
-			<InputText
-				copyable
-				readonly
-				size="xs"
-				aria-label={t('Browser source URL')}
-				value={browserSourceUrl}
-				copyLabel={t('Copy URL')}
-				copiedLabel={t('Copied')}
-			/>
-		</div>
-		{#if isCloudPublished && cloudUrl}
-			<Eyebrow class="mb-2 mt-3">{t('Cloud browser source')}</Eyebrow>
+		<div class="flex flex-col gap-1.5">
+			<p class="font-mono text-[10px] tracking-[0.14em] text-dark-400 uppercase">
+				{isCloudPublished && cloudUrl ? t('Cloud browser source') : t('Browser source URL')}
+			</p>
 			<div class="min-w-0 [&_input]:font-mono [&_input]:text-[11px] [&_input]:leading-5">
 				<InputText
 					copyable
 					readonly
 					size="xs"
-					aria-label={t('Cloud browser source URL')}
-					value={cloudUrl}
+					aria-label={t('Browser source URL')}
+					value={isCloudPublished && cloudUrl ? cloudUrl : browserSourceUrl}
 					copyLabel={t('Copy URL')}
 					copiedLabel={t('Copied')}
 				/>
 			</div>
+		</div>
+
+		{#if (overlay.requiredPlugins ?? []).length > 0}
+			<div class="mt-auto flex flex-wrap items-center gap-1">
+				<span class="mr-0.5 font-mono text-[10px] tracking-[0.14em] text-dark-400 uppercase">
+					{t('Requires')}
+				</span>
+				{#each overlay.requiredPlugins ?? [] as pluginKey (pluginKey)}
+					<span
+						class={cn(
+							'rounded-md border px-1.5 py-px font-mono text-[11px]',
+							unavailablePlugins.has(pluginKey)
+								? 'border-destructive-200/40 text-destructive-100'
+								: 'border-rule text-dark-200'
+						)}
+					>
+						{app.plugins.find(pluginKey)?.name ?? pluginKey}
+					</span>
+				{/each}
+			</div>
 		{/if}
 	</div>
 
-	<div class="mt-auto flex items-center gap-2 border-t border-rule p-3">
-		<Button
-			size="sm"
-			variant="default"
-			class="min-w-0 flex-1"
-			icon="ri:settings-3-line"
-			onclick={() => goto(`/overlays/${overlay.id}`)}
+	<div class="flex h-12 items-center gap-1 border-t border-rule pr-2 pl-5">
+		<span
+			class={cn(
+				'flex min-w-0 flex-1 items-center gap-2 text-xs',
+				status === 'not-built' && 'font-medium text-warning-100',
+				status === 'unavailable' && 'font-medium text-destructive-100',
+				!needsAttention && 'text-dark-200'
+			)}
+			title={overlayUnavailableReason ?? undefined}
 		>
-			<span class="truncate">{t('Configure')}</span>
-		</Button>
-
-		<Button
-			size="sm"
-			variant="outline"
-			class="min-w-0 flex-1"
-			icon="ri:code-box-line"
-			disabled={openingEditor}
-			isLoading={openingEditor}
-			onclick={() => void openInEditor()}
-		>
-			<span class="truncate">{t('Open in editor')}</span>
-		</Button>
-
-		<div class="flex shrink-0 items-center gap-1">
-			<Button
-				variant="outline"
-				size="icon-sm"
-				icon="ri:folder-open-line"
-				aria-label={t('Open folder')}
-				onclick={() => void openFolder()}
-				{@attach tooltip(() => t('Open folder'))}
-			/>
-			{#if needsBuild}
-				<Button
-					variant="outline"
-					size="icon-sm"
-					icon="ri:hammer-line"
-					aria-label={t('Build')}
-					disabled={isBuilding}
-					isLoading={isBuilding}
-					onclick={() => void buildOverlay()}
-					{@attach tooltip(() => t('Build'))}
-				/>
+			{#if needsAttention}
+				<Icon icon="ri:error-warning-line" class="size-4 shrink-0" />
+			{:else}
+				<span class={cn('size-1.5 shrink-0 rounded-full', overlayStatusDotClasses[status])}
+				></span>
 			{/if}
+			<span class="truncate">{t(overlayStatusLabels[status])}</span>
+		</span>
+
+		{#if status === 'not-built'}
 			<Button
-				variant="outline"
-				size="icon-sm"
-				icon="ri:download-2-line"
-				aria-label={t('Download ZIP')}
-				disabled={exporting}
-				isLoading={exporting}
-				onclick={() => void downloadZip()}
-				{@attach tooltip(() => t('Download ZIP'))}
-			/>
+				size="sm"
+				icon="ri:hammer-line"
+				disabled={isBuilding}
+				isLoading={isBuilding}
+				onclick={() => void buildOverlay()}
+			>
+				{t('Build')}
+			</Button>
+		{:else if needsBuild}
 			<Button
-				variant="destructive"
+				variant="ghost"
 				size="icon-sm"
-				icon="ri:delete-bin-line"
-				aria-label={t('Delete')}
-				onclick={() => void deleteOverlay()}
-				{@attach tooltip(() => t('Delete'))}
+				icon="ri:hammer-line"
+				class="text-dark-400 hover:text-dark-50"
+				aria-label={t('Rebuild')}
+				disabled={isBuilding}
+				isLoading={isBuilding}
+				onclick={() => void buildOverlay()}
+				{@attach tooltip(() => t('Rebuild'))}
 			/>
-		</div>
+		{/if}
+		<Button
+			variant="ghost"
+			size="sm"
+			href={detailPath}
+			onclick={markSeen}
+			icon="ri:arrow-right-s-line"
+			iconPosition="end"
+			class="text-dark-200 hover:text-dark-50"
+		>
+			{t('Configure')}
+		</Button>
 	</div>
-</Panel>
+</div>

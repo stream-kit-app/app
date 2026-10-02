@@ -22,6 +22,7 @@
 		"@stream-kit/core": "workspace:*"
 	},
 	"devDependencies": {
+		"@iconify/svelte": "^5.2.1",
 		"@stream-kit/app": "workspace:*",
 		"@stream-kit/plugin": "workspace:*",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",

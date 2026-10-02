@@ -4,9 +4,10 @@
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
 
 	import Icon from '@iconify/svelte';
+	import { watch } from 'runed';
+	import { onDestroy } from 'svelte';
 
 	import { cn } from '../../utils';
-
 	import { buttonVariants } from './button-variants';
 
 	type Props = HTMLButtonAttributes & {
@@ -34,6 +35,39 @@
 		children,
 		...restProps
 	}: Props = $props();
+
+	/** Keep the spinner visible briefly, so a fast action still reads as "clicked". */
+	const MIN_SPINNER_MS = 600;
+
+	let showSpinner = $state(false);
+	let spinnerStartedAt = 0;
+	let spinnerTimer: ReturnType<typeof setTimeout> | undefined;
+
+	watch(
+		() => isLoading,
+		(loading) => {
+			clearTimeout(spinnerTimer);
+
+			if (loading) {
+				spinnerStartedAt = Date.now();
+				showSpinner = true;
+				return;
+			}
+
+			const remaining = MIN_SPINNER_MS - (Date.now() - spinnerStartedAt);
+
+			if (remaining <= 0) {
+				showSpinner = false;
+				return;
+			}
+
+			spinnerTimer = setTimeout(() => {
+				showSpinner = false;
+			}, remaining);
+		}
+	);
+
+	onDestroy(() => clearTimeout(spinnerTimer));
 </script>
 
 <svelte:element
@@ -49,7 +83,7 @@
 	{...restProps}
 >
 	{#if icon && iconPosition === 'start'}
-		{#if isLoading}
+		{#if showSpinner}
 			<Icon
 				icon="ri:loader-4-line"
 				class={cn('animate-spin', iconClass)}
@@ -58,7 +92,7 @@
 		{:else}
 			<Icon {icon} class={cn(iconClass)} aria-hidden={children != null} />
 		{/if}
-	{:else if isLoading}
+	{:else if showSpinner}
 		<Icon
 			icon="ri:loader-4-line"
 			class={cn('animate-spin', iconClass)}

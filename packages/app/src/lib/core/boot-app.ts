@@ -22,6 +22,7 @@ export function bootApp(): Promise<void> {
 }
 
 async function runBoot(): Promise<void> {
+	await app.theme.load();
 	await initDb();
 	registerBuiltinDashboardWidgets();
 	await app.auth.boot();

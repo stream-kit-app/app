@@ -12,7 +12,7 @@ import type { Component } from 'svelte';
  *   id: 'details',
  *   title: 'Connection details',
  *   description: 'Review before connecting.',
- *   size: 'md', // 'xs' | 'sm' | 'md' | 'lg' | 'full'
+ *   size: 'md', // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
  *   content: DetailsModal,
  *   props: { connectionId: 'ws-1' }
  * });
@@ -27,7 +27,7 @@ export type ModalProps = {
 	/** Optional subtitle shown below the title. */
 	description?: string;
 	/** Modal width preset. Defaults to `'md'`. */
-	size?: 'xs' | 'sm' | 'md' | 'lg' | 'full';
+	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 	/** Svelte component rendered as modal body. */
 	content: Component<any>;
 	/**
@@ -64,7 +64,7 @@ export class Modal {
 
 	public id: string;
 	public title: string;
-	public size: 'xs' | 'sm' | 'md' | 'lg' | 'full';
+	public size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 	public description?: string;
 	public content: Component;
 	public header?: Component;

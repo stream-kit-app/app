@@ -15,11 +15,13 @@
 	type Props = {
 		label: string;
 		icon?: string;
+		/** Compact icon button; `label` becomes the accessible name and tooltip. */
+		iconOnly?: boolean;
 		definitions: DefinitionNode[];
 		onSelect: (definition: DefinitionNode) => void;
 	};
 
-	let { label, icon = 'ri:add-line', definitions, onSelect }: Props = $props();
+	let { label, icon = 'ri:add-line', iconOnly = false, definitions, onSelect }: Props = $props();
 
 	function getAvailableChildren(definition: DefinitionNode): DefinitionNode[] {
 		return definition.children.items.filter(isSelectable);
@@ -55,7 +57,18 @@
 
 <Dropdown.Root>
 	{#snippet trigger({ props })}
-		<Button variant="ghost" size="sm" {icon} {...props}>{label}</Button>
+		{#if iconOnly}
+			<Button
+				variant="ghost"
+				size="icon-badge"
+				{icon}
+				aria-label={label}
+				{...props}
+				{@attach tooltip(() => label)}
+			/>
+		{:else}
+			<Button variant="ghost" size="sm" {icon} {...props}>{label}</Button>
+		{/if}
 	{/snippet}
 	<Dropdown.Content>
 		{#each selectableDefinitions as definition (definition.id)}

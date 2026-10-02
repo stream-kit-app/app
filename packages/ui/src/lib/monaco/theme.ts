@@ -52,3 +52,67 @@ export const streamKitMonacoTheme: editor.IStandaloneThemeData = {
 		'quickInput.foreground': '#e5e7eb'
 	}
 };
+
+export const streamKitMonacoLightTheme: editor.IStandaloneThemeData = {
+	base: 'vs',
+	inherit: true,
+	rules: [
+		{ token: 'comment', foreground: '6b7280', fontStyle: 'italic' },
+		{ token: 'keyword', foreground: '7c3aed' },
+		{ token: 'string', foreground: '15803d' },
+		{ token: 'number', foreground: 'b45309' },
+		{ token: 'type', foreground: '0e7490' },
+		{ token: 'identifier', foreground: '1f2937' }
+	],
+	colors: {
+		'editor.background': '#ffffff',
+		'editor.foreground': '#1f2937',
+		'editorLineNumber.foreground': '#9ca3af',
+		'editorLineNumber.activeForeground': '#4b5563',
+		'editor.selectionBackground': '#ddd6fe',
+		'editor.inactiveSelectionBackground': '#ede9fe',
+		'editorCursor.foreground': '#6d28d9',
+		'editor.lineHighlightBackground': '#f3f4f680',
+		'editorIndentGuide.background': '#e5e7eb',
+		'editorIndentGuide.activeBackground': '#d1d5db',
+		'editorWidget.background': '#ffffff',
+		'editorWidget.foreground': '#1f2937',
+		'editorWidget.border': '#d1d5db',
+		'editorHoverWidget.background': '#ffffff',
+		'editorHoverWidget.foreground': '#1f2937',
+		'editorHoverWidget.border': '#d1d5db',
+		'editorSuggestWidget.background': '#ffffff',
+		'editorSuggestWidget.foreground': '#1f2937',
+		'editorSuggestWidget.border': '#d1d5db',
+		'editorSuggestWidget.selectedBackground': '#eef2ff',
+		'editorSuggestWidget.selectedForeground': '#111827',
+		'editorSuggestWidget.highlightForeground': '#7c3aed',
+		'editorSuggestWidget.focusHighlightForeground': '#7c3aed',
+		'menu.background': '#ffffff',
+		'menu.foreground': '#1f2937',
+		'menu.border': '#d1d5db',
+		'menu.selectionBackground': '#eef2ff',
+		'menu.selectionForeground': '#111827',
+		'menu.separatorBackground': '#e5e7eb',
+		'editorActionList.background': '#ffffff',
+		'editorActionList.foreground': '#1f2937',
+		'editorActionList.focusBackground': '#eef2ff',
+		'editorActionList.focusForeground': '#111827',
+		'input.background': '#f3f4f6',
+		'input.foreground': '#1f2937',
+		'input.border': '#d1d5db',
+		'quickInput.background': '#ffffff',
+		'quickInput.foreground': '#1f2937'
+	}
+};
+
+export const STREAM_KIT_MONACO_THEMES = {
+	dark: 'stream-kit-dark',
+	light: 'stream-kit-light'
+} as const;
+
+/** Register both Stream Kit themes on a Monaco instance (idempotent). */
+export function defineStreamKitMonacoThemes(monaco: { editor: typeof editor }): void {
+	monaco.editor.defineTheme(STREAM_KIT_MONACO_THEMES.dark, streamKitMonacoTheme);
+	monaco.editor.defineTheme(STREAM_KIT_MONACO_THEMES.light, streamKitMonacoLightTheme);
+}

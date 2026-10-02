@@ -1,6 +1,7 @@
 import { LazyStore } from '@tauri-apps/plugin-store';
 
 const LOCALE_KEY = 'locale';
+const THEME_KEY = 'theme';
 const DEVELOPER_MODE_KEY = 'developerMode';
 const PLUGIN_DEV_MODE_KEY = 'pluginDevMode';
 const CHECK_PLUGIN_UPDATES_KEY = 'checkPluginUpdatesOnStartup';
@@ -16,6 +17,17 @@ export async function getSavedLocale(): Promise<string | undefined> {
 
 export async function saveLocale(locale: string): Promise<void> {
 	await store.set(LOCALE_KEY, locale);
+}
+
+export type ThemeMode = 'light' | 'dark';
+
+export async function getSavedTheme(): Promise<ThemeMode | undefined> {
+	const value = await store.get<string>(THEME_KEY);
+	return value === 'light' || value === 'dark' ? value : undefined;
+}
+
+export async function saveTheme(mode: ThemeMode): Promise<void> {
+	await store.set(THEME_KEY, mode);
 }
 
 export async function getDeveloperMode(): Promise<boolean> {

@@ -12,7 +12,8 @@ export type {
 export type {
 	ResolvedTriggerDefinitionProps,
 	TriggerDefinitionProps,
-	TriggerTestFn
+	TriggerTestFn,
+	TriggerVariablesSource
 } from './types';
 
 import { TriggerDefinition, TriggerDefinitions } from './trigger-definition.svelte';

@@ -5,6 +5,7 @@
 
 	import { cn } from '../../utils';
 	import { Button } from '../button';
+	import { COPIED_ICON, COPY_ICON } from '../copy-button';
 	import { InputText } from '../input';
 	import {
 		Content as PopoverContent,
@@ -87,7 +88,7 @@
 							<button
 								type="button"
 								class={cn(
-									'group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-transparent px-2.5 py-2 text-left text-xs transition-all duration-150 hover:border-dark-600/30 hover:bg-dark-700/50'
+									'group flex w-full cursor-pointer items-center justify-between gap-3 rounded-md px-2.5 py-2 text-left text-xs transition-colors duration-150 hover:bg-dark-700 hover:text-dark-50'
 								)}
 								title={onInsert ? insertedLabel : copiedLabel}
 								onclick={() => handleSelect(variable.key)}
@@ -107,12 +108,12 @@
 								<div class="flex size-4 shrink-0 items-center justify-center">
 									{#if copiedKey === variable.key}
 										<Icon
-											icon="ri:check-line"
+											icon={COPIED_ICON}
 											class="size-3.5 text-success-400"
 										/>
 									{:else}
 										<Icon
-											icon={onInsert ? 'ri:corner-down-left-line' : 'ri:file-copy-line'}
+											icon={onInsert ? 'ri:corner-down-left-line' : COPY_ICON}
 											class="size-3.5 text-dark-400 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
 										/>
 									{/if}

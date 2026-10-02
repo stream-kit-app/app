@@ -9,6 +9,7 @@
 		PluginCheckUpdatesButton,
 		PluginInstallButton
 	} from '$lib/components/core/plugins';
+	import { resolvePluginStatus } from '$lib/components/core/plugins/plugin-actions';
 	import { app } from '$lib/core';
 	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
 	import { useI18n } from '$lib/i18n';
@@ -17,6 +18,20 @@
 
 	const totalCount = $derived(app.plugins.items.length);
 	const enabledCount = $derived(app.plugins.items.filter((plugin) => plugin.isEnabled).length);
+	const notConfiguredKeys = $derived(
+		new Set(
+			app.plugins.items
+				.filter((plugin) => resolvePluginStatus(plugin) === 'not-configured')
+				.map((plugin) => plugin.key)
+		)
+	);
+	const notConfiguredCount = $derived(notConfiguredKeys.size);
+	// Plugins that still need setup come first; the rest keep their registry order.
+	const sortedPlugins = $derived(
+		[...app.plugins.items].sort(
+			(a, b) => Number(notConfiguredKeys.has(b.key)) - Number(notConfiguredKeys.has(a.key))
+		)
+	);
 
 	$effect(() => {
 		app.toolbar.set({
@@ -31,6 +46,14 @@
 								icon: 'ri:checkbox-circle-line',
 								label: t('{count} enabled', { count: enabledCount })
 							},
+							...(notConfiguredCount > 0
+								? [
+										{
+											icon: 'ri:error-warning-line',
+											label: t('{count} not configured', { count: notConfiguredCount })
+										}
+									]
+								: []),
 							...(pluginUpdates.availableCount > 0
 								? [
 										{
@@ -79,9 +102,9 @@
 				})}
 			/>
 		{/if}
-		<CellGrid cols={4} class="border-rule">
-			{#each app.plugins.items as plugin (plugin.key)}
-				<Cell class="p-0 [&>*]:border-0 [&>*]:bg-transparent">
+		<CellGrid cols={3}>
+			{#each sortedPlugins as plugin (plugin.key)}
+				<Cell class="p-0">
 					<PluginCard {plugin} />
 				</Cell>
 			{/each}

@@ -61,11 +61,3 @@ export function getOverlayFramework(id: OverlayFrameworkId): OverlayFramework {
 
 	return framework;
 }
-
-/** @deprecated Use OVERLAY_FRAMEWORKS */
-export const OVERLAY_TEMPLATES = OVERLAY_FRAMEWORKS;
-
-/** @deprecated Use getOverlayFramework */
-export function getOverlayTemplate(id: OverlayFrameworkId): OverlayFramework {
-	return getOverlayFramework(id);
-}

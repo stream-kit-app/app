@@ -1,7 +1,12 @@
 import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
 import type { HandlerTriggerContext } from '../handler-context';
-import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
+import type {
+	HandlerFieldDefinition,
+	HandlerFieldItemsContext,
+	ResolvedHandlerFieldDefinition,
+	VariableDefinition
+} from './field';
 
 /** Continue to the next handler in the action chain. */
 export type HandlerNext = () => void;
@@ -28,6 +33,19 @@ export type HandlerExecuteFn = (
 ) => void | Promise<void>;
 
 /**
+ * Variables a handler makes available to later handlers. Use a function when the variable key
+ * depends on a field value (for example a user-chosen target name).
+ *
+ * @example
+ * ```ts
+ * outputs: ({ getFieldValue }) => [{ key: String(getFieldValue('target-name') ?? '') }]
+ * ```
+ */
+export type HandlerOutputsSource =
+	| VariableDefinition[]
+	| ((context: HandlerFieldItemsContext) => VariableDefinition[]);
+
+/**
  * Definition of an action handler type that users can add to actions.
  */
 export type HandlerDefinitionProps = {
@@ -41,6 +59,8 @@ export type HandlerDefinitionProps = {
 	fields?: HandlerFieldDefinition[];
 	/** Runtime logic invoked when the action runs. */
 	execute?: HandlerExecuteFn;
+	/** Variables this handler sets for later handlers; shown in variable autocomplete. */
+	outputs?: HandlerOutputsSource;
 };
 
 /** Handler definition after ids and field keys are resolved at registration time. */

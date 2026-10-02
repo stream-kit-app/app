@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	import { Button } from '@stream-kit/ui/button';
+	import { CopyButton } from '@stream-kit/ui/copy-button';
 	import {
 		Content as PopoverContent,
 		Root as PopoverRoot,
@@ -21,17 +21,6 @@
 
 	let { id, class: className, children, t: translateProp }: Props = $props();
 	const t = $derived(resolveTranslate(translateProp));
-
-	let copied = $state(false);
-
-	function copyId(): void {
-		void navigator.clipboard.writeText(id).then(() => {
-			copied = true;
-			setTimeout(() => {
-				copied = false;
-			}, 2000);
-		});
-	}
 </script>
 
 <PopoverRoot>
@@ -47,15 +36,7 @@
 			<code class="min-w-0 flex-1 font-mono text-xs break-all text-dark-100 select-text">
 				{id}
 			</code>
-			<Button
-				type="button"
-				variant="ghost"
-				size="icon-sm"
-				icon={copied ? 'ri:check-line' : 'ri:file-copy-line'}
-				aria-label={t('Copy ID')}
-				onclick={copyId}
-				class={cn('shrink-0', copied && 'text-success-400')}
-			/>
+			<CopyButton value={id} label={t('Copy ID')} copiedLabel={t('Copied')} class="shrink-0" />
 		</div>
 	</PopoverContent>
 </PopoverRoot>

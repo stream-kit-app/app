@@ -3,6 +3,7 @@ import type {
 	HandlerFieldFormErrors,
 	HandlerBranch
 } from '$lib/core/action/action-handler.svelte';
+import type { HandlerInsertTarget } from '$lib/core/action/handler-chain-mutations';
 import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
 
 export type HandlerChainFormErrors = {
@@ -12,10 +13,7 @@ export type HandlerChainFormErrors = {
 
 export type HandlerChainEditorHost = {
 	handlers: ActionHandler[];
-	addHandler(
-		definition: HandlerDefinition,
-		target?: { parentId: string; branch: HandlerBranch }
-	): void;
+	addHandler(definition: HandlerDefinition, target?: HandlerInsertTarget): void;
 	removeHandler(handlerId: string): void;
 	cloneHandler(handlerId: string): void;
 	reorderHandlers(handlers: ActionHandler[]): void;

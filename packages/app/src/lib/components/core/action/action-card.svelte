@@ -74,11 +74,7 @@
 <div
 	class={cn(
 		'group/card flex min-w-0 flex-1 items-center gap-3 transition-colors',
-		!isOverlay && {
-			'bg-success-950/40': isRunning && !isUnavailable,
-			'bg-destructive-950/40': isUnavailable,
-			'opacity-60': !action.enabled
-		}
+		!isOverlay && !action.enabled && 'opacity-60'
 	)}
 >
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -103,7 +99,7 @@
 	<div
 		class={cn('flex size-10 shrink-0 items-center justify-center border border-rule', {
 			'border-destructive-600 bg-destructive-900 text-destructive-200': isUnavailable,
-			'border-success-600 bg-success-900 text-success-200': isRunning && !isUnavailable,
+			'border-success-600 bg-success-800 text-success-200': isRunning && !isUnavailable,
 			'bg-dark-700 text-dark-400': !action.enabled && !isUnavailable && !isRunning,
 			'bg-dark-700 text-primary': action.enabled && !isUnavailable && !isRunning
 		})}
@@ -187,7 +183,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				icon="ri:file-copy-line"
+				icon="ri:stack-line"
 				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
 				aria-label={t('Clone action')}
 				onclick={handleClone}

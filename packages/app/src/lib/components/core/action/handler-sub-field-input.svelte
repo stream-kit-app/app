@@ -10,7 +10,6 @@
 		InputFilePath,
 		InputSelect,
 		InputSwitch,
-		InputText,
 		InputTextSelect,
 		InputTextVariables
 	} from '@stream-kit/ui/input';
@@ -32,6 +31,7 @@
 		usesCloudFileStorage
 	} from '$lib/components/core/user-files/cloud-file-actions';
 	import { resolveApp } from './resolve-app';
+	import { resolveVariablesForField } from './resolve-field-variables';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 
 	type Props = {
@@ -61,12 +61,6 @@
 
 	const scalarValue = $derived(value);
 
-	const onTextInput =
-		(): FormEventHandler<HTMLInputElement> =>
-		(event) => {
-			onValueChange(event.currentTarget.value);
-		};
-
 	const onCodeInput =
 		(): FormEventHandler<HTMLTextAreaElement> =>
 		(event) => {
@@ -76,11 +70,7 @@
 	function resolveFieldVariables(
 		fieldConfig: Extract<HandlerOneOfInnerFieldDefinition, { type: 'text' | 'json' }>
 	): HandlerFieldVariable[] {
-		if ('useContextVariables' in fieldConfig && fieldConfig.useContextVariables) {
-			return contextVariables;
-		}
-
-		return 'variables' in fieldConfig ? (fieldConfig.variables ?? []) : [];
+		return resolveVariablesForField(fieldConfig.variables, contextVariables);
 	}
 
 	function resolveHandlerSelectItems(
@@ -120,25 +110,14 @@
 
 <div class="grid min-w-0 gap-1.5">
 	{#if config.type === 'text'}
-		{#if (config.variables && config.variables.length > 0) || config.useContextVariables}
-			<InputTextVariables
-				label={config.name}
-				placeholder={config.placeholder}
-				required={config.required}
-				variables={resolveFieldVariables(config)}
-				bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
-				{error}
-			/>
-		{:else}
-			<InputText
-				label={config.name}
-				placeholder={config.placeholder}
-				required={config.required}
-				value={String(scalarValue ?? '')}
-				{error}
-				oninput={onTextInput()}
-			/>
-		{/if}
+		<InputTextVariables
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			variables={resolveFieldVariables(config)}
+			bind:value={() => String(scalarValue ?? ''), (next) => onValueChange(next)}
+			{error}
+		/>
 	{:else if config.type === 'checkbox'}
 		<InputCheckbox
 			label={config.name}

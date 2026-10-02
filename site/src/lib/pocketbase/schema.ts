@@ -225,3 +225,16 @@ export const userDashboardWidgetsSchema = z.object({
     updated: z.string().regex(DATETIME_REGEX).optional(),
 })
 
+export const aiUsageSchema = z.object({
+    collectionId: z.literal('pbc_9120400000').optional(),
+    collectionName: z.string().min(1).max(255).optional(),
+    id: z.string().regex(/^[a-z0-9]+$/).length(15).optional(),
+    user: z.string().regex(/^[a-z0-9]+$/).length(15),
+    day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).length(10),
+    count: z.number().int().min(0).optional(),
+    inputTokens: z.number().int().min(0).optional(),
+    outputTokens: z.number().int().min(0).optional(),
+    created: z.string().regex(DATETIME_REGEX).optional(),
+    updated: z.string().regex(DATETIME_REGEX).optional(),
+})
+

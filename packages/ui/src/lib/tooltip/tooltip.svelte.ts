@@ -7,4 +7,4 @@ import type { TooltipPayload } from '../attachments/tooltip-content';
  * import map each get their own tether so tooltip snippets stay in the same
  * Svelte runtime as their Tooltip.Root (cross-runtime `{@render}` crashes).
  */
-export const tether = Tooltip.createTether<TooltipPayload>();
+export const tether: Tooltip.Tether<TooltipPayload> = Tooltip.createTether<TooltipPayload>();

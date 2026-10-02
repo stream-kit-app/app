@@ -267,7 +267,7 @@
 				sideOffset={contentProps?.sideOffset ?? 4}
 				class={cn(
 					'z-[100] max-h-84 min-w-(--bits-combobox-anchor-width)',
-					'rounded-lg border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
+					'rounded-xl border border-dark-600 bg-dark-800 p-[5px] shadow-md outline-none',
 					contentProps?.class
 				)}
 			>

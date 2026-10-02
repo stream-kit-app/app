@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { platform } from 'node:os';
@@ -39,6 +40,12 @@ function resolveLocalServeTarget(rawUrl) {
 	const healthUrl = `http://${bindHost}:${port}`;
 
 	return { parsed, bind, healthUrl, port };
+}
+
+// PocketBase does not read .env files; load hook secrets (e.g. ANTHROPIC_API_KEY) for the child process.
+const pbEnvPath = join(pbDir, '.env');
+if (existsSync(pbEnvPath)) {
+	process.loadEnvFile(pbEnvPath);
 }
 
 const rawPocketBaseUrl = process.env.PUBLIC_POCKETBASE_URL ?? DEFAULT_POCKETBASE_URL;

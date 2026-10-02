@@ -27,6 +27,7 @@ import type {
 	AuthPublicSubscription,
 	AuthPublicUser,
 	AuthRegisterInput,
+	AuthSendOptions,
 	AuthUpdatePasswordInput,
 	AuthUpdateProfileInput
 } from './types';
@@ -97,6 +98,10 @@ export class Auth {
 				console.warn('Failed to refresh Stream Kit account session', error);
 				pb.authStore.clear();
 			}
+		} else if (pb.authStore.token) {
+			// Expired token: PocketBase treats it as a guest (list rules return empty, no 401),
+			// so a lingering record would look signed in without any entitlement.
+			pb.authStore.clear();
 		}
 
 		this.#unsubscribe = pb.authStore.onChange(() => {
@@ -543,6 +548,33 @@ export class Auth {
 			membership && typeof membership.id === 'string' ? membership.id : null;
 
 		return toPublicSubscriptionFromMembership(membership);
+	}
+
+	/**
+	 * Authenticated request to a custom Stream Kit cloud route. Rejects with an `Error`
+	 * carrying the HTTP `status` and the server message.
+	 */
+	async send<T = unknown>(path: string, options: AuthSendOptions = {}): Promise<T> {
+		try {
+			return await this.client.send<T>(path, {
+				method: options.method ?? 'GET',
+				body: options.body,
+				signal: options.signal,
+				requestKey: null
+			});
+		} catch (error) {
+			const response = error as { status?: number; response?: { message?: unknown } };
+			const message =
+				typeof response.response?.message === 'string' && response.response.message
+					? response.response.message
+					: error instanceof Error
+						? error.message
+						: String(error);
+
+			throw Object.assign(new Error(message, { cause: error }), {
+				status: response.status ?? 0
+			});
+		}
 	}
 
 	#installSendRefresh(pb: PocketBase): void {

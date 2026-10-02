@@ -145,7 +145,7 @@
 							type="button"
 							aria-pressed={isSelected}
 							class={cn(
-								'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
+								'group flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left transition-colors',
 								isSelected
 									? 'border-primary bg-primary/10 ring-1 ring-primary/40'
 									: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'
@@ -191,7 +191,7 @@
 							type="button"
 							aria-pressed={isSelected}
 							class={cn(
-								'group flex cursor-pointer flex-col gap-3 rounded-none border p-4 text-left transition-colors',
+								'group flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left transition-colors',
 								isSelected
 									? 'border-primary bg-primary/10 ring-1 ring-primary/40'
 									: 'border-rule bg-dark-900/40 hover:bg-dark-700/40'

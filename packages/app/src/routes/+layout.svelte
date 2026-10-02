@@ -7,7 +7,6 @@
 	import { onMount, tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 
-	import { Crosshair } from '@stream-kit/ui/blueprint';
 	import { Logo } from '@stream-kit/ui/logo';
 	import * as Nav from '@stream-kit/ui/nav';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
@@ -43,7 +42,10 @@
 		return t(title as Parameters<typeof t>[0]);
 	}
 
-	bootApp()
+	// Set up in app.html; resolves once the UI fonts are loaded (or timed out).
+	const appFontsReady = (window as { __appFontsReady?: Promise<unknown> }).__appFontsReady;
+
+	Promise.all([bootApp(), appFontsReady])
 		.then(async () => {
 			if (!dev) {
 				isRevealingWindow = true;
@@ -106,11 +108,10 @@
 	>
 		<TooltipProvider>
 			<div class="flex h-full w-full overflow-hidden">
-				<aside class="relative flex h-full w-64 shrink-0 flex-col border-r border-rule">
+				<aside class="relative flex h-full w-64 shrink-0 flex-col border-r border-rule bg-sidebar">
 					<section
 						class="relative flex h-14 shrink-0 items-center border-b border-rule px-4"
 					>
-						<Crosshair position="top-right" size="sm" />
 						<span
 							class="[&_svg]:h-7 [&_svg]:w-7 [&>span]:grid-cols-[28px_auto] [&>span]:gap-1.5 [&>span>span]:text-sm"
 						>

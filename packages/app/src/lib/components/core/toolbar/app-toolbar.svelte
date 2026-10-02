@@ -1,12 +1,13 @@
 <script lang="ts">
+	import type { ButtonVariant } from '@stream-kit/ui/button';
+	import type { ToolbarAction } from '$lib/core/toolbar';
+
 	import Icon from '@iconify/svelte';
 
 	import { Button } from '@stream-kit/ui/button';
-	import type { ButtonVariant } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
 	import { app } from '$lib/core';
-	import type { ToolbarAction } from '$lib/core/toolbar';
 	import { cn } from '$lib/utils';
 
 	const toolbar = $derived(app.toolbar);
@@ -49,7 +50,9 @@
 						<InputCheckbox
 							inline
 							label={selectAll.label}
-							bind:checked={() => selectAll.checked, (checked) => selectAll.onChange(checked)}
+							bind:checked={
+								() => selectAll.checked, (checked) => selectAll.onChange(checked)
+							}
 						/>
 					{/if}
 					{#if toolbar.actions.length > 0}
@@ -61,7 +64,8 @@
 									variant={buttonProps.variant}
 									class={buttonProps.class}
 									icon={action.icon}
-									disabled={action.disabled}
+									disabled={action.disabled || action.loading}
+									isLoading={action.loading}
 									onclick={() => void action.onClick()}
 								>
 									{action.label}
@@ -83,7 +87,8 @@
 							icon={action.icon}
 							size={action.size ?? 'default'}
 							variant={action.variant ?? 'default'}
-							disabled={action.disabled}
+							disabled={action.disabled || action.loading}
+							isLoading={action.loading}
 							onclick={() => void action.onClick()}
 						>
 							{action.label}

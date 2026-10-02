@@ -5,6 +5,7 @@ import type {
 	ResolvedConditionDefinition
 } from './trigger/condition';
 
+import type { HandlerFieldVariable } from './handler/field';
 import type { ConditionFormErrors } from './validate-form';
 
 export type ConditionEditor = {
@@ -15,4 +16,6 @@ export type ConditionEditor = {
 	addGroup: (group: ConditionGroupNode) => void;
 	removeChild: (group: ConditionGroupNode, index: number) => void;
 	setOperator: (node: ConditionNode, operator: Operator) => void;
+	/** Variables offered as `{key}` autocomplete in condition inputs. */
+	getVariables?: () => HandlerFieldVariable[];
 };

@@ -136,12 +136,26 @@ export type SettingsFieldDefinition =
 			searchKeys?: string[];
 	  };
 
+export type SettingsFieldSectionBadge = {
+	label: string;
+	variant?: 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive';
+};
+
 export type SettingsFieldSectionDefinition = {
 	type: 'section';
 	title?: string;
 	description?: string;
+	/** Iconify icon shown next to the section title. */
+	icon?: string;
+	/** Render the section as a panel that can be opened and closed. */
+	collapsible?: boolean;
+	/** Initial open state of a collapsible section. Defaults to `false` (closed). */
+	defaultOpen?: boolean | ((context: SettingsContext) => boolean);
+	/** Status badge in the section header, also visible while collapsed. */
+	badge?: (context: SettingsContext) => SettingsFieldSectionBadge | undefined;
 	visible?: (context: SettingsContext) => boolean;
-	fields: SettingsFieldDefinition[];
+	/** Fields, or nested sections (one level deep) to group related fields. */
+	fields: (SettingsFieldDefinition | SettingsFieldSectionDefinition)[];
 };
 
 export type SettingsFieldItem = SettingsFieldDefinition | SettingsFieldSectionDefinition;

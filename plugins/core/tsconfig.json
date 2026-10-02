@@ -13,8 +13,20 @@
 		"paths": {
 			"@stream-kit/plugin": ["../../packages/plugin/dist/index.d.ts"],
 			"$db/*": ["../../packages/app/src/db/*"],
-			"$lib/*": ["../../packages/app/src/lib/*"]
+			"$lib/*": ["../../packages/app/src/lib/*"],
+			"@stream-kit/plugin/action": ["../../packages/plugin/stubs/action.d.ts"],
+			"@stream-kit/plugin/utils": ["../../packages/plugin/stubs/utils.d.ts"],
+			"@stream-kit/ui/*": [
+				"../../packages/ui/src/lib/components/*",
+				"../../packages/ui/src/lib/*"
+			],
+			"$env/static/public": ["../../packages/plugin/stubs/env-static-public.ts"],
+			"$env/dynamic/public": ["../../packages/plugin/stubs/env-dynamic-public.ts"]
 		}
 	},
-	"include": ["src"]
+	"include": [
+		"src",
+		"../../packages/plugin/stubs/action-ui.d.ts",
+		"../../packages/ui/src/vite-env.d.ts"
+	]
 }

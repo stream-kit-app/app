@@ -10,6 +10,7 @@
 	} from '@dnd-kit-svelte/svelte';
 	import { open } from '@tauri-apps/plugin-dialog';
 	import { watch } from 'runed';
+	import { untrack } from 'svelte';
 
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
@@ -41,7 +42,7 @@
 	type DragEvent = DndDragEvent;
 
 	let layout = $state<DndActionLayout>(buildDndLayout(app.actions.items));
-	let groupOrder = $state<string[]>(getGroupOrder(layout));
+	let groupOrder = $state<string[]>(untrack(() => getGroupOrder(layout)));
 	let isDragging = $state(false);
 	let isImporting = $state(false);
 

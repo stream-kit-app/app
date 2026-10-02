@@ -14,7 +14,10 @@
 		ResolvedHandlerFieldDefinition,
 		TextSelectTextFieldValue
 	} from '$lib/core/action/handler/field';
-	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
+	import type {
+		ResolvedConditionDefinition,
+		SelectItemsSource
+	} from '$lib/core/action/trigger/condition';
 	import type { PluginAppApi } from '@stream-kit/plugin';
 	import type { FormEventHandler } from 'svelte/elements';
 
@@ -28,7 +31,6 @@
 		InputKeyValueList,
 		InputSelect,
 		InputSwitch,
-		InputText,
 		InputTextSelect,
 		InputTextSelectText,
 		InputTextVariables,
@@ -36,6 +38,7 @@
 		InputSlider
 	} from '@stream-kit/ui/input';
 
+	import ConditionGroup from './condition-group.svelte';
 	import HandlerSubFieldInput from './handler-sub-field-input.svelte';
 	import ScriptCodeField from './script-code-field.svelte';
 
@@ -49,7 +52,9 @@
 		uploadLocalFileToCloud,
 		usesCloudFileStorage
 	} from '$lib/components/core/user-files/cloud-file-actions';
+	import { createConditionEditor, isConditionGroupNode } from '$lib/core/action/condition-tree';
 	import { resolveApp } from './resolve-app';
+	import { resolveVariablesForField } from './resolve-field-variables';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 	import { cn } from '$lib/utils';
 
@@ -60,6 +65,8 @@
 		contextVariables?: HandlerFieldVariable[];
 		app?: PluginAppApi;
 		t?: TranslateFn;
+		/** Let a handler whose only field is a code editor (Run script) fill the parent's height. */
+		fillHeight?: boolean;
 	};
 
 	let {
@@ -68,17 +75,18 @@
 		fieldErrors,
 		contextVariables = [],
 		app: appProp,
-		t: translateProp
+		t: translateProp,
+		fillHeight = false
 	}: Props = $props();
+
+	const fillsWithCode = $derived(
+		fillHeight &&
+			handler.fieldDefinitions?.length === 1 &&
+			handler.fieldDefinitions[0]?.type === 'code'
+	);
 
 	const app = $derived(resolveApp(appProp));
 	const t = $derived(resolveTranslate(translateProp));
-
-	const onTextInput =
-		(field: HandlerFieldInstance): FormEventHandler<HTMLInputElement> =>
-		(event) => {
-			field.value = event.currentTarget.value;
-		};
 
 	const onCodeInput =
 		(field: HandlerFieldInstance): FormEventHandler<HTMLTextAreaElement> =>
@@ -117,13 +125,12 @@
 	}
 
 	function resolveFieldVariables(
-		config: Extract<HandlerFieldDefinition, { type: 'text' | 'text-select-text' | 'json' }>
+		config: Extract<
+			HandlerFieldDefinition,
+			{ type: 'text' | 'text-select-text' | 'json' | 'key-value-list' }
+		>
 	): HandlerFieldVariable[] {
-		if ('useContextVariables' in config && config.useContextVariables) {
-			return contextVariables;
-		}
-
-		return 'variables' in config ? (config.variables ?? []) : [];
+		return resolveVariablesForField(config.variables, contextVariables);
 	}
 
 	function resolveHandlerSelectItems(
@@ -184,25 +191,14 @@
 
 {#snippet fieldInput(config: ResolvedHandlerFieldDefinition, field: HandlerFieldInstance, error?: string)}
 	{#if config.type === 'text'}
-		{#if (config.variables && config.variables.length > 0) || config.useContextVariables}
-			<InputTextVariables
-				label={config.name}
-				placeholder={config.placeholder}
-				required={config.required}
-				variables={resolveFieldVariables(config)}
-				bind:value={() => String(field.value ?? ''), (next) => (field.value = next)}
-				{error}
-			/>
-		{:else}
-			<InputText
-				label={config.name}
-				placeholder={config.placeholder}
-				required={config.required}
-				value={String(field.value ?? '')}
-				{error}
-				oninput={onTextInput(field)}
-			/>
-		{/if}
+		<InputTextVariables
+			label={config.name}
+			placeholder={config.placeholder}
+			required={config.required}
+			variables={resolveFieldVariables(config)}
+			bind:value={() => String(field.value ?? ''), (next) => (field.value = next)}
+			{error}
+		/>
 	{:else if config.type === 'checkbox'}
 		<InputCheckbox
 			label={config.name}
@@ -305,6 +301,7 @@
 			label={config.name}
 			keyPlaceholder={config.keyPlaceholder}
 			valuePlaceholder={config.valuePlaceholder}
+			variables={resolveFieldVariables(config)}
 			bind:entries={
 				() => getKeyValueEntries(field), (entries) => setKeyValueEntries(field, entries)
 			}
@@ -325,6 +322,7 @@
 			required={config.required}
 			language={config.language}
 			oninput={onCodeInput(field)}
+			fillHeight={fillsWithCode}
 			{error}
 		/>
 	{:else if config.type === 'json'}
@@ -395,6 +393,22 @@
 				{error}
 			/>
 		{/if}
+{:else if config.type === 'condition-group'}
+	{@const editor = createConditionEditor(
+		config.conditions as ResolvedConditionDefinition[],
+		{
+			getVariables: () => resolveVariablesForField(config.variables, contextVariables),
+			getFieldError: (nodeId) => fieldErrors?.fieldErrors[nodeId]
+		}
+	)}
+	<div class="grid min-w-0 gap-2">
+		{#if isConditionGroupNode(field.value)}
+			<ConditionGroup {editor} group={field.value} root {t} />
+		{/if}
+		{#if error}
+			<p class="text-sm text-destructive-100">{error}</p>
+		{/if}
+	</div>
 {:else if config.type === 'one-of'}
 	<InputOneOf
 		label={config.name}
@@ -445,12 +459,17 @@
 {/if}
 {/snippet}
 
-<div class={cn('grid min-w-0 gap-4')}>
+<div class={cn('min-w-0', fillsWithCode ? 'flex min-h-0 flex-1 flex-col' : 'grid gap-4')}>
 	{#each handler.fieldDefinitions ?? [] as config (config.key)}
 		{@const field = handler.getField(config.key)}
 		{#if field}
 			{#if config.description}
-				<div class="grid min-w-0 gap-1.5">
+				<div
+					class={cn(
+						'min-w-0 gap-1.5',
+						fillsWithCode ? 'flex min-h-0 flex-1 flex-col' : 'grid'
+					)}
+				>
 					{@render fieldInput(config, field, handler.getFieldError(field.id, fieldErrors))}
 					<p class="text-sm text-dark-100">{config.description}</p>
 				</div>

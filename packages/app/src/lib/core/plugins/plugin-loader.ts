@@ -4,12 +4,13 @@ import type { Plugin } from './types';
 
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 
+import { runRegisteredPluginMigrations } from '$db';
 import { translate } from '$lib/i18n';
 
 import { registerOverlayDefinitions } from '../overlay/register-overlay-definitions';
-import { getPluginAppApi } from './app-api';
 import { stopPluginDevWatcher } from './plugin-dev-watcher';
 import { getPluginHostUrl } from './plugin-host-url';
+import { sortByDependencies } from './plugin-order';
 import {
 	PLUGIN_HOST_SVELTE_SUBPATHS,
 	PLUGIN_HOST_UI_SUBPATHS
@@ -116,22 +117,29 @@ export async function loadInstalledPluginModule(
 	return plugin;
 }
 
+async function useInstalledPlugin(app: App, manifest: InstalledPluginManifest): Promise<void> {
+	const pluginFactory = await loadInstalledPluginModule(manifest);
+	await app.use(pluginFactory, {
+		key: manifest.key,
+		source: 'installed',
+		installPath: manifest.installPath,
+		version: manifest.version,
+		dependencies: manifest.dependencies,
+		optionalDependencies: manifest.optionalDependencies
+	});
+}
+
 export async function discoverAndLoadInstalledPlugins(app: App): Promise<void> {
 	const manifests = await invoke<InstalledPluginManifest[]>('list_installed_plugins');
 
-	for (const manifest of manifests) {
+	// Dependencies first, so plugin factories can already look up the plugins they depend on.
+	for (const manifest of sortByDependencies(manifests)) {
 		if (app.plugins.find(manifest.key)) {
 			continue;
 		}
 
 		try {
-			const pluginFactory = await loadInstalledPluginModule(manifest);
-			await app.use(pluginFactory, {
-				key: manifest.key,
-				source: 'installed',
-				installPath: manifest.installPath,
-				version: manifest.version
-			});
+			await useInstalledPlugin(app, manifest);
 		} catch (error) {
 			console.warn(`Failed to load installed plugin ${manifest.key}`, error);
 			app.toast.create({
@@ -163,13 +171,8 @@ export async function reloadInstalledPlugin(
 	}
 
 	try {
-		const pluginFactory = await loadInstalledPluginModule(manifest);
-		await app.use(pluginFactory, {
-			key: manifest.key,
-			source: 'installed',
-			installPath: manifest.installPath,
-			version: manifest.version
-		});
+		await useInstalledPlugin(app, manifest);
+		await runRegisteredPluginMigrations(manifest.key);
 		await app.plugins.loadPlugin(app, manifest.key);
 
 		const plugin = app.plugins.find(manifest.key);
@@ -217,7 +220,8 @@ export async function uninstallInstalledPlugin(app: App, key: string): Promise<v
 
 	plugin.removeDefinitions(app);
 
-	await getPluginAppApi(app)
+	await app.plugins
+		.appApi(app)
 		.commands.deleteByOwner(key)
 		.catch(() => 0);
 

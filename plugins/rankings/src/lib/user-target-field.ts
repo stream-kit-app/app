@@ -62,8 +62,7 @@ export function createUserTargetField(rankings: RankingsService): HandlerFieldDe
 					type: 'text',
 					name: 'Username or user ID',
 					placeholder: '{user}',
-					required: true,
-					useContextVariables: true
+					required: true
 				}
 			}
 		]

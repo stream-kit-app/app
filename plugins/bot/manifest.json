@@ -6,6 +6,7 @@
   "icon": "at-icons:bot",
   "entry": "dist/index.js",
   "dependencies": [],
+  "optionalDependencies": ["twitch", "youtube"],
   "streamKitVersion": ">=0.1.0",
   "updateManifestUrl": "https://stream-kit.app/api/plugins/bot/manifest.json"
 }

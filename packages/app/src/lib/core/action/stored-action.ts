@@ -13,6 +13,8 @@ export type StoredActionHandler = {
 	fields: HandlerFieldInstance[];
 	thenHandlers?: StoredActionHandler[];
 	elseHandlers?: StoredActionHandler[];
+	/** When `false`, the next handler starts without waiting for this one. Defaults to `true`. */
+	blocking?: boolean;
 	/** @deprecated Legacy condition-tree config, migrated on load. */
 	config?: ConditionGroupNode;
 };

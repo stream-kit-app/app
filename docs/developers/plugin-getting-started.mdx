@@ -79,6 +79,20 @@ Rules for `key`:
 - Used for install paths, settings files, and handler/trigger IDs
 - Do not change it after release without a migration plan
 
+Declare plugins you depend on in `manifest.json` too. The manifest is the only place Stream Kit reads them from:
+
+```json
+{
+	"dependencies": ["twitch"],
+	"optionalDependencies": ["core"]
+}
+```
+
+- `dependencies` — your plugin only starts when these plugins are installed and enabled.
+- `optionalDependencies` — plugins you use when they're available (via `app.plugins.tryGet`). They don't block startup.
+
+Stream Kit loads and starts plugins after both kinds of dependencies.
+
 ## Step 2 — Write the plugin entry
 
 ```ts
@@ -155,7 +169,7 @@ dist/
    - Open **Plugins**, enable **Developer mode** in Settings
    - Click **Link dev plugin** and select your `manifest.json`
 4. Enable the plugin on the Plugins page
-5. Enable **Dev mode** on the plugin card
+5. Open the plugin's settings page (**Configure** / **Details** on the card) and enable **Dev mode**
 
 When `dist/index.js` rebuilds, the app mirrors the output and reloads the plugin.
 

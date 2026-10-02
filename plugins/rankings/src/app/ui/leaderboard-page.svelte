@@ -1,19 +1,41 @@
 <script lang="ts">
 	import type { PluginCustomViewProps } from '@stream-kit/plugin';
 
+	import type { NextRankProgress } from '../../lib/ranking-engine';
+	import type { IgnoredUserRecord, RankProgress, UserRankingRecord } from '../../lib/types';
+
+	import Icon from '@iconify/svelte';
+
+	import { cn } from '@stream-kit/plugin/utils';
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
 	import { Container } from '@stream-kit/ui/container';
+	import { DataTable } from '@stream-kit/ui/data-table';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
-	import { Heading } from '@stream-kit/ui/heading';
 	import { InputText } from '@stream-kit/ui/input';
 
 	import { formatWatchTime } from '../../lib/extract-user';
-	import { orderRanks, resolveProgress, sortUsersByPoints } from '../../lib/ranking-engine';
+	import {
+		orderRanks,
+		resolveNextRankProgress,
+		resolveProgress,
+		sortUsersByPoints
+	} from '../../lib/ranking-engine';
 	import { tryGetRankingsService } from '../lib/get-rankings';
+	import { PointsEditor } from '../lib/points-editor.svelte';
 	import { RankedUser } from '../lib/ranked-user.svelte';
+	import { platformIcon, podiumClass } from '../lib/leaderboard-format';
 	import RankIcon from './rank-icon.svelte';
+
+	type LeaderboardRow = {
+		user: UserRankingRecord;
+		position: number;
+		progress: RankProgress;
+		next: NextRankProgress;
+	};
+
+	const PAGE_SIZE = 50;
 
 	let { app, title: _title, description: _description }: PluginCustomViewProps = $props();
 
@@ -24,69 +46,53 @@
 	const ordered = $derived(rankings ? orderRanks(rankings.tiers, rankings.ranks) : []);
 
 	let search = $state('');
-	let editPoints = $state<Record<string, string>>({});
+	let visibleCount = $state(PAGE_SIZE);
 
 	const filtered = $derived.by(() => {
 		const query = search.trim().toLowerCase();
+		const rows = leaderboard.map((user, index) => ({ user, position: index + 1 }));
 
 		if (!query) {
-			return leaderboard;
+			return rows;
 		}
 
-		return leaderboard.filter((user) => user.username.toLowerCase().includes(query));
+		return rows.filter(({ user }) => user.username.toLowerCase().includes(query));
 	});
 
-	function getEditValue(userId: string, currentPoints: number) {
-		return editPoints[userId] ?? String(currentPoints);
-	}
+	// Progress is only resolved for rows on screen; large chats can have thousands of users.
+	const rows = $derived<LeaderboardRow[]>(
+		filtered.slice(0, visibleCount).map(({ user, position }) => ({
+			user,
+			position,
+			progress: resolveProgress(user.totalPoints, ordered),
+			next: resolveNextRankProgress(user.totalPoints, ordered)
+		}))
+	);
 
-	function setEditValue(userId: string, value: string) {
-		editPoints = { ...editPoints, [userId]: value };
-	}
-
-	function clearEditValue(userId: string) {
-		if (!(userId in editPoints)) {
-			return;
-		}
-
-		const { [userId]: _removed, ...rest } = editPoints;
-		editPoints = rest;
-	}
-
-	async function savePoints(
-		userId: string,
-		username: string,
-		platform: 'twitch' | 'youtube' | 'unknown'
-	) {
-		if (!rankings) {
-			return;
-		}
-
-		const amount = Number(getEditValue(userId, 0));
-
-		if (!Number.isFinite(amount)) {
-			app.toast.create({
-				title: t('Points must be a valid number'),
-				variant: 'warning'
-			});
-			return;
-		}
-
-		await rankings.setPoints({
-			userId,
-			username,
-			platform,
-			amount: Math.max(0, Math.floor(amount)),
-			source: 'manual'
+	$effect(() => {
+		app.toolbar.set({
+			meta:
+				leaderboard.length > 0
+					? [
+							{
+								icon: 'ri:group-line',
+								label: t('{count} users', { count: leaderboard.length })
+							}
+						]
+					: [],
+			primaryActions: []
 		});
-		clearEditValue(userId);
-	}
+	});
 
-	function openUser(user: (typeof filtered)[number]) {
+	function openUser(user: UserRankingRecord) {
 		RankedUser.fromRecord(user).open();
 	}
 
-	async function deleteUser(userId: string, username: string) {
+	function editPoints(user: UserRankingRecord) {
+		PointsEditor.fromRecord(user).open();
+	}
+
+	async function deleteUser(user: UserRankingRecord) {
 		if (!rankings) {
 			return;
 		}
@@ -95,7 +101,7 @@
 			title: t('Remove user from rankings?'),
 			description: t(
 				'Are you sure you want to remove {name} from rankings? Their points and history will be deleted. This cannot be undone.',
-				{ name: username }
+				{ name: user.username }
 			),
 			confirmLabel: t('Remove')
 		});
@@ -105,8 +111,7 @@
 		}
 
 		try {
-			await rankings.deleteUser(userId);
-			clearEditValue(userId);
+			await rankings.deleteUser(user.userId);
 			app.toast.create({
 				title: t('User removed'),
 				description: t('The user has been removed from rankings'),
@@ -121,7 +126,7 @@
 		}
 	}
 
-	async function ignoreUser(userId: string, username: string) {
+	async function ignoreUser(user: UserRankingRecord) {
 		if (!rankings) {
 			return;
 		}
@@ -130,7 +135,7 @@
 			title: t('Ignore user from rankings?'),
 			description: t(
 				'Are you sure you want to ignore {name}? Their points and history will be deleted, and they will not earn points until you un-ignore them.',
-				{ name: username }
+				{ name: user.username }
 			),
 			confirmLabel: t('Ignore')
 		});
@@ -140,11 +145,10 @@
 		}
 
 		try {
-			await rankings.ignoreUser(userId);
-			clearEditValue(userId);
+			await rankings.ignoreUser(user.userId);
 			app.toast.create({
 				title: t('User ignored'),
-				description: t('{name} will no longer earn rankings points.', { name: username }),
+				description: t('{name} will no longer earn rankings points.', { name: user.username }),
 				variant: 'success'
 			});
 		} catch (error) {
@@ -156,16 +160,16 @@
 		}
 	}
 
-	async function unignoreUser(userId: string, username: string) {
+	async function unignoreUser(user: IgnoredUserRecord) {
 		if (!rankings) {
 			return;
 		}
 
 		try {
-			await rankings.unignoreUser(userId);
+			await rankings.unignoreUser(user.userId);
 			app.toast.create({
 				title: t('User un-ignored'),
-				description: t('{name} can earn rankings points again.', { name: username }),
+				description: t('{name} can earn rankings points again.', { name: user.username }),
 				variant: 'success'
 			});
 		} catch (error) {
@@ -176,162 +180,287 @@
 			});
 		}
 	}
+
+	function formatDate(value: string): string {
+		const date = new Date(value);
+
+		return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
+	}
 </script>
 
-{#if !rankings}
-	<Container class="px-6 py-6" size="md">
-		<p class="text-sm text-dark-300">{t('Rankings plugin unavailable.')}</p>
-	</Container>
-{:else}
-	<div class="flex min-h-full flex-1 flex-col">
-		{#if leaderboard.length > 0}
-			<Container class="shrink-0 px-6 pt-6" size="md">
-				<InputText
-					label={t('Search')}
-					value={search}
-					placeholder={t('Search users')}
-					class="max-w-md"
-					oninput={(event) => {
-						search = (event.currentTarget as HTMLInputElement).value;
-					}}
-				/>
-			</Container>
-			{#if filtered.length === 0}
-				<EmptyState
-					icon="ri:trophy-line"
-					title={t('No users found.')}
-					description={t('Try a different search term.')}
-				/>
-			{:else}
-				<Container class="px-6 py-6" size="md">
-					<ul class="divide-y divide-rule rounded-none border border-rule">
-						{#each filtered as user, index (user.userId)}
-							{@const progress = resolveProgress(user.totalPoints, ordered)}
-							<li
-								class="grid grid-cols-1 gap-3 px-4 py-3 transition-colors hover:bg-dark-700/40 sm:grid-cols-[1fr_auto] sm:items-center"
-							>
-								<button
-									type="button"
-									class="group flex min-w-0 cursor-pointer items-center gap-3 text-left"
-									onclick={() => openUser(user)}
-								>
-									<span
-										class="grid size-8 shrink-0 place-items-center border border-rule text-xs font-medium text-dark-300"
-										aria-hidden="true"
-									>
-										{index + 1}
-									</span>
-									<RankIcon icon={progress.rank?.icon} />
-									<div class="min-w-0 flex-1">
-										<p class="truncate font-medium text-dark-50 group-hover:text-primary">
-											{user.username}
-										</p>
-										<p class="truncate text-sm text-dark-300">
-											{user.totalPoints} pts · {formatWatchTime(user.watchTimeSeconds)}
-										</p>
-									</div>
-									<div class="flex shrink-0 flex-wrap justify-end gap-1">
-										{#if progress.rank}
-											<Badge variant="secondary" size="sm">{progress.rank.name}</Badge>
-										{:else}
-											<Badge variant="outline" size="sm">{t('Unranked')}</Badge>
-										{/if}
-										{#if progress.tier}
-											<Badge variant="outline" size="sm">{progress.tier.name}</Badge>
-										{/if}
-									</div>
-								</button>
-
-								<div class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
-									<InputText
-										value={getEditValue(user.userId, user.totalPoints)}
-										class="max-w-28"
-										aria-label={t('Adjust')}
-										inputmode="numeric"
-										oninput={(event) => {
-											setEditValue(
-												user.userId,
-												(event.currentTarget as HTMLInputElement).value
-											);
-										}}
-										size="sm"
-									/>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onclick={() => void savePoints(user.userId, user.username, user.platform)}
-									>
-										{t('Save')}
-									</Button>
-									<Button
-										type="button"
-										variant="ghost"
-										size="icon-sm"
-										icon="ri:eye-off-line"
-										aria-label={t('Ignore user')}
-										onclick={() => void ignoreUser(user.userId, user.username)}
-										{@attach tooltip(() => t('Ignore user'))}
-									/>
-									<Button
-										type="button"
-										variant="ghost"
-										size="icon-sm"
-										icon="ri:delete-bin-line"
-										aria-label={t('Remove user')}
-										onclick={() => void deleteUser(user.userId, user.username)}
-										{@attach tooltip(() => t('Remove user'))}
-									/>
-								</div>
-							</li>
-						{/each}
-					</ul>
-				</Container>
-			{/if}
-		{:else}
-			<EmptyState
-				icon="ri:trophy-line"
-				title={t('No users ranked yet.')}
-				description={t('Users will appear here as they earn points.')}
-			/>
+{#snippet positionCell(row: LeaderboardRow)}
+	<span
+		class={cn(
+			'inline-flex items-center gap-1 font-mono text-sm font-semibold tabular-nums',
+			podiumClass(row.position) ?? 'text-dark-300'
+		)}
+	>
+		{#if podiumClass(row.position)}
+			<Icon icon="ri:trophy-fill" class="size-3.5" aria-hidden="true" />
 		{/if}
+		{row.position}
+	</span>
+{/snippet}
 
-		{#if ignoredUsers.length > 0}
-			<Container class="px-6 py-6" size="md">
-				<div class="flex flex-col gap-3">
-					<Heading
-						level={3}
-						class="text-dark-50"
-						subTitle={t('These users will not earn points until you un-ignore them.')}
-					>
-						{t('Ignored users')}
-					</Heading>
-					<ul class="divide-y divide-rule rounded-none border border-rule">
-						{#each ignoredUsers as user (user.userId)}
-							<li
-								class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-dark-700/40"
-							>
-								<div class="flex min-w-0 items-center gap-3">
-									<RankIcon />
-									<div class="min-w-0">
-										<p class="truncate font-medium text-dark-50">{user.username}</p>
-										<p class="truncate text-sm text-dark-300">{t('Ignored')}</p>
-									</div>
-								</div>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									icon="ri:eye-line"
-									onclick={() => void unignoreUser(user.userId, user.username)}
-								>
-									{t('Un-ignore')}
-								</Button>
-							</li>
-						{/each}
-					</ul>
-				</div>
-			</Container>
+{#snippet userCell(row: LeaderboardRow)}
+	<button
+		type="button"
+		class="group flex min-w-0 cursor-pointer items-center gap-3 text-left"
+		onclick={() => openUser(row.user)}
+	>
+		<RankIcon icon={row.progress.rank?.icon} size="sm" />
+		<span class="flex min-w-0 flex-col">
+			<span class="truncate font-medium text-dark-50 group-hover:text-primary">
+				{row.user.username}
+			</span>
+			<span class="flex items-center gap-1 text-xs text-dark-400">
+				<Icon icon={platformIcon(row.user.platform)} class="size-3.5" aria-hidden="true" />
+				{formatWatchTime(row.user.watchTimeSeconds)}
+			</span>
+		</span>
+	</button>
+{/snippet}
+
+{#snippet rankCell(row: LeaderboardRow)}
+	<div class="flex flex-wrap items-center gap-1">
+		{#if row.progress.rank}
+			<Badge variant="secondary" size="sm">{row.progress.rank.name}</Badge>
+		{:else}
+			<Badge variant="outline" size="sm">{t('Unranked')}</Badge>
+		{/if}
+		{#if row.progress.tier}
+			<Badge variant="outline" size="sm">{row.progress.tier.name}</Badge>
 		{/if}
 	</div>
+{/snippet}
+
+{#snippet progressCell(row: LeaderboardRow)}
+	<div class="flex min-w-32 flex-col gap-1.5">
+		<div class="h-1.5 overflow-hidden rounded-full bg-dark-700">
+			<div class="h-full rounded-full bg-primary" style:width="{row.next.percent}%"></div>
+		</div>
+		<span class="truncate text-xs text-dark-400">
+			{#if row.next.next}
+				{t('{points} to {rank}', {
+					points: row.next.pointsToNext,
+					rank: row.next.next.rank.name
+				})}
+			{:else}
+				{t('Highest rank')}
+			{/if}
+		</span>
+	</div>
+{/snippet}
+
+{#snippet pointsCell(row: LeaderboardRow)}
+	<span class="font-mono font-semibold text-dark-50 tabular-nums">
+		{row.user.totalPoints.toLocaleString()}
+	</span>
+{/snippet}
+
+{#snippet actionsCell(row: LeaderboardRow)}
+	<div class="flex items-center justify-end gap-1">
+		<Button
+			type="button"
+			variant="ghost"
+			size="icon-sm"
+			icon="ri:edit-line"
+			aria-label={t('Edit points')}
+			onclick={() => editPoints(row.user)}
+			{@attach tooltip(() => t('Edit points'))}
+		/>
+		<Button
+			type="button"
+			variant="ghost"
+			size="icon-sm"
+			icon="ri:eye-off-line"
+			aria-label={t('Ignore user')}
+			onclick={() => void ignoreUser(row.user)}
+			{@attach tooltip(() => t('Ignore user'))}
+		/>
+		<Button
+			type="button"
+			variant="ghost"
+			size="icon-sm"
+			icon="ri:delete-bin-line"
+			aria-label={t('Remove user')}
+			onclick={() => void deleteUser(row.user)}
+			{@attach tooltip(() => t('Remove user'))}
+		/>
+	</div>
+{/snippet}
+
+{#snippet ignoredUserCell(user: IgnoredUserRecord)}
+	<span class="flex min-w-0 items-center gap-2">
+		<Icon icon={platformIcon(user.platform)} class="size-4 text-dark-400" aria-hidden="true" />
+		<span class="truncate font-medium text-dark-100">{user.username}</span>
+	</span>
+{/snippet}
+
+{#snippet ignoredAtCell(user: IgnoredUserRecord)}
+	<span class="text-dark-400 tabular-nums">{formatDate(user.ignoredAt)}</span>
+{/snippet}
+
+{#snippet ignoredActionsCell(user: IgnoredUserRecord)}
+	<Button
+		type="button"
+		variant="outline"
+		size="sm"
+		icon="ri:eye-line"
+		onclick={() => void unignoreUser(user)}
+	>
+		{t('Un-ignore')}
+	</Button>
+{/snippet}
+
+{#if !rankings}
+	<EmptyState
+		icon="ri:plug-disconnected-line"
+		title={t('Rankings plugin unavailable')}
+		description={t('Enable the Rankings plugin to see the leaderboard.')}
+	/>
+{:else if leaderboard.length === 0 && ignoredUsers.length === 0}
+	<EmptyState
+		icon="ri:trophy-line"
+		title={t('No users ranked yet.')}
+		description={t('Users will appear here as they earn points.')}
+	/>
+{:else}
+	<Container class="px-6 py-6" size="md">
+		<div class="flex flex-col gap-6">
+			{#if leaderboard.length > 0}
+				<div class="flex flex-col gap-4">
+					<InputText
+						label={t('Search')}
+						value={search}
+						placeholder={t('Search users')}
+						prependIcon="ri:search-line"
+						class="max-w-md"
+						oninput={(event) => {
+							search = (event.currentTarget as HTMLInputElement).value;
+							visibleCount = PAGE_SIZE;
+						}}
+					/>
+
+					{#if filtered.length === 0}
+						<EmptyState
+							compact
+							icon="ri:search-line"
+							title={t('No users found.')}
+							description={t('Try a different search term.')}
+						/>
+					{:else}
+						<DataTable
+							data={rows}
+							getRowKey={(row) => row.user.userId}
+							empty={t('No users found.')}
+							maxHeight="max-h-none"
+							columns={[
+								{ id: 'position', header: '#', cell: positionCell, class: 'w-16' },
+								{ id: 'user', header: t('User'), cell: userCell },
+								{ id: 'rank', header: t('Rank'), cell: rankCell, class: 'w-48' },
+								{
+									id: 'progress',
+									header: t('Next rank'),
+									cell: progressCell,
+									class: 'w-48 max-lg:hidden'
+								},
+								{
+									id: 'points',
+									header: t('Points'),
+									align: 'right',
+									cell: pointsCell,
+									class: 'w-28'
+								},
+								{
+									id: 'actions',
+									header: '',
+									align: 'right',
+									cell: actionsCell,
+									class: 'w-32'
+								}
+							]}
+						/>
+
+						{#if filtered.length > PAGE_SIZE}
+							<div class="flex items-center justify-between gap-3">
+								<span class="text-sm text-dark-400 tabular-nums">
+									{t('Showing {shown} of {total}', {
+										shown: Math.min(visibleCount, filtered.length),
+										total: filtered.length
+									})}
+								</span>
+								<div class="flex items-center gap-2">
+									{#if visibleCount > PAGE_SIZE}
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											icon="ri:arrow-up-line"
+											onclick={() => {
+												visibleCount = Math.max(PAGE_SIZE, visibleCount - PAGE_SIZE);
+											}}
+										>
+											{t('Show less')}
+										</Button>
+									{/if}
+									{#if filtered.length > visibleCount}
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											icon="ri:arrow-down-line"
+											onclick={() => {
+												visibleCount += PAGE_SIZE;
+											}}
+										>
+											{t('Show more')}
+										</Button>
+									{/if}
+								</div>
+							</div>
+						{/if}
+					{/if}
+				</div>
+			{:else}
+				<EmptyState
+					compact
+					icon="ri:trophy-line"
+					title={t('No users ranked yet.')}
+					description={t('Users will appear here as they earn points.')}
+				/>
+			{/if}
+
+			{#if ignoredUsers.length > 0}
+				<div class="flex flex-col gap-2">
+					<DataTable
+						title={t('Ignored users')}
+						data={ignoredUsers}
+						getRowKey={(user) => user.userId}
+						empty={t('No ignored users.')}
+						maxHeight="max-h-80"
+						columns={[
+							{ id: 'user', header: t('User'), cell: ignoredUserCell },
+							{
+								id: 'ignoredAt',
+								header: t('Ignored since'),
+								cell: ignoredAtCell,
+								class: 'w-40'
+							},
+							{
+								id: 'actions',
+								header: '',
+								align: 'right',
+								cell: ignoredActionsCell,
+								class: 'w-36'
+							}
+						]}
+					/>
+					<p class="text-xs text-dark-400">
+						{t('These users will not earn points until you un-ignore them.')}
+					</p>
+				</div>
+			{/if}
+		</div>
+	</Container>
 {/if}

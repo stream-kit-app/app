@@ -51,7 +51,6 @@ const plugin: Plugin = (app) => {
 		name: 'Rankings',
 		description: 'User rankings with tiers, points, and watch-time rewards.',
 		icon: 'ri:trophy-line',
-		dependencies: ['core', 'bot', 'twitch'],
 		isConfigured: () => rankingsService.isReady,
 		api: {
 			rankings: rankingsService

@@ -34,7 +34,7 @@
 	}
 </script>
 
-<section class={cn('overflow-hidden rounded-none border border-rule', className)}>
+<section class={cn('overflow-hidden rounded-xl border border-rule', className)}>
 	{#if title}
 		<div class="border-b border-rule px-4 py-3">
 			<Eyebrow>{title}</Eyebrow>

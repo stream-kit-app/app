@@ -31,6 +31,7 @@
 		placeholder?: string;
 		language?: 'typescript' | 'javascript' | 'json';
 		oninput: FormEventHandler<HTMLTextAreaElement>;
+		fillHeight?: boolean;
 	};
 
 	let {
@@ -45,7 +46,8 @@
 		required,
 		placeholder,
 		language = 'typescript',
-		oninput
+		oninput,
+		fillHeight = false
 	}: Props = $props();
 
 	let openingEditor = $state(false);
@@ -160,6 +162,7 @@
 	{language}
 	{extraLibs}
 	{modelUri}
+	{fillHeight}
 	variables={contextVariables}
 	variablesTitle={t('Variables')}
 	variablesAriaLabel={t('Insert variable')}

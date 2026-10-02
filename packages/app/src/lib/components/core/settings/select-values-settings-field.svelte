@@ -80,7 +80,7 @@
 		<ul class="flex flex-wrap gap-2">
 			{#each selectedItemsSource.items as item (item.value)}
 				<li
-					class="rounded-none border border-rule bg-success-200/5 px-3 py-1.5 text-sm text-dark-50"
+					class="rounded-md border border-rule bg-success-200/5 px-3 py-1.5 text-sm text-dark-50"
 				>
 					{item.label}
 				</li>

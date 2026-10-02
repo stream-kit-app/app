@@ -84,6 +84,16 @@ export const createGetVariableHandler = ({ app, variables }: CorePluginContext) 
 
 		],
 
+		outputs: ({ getFieldValue: getValue }) => {
+
+			const targetName = getValue('target-name');
+
+
+
+			return typeof targetName === 'string' ? [{ key: targetName }] : [];
+
+		},
+
 		execute: async (_action, handler, context, next) => {
 
 			const fromScope = parseScope(getFieldValue(handler.fields, 'from-scope'));

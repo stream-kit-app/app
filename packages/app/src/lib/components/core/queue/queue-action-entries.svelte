@@ -44,7 +44,7 @@
 						<button
 							type="button"
 							class={cn(
-								'flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-none border px-3 py-2 text-left text-sm transition-colors',
+								'flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors',
 								variant === 'active'
 									? 'border-success-700/60 bg-success-950/40 text-success-50 hover:bg-success-950/60'
 									: 'border-rule bg-dark-900 text-dark-100 hover:bg-dark-700/40'
@@ -74,7 +74,7 @@
 					{:else}
 						<div
 							class={cn(
-								'flex w-full min-w-0 items-center gap-2 rounded-none border px-3 py-2 text-sm',
+								'flex w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm',
 								variant === 'active'
 									? 'border-success-700/60 bg-success-950/40 text-success-50'
 									: 'border-rule bg-dark-900 text-dark-100'

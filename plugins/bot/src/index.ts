@@ -1,4 +1,4 @@
-import type { Plugin, PluginPageDefinition } from '@stream-kit/plugin';
+import type { Plugin, PluginCustomViewProps, PluginPageDefinition } from '@stream-kit/plugin';
 import type { Component } from 'svelte';
 
 import { Commands } from './commands/app/lib/commands.svelte';
@@ -66,11 +66,11 @@ export function botPlugin(
 	moderationService: ModerationRules,
 	rolesService: Roles,
 	settings: BotSettings,
-	overviewPageComponent: Component = OverviewPage,
-	commandsPageComponent: Component = CommandsPage,
-	timersPageComponent: Component = TimersPage,
-	moderationPageComponent: Component = ModerationPage,
-	rolesPageComponent: Component = RolesPage
+	overviewPageComponent: Component<PluginCustomViewProps> = OverviewPage,
+	commandsPageComponent: Component<PluginCustomViewProps> = CommandsPage,
+	timersPageComponent: Component<PluginCustomViewProps> = TimersPage,
+	moderationPageComponent: Component<PluginCustomViewProps> = ModerationPage,
+	rolesPageComponent: Component<PluginCustomViewProps> = RolesPage
 ): Plugin {
 	let timerScheduler: TimerScheduler | undefined;
 
@@ -112,7 +112,6 @@ export function botPlugin(
 		name: 'Bot',
 		description: 'Chat bot with commands, timers, moderation, and custom roles.',
 		icon: 'at-icons:bot',
-		dependencies: [],
 		triggers: [
 			{
 				name: 'Bot',

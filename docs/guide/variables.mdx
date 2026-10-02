@@ -44,9 +44,18 @@ See each trigger in the [API Reference](/docs/api/triggers/core).
 
 ## Editor helpers
 
-- Hover trigger titles for a **variable picker** (copies `\{key\}`).
-- In handler fields with variable support, type `\{` to open a dropdown of available trigger + action variables. Keep typing to filter, use the arrow keys to highlight, and press Enter or Tab to insert.
-- The code and JSON editors have a **Variables** button that inserts a variable at the cursor.
+- Hover trigger titles for a **variable picker** (copies `{key}`).
+- Type `{` in any handler text field, If condition, key-value value or JSON editor to open a list of the variables available at that point. Keep typing to filter, use the arrow keys to highlight, and press Enter or Tab to insert. Escape closes only the list.
+- The list is grouped into **Trigger**, **Action** and **Global** variables (bot commands and timers add their own context group).
+- The code and JSON editors also have a **Variables** button that inserts a variable at the cursor.
+
+### Which variables are suggested
+
+Each handler only sees variables that exist when it runs:
+
+- Trigger fields and global variables are available everywhere.
+- Variables set by a handler (for example **Get variable** → *Target name*, or **Set variable**) appear for handlers after it.
+- A variable set in only one branch of an **If** handler is marked **maybe** for handlers after the If, because it is not set on every run. Set it in both branches to make it always available.
 
 ## Collections vs variables
 

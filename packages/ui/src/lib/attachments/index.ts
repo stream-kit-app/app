@@ -6,3 +6,4 @@ export {
 	type TooltipPayload,
 	type TooltipSnippetPayload
 } from './tooltip.svelte';
+export { masonryItem, type MasonryItemOptions } from './masonry';

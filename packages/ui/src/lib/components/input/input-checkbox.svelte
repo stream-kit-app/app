@@ -33,7 +33,7 @@
 
 	const checkboxClass = $derived(
 		cn(
-			'peer inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-none border transition-colors outline-none',
+			'peer inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border transition-colors outline-none',
 			'data-[state=checked]:border-primary data-[state=checked]:bg-primary/15 data-[state=checked]:text-primary',
 			error
 				? cn(inputFieldBorderError, 'data-[state=unchecked]:bg-destructive/15')

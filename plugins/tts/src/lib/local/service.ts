@@ -58,10 +58,13 @@ export class LocalTtsService {
 	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
 		this.store = store;
 		this.setApp(app);
-		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume, { sessionId: TTS_SESSION_IDS.local }), {
-			sessionId: TTS_SESSION_IDS.local,
-			stopPlayback: (sessionId) => app.audio.stop(sessionId)
-		});
+		this.player.setPlayback(
+			(blob, volume) => app.audio.play(blob, volume, { sessionId: TTS_SESSION_IDS.local }),
+			{
+				sessionId: TTS_SESSION_IDS.local,
+				stopPlayback: (sessionId) => app.audio.stop(sessionId)
+			}
+		);
 		await this.syncFromStore();
 		await this.refreshVoices();
 	}
@@ -197,9 +200,7 @@ export function resolveDefaultVoiceFromSettings(
 	return voiceId || undefined;
 }
 
-export function resolveVolumeFromSettings(
-	getValue: (key: string) => unknown
-): number | undefined {
+export function resolveVolumeFromSettings(getValue: (key: string) => unknown): number | undefined {
 	const volume = getValue(LOCAL_VOLUME_SETTING_KEY);
 
 	return typeof volume === 'number' && !Number.isNaN(volume) ? volume / 100 : undefined;

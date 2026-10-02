@@ -1,8 +1,8 @@
 import type { HandlerDefinitionProps } from '../action/handler';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { SettingsFieldDefinition, SettingsFieldSectionDefinition } from '../settings';
-import type { PluginAppApi } from './plugin-app-api.types';
 import type { PluginSettingsContext } from './context';
+import type { PluginAppApi } from './plugin-app-api.types';
 import type {
 	PageBlock,
 	PageButtonClickHandler,
@@ -51,7 +51,7 @@ export type PluginSettingsFieldSectionDefinition = Omit<
 	SettingsFieldSectionDefinition,
 	'fields'
 > & {
-	fields: PluginSettingsFieldDefinition[];
+	fields: (PluginSettingsFieldDefinition | PluginSettingsFieldSectionDefinition)[];
 };
 export type PluginSettingsFieldItem =
 	| PluginSettingsFieldDefinition
@@ -67,7 +67,10 @@ export type PluginCustomViewProps = {
 	description?: string;
 };
 
-export type PluginWidgetColumns = 1 | 2 | 3 | 4 | 5 | 6;
+export const PLUGIN_WIDGET_COLUMNS = [1, 2] as const;
+
+/** Dashboard widget width: `1` is narrow (one masonry column), `2` is wide (two columns). */
+export type PluginWidgetColumns = (typeof PLUGIN_WIDGET_COLUMNS)[number];
 
 /** Props passed to dashboard widget Svelte components. */
 export type PluginWidgetProps = {
@@ -85,7 +88,7 @@ export type PluginWidgetDefinition = {
 	description?: string;
 	/** Remix icon name (for example `ri:plug-line`). */
 	icon?: string;
-	/** Grid column span on the dashboard (1–6). */
+	/** Default dashboard width: `1` is narrow (one masonry column), `2` is wide (two columns). */
 	columns?: PluginWidgetColumns;
 	/** Svelte component name registered in the plugin bundle. */
 	view: string;
@@ -131,8 +134,6 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 	description?: string;
 	/** Remix icon name for the plugin list and sidebar. */
 	icon?: string;
-	/** Plugin keys that must be enabled before this plugin can run. */
-	dependencies?: string[];
 	/** Trigger definitions users can attach to actions. */
 	triggers?: TriggerDefinitionProps<any>[];
 	/** Handler definitions users can attach to actions. */
@@ -144,7 +145,8 @@ export type PluginRegistration<TApi = PluginPublicApi> = {
 	/** Plugin settings fields shown on the plugin settings page. */
 	settings?: PluginSettingsFieldItem[];
 	/** Named Svelte components for custom views (built-in npm plugins). */
-	customViews?: Record<string, Component>;
+	// Views receive PluginCustomViewProps or PluginWidgetProps depending on where they mount.
+	customViews?: Record<string, Component<any>>;
 	/** Public API surface exposed to other plugins via `app.plugins.get`. */
 	api?: TApi;
 

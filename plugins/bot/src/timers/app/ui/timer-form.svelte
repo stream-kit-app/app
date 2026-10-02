@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Timer } from '../lib/timer.svelte';
 	import type { TimerPlatform } from '../lib/stored-timer';
-	import type { HandlerDefinition } from '@stream-kit/plugin/action';
 
 	import {
 		InputCheckbox,
@@ -13,7 +12,7 @@
 	import HandlerChainEditor from '@stream-kit/plugin/action-ui/handler-chain-editor.svelte';
 	import { getGlobalVariables } from '@stream-kit/plugin/action';
 	import { getTimersService } from '../lib/get-timers';
-	import { contextVariablesForTimerHandler } from '../lib/timer-context-variables';
+	import { getTimerBaseVariables } from '../lib/timer-context-variables';
 
 	type Props = {
 		timer: Timer;
@@ -25,17 +24,7 @@
 
 	const globalVariables = $derived(getGlobalVariables(app));
 
-	function addHandler(definition: HandlerDefinition) {
-		if (definition.isGroup || !definition.isAvailable) {
-			return;
-		}
-
-		timer.addHandler(definition);
-	}
-
-	function contextVariablesForHandler(handler: (typeof timer.handlers)[number]) {
-		return contextVariablesForTimerHandler(app, timer.handlers, handler);
-	}
+	const baseVariables = $derived(getTimerBaseVariables(app));
 </script>
 
 <form class="grid gap-6" onsubmit={(event: SubmitEvent) => event.preventDefault()}>
@@ -53,10 +42,9 @@
 		host={timer}
 		definitions={app.actions.getHandlers()}
 		formErrors={timer.formErrors}
-		contextVariablesForHandler={contextVariablesForHandler}
+		{baseVariables}
 		{globalVariables}
 		showVariablePopover
-		onAddHandler={addHandler}
 		{app}
 		{t}
 	/>

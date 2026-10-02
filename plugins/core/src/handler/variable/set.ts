@@ -84,6 +84,18 @@ export const createSetVariableHandler = ({ app, variables }: CorePluginContext) 
 
 		],
 
+		// Every scope resolves into `{name}` for later handlers (see `resolveVariables`).
+
+		outputs: ({ getFieldValue: getValue }) => {
+
+			const name = getValue('variable-name');
+
+
+
+			return typeof name === 'string' ? [{ key: name }] : [];
+
+		},
+
 		execute: async (_action, handler, context, next) => {
 
 			const scope = parseScope(getFieldValue(handler.fields, 'scope'));

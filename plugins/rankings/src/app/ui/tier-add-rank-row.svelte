@@ -25,7 +25,7 @@
 	}: Props = $props();
 </script>
 
-<div class="border-t border-dark-700/80 p-2">
+<div class="border-t border-rule p-2">
 	<div class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem_auto] sm:items-center">
 		<InputText
 			value={name}

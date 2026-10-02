@@ -166,8 +166,9 @@
 			{t('Clear collection')}
 		</Button>
 		<Button
-			variant="destructive"
+			variant="ghost"
 			icon="ri:delete-bin-line"
+			class="text-destructive-100 hover:bg-destructive-200/10 hover:text-destructive-50"
 			disabled={saving}
 			onclick={() => void handleDeleteCollection()}
 		>

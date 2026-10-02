@@ -35,9 +35,12 @@
 	],
 	"scripts": {
 		"prebuild": "pnpm --filter @stream-kit/app exec svelte-kit sync",
-		"build": "dts-bundle-generator --config dts-bundle.json && node scripts/build-runtime.mjs",
+		"build": "pnpm build:types && pnpm build:runtime",
+		"build:types": "dts-bundle-generator --config dts-bundle.json",
+		"build:runtime": "node scripts/build-runtime.mjs",
 		"check": "pnpm build && tsc --noEmit -p tsconfig.json",
-		"dev": "chokidar \"../app/src/lib/**/*.{ts,svelte.ts}\" \"src/**/*.ts\" -c \"pnpm build\" --initial",
+		"dev": "concurrently --raw \"pnpm build:types\" \"chokidar \\\"src/**/*.ts\\\" \\\"../app/src/lib/core/filesystem/*.ts\\\" -c \\\"pnpm build:runtime\\\"\"",
+		"dev:types": "chokidar \"../app/src/lib/**/*.{ts,svelte.ts}\" \"src/**/*.ts\" -c \"pnpm build:types\"",
 		"prepublishOnly": "pnpm build"
 	},
 	"dependencies": {

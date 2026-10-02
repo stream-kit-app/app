@@ -80,6 +80,7 @@ export function createTestSuperChatContext(): SuperChatContext {
 			superChatDetails: {
 				amountMicros: '5000000',
 				currency: 'USD',
+				amountDisplayString: '$5.00',
 				tier: 1,
 				userComment: 'Test super chat'
 			}

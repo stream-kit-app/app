@@ -113,7 +113,8 @@ export function handlerFromStoredWithResolver(
 		),
 		elseHandlers: (stored.elseHandlers ?? []).map((item) =>
 			handlerFromStoredWithResolver(item, resolveDefinition, createUnavailable)
-		)
+		),
+		blocking: stored.blocking !== false
 	});
 }
 

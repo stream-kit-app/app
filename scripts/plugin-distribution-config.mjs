@@ -9,7 +9,8 @@ export const PLUGIN_KEYS = [
 	'tts',
 	'twitch',
 	'websocket',
-	'youtube'
+	'youtube',
+	'ai-actions'
 ];
 
 export const PLUGIN_DESCRIPTIONS = {
@@ -21,7 +22,8 @@ export const PLUGIN_DESCRIPTIONS = {
 	tts: 'Stream Kit TTS plugin distribution',
 	twitch: 'Stream Kit Twitch plugin distribution',
 	websocket: 'Stream Kit WebSocket plugin distribution',
-	youtube: 'Stream Kit YouTube plugin distribution'
+	youtube: 'Stream Kit YouTube plugin distribution',
+	'ai-actions': 'Stream Kit AI Actions plugin distribution'
 };
 
 export function getRepoName(key) {

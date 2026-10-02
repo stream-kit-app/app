@@ -69,11 +69,11 @@
 	const presetItems = $derived(presets.map((preset) => ({ value: preset.value, label: preset.label })));
 
 	const fieldColors: Record<CronFieldKey, string> = {
-		minute: 'text-sky-300',
-		hour: 'text-violet-300',
-		day: 'text-emerald-300',
-		month: 'text-amber-300',
-		weekday: 'text-rose-300'
+		minute: 'text-sky-300 light:text-sky-700',
+		hour: 'text-violet-300 light:text-violet-700',
+		day: 'text-emerald-300 light:text-emerald-700',
+		month: 'text-amber-300 light:text-amber-700',
+		weekday: 'text-rose-300 light:text-rose-700'
 	};
 
 	const onInput: FormEventHandler<HTMLInputElement> = (event) => {
@@ -122,8 +122,8 @@
 				class={cn(
 					'inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium',
 					isValid
-						? 'bg-green-500/10 text-green-400 border-green-500/20'
-						: 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+						? 'bg-green-500/10 text-green-400 light:text-green-700 border-green-500/20'
+						: 'bg-amber-500/10 text-amber-400 light:text-amber-700 border-amber-500/20'
 				)}
 			>
 				<Icon icon={isValid ? 'ri:check-line' : 'ri:alert-line'} class="size-4" />

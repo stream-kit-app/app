@@ -1,12 +1,10 @@
 <script lang="ts">
-	import type { PluginWidgetColumns } from '$lib/core/plugins/types';
-	import type { DashboardWidgetDefinition } from '$lib/core/dashboard/types';
 	import type { DndWidgetItem } from '$lib/core/dashboard/dashboard-layout';
+	import type { DashboardWidgetDefinition } from '$lib/core/dashboard/types';
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 
 	import DashboardWidgetCard from './dashboard-widget-card.svelte';
-	import { cn } from '$lib/utils';
 
 	type Props = {
 		id: string;
@@ -16,7 +14,7 @@
 		unavailable?: boolean;
 		sortableType: string;
 		onRemove?: () => void;
-		onColumnsChange?: (columns: PluginWidgetColumns) => void;
+		onColumnsChange?: (columns: 1 | 2) => void;
 	};
 
 	let {
@@ -46,10 +44,9 @@
 	{instance}
 	{definition}
 	{unavailable}
-	editMode={true}
 	rootRef={ref}
-	handleRef={handleRef}
-	class={cn(isDragging.current && 'opacity-0')}
+	{handleRef}
+	isPlaceholder={isDragging.current}
 	{onRemove}
 	{onColumnsChange}
 />

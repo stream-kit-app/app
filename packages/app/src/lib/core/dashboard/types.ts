@@ -44,13 +44,13 @@ export type DashboardWidgetSeed = {
 
 export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetSeed[] = [
 	{ definitionId: 'app:stat-actions', columns: 1 },
-	{ definitionId: 'app:running-actions', columns: 2 },
+	{ definitionId: 'app:running-actions', columns: 1 },
 	{ definitionId: 'app:stat-plugins', columns: 1 },
 	{ definitionId: 'bot:commands', columns: 1 },
 	{ definitionId: 'core:logs', columns: 1 },
-	{ definitionId: 'app:connections', columns: 2 },
-	{ definitionId: 'app:plugin-status', columns: 2 },
-	{ definitionId: 'core:collections', columns: 4 }
+	{ definitionId: 'app:connections', columns: 1 },
+	{ definitionId: 'app:plugin-status', columns: 1 },
+	{ definitionId: 'core:collections', columns: 2 }
 ];
 
 export function createDefinitionId(source: string, key: string): string {

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { DndCommandLayout } from '../lib/command-layout';
-	import type { PluginCustomViewProps } from '@stream-kit/plugin';
+	import type { PluginAppApi, PluginCustomViewProps } from '@stream-kit/plugin';
 	import type { DndDragEvent } from '$lib/components/core/action/dnd-events';
 
 	import {
@@ -32,7 +32,7 @@
 
 	const commands = $derived(tryGetCommandsService());
 	const pluginApp = $derived(commands ? commands.requireApp() : undefined);
-	const t = $derived(pluginApp?.i18n.t ?? ((key: string) => key));
+	const t = $derived<PluginAppApi['i18n']['t']>(pluginApp?.i18n.t ?? ((key) => String(key)));
 
 	const sensors = [KeyboardSensor, PointerSensor];
 	type DragEvent = DndDragEvent;
@@ -376,7 +376,7 @@
 						groupActionIds={groupCommandIds}
 						{selection}
 						collapsed={collapsedGroups.current[groupId] ?? false}
-						onCollapsedChange={(value) => setCommandGroupCollapsed(groupId, value)}
+						onCollapsedChange={(value: boolean) => setCommandGroupCollapsed(groupId, value)}
 					>
 						{#snippet children()}
 							{#each groupCommands as item, commandIndex (item.id)}

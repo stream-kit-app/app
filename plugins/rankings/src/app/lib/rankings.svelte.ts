@@ -25,6 +25,7 @@ import {
 	loadSettings,
 	loadTiers,
 	loadUsers,
+	loadUsersWithCleanupCheck,
 	migrateRankingsRecords,
 	RANKINGS_RECORD_COLLECTIONS,
 	saveIgnoredUsers,
@@ -73,14 +74,15 @@ export class RankingsService {
 		leaderboardSize: 10
 	});
 
-	private store?: PluginStore;
-	private app?: PluginAppApi;
+	// Reactive so `isReady` (and `tryGetRankingsService()` in pages) updates once the plugin binds.
+	private store: PluginStore | undefined = $state.raw();
+	private app: PluginAppApi | undefined = $state.raw();
 	private listeners = new SvelteMap<
 		keyof RankingsEventMap,
 		SvelteSet<(context: RankingsEventContext) => void>
 	>();
 	private recordUnsubscribers: Array<() => void> = [];
-	private isPersistingRecords = false;
+	private persistingRecordsCount = 0;
 	private overlayIconCache = new Map<string, string>();
 
 	bind(store: PluginStore, app: PluginAppApi): void {
@@ -148,7 +150,7 @@ export class RankingsService {
 			const records = this.app.records.open(name);
 			this.recordUnsubscribers.push(
 				records.onChange(() => {
-					if (!this.isPersistingRecords) {
+					if (this.persistingRecordsCount === 0) {
 						void this.refreshRecords();
 					}
 				})
@@ -176,12 +178,12 @@ export class RankingsService {
 	}
 
 	private async persistRecords(operation: () => Promise<void>): Promise<void> {
-		this.isPersistingRecords = true;
+		this.persistingRecordsCount += 1;
 
 		try {
 			await operation();
 		} finally {
-			this.isPersistingRecords = false;
+			this.persistingRecordsCount -= 1;
 		}
 	}
 
@@ -191,14 +193,15 @@ export class RankingsService {
 		await this.persistRecords(() => migrateRankingsRecords(store, app));
 		await this.persistRecords(() => ensureDefaultConfig(app));
 
-		const [tiers, ranks, users, ignoredUsers, settings, pointHistory] = await Promise.all([
-			loadTiers(app),
-			loadRanks(app),
-			loadUsers(app),
-			loadIgnoredUsers(app),
-			loadSettings(app),
-			loadPointHistory(store)
-		]);
+		const [tiers, ranks, { users, needsCleanup }, ignoredUsers, settings, pointHistory] =
+			await Promise.all([
+				loadTiers(app),
+				loadRanks(app),
+				loadUsersWithCleanupCheck(app),
+				loadIgnoredUsers(app),
+				loadSettings(app),
+				loadPointHistory(store)
+			]);
 
 		this.tiers = tiers;
 		this.ranks = ranks;
@@ -206,6 +209,10 @@ export class RankingsService {
 		this.ignoredUsers = ignoredUsers;
 		this.settings = settings;
 		this.pointHistory = pointHistory;
+
+		if (needsCleanup) {
+			await this.persistUsers();
+		}
 	}
 
 	#pointHistorySaveTimer: ReturnType<typeof setTimeout> | undefined;

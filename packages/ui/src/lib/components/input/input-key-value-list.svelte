@@ -4,7 +4,10 @@
 
 	import { cn } from '../../utils';
 	import Button from '../button/button.svelte';
+	import type { HandlerFieldVariable } from '../../types';
+
 	import { InputText } from '.';
+	import InputTextVariables from './input-text-variables.svelte';
 	import Label from './label.svelte';
 
 	export type KeyValueEntry = {
@@ -21,6 +24,8 @@
 		entries?: KeyValueEntry[];
 		keyPlaceholder?: string;
 		valuePlaceholder?: string;
+		/** Variables offered as `{key}` autocomplete in the value column. */
+		variables?: HandlerFieldVariable[];
 		error?: string;
 		id?: string;
 		addLabel?: string;
@@ -33,6 +38,7 @@
 		entries = $bindable([]),
 		keyPlaceholder = 'KEY',
 		valuePlaceholder = 'value',
+		variables = [],
 		error,
 		id = useId(),
 		addLabel = 'Add',
@@ -109,11 +115,11 @@
 					value={row.key}
 					oninput={(event) => updateRow(row.id, { key: event.currentTarget.value })}
 				/>
-				<InputText
+				<InputTextVariables
 					id={`${id}-${row.id}-value`}
 					placeholder={valuePlaceholder}
-					value={row.value}
-					oninput={(event) => updateRow(row.id, { value: event.currentTarget.value })}
+					{variables}
+					bind:value={() => row.value, (value) => updateRow(row.id, { value })}
 				/>
 				<Button
 					variant="ghost"

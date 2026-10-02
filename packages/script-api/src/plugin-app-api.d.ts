@@ -36,6 +36,8 @@ type UnlistenFn = () => void;
 type UnwatchFn = () => void;
 type TranslationKey = string;
 type HandlerDefinition = unknown;
+type TriggerDefinition = unknown;
+type AuthSendOptions = { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown; signal?: AbortSignal };
 type PluginSettingsContext = unknown;
 type PluginMigration = unknown;
 type SettingsFieldValue = string | number | boolean;
@@ -126,10 +128,7 @@ interface PluginAppActionQueuesApi {
 
 	stats(queueId: number): ActionQueueStats;
 
-	on(
-		event: ActionQueueEvent,
-		handler: (context: ActionQueueEventContext) => void
-	): () => void;
+	on(event: ActionQueueEvent, handler: (context: ActionQueueEventContext) => void): () => void;
 }
 
 /**
@@ -202,7 +201,7 @@ interface PluginAppModalApi {
 	 *   title: 'Edit item',
 	 *   content: EditItemModal,
 	 *   props: { itemId: 'abc' },
-	 *   size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'full'
+	 *   size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
 	 * });
 	 * modal.open();
 	 * ```
@@ -266,6 +265,21 @@ interface PluginAppPluginsApi {
 	 * ```
 	 */
 	getSettingValue(pluginKey: string, settingKey: string): SettingsFieldValue | undefined;
+
+	/**
+	 * Update a single plugin setting, persist it, and run the plugin's `onSave` hook.
+	 * The settings form picks up the new value right away.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.plugins.setSettingValue('tts', 'elevenlabsApiKey', newKey);
+	 * ```
+	 */
+	setSettingValue(
+		pluginKey: string,
+		settingKey: string,
+		value: SettingsFieldValue
+	): Promise<void>;
 
 	/**
 	 * Build lifecycle settings context for a plugin (store, getValue, app API).
@@ -368,7 +382,11 @@ interface PluginAppFsApi {
 	 * });
 	 * ```
 	 */
-	copyFile(fromPath: string | URL, toPath: string | URL, options?: CopyFileOptions): Promise<void>;
+	copyFile(
+		fromPath: string | URL,
+		toPath: string | URL,
+		options?: CopyFileOptions
+	): Promise<void>;
 
 	/**
 	 * Create a directory.
@@ -806,6 +824,30 @@ interface PluginAppActionsApi {
 	/** Return all registered action handler definitions. */
 	getHandlers(): HandlerDefinition[];
 
+	/** Find a registered trigger definition by id. */
+	findTrigger(id: string): TriggerDefinition | undefined;
+
+	/** Return all registered trigger definitions. */
+	getTriggers(): TriggerDefinition[];
+
+	/**
+	 * Open the action editor with an unsaved draft. Nothing is stored until the user saves;
+	 * the saved action is user-owned (no `ownerPluginKey`). `onSaved` runs once with the stored
+	 * record when the user saves the draft.
+	 *
+	 * @example
+	 * ```ts
+	 * app.actions.openDraft(
+	 *   { name: 'Hug command', triggers: [...], handlers: [...] },
+	 *   { onSaved: (record) => console.log('published', record.id) }
+	 * );
+	 * ```
+	 */
+	openDraft(
+		input: Omit<NewActionRecord, 'id'>,
+		options?: { onSaved?: (record: ActionRecord) => void }
+	): void;
+
 	/**
 	 * Create a user-configured action record.
 	 *
@@ -855,10 +897,7 @@ interface PluginAppApiServerApi {
 	 * // → plugin:rankings:getLeaderboard
 	 * ```
 	 */
-	registerMethod(
-		name: string,
-		handler: (params: unknown) => unknown | Promise<unknown>
-	): void;
+	registerMethod(name: string, handler: (params: unknown) => unknown | Promise<unknown>): void;
 
 	/**
 	 * Emit an event to subscribed WebSocket clients. Prefixed with `plugin:<pluginKey>:` in plugin scope.
@@ -925,10 +964,7 @@ interface PluginAppCommandsApi {
 	 * });
 	 * ```
 	 */
-	create(
-		input: NewCommandRecord,
-		options?: { ownerPluginKey?: string }
-	): Promise<CommandRecord>;
+	create(input: NewCommandRecord, options?: { ownerPluginKey?: string }): Promise<CommandRecord>;
 
 	/**
 	 * Update an existing chat command by id.
@@ -983,6 +1019,20 @@ interface PluginAppAuthApi {
 
 	/** Clear the current session. */
 	logout(): Promise<void>;
+
+	/**
+	 * Authenticated request to a custom Stream Kit cloud route. Rejects with an `Error`
+	 * that carries the HTTP `status` and the server message.
+	 *
+	 * @example
+	 * ```ts
+	 * const result = await app.auth.send<{ ok: boolean }>('/api/my-route', {
+	 *   method: 'POST',
+	 *   body: { hello: 'world' }
+	 * });
+	 * ```
+	 */
+	send<T = unknown>(path: string, options?: AuthSendOptions): Promise<T>;
 
 	/**
 	 * Subscribe to auth changes. Invoked immediately with the current user.

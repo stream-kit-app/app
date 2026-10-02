@@ -1,5 +1,5 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
-import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@stream-kit/plugin';
+import type { Action, ActionTrigger, ConditionGroupNode, FieldValue, TriggerTestFn } from '@stream-kit/plugin';
 
 import { getTwitch } from './plugin-api';
 
@@ -48,9 +48,9 @@ export function createOnTest<TContext>(factory: () => TContext): TriggerTestFn {
 }
 
 function buildEvaluatorLookup(
-	evaluators: Record<string, (value: import('@stream-kit/core').FieldValue) => boolean>
-): Record<string, (value: import('@stream-kit/core').FieldValue) => boolean> {
-	const lookup: Record<string, (value: import('@stream-kit/core').FieldValue) => boolean> = {};
+	evaluators: Record<string, (value: FieldValue) => boolean>
+): Record<string, (value: FieldValue) => boolean> {
+	const lookup: Record<string, (value: FieldValue) => boolean> = {};
 
 	for (const [key, evaluate] of Object.entries(evaluators)) {
 		lookup[normalizeLookupKey(key)] = evaluate;
@@ -67,7 +67,7 @@ function buildEvaluatorLookup(
 export function evaluateWith(
 	conditions: ConditionGroupNode,
 	context: unknown,
-	evaluators: Record<string, (value: import('@stream-kit/core').FieldValue) => boolean>
+	evaluators: Record<string, (value: FieldValue) => boolean>
 ): boolean {
 	const lookup = buildEvaluatorLookup(evaluators);
 

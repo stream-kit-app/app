@@ -7,6 +7,7 @@
 		ResolvedConditionDefinition
 	} from '$lib/core/action/trigger';
 	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
+	import type { HandlerFieldVariable } from '$lib/core/action/handler/field';
 	import type { ConditionFormErrors } from '$lib/core/action/validate-form';
 	import type { FormEventHandler } from 'svelte/elements';
 
@@ -19,12 +20,12 @@
 		InputHotkey,
 		InputSelect,
 		InputSelectText,
-		InputText,
 		InputTextSelectText,
 		InputTextVariables,
 		Label
 	} from '@stream-kit/ui/input';
 
+	import { mergeContextVariables } from '$lib/core/action/variable-helpers';
 	import { cn } from '$lib/utils';
 
 	import Self from './condition-group.svelte';
@@ -69,6 +70,19 @@
 		);
 	}
 
+	function conditionVariables(
+		config: Extract<ResolvedConditionDefinition, { type: 'text' | 'select-text' | 'text-select-text' }>
+	): HandlerFieldVariable[] {
+		const scoped = editor.getVariables?.() ?? [];
+		const own = config.variables ?? [];
+
+		if (scoped.length === 0) {
+			return own;
+		}
+
+		return own.length === 0 ? scoped : mergeContextVariables(scoped, own);
+	}
+
 	const onConditionTextInput =
 		(node: ConditionLeafNode): FormEventHandler<HTMLInputElement> =>
 		(event) => {
@@ -100,23 +114,13 @@
 	error?: string
 )}
 	{#if config.type === 'text'}
-		{#if config.variables && config.variables.length > 0}
-			<InputTextVariables
-				placeholder={config.placeholder}
-				required={config.required}
-				variables={config.variables}
-				bind:value={() => (node.value as string) ?? '', (next) => (node.value = next)}
-				{error}
-			/>
-		{:else}
-			<InputText
-				placeholder={config.placeholder}
-				required={config.required}
-				value={(node.value as string) ?? ''}
-				{error}
-				oninput={onConditionTextInput(node)}
-			/>
-		{/if}
+		<InputTextVariables
+			placeholder={config.placeholder}
+			required={config.required}
+			variables={conditionVariables(config)}
+			bind:value={() => (node.value as string) ?? '', (next) => (node.value = next)}
+			{error}
+		/>
 	{:else if config.type === 'cron-expression'}
 		<InputCronExpression
 			placeholder={config.placeholder}
@@ -184,7 +188,7 @@
 			placeholder={config.placeholder}
 			loadingPlaceholder={config.loadingPlaceholder}
 			selectPlaceholder={config.selectPlaceholder}
-			variables={config.variables}
+			variables={conditionVariables(config)}
 			selectClass="w-32"
 			contentProps={{ align: 'start', collisionPadding: 8 }}
 			{error}
@@ -197,7 +201,8 @@
 			valuePlaceholder={config.valuePlaceholder}
 			loadingPlaceholder={config.loadingPlaceholder}
 			selectPlaceholder={config.selectPlaceholder}
-			variables={config.variables}
+			valuelessOperators={config.valuelessOperators}
+			variables={conditionVariables(config)}
 			selectClass="w-32"
 			contentProps={{ align: 'start', collisionPadding: 8 }}
 			{error}
@@ -216,7 +221,7 @@
 	</div>
 {/snippet}
 
-<div class={cn('grid gap-4', !root && 'rounded-none border border-rule p-3')}>
+<div class={cn('grid gap-4', !root && 'rounded-xl border border-rule p-3')}>
 	{#each group.children as child, index (child.id)}
 		{#if child.kind === 'condition'}
 			{@const config = editor.getConditionDefinition(child.key)}

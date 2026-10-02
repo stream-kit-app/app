@@ -29,6 +29,8 @@
 	const { t } = useI18n();
 
 	const displayName = $derived(action.name.trim() || t('this action'));
+	const isRunning = $derived(action.execution.state.isRunning);
+	const isUnavailable = $derived(action.hasUnavailableDefinitions);
 
 	const { ref, handleRef, isDragging } = useSortable({
 		id: () => action.id!,
@@ -44,10 +46,14 @@
 <div {@attach ref} class="relative min-w-0 p-2">
 	<div
 		class={cn(
-			'group/row flex min-w-0 items-center gap-1 rounded-none px-2 py-1.5 transition-colors',
+			'group/row flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 transition-colors',
 			isOverlay
 				? 'border border-rule bg-dark-800 shadow-2xl'
-				: 'hover:bg-dark-700/40',
+				: isUnavailable
+					? 'bg-destructive-950/40'
+					: isRunning
+						? 'bg-success-900 ring-1 ring-success-600 ring-inset'
+						: 'hover:bg-dark-700/40',
 			isDragging.current && !isOverlay && 'pointer-events-none opacity-0 select-none'
 		)}
 		aria-hidden={isDragging.current && !isOverlay}
@@ -76,7 +82,7 @@
 
 	{#if isDragging.current && !isOverlay}
 		<div
-			class="absolute inset-0 flex items-center justify-center rounded-none border border-dashed border-rule bg-dark-900/80 px-4 text-sm font-medium text-dark-200"
+			class="absolute inset-0 flex items-center justify-center rounded-md border border-dashed border-rule bg-dark-900/80 px-4 text-sm font-medium text-dark-200"
 			aria-hidden="true"
 		>
 			{t('Moving: {name}', { name: displayName })}

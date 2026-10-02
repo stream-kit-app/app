@@ -5,9 +5,8 @@
   "description": "Twitch chat, EventSub, moderation, polls, predictions, and channel actions.",
   "icon": "ri:twitch-fill",
   "entry": "dist/index.js",
-  "dependencies": [
-    "core"
-  ],
+  "dependencies": [],
+  "optionalDependencies": ["core"],
   "streamKitVersion": ">=0.1.0",
   "updateManifestUrl": "https://stream-kit.app/api/plugins/twitch/manifest.json"
 }

@@ -9,12 +9,13 @@
 @source not '../../../../site/**';
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant light (&:where([data-theme=light], [data-theme=light] *));
 @custom-variant has-focus (&:has(:focus));
 
 /*
  * Stream Kit palette
- * dark scale — neutral super-dark gray (minimal chroma)
- * primary scale — electric cerulean (hue 255) for UI
+ * dark scale — deep ink (indigo-tinted graphite, hue 275; chroma grows toward the dark end)
+ * primary scale — soft indigo (hue 280) for UI; complements the yellow brand
  * brand scale — logo yellow (#fffa00 at 500) for logo/marketing only
  * Secondary: soft orchid — badges, secondary actions, highlights
  * success scale — vivid emerald (hue 152)
@@ -22,31 +23,31 @@
  * destructive scale — signal red (hue 27)
  */
 @theme {
-	/* ~0.06–0.08 L between steps so surfaces read clearly on dark UIs */
-	--color-dark-50: oklch(0.78 0.012 264);
-	--color-dark-100: oklch(0.7 0.011 264);
-	--color-dark-200: oklch(0.62 0.01 264);
-	--color-dark-300: oklch(0.54 0.009 264);
-	--color-dark-400: oklch(0.46 0.008 264);
-	--color-dark-500: oklch(0.38 0.007 264);
-	--color-dark-600: oklch(0.3 0.007 264);
-	--color-dark-700: oklch(0.22 0.006 264);
-	--color-dark-800: oklch(0.15 0.006 264);
-	--color-dark-900: oklch(0.102 0.005 264);
-	--color-dark-950: oklch(0.06 0.004 264);
+	/* Base sits at ~#121319 (ink), not black — ~0.03–0.06 L between surface steps */
+	--color-dark-50: oklch(0.93 0.006 275);
+	--color-dark-100: oklch(0.85 0.008 275);
+	--color-dark-200: oklch(0.76 0.01 275);
+	--color-dark-300: oklch(0.66 0.012 275);
+	--color-dark-400: oklch(0.55 0.014 275);
+	--color-dark-500: oklch(0.45 0.015 275);
+	--color-dark-600: oklch(0.36 0.016 275);
+	--color-dark-700: oklch(0.3 0.016 275);
+	--color-dark-800: oklch(0.25 0.014 275);
+	--color-dark-900: oklch(0.215 0.014 275);
+	--color-dark-950: oklch(0.19 0.012 275);
 
 	/* primary scale — chroma tapers at extremes, peaks around 300–400 */
-	--color-primary-50: oklch(0.78 0.06 255);
-	--color-primary-100: oklch(0.7 0.1 255);
-	--color-primary-200: oklch(0.62 0.14 255);
-	--color-primary-300: oklch(0.54 0.17 255);
-	--color-primary-400: oklch(0.46 0.18 255);
-	--color-primary-500: oklch(0.38 0.16 255);
-	--color-primary-600: oklch(0.3 0.14 255);
-	--color-primary-700: oklch(0.23 0.12 255);
-	--color-primary-800: oklch(0.17 0.1 255);
-	--color-primary-900: oklch(0.11 0.08 255);
-	--color-primary-950: oklch(0.06 0.06 255);
+	--color-primary-50: oklch(0.78 0.06 280);
+	--color-primary-100: oklch(0.7 0.1 280);
+	--color-primary-200: oklch(0.62 0.14 280);
+	--color-primary-300: oklch(0.54 0.17 280);
+	--color-primary-400: oklch(0.46 0.18 280);
+	--color-primary-500: oklch(0.38 0.16 280);
+	--color-primary-600: oklch(0.3 0.14 280);
+	--color-primary-700: oklch(0.23 0.12 280);
+	--color-primary-800: oklch(0.17 0.1 280);
+	--color-primary-900: oklch(0.11 0.08 280);
+	--color-primary-950: oklch(0.06 0.06 280);
 
 	/* brand scale — 500 is exactly #fffa00; shades derived via color-mix */
 	--color-brand-50: color-mix(in srgb, #fffa00 12%, white);
@@ -101,10 +102,10 @@
 	--color-destructive-950: oklch(0.06 0.06 27);
 
 	--color-background: var(--color-dark-950);
-	--color-foreground: oklch(0.98 0.002 264);
+	--color-foreground: oklch(0.98 0.003 275);
 
 	--color-primary: var(--color-primary-200);
-	--color-primary-foreground: oklch(0.99 0.002 250);
+	--color-primary-foreground: oklch(0.99 0.002 280);
 
 	--color-brand: var(--color-brand-500);
 	--color-brand-foreground: var(--color-dark-950);
@@ -125,7 +126,7 @@
 	--color-muted-foreground: var(--color-dark-300);
 
 	--color-accent: var(--color-dark-700);
-	--color-accent-foreground: oklch(0.98 0.002 264);
+	--color-accent-foreground: oklch(0.98 0.003 275);
 
 	--color-border: var(--color-dark-600);
 	--color-ring: var(--color-primary-200);
@@ -134,15 +135,22 @@
 	--color-rule: oklch(0.98 0.002 264 / 0.1);
 	--color-rule-strong: oklch(0.98 0.002 264 / 0.18);
 
-	/* Border radius — hybrid: controls use lg/md; structural surfaces use rounded-none */
+	/* Surfaces & item states — quiet lifts instead of flat grey blocks */
+	--color-surface: var(--color-dark-900);
+	--color-item-hover: oklch(0.98 0.002 264 / 0.05);
+	--color-item-active: oklch(0.98 0.002 264 / 0.08);
+	--color-item-active-foreground: var(--color-foreground);
+	--color-sidebar: oklch(0.165 0.01 275);
+
+	/* Border radius — items use md, controls lg, surfaces (panels, menus, dialogs, cards) xl */
 	--radius-xs: 0.125rem;
-	--radius-sm: 0.125rem;
+	--radius-sm: 0.1875rem;
 	--radius-md: 0.25rem;
-	--radius-lg: 0.25rem;
-	--radius-xl: 0.25rem;
-	--radius-2xl: 0.375rem;
-	--radius-3xl: 0.5rem;
-	--radius-4xl: 0.625rem;
+	--radius-lg: 0.3125rem;
+	--radius-xl: 0.4375rem;
+	--radius-2xl: 0.5rem;
+	--radius-3xl: 0.75rem;
+	--radius-4xl: 1rem;
 
 	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;
@@ -166,6 +174,124 @@
 	html {
 		font-size: 16px;
 		color-scheme: dark;
+
+		/* Code syntax colors (CodeMirror) — dark defaults */
+		--syntax-keyword: #c792ea;
+		--syntax-name: #e2e8f0;
+		--syntax-function: #82aaff;
+		--syntax-constant: #f78c6c;
+		--syntax-type: #ffcb6b;
+		--syntax-operator: #89ddff;
+		--syntax-comment: #64748b;
+		--syntax-string: #c3e88d;
+		--syntax-invalid: #f87171;
+		--syntax-tag: #f07178;
+		--syntax-selected: #f8fafc;
+		--syntax-lint-error: #f87171;
+		--syntax-lint-warning: #fbbf24;
+		--syntax-lint-info: #60a5fa;
+	}
+
+	/*
+	 * Light scheme — set via `data-theme="light"` on <html> (see $lib/core/theme).
+	 * Scales are mirrored (950 = lightest surface, 50 = darkest text) so existing
+	 * `dark-*` / status-scale utilities keep their meaning: low numbers = high contrast.
+	 */
+	html[data-theme='light'] {
+		color-scheme: light;
+
+		--color-dark-50: oklch(0.22 0.014 275);
+		--color-dark-100: oklch(0.32 0.014 275);
+		--color-dark-200: oklch(0.4 0.014 275);
+		--color-dark-300: oklch(0.48 0.013 275);
+		--color-dark-400: oklch(0.56 0.012 275);
+		--color-dark-500: oklch(0.72 0.01 275);
+		--color-dark-600: oklch(0.87 0.008 275);
+		--color-dark-700: oklch(0.92 0.006 275);
+		--color-dark-800: oklch(0.945 0.005 275);
+		--color-dark-900: oklch(0.965 0.004 275);
+		--color-dark-950: oklch(0.985 0.002 275);
+
+		--color-primary-50: oklch(0.3 0.1 280);
+		--color-primary-100: oklch(0.38 0.14 280);
+		--color-primary-200: oklch(0.46 0.17 280);
+		--color-primary-300: oklch(0.52 0.18 280);
+		--color-primary-400: oklch(0.58 0.17 280);
+		--color-primary-500: oklch(0.66 0.14 280);
+		--color-primary-600: oklch(0.76 0.1 280);
+		--color-primary-700: oklch(0.85 0.07 280);
+		--color-primary-800: oklch(0.91 0.045 280);
+		--color-primary-900: oklch(0.95 0.03 280);
+		--color-primary-950: oklch(0.975 0.015 280);
+
+		--color-success-50: oklch(0.3 0.08 152);
+		--color-success-100: oklch(0.38 0.11 152);
+		--color-success-200: oklch(0.46 0.14 152);
+		--color-success-300: oklch(0.52 0.15 152);
+		--color-success-400: oklch(0.58 0.15 152);
+		--color-success-500: oklch(0.66 0.13 152);
+		--color-success-600: oklch(0.76 0.1 152);
+		--color-success-700: oklch(0.85 0.07 152);
+		--color-success-800: oklch(0.91 0.045 152);
+		--color-success-900: oklch(0.95 0.03 152);
+		--color-success-950: oklch(0.975 0.015 152);
+
+		--color-warning-50: oklch(0.32 0.07 70);
+		--color-warning-100: oklch(0.4 0.1 70);
+		--color-warning-200: oklch(0.48 0.12 75);
+		--color-warning-300: oklch(0.56 0.14 80);
+		--color-warning-400: oklch(0.64 0.15 85);
+		--color-warning-500: oklch(0.72 0.15 85);
+		--color-warning-600: oklch(0.8 0.12 85);
+		--color-warning-700: oklch(0.87 0.08 85);
+		--color-warning-800: oklch(0.92 0.05 85);
+		--color-warning-900: oklch(0.955 0.03 85);
+		--color-warning-950: oklch(0.977 0.015 85);
+
+		--color-destructive-50: oklch(0.3 0.1 27);
+		--color-destructive-100: oklch(0.38 0.14 27);
+		--color-destructive-200: oklch(0.46 0.17 27);
+		--color-destructive-300: oklch(0.52 0.19 27);
+		--color-destructive-400: oklch(0.56 0.2 27);
+		--color-destructive-500: oklch(0.64 0.17 27);
+		--color-destructive-600: oklch(0.74 0.12 27);
+		--color-destructive-700: oklch(0.84 0.08 27);
+		--color-destructive-800: oklch(0.9 0.05 27);
+		--color-destructive-900: oklch(0.945 0.03 27);
+		--color-destructive-950: oklch(0.972 0.015 27);
+
+		--color-foreground: oklch(0.2 0.014 275);
+		--color-primary: oklch(0.52 0.18 280);
+		--color-primary-foreground: oklch(0.99 0.002 280);
+		--color-brand-foreground: oklch(0.2 0.014 275);
+		--color-secondary: oklch(0.55 0.15 305);
+		--color-success: oklch(0.52 0.15 152);
+		--color-warning: oklch(0.72 0.15 85);
+		--color-destructive: oklch(0.55 0.2 27);
+		--color-accent-foreground: oklch(0.2 0.014 275);
+		--color-ring: oklch(0.52 0.18 280);
+
+		--color-rule: oklch(0.22 0.014 275 / 0.1);
+		--color-rule-strong: oklch(0.22 0.014 275 / 0.18);
+		--color-surface: oklch(1 0 0);
+		--color-item-hover: oklch(0.22 0.014 275 / 0.05);
+		--color-item-active: oklch(0.22 0.014 275 / 0.08);
+		--color-sidebar: oklch(0.965 0.004 275);
+
+		--syntax-keyword: #7c3aed;
+		--syntax-name: #1f2937;
+		--syntax-function: #2563eb;
+		--syntax-constant: #c2410c;
+		--syntax-type: #b45309;
+		--syntax-operator: #0e7490;
+		--syntax-comment: #6b7280;
+		--syntax-string: #15803d;
+		--syntax-invalid: #dc2626;
+		--syntax-tag: #be123c;
+		--syntax-selected: #111827;
+		--syntax-lint-error: #dc2626;
+		--syntax-lint-warning: #d97706;
+		--syntax-lint-info: #2563eb;
 	}
 
 	input:autofill,
@@ -286,6 +412,39 @@
 		--vscode-input-foreground: #e5e7eb;
 		--vscode-input-border: #374151;
 		--vscode-textCodeBlock-background: #1f2937;
+	}
+
+	html[data-theme='light'] .stream-kit-monaco-overflow-host.monaco-editor {
+		color: #1f2937;
+		--vscode-editorWidget-background: #ffffff;
+		--vscode-editorWidget-foreground: #1f2937;
+		--vscode-editorWidget-border: #d1d5db;
+		--vscode-editorHoverWidget-background: #ffffff;
+		--vscode-editorHoverWidget-foreground: #1f2937;
+		--vscode-editorHoverWidget-border: #d1d5db;
+		--vscode-editorSuggestWidget-background: #ffffff;
+		--vscode-editorSuggestWidget-foreground: #1f2937;
+		--vscode-editorSuggestWidget-border: #d1d5db;
+		--vscode-editorSuggestWidget-selectedBackground: #eef2ff;
+		--vscode-editorSuggestWidget-selectedForeground: #111827;
+		--vscode-editorSuggestWidget-highlightForeground: #7c3aed;
+		--vscode-editorSuggestWidget-focusHighlightForeground: #7c3aed;
+		--vscode-menu-background: #ffffff;
+		--vscode-menu-foreground: #1f2937;
+		--vscode-menu-border: #d1d5db;
+		--vscode-menu-selectionBackground: #eef2ff;
+		--vscode-menu-selectionForeground: #111827;
+		--vscode-menu-separatorBackground: #e5e7eb;
+		--vscode-editorActionList-background: #ffffff;
+		--vscode-editorActionList-foreground: #1f2937;
+		--vscode-editorActionList-focusBackground: #eef2ff;
+		--vscode-editorActionList-focusForeground: #111827;
+		--vscode-quickInput-background: #ffffff;
+		--vscode-quickInput-foreground: #1f2937;
+		--vscode-input-background: #f3f4f6;
+		--vscode-input-foreground: #1f2937;
+		--vscode-input-border: #d1d5db;
+		--vscode-textCodeBlock-background: #f3f4f6;
 	}
 
 	.stream-kit-monaco-overflow-host > * {

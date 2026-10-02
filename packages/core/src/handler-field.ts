@@ -21,13 +21,29 @@ export type TextSelectTextFieldValue = {
 	negate?: boolean;
 };
 
-/** Scalar handler field values (text, number, boolean, structured selects). */
+/** A condition or nested group inside a condition-group handler field. */
+export type ConditionTreeNode =
+	| {
+			kind: 'condition';
+			id: string;
+			key: string;
+			value: string | boolean | { [key: string]: string };
+			negate?: boolean;
+			operator?: 'and' | 'or';
+	  }
+	| { kind: 'group'; id: string; children: ConditionTreeNode[]; operator?: 'and' | 'or' };
+
+/** Value of a condition-group handler field (for example the IF handler's conditions). */
+export type ConditionGroupFieldValue = Extract<ConditionTreeNode, { kind: 'group' }>;
+
+/** Scalar handler field values (text, number, boolean, structured selects, condition groups). */
 export type HandlerFieldScalarValue =
 	| string
 	| number
 	| boolean
 	| KeyValueEntry[]
-	| TextSelectTextFieldValue;
+	| TextSelectTextFieldValue
+	| ConditionGroupFieldValue;
 
 /** Active variant and values for a one-of handler field. */
 export type OneOfFieldValue = {

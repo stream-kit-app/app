@@ -33,6 +33,8 @@ export { withActionVariables } from './handler-context.js';
 export type { CronFieldKey, CronPreset } from './cron.js';
 export type {
 	HandlerFieldInstance,
+	ConditionGroupFieldValue,
+	ConditionTreeNode,
 	HandlerFieldScalarValue,
 	HandlerFieldValue,
 	KeyValueEntry,

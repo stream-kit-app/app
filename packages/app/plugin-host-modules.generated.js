@@ -9,6 +9,7 @@ export const PLUGIN_HOST_UI_SUBPATHS = [
 	"codemirror",
 	"command",
 	"container",
+	"copy-button",
 	"data-table",
 	"dialog",
 	"dropdown",
@@ -22,7 +23,9 @@ export const PLUGIN_HOST_UI_SUBPATHS = [
 	"scroll-area",
 	"toggle-group",
 	"tooltip",
-	"variable-popover"
+	"variable-autocomplete",
+	"variable-popover",
+	"widget"
 ];
 
 export const PLUGIN_HOST_SVELTE_SUBPATHS = [

@@ -26,7 +26,7 @@
 		oninput={(event) => (picker.search = event.currentTarget.value)}
 	/>
 
-	<div class="rounded-none border border-rule p-2">
+	<div class="rounded-lg border border-rule p-2">
 		{#if picker.items.loading}
 			<div class="flex items-center gap-2 px-3 py-6 text-sm text-dark-300">
 				<Icon icon="ri:loader-4-line" class="size-4 animate-spin text-primary" aria-hidden="true" />

@@ -10,11 +10,14 @@
 
 	import {
 		configureMonacoTypescript,
+		defineStreamKitMonacoThemes,
 		ensureMonacoEnvironment,
-		streamKitMonacoTheme,
+		registerModelVariables,
+		STREAM_KIT_MONACO_THEMES,
 		warmupMonacoTypescript,
 		withMonacoProjectReference
 	} from '../../monaco';
+	import { getColorScheme, onColorSchemeChange } from '../../color-scheme';
 	import { VariablePopover } from '../variable-popover';
 	import { Button } from '../button';
 	import { cn } from '../../utils';
@@ -90,6 +93,8 @@
 	let syncingFromOutside = false;
 	let extraLibsSignature = $state('');
 	let ownsModel = false;
+	let unregisterVariables: (() => void) | undefined;
+	let stopColorSchemeSync: (() => void) | undefined;
 	let overflowWidgetsHost: HTMLDivElement | undefined;
 
 	function createOverflowWidgetsHost(): HTMLDivElement {
@@ -208,7 +213,12 @@
 			}
 
 			monaco = monacoModule;
-			monaco.editor.defineTheme('stream-kit-dark', streamKitMonacoTheme);
+			defineStreamKitMonacoThemes(monaco);
+			// Monaco themes are global; every editor follows the host's data-theme.
+			stopColorSchemeSync?.();
+			stopColorSchemeSync = onColorSchemeChange((scheme) => {
+				monaco?.editor.setTheme(STREAM_KIT_MONACO_THEMES[scheme]);
+			});
 
 			const editorLanguage = language === 'json' ? 'json' : 'typescript';
 			const model = createEditorModel(monacoModule, source);
@@ -222,7 +232,7 @@
 				model,
 				value: model ? undefined : source,
 				language: model ? undefined : editorLanguage,
-				theme: 'stream-kit-dark',
+				theme: STREAM_KIT_MONACO_THEMES[getColorScheme()],
 				automaticLayout: true,
 				...(useOverflowHost && overflowWidgetsHost
 					? {
@@ -280,6 +290,12 @@
 
 			if (libs.length > 0) {
 				await applyTypescriptLibs(libs);
+			}
+
+			const editorModel = editor.getModel();
+
+			if (editorModel) {
+				unregisterVariables = registerModelVariables(monacoModule, editorModel, () => variables);
 			}
 
 			editor.onDidChangeModelContent(() => {
@@ -471,6 +487,8 @@
 	onDestroy(() => {
 		cancelled = true;
 		const model = editor?.getModel();
+		unregisterVariables?.();
+		stopColorSchemeSync?.();
 		editor?.dispose();
 		editor = undefined;
 		monaco = undefined;

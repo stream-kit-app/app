@@ -1,10 +1,10 @@
+import type { HandlerFieldInstance, HandlerTriggerContext } from '@stream-kit/core';
 import type { CorePluginApi, PluginAppApi } from '@stream-kit/plugin';
+
 import {
 	getFieldValue as getFieldValueCore,
 	interpolateVariables,
-	resolveOneOfFieldText as resolveOneOfFieldTextCore,
-	type HandlerFieldInstance,
-	type HandlerTriggerContext
+	resolveOneOfFieldText as resolveOneOfFieldTextCore
 } from '@stream-kit/core';
 
 import { contextToVariables } from './lib/variables';
@@ -47,6 +47,23 @@ export function resolveVoiceFieldText(
 	}
 
 	return resolveOneOfFieldText(fields, 'voice', context);
+}
+
+/** Parses an optional numeric text field; `undefined` when empty or not a number. */
+export function resolveNumberField(
+	fields: HandlerFieldInstance[],
+	key: string,
+	context: HandlerTriggerContext
+): number | undefined {
+	const text = resolveFieldText(fields, key, context)?.trim().replace(',', '.');
+
+	if (!text) {
+		return undefined;
+	}
+
+	const value = Number(text);
+
+	return Number.isFinite(value) ? value : undefined;
 }
 
 export function resolveOneOfFieldText(

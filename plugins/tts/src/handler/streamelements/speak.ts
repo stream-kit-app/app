@@ -1,11 +1,14 @@
-import type { HandlerDefinitionProps } from '@stream-kit/plugin';
+import type { HandlerDefinitionProps, PluginAppApi } from '@stream-kit/plugin';
 
 import { resolveFieldText, resolveVoiceFieldText } from '../../get-field-value';
+import { createSpeakErrorReporter } from '../../lib/speak-errors';
 import { streamelements } from '../../lib/streamelements';
 import { voiceSelectField } from '../../lib/streamelements/voices';
 import { TTS_TEXT_VARIABLES } from '../../lib/variables';
 
-export const createStreamElementsSpeakHandler = () => {
+export const createStreamElementsSpeakHandler = (app: PluginAppApi) => {
+	const reportError = createSpeakErrorReporter(app, 'StreamElements');
+
 	return {
 		name: 'Speak Text',
 		fields: [
@@ -32,10 +35,16 @@ export const createStreamElementsSpeakHandler = () => {
 			}
 
 			if (!voiceId) {
+				reportError.missingVoice();
+				next();
 				return;
 			}
 
-			await streamelements.speak(text.trim(), voiceId);
+			try {
+				await streamelements.speak(text.trim(), voiceId);
+			} catch (error) {
+				reportError.failed(error);
+			}
 
 			next();
 		}

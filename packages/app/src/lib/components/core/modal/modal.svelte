@@ -23,9 +23,14 @@
 	const targetWidth = $derived(getModalPanelWidth(modal.size));
 
 	let hasOpened = false;
+	let overlayRef = $state<HTMLElement | null>(null);
 
 	function ignoreFloatingLayerDismiss(event: PointerEvent | FocusEvent): void {
 		const target = event.target;
+
+		if (target === overlayRef) {
+			return;
+		}
 
 		if (
 			target instanceof Element &&
@@ -66,9 +71,10 @@
 <Dialog.Root open={modal.isOpen} onOpenChange={handleOpenChange}>
 	<Dialog.Portal>
 		<Dialog.Overlay
+			bind:ref={overlayRef}
 			class={cn(
 				'fixed inset-0 z-50 bg-black/45 backdrop-blur-md duration-[120ms]',
-				'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
+				'data-[state=closed]:animate-out data-[state=closed]:fill-mode-forwards data-[state=closed]:fade-out-0',
 				'data-[state=open]:animate-in data-[state=open]:fade-in-0'
 			)}
 		/>
@@ -77,8 +83,8 @@
 			onInteractOutside={ignoreFloatingLayerDismiss}
 			onFocusOutside={ignoreFloatingLayerDismiss}
 			class={cn(
-				'fixed inset-y-0 right-0 z-51 flex h-full flex-col overflow-hidden border-l border-rule bg-dark-800 shadow-2xl outline-none duration-[120ms]',
-				'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right',
+				'fixed inset-y-0 right-0 z-51 flex h-full flex-col overflow-hidden rounded-l-xl border-l border-rule bg-dark-800 shadow-2xl outline-none duration-[120ms]',
+				'data-[state=closed]:animate-out data-[state=closed]:fill-mode-forwards data-[state=closed]:slide-out-to-right',
 				'data-[state=open]:animate-in data-[state=open]:slide-in-from-right'
 			)}
 			style="width: {targetWidth}"

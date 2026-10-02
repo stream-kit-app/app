@@ -39,12 +39,13 @@ export async function initDb(): Promise<void> {
 	db = createDb(connection);
 }
 
-export async function runRegisteredPluginMigrations(): Promise<void> {
+/** Runs the migrations plugins registered; all plugins, or only `pluginKey`. */
+export async function runRegisteredPluginMigrations(pluginKey?: string): Promise<void> {
 	if (!sqlite) {
 		throw new Error('Database has not been initialized');
 	}
 
-	await runPluginMigrations(sqlite);
+	await runPluginMigrations(sqlite, pluginKey);
 }
 
 export {

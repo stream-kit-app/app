@@ -9,10 +9,10 @@
 		trigger: Snippet<[{ props: Record<string, unknown> }]> | string;
 	} & DropdownMenu.RootProps;
 
-	const { children, trigger, ...props }: Props = $props();
+	let { children, trigger, open = $bindable(false), ...props }: Props = $props();
 </script>
 
-<DropdownMenu.Root {...props}>
+<DropdownMenu.Root bind:open {...props}>
 	<DropdownMenu.Trigger>
 		{#snippet child({ props })}
 			{#if typeof trigger === 'string'}

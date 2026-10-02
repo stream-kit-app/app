@@ -18,6 +18,7 @@
 			"$lib/*": ["../app/src/lib/*"],
 			"$env/static/public": ["./stubs/env-static-public.ts"],
 			"$env/dynamic/public": ["./stubs/env-dynamic-public.ts"],
+			"$app/environment": ["./stubs/app-environment.ts"],
 			"*.wasm?url": ["./stubs/wasm-url.d.ts"]
 		}
 	},

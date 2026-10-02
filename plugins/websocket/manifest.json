@@ -5,9 +5,8 @@
   "description": "Persistent WebSocket connections with action triggers.",
   "icon": "ri:links-line",
   "entry": "dist/index.js",
-  "dependencies": [
-    "core"
-  ],
+  "dependencies": [],
+  "optionalDependencies": ["core"],
   "streamKitVersion": ">=0.1.0",
   "updateManifestUrl": "https://stream-kit.app/api/plugins/websocket/manifest.json"
 }

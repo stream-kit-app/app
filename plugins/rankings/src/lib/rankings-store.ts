@@ -157,30 +157,125 @@ export async function saveRanks(app: PluginAppApi, ranks: RankRecord[]): Promise
 	return saveIdRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.ranks), ranks);
 }
 
+const userWriteQueues = new Map<string, Promise<unknown>>();
+
+/** Run user writes per collection one at a time so a list-then-create can never race into duplicate rows. */
+function queueUserWrite<T>(name: string, operation: () => Promise<T>): Promise<T> {
+	const previous = userWriteQueues.get(name) ?? Promise.resolve();
+	const next = previous.catch(() => undefined).then(operation);
+	userWriteQueues.set(name, next);
+
+	return next;
+}
+
+function toFiniteNumber(value: unknown): number {
+	return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function normalizeUserRecord(record: UserRankingRecord): UserRankingRecord | null {
+	if (typeof record?.userId !== 'string' || record.userId.length === 0) {
+		return null;
+	}
+
+	return {
+		...record,
+		username:
+			typeof record.username === 'string' && record.username.length > 0
+				? record.username
+				: record.userId,
+		platform: record.platform ?? 'unknown',
+		totalPoints: toFiniteNumber(record.totalPoints),
+		watchTimeSeconds: toFiniteNumber(record.watchTimeSeconds),
+		updatedAt: record.updatedAt ?? ''
+	};
+}
+
+/** Collapse duplicate rows for one userId (left behind by racing creates) into the highest-scoring row. */
+function mergeUserRecords(records: UserRankingRecord[]): UserRankingRecord[] {
+	const byUserId = new Map<string, UserRankingRecord>();
+
+	for (const raw of records) {
+		const record = normalizeUserRecord(raw);
+
+		if (!record) {
+			continue;
+		}
+
+		const existing = byUserId.get(record.userId);
+
+		if (!existing) {
+			byUserId.set(record.userId, record);
+			continue;
+		}
+
+		const [primary, secondary] =
+			record.totalPoints > existing.totalPoints ? [record, existing] : [existing, record];
+
+		byUserId.set(record.userId, {
+			...primary,
+			watchTimeSeconds: Math.max(primary.watchTimeSeconds, secondary.watchTimeSeconds),
+			updatedAt: primary.updatedAt > secondary.updatedAt ? primary.updatedAt : secondary.updatedAt
+		});
+	}
+
+	return [...byUserId.values()];
+}
+
 export async function loadUsers(app: PluginAppApi): Promise<UserRankingRecord[]> {
-	return collection(app, RANKINGS_RECORD_COLLECTIONS.users).list<UserRankingRecord>();
+	return (await loadUsersWithCleanupCheck(app)).users;
+}
+
+/** `needsCleanup` is true when duplicate or invalid rows were dropped and should be removed from storage. */
+export async function loadUsersWithCleanupCheck(
+	app: PluginAppApi
+): Promise<{ users: UserRankingRecord[]; needsCleanup: boolean }> {
+	const raw = await collection(app, RANKINGS_RECORD_COLLECTIONS.users).list<UserRankingRecord>();
+	const users = mergeUserRecords(raw);
+
+	return { users, needsCleanup: users.length !== raw.length };
 }
 
 export async function saveUsers(app: PluginAppApi, users: UserRankingRecord[]): Promise<void> {
-	await saveUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.users), users);
+	await queueUserWrite(RANKINGS_RECORD_COLLECTIONS.users, () =>
+		saveUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.users), users)
+	);
 }
 
 export async function upsertUsers(
 	app: PluginAppApi,
 	users: UserRankingRecord[]
 ): Promise<Array<UserRankingRecord & { id: string }>> {
-	return upsertUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.users), users);
+	return queueUserWrite(RANKINGS_RECORD_COLLECTIONS.users, () =>
+		upsertUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.users), users)
+	);
 }
 
 export async function loadIgnoredUsers(app: PluginAppApi): Promise<IgnoredUserRecord[]> {
-	return collection(app, RANKINGS_RECORD_COLLECTIONS.ignoredUsers).list<IgnoredUserRecord>();
+	const records = await collection(
+		app,
+		RANKINGS_RECORD_COLLECTIONS.ignoredUsers
+	).list<IgnoredUserRecord>();
+
+	return dedupeByUserId(
+		records
+			.filter((record) => typeof record?.userId === 'string' && record.userId.length > 0)
+			.map((record) => ({
+				...record,
+				username:
+					typeof record.username === 'string' && record.username.length > 0
+						? record.username
+						: record.userId
+			}))
+	);
 }
 
 export async function saveIgnoredUsers(
 	app: PluginAppApi,
 	ignoredUsers: IgnoredUserRecord[]
 ): Promise<void> {
-	await saveUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.ignoredUsers), ignoredUsers);
+	await queueUserWrite(RANKINGS_RECORD_COLLECTIONS.ignoredUsers, () =>
+		saveUserRecords(collection(app, RANKINGS_RECORD_COLLECTIONS.ignoredUsers), ignoredUsers)
+	);
 }
 
 export async function loadPointHistory(store: PluginStore): Promise<PointHistoryEntry[]> {
@@ -212,7 +307,7 @@ async function adoptCanonicalRecord<T extends Record<string, unknown>>(
 
 	const source = orphans[0]!;
 	const { id: _id, ...data } = source;
-	const created = await records.create<T>({ id: canonicalId, ...(data as T) });
+	const created = await records.create<T>({ id: canonicalId, ...(data as unknown as T) });
 	await Promise.all(
 		orphans
 			.filter((row) => row.id !== created.id)

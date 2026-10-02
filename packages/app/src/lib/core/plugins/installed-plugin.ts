@@ -1,4 +1,4 @@
-export type PluginSource = 'builtin' | 'installed';
+export type PluginSource = 'installed';
 
 export type InstalledPluginManifest = {
 	key: string;
@@ -8,6 +8,7 @@ export type InstalledPluginManifest = {
 	icon?: string;
 	entry: string;
 	dependencies: string[];
+	optionalDependencies: string[];
 	streamKitVersion?: string;
 	updateManifestUrl?: string;
 	downloadUrl?: string;
@@ -21,4 +22,8 @@ export type RegisterPluginOptions = {
 	source?: PluginSource;
 	installPath?: string;
 	version?: string;
+	/** Required plugins from `manifest.json`; this plugin only starts when they are enabled. */
+	dependencies?: string[];
+	/** Plugins from `manifest.json` that only affect load order. */
+	optionalDependencies?: string[];
 };

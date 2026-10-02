@@ -1,3 +1,8 @@
-export { local, LocalTtsService, resolveDefaultVoiceFromSettings, resolveVolumeFromSettings } from './service';
+export {
+	local,
+	LocalTtsService,
+	resolveDefaultVoiceFromSettings,
+	resolveVolumeFromSettings
+} from './service';
 export { localVoiceSelectField, localVoiceSelectSettingsField } from './voices';
 export type { LocalTtsRuntimeInfo, LocalTtsVoice, LocalTtsVoiceInfo } from './types';

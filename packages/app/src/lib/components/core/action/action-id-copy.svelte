@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+
 	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Badge } from '@stream-kit/ui/badge';
-	import { Button } from '@stream-kit/ui/button';
+	import { CopyButton, CopyFeedback } from '@stream-kit/ui/copy-button';
 
 	import { getApp } from '$lib/core/registry';
 	import { useI18n } from '$lib/i18n';
@@ -17,30 +19,36 @@
 	let { id, variant = 'inline', class: className }: Props = $props();
 	const { t } = useI18n();
 
-	let copied = $state(false);
+	const feedback = new CopyFeedback();
+	const copied = $derived(feedback.isCopied());
 
-	async function copyId(event: MouseEvent): Promise<void> {
+	function notifyCopied(): void {
+		getApp().toast.create({
+			title: t('Action ID copied'),
+			description: t('ID {id}', { id }),
+			variant: 'success'
+		});
+	}
+
+	function notifyCopyFailed(): void {
+		getApp().toast.create({
+			title: t('Could not copy Action ID'),
+			variant: 'warning'
+		});
+	}
+
+	async function copyBadge(event: MouseEvent): Promise<void> {
 		event.preventDefault();
 		event.stopPropagation();
 
-		try {
-			await navigator.clipboard.writeText(String(id));
-			copied = true;
-			getApp().toast.create({
-				title: t('Action ID copied'),
-				description: t('ID {id}', { id }),
-				variant: 'success'
-			});
-			setTimeout(() => {
-				copied = false;
-			}, 2000);
-		} catch {
-			getApp().toast.create({
-				title: t('Could not copy Action ID'),
-				variant: 'warning'
-			});
+		if (await feedback.copy(String(id))) {
+			notifyCopied();
+		} else {
+			notifyCopyFailed();
 		}
 	}
+
+	onDestroy(() => feedback.destroy());
 </script>
 
 {#if variant === 'badge'}
@@ -48,10 +56,10 @@
 		type="button"
 		class={cn('cursor-pointer', className)}
 		aria-label={t('Copy action ID {id}', { id })}
-		onclick={(event) => void copyId(event)}
+		onclick={(event) => void copyBadge(event)}
 		{@attach tooltip(() => (copied ? t('Copied') : t('Copy action ID')))}
 	>
-		<Badge size="sm" variant="ghost" class={cn(copied && 'text-success-400')}>
+		<Badge size="sm" variant="ghost" class={cn('transition-none', copied && 'text-success-400')}>
 			{t('ID {id}', { id })}
 		</Badge>
 	</button>
@@ -59,15 +67,13 @@
 	<div class={cn('flex items-center gap-1.5', className)}>
 		<span class="text-sm text-dark-400">{t('Action ID')}</span>
 		<code class="font-mono text-sm text-dark-200 tabular-nums">{id}</code>
-		<Button
-			type="button"
-			variant="ghost"
-			size="icon-sm"
-			icon={copied ? 'ri:check-line' : 'ri:file-copy-line'}
-			aria-label={t('Copy action ID {id}', { id })}
-			onclick={(event) => void copyId(event)}
-			class={cn('shrink-0', copied && 'text-success-400')}
-			{@attach tooltip(() => (copied ? t('Copied') : t('Copy action ID')))}
+		<CopyButton
+			value={String(id)}
+			label={t('Copy action ID')}
+			copiedLabel={t('Copied')}
+			class="shrink-0"
+			onCopied={notifyCopied}
+			onCopyError={notifyCopyFailed}
 		/>
 	</div>
 {/if}

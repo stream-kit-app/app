@@ -30,4 +30,20 @@ Without rate limits, credential stuffing and account spam are trivial. Local/dev
 | `user_dashboard_widgets` | Dashboard widget layout sync |
 | `user_overlays` | Published overlay browser sources: `overlayId` = local overlay id (UUID or short slug, unique, max 64), PB `id` is auto 15-char, `bundle` (zip of `dist/`, public, max 100MB), `config` JSON, `published`. Public list/view when `published = true`; owner CRUD + entitlement hook (`user_overlays.pb.js`). Served by the site at `/app/overlays/[uuid]/`, not as PocketBase UI routes. |
 
+| `ai_usage` | Per-user per-day AI action generator usage (`day` = `YYYY-MM-DD`, `count`, token totals). Written only by `ai_actions.pb.js`; owner can list/view |
+
+## AI actions route
+
+`POST /api/ai/generate-action` (`pb_hooks/ai_actions.pb.js`, prompt and schema in `pb_hooks/shared/ai-actions.js`) turns a description into a draft action via the Anthropic API. It requires auth and an entitled membership, and allows `DAILY_LIMIT` calls per user per day.
+
+| Env var | Notes |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Required; without it the route returns 500 |
+| `AI_MODEL` | Optional, defaults to `claude-opus-5-5` |
+| `ANTHROPIC_WORKSPACE_ID` | Only for API keys that are not scoped to a workspace; sent as `anthropic-workspace-id` |
+
+Local dev: put them in `site/pb/.env` (gitignored); `run-pocketbase.mjs` loads that file before starting PocketBase. Restart PocketBase after changing it. With Docker Compose, the same file feeds the `${...}` substitutions in `docker-compose.yml`.
+
+The client only sends `prompt`, `catalog` (the installed triggers/handlers), and on a repair round `previousAttempt` + `errors`. Model, system prompt and output schema are fixed server-side.
+
 Prefer `pb.filter('user={:id}', { id })` on the JS SDK when building filters with dynamic values.

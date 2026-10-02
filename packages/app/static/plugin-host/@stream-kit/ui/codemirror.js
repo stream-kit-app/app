@@ -18679,7 +18679,7 @@ function lw(e) {
 var uw = Hu(Ru.define([
 	{
 		tag: K.keyword,
-		color: "#c792ea"
+		color: "var(--syntax-keyword)"
 	},
 	{
 		tag: [
@@ -18689,11 +18689,11 @@ var uw = Hu(Ru.define([
 			K.propertyName,
 			K.macroName
 		],
-		color: "#e2e8f0"
+		color: "var(--syntax-name)"
 	},
 	{
 		tag: [K.function(K.variableName), K.labelName],
-		color: "#82aaff"
+		color: "var(--syntax-function)"
 	},
 	{
 		tag: [
@@ -18701,11 +18701,11 @@ var uw = Hu(Ru.define([
 			K.constant(K.name),
 			K.standard(K.name)
 		],
-		color: "#f78c6c"
+		color: "var(--syntax-constant)"
 	},
 	{
 		tag: [K.definition(K.name), K.separator],
-		color: "#e2e8f0"
+		color: "var(--syntax-name)"
 	},
 	{
 		tag: [
@@ -18718,7 +18718,7 @@ var uw = Hu(Ru.define([
 			K.self,
 			K.namespace
 		],
-		color: "#ffcb6b"
+		color: "var(--syntax-type)"
 	},
 	{
 		tag: [
@@ -18730,11 +18730,11 @@ var uw = Hu(Ru.define([
 			K.link,
 			K.special(K.string)
 		],
-		color: "#89ddff"
+		color: "var(--syntax-operator)"
 	},
 	{
 		tag: [K.meta, K.comment],
-		color: "#64748b",
+		color: "var(--syntax-comment)",
 		fontStyle: "italic"
 	},
 	{
@@ -18751,13 +18751,13 @@ var uw = Hu(Ru.define([
 	},
 	{
 		tag: K.link,
-		color: "#82aaff",
+		color: "var(--syntax-function)",
 		textDecoration: "underline"
 	},
 	{
 		tag: K.heading,
 		fontWeight: "bold",
-		color: "#c792ea"
+		color: "var(--syntax-keyword)"
 	},
 	{
 		tag: [
@@ -18765,7 +18765,7 @@ var uw = Hu(Ru.define([
 			K.bool,
 			K.special(K.variableName)
 		],
-		color: "#f78c6c"
+		color: "var(--syntax-constant)"
 	},
 	{
 		tag: [
@@ -18773,23 +18773,23 @@ var uw = Hu(Ru.define([
 			K.string,
 			K.inserted
 		],
-		color: "#c3e88d"
+		color: "var(--syntax-string)"
 	},
 	{
 		tag: K.invalid,
-		color: "#f87171"
+		color: "var(--syntax-invalid)"
 	},
 	{
 		tag: K.tagName,
-		color: "#f07178"
+		color: "var(--syntax-tag)"
 	},
 	{
 		tag: K.attributeName,
-		color: "#c792ea"
+		color: "var(--syntax-keyword)"
 	},
 	{
 		tag: K.attributeValue,
-		color: "#c3e88d"
+		color: "var(--syntax-string)"
 	}
 ])), dw = "32rem", fw = U.theme({
 	"&": {
@@ -18854,36 +18854,40 @@ var uw = Hu(Ru.define([
 		padding: "0.1em 0.35em",
 		borderRadius: "0.25rem",
 		fontSize: "0.92em",
-		color: "#c3e88d"
+		color: "var(--syntax-string)"
 	},
 	".cm-tooltip .hljs": {
 		background: "transparent",
 		padding: 0,
 		fontSize: "12px"
 	},
-	".cm-tooltip .hljs-keyword, .cm-tooltip .hljs-selector-tag, .cm-tooltip .hljs-built_in": { color: "#c792ea" },
-	".cm-tooltip .hljs-title, .cm-tooltip .hljs-title.function_, .cm-tooltip .hljs-function": { color: "#82aaff" },
-	".cm-tooltip .hljs-type, .cm-tooltip .hljs-class .hljs-title, .cm-tooltip .hljs-number": { color: "#ffcb6b" },
-	".cm-tooltip .hljs-string, .cm-tooltip .hljs-regexp, .cm-tooltip .hljs-symbol": { color: "#c3e88d" },
-	".cm-tooltip .hljs-literal, .cm-tooltip .hljs-params": { color: "#f78c6c" },
+	".cm-tooltip .hljs-keyword, .cm-tooltip .hljs-selector-tag, .cm-tooltip .hljs-built_in": { color: "var(--syntax-keyword)" },
+	".cm-tooltip .hljs-title, .cm-tooltip .hljs-title.function_, .cm-tooltip .hljs-function": { color: "var(--syntax-function)" },
+	".cm-tooltip .hljs-type, .cm-tooltip .hljs-class .hljs-title, .cm-tooltip .hljs-number": { color: "var(--syntax-type)" },
+	".cm-tooltip .hljs-string, .cm-tooltip .hljs-regexp, .cm-tooltip .hljs-symbol": { color: "var(--syntax-string)" },
+	".cm-tooltip .hljs-literal, .cm-tooltip .hljs-params": { color: "var(--syntax-constant)" },
 	".cm-tooltip .hljs-comment, .cm-tooltip .hljs-quote": {
-		color: "#64748b",
+		color: "var(--syntax-comment)",
 		fontStyle: "italic"
 	},
-	".cm-tooltip .hljs-operator, .cm-tooltip .hljs-punctuation": { color: "#89ddff" },
-	".cm-tooltip .hljs-variable, .cm-tooltip .hljs-attr, .cm-tooltip .hljs-attribute": { color: "#e2e8f0" },
-	".cm-tooltip .hljs-tag, .cm-tooltip .hljs-name": { color: "#f07178" },
+	".cm-tooltip .hljs-operator, .cm-tooltip .hljs-punctuation": { color: "var(--syntax-operator)" },
+	".cm-tooltip .hljs-variable, .cm-tooltip .hljs-attr, .cm-tooltip .hljs-attribute": { color: "var(--syntax-name)" },
+	".cm-tooltip .hljs-tag, .cm-tooltip .hljs-name": { color: "var(--syntax-tag)" },
 	".cm-tooltip-autocomplete": { "& > ul > li[aria-selected]": {
 		backgroundColor: "color-mix(in srgb, var(--color-primary) 18%, transparent)",
-		color: "#f8fafc"
+		color: "var(--syntax-selected)"
 	} },
 	".cm-diagnostic": { padding: "4px 8px" },
-	".cm-diagnostic-error": { borderLeft: "3px solid #f87171" },
-	".cm-diagnostic-warning": { borderLeft: "3px solid #fbbf24" },
-	".cm-diagnostic-info": { borderLeft: "3px solid #60a5fa" },
+	".cm-diagnostic-error": { borderLeft: "3px solid var(--syntax-lint-error)" },
+	".cm-diagnostic-warning": { borderLeft: "3px solid var(--syntax-lint-warning)" },
+	".cm-diagnostic-info": { borderLeft: "3px solid var(--syntax-lint-info)" },
 	".cm-foldGutter .cm-gutterElement": {
 		padding: "0 4px",
 		cursor: "pointer"
+	},
+	".cm-panels": {
+		backgroundColor: "var(--color-dark-800)",
+		color: "var(--color-dark-50)"
 	},
 	".cm-panel.cm-search": {
 		backgroundColor: "var(--color-dark-800)",
@@ -18913,7 +18917,7 @@ var uw = Hu(Ru.define([
 		outline: "1px solid color-mix(in srgb, var(--color-primary) 50%, transparent)"
 	},
 	".cm-searchMatch-selected": { backgroundColor: "color-mix(in srgb, var(--color-primary) 42%, transparent)" }
-}, { dark: !0 });
+});
 //#endregion
 //#region ../ui/src/lib/codemirror/setup.ts
 function pw(e) {

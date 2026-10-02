@@ -1,4 +1,7 @@
-import type { DashboardWidgetInstance, DashboardWidgetLayoutUpdate } from '$lib/core/dashboard/types';
+import type {
+	DashboardWidgetInstance,
+	DashboardWidgetLayoutUpdate
+} from '$lib/core/dashboard/types';
 
 export type DndWidgetItem = {
 	id: string;
@@ -28,4 +31,13 @@ export function compareLayoutUpdates(
 	right: DashboardWidgetLayoutUpdate[]
 ): boolean {
 	return JSON.stringify(left) === JSON.stringify(right);
+}
+
+/** Dashboard widgets are narrow (1 masonry column) or wide (2); stored `columns` ≥ 2 count as wide. */
+export function isWideWidget(columns: number): boolean {
+	return columns >= 2;
+}
+
+export function toWidgetColumns(wide: boolean): 1 | 2 {
+	return wide ? 2 : 1;
 }

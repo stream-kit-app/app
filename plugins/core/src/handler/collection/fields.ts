@@ -1,4 +1,4 @@
-import type { HandlerFieldDefinition } from '@stream-kit/plugin';
+import type { HandlerFieldDefinition, HandlerOutputsSource } from '@stream-kit/plugin';
 import type { PluginAppApi } from '@stream-kit/plugin';
 
 import type { CollectionStore } from '../../lib/collections/collection-store';
@@ -59,8 +59,7 @@ export const keyFieldWithContextVariables: HandlerFieldDefinition = {
 	type: 'text',
 	name: 'Key',
 	placeholder: 'e.g. {username}',
-	required: true,
-	useContextVariables: true
+	required: true
 };
 
 export const valueField: HandlerFieldDefinition = {
@@ -72,8 +71,7 @@ export const valueField: HandlerFieldDefinition = {
 export const valueFieldWithContextVariables: HandlerFieldDefinition = {
 	type: 'text',
 	name: 'Value',
-	placeholder: 'e.g. {username}',
-	useContextVariables: true
+	placeholder: 'e.g. {username}'
 };
 
 export const targetNameField: HandlerFieldDefinition = {
@@ -81,6 +79,13 @@ export const targetNameField: HandlerFieldDefinition = {
 	name: 'Target name',
 	placeholder: 'Action variable name',
 	required: true
+};
+
+/** `outputs` for handlers that store their result in the `target-name` action variable. */
+export const targetNameOutputs: HandlerOutputsSource = ({ getFieldValue }) => {
+	const targetName = getFieldValue('target-name');
+
+	return typeof targetName === 'string' ? [{ key: targetName }] : [];
 };
 
 export function parseLifetime(value: unknown): CollectionLifetime {

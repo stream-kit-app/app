@@ -1,6 +1,6 @@
-import type { PluginWidgetColumns, PluginWidgetDefinition } from '../plugins/types';
-import type { RegisteredPlugin } from '../plugins/registered-plugin.svelte';
 import type { App } from '../app.svelte';
+import type { RegisteredPlugin } from '../plugins/registered-plugin.svelte';
+import type { PluginWidgetColumns, PluginWidgetDefinition } from '../plugins/types';
 import type {
 	BuiltinWidgetDefinition,
 	DashboardWidgetDefinition,
@@ -139,7 +139,9 @@ export class Dashboard {
 		);
 	}
 
-	private createBuiltinDefinition(definition: BuiltinWidgetDefinition): DashboardWidgetDefinition {
+	private createBuiltinDefinition(
+		definition: BuiltinWidgetDefinition
+	): DashboardWidgetDefinition {
 		return {
 			definitionId: createDefinitionId('app', definition.key),
 			source: 'app',

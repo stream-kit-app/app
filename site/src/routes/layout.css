@@ -7,8 +7,8 @@
 
 /*
  * Stream Kit palette
- * dark scale — neutral super-dark gray (minimal chroma)
- * primary scale — electric cerulean (hue 255) for UI
+ * dark scale — deep ink (indigo-tinted graphite, hue 275; chroma grows toward the dark end)
+ * primary scale — soft indigo (hue 280) for UI; complements the yellow brand
  * brand scale — logo yellow (#fffa00 at 500) for logo/marketing only
  * Secondary: soft orchid — badges, secondary actions, highlights
  * success scale — vivid emerald (hue 152)
@@ -16,31 +16,31 @@
  * destructive scale — signal red (hue 27)
  */
 @theme {
-	/* ~0.06–0.08 L between steps so surfaces read clearly on dark UIs */
-	--color-dark-50: oklch(0.78 0.012 264);
-	--color-dark-100: oklch(0.7 0.011 264);
-	--color-dark-200: oklch(0.62 0.01 264);
-	--color-dark-300: oklch(0.54 0.009 264);
-	--color-dark-400: oklch(0.46 0.008 264);
-	--color-dark-500: oklch(0.38 0.007 264);
-	--color-dark-600: oklch(0.3 0.007 264);
-	--color-dark-700: oklch(0.22 0.006 264);
-	--color-dark-800: oklch(0.15 0.006 264);
-	--color-dark-900: oklch(0.102 0.005 264);
-	--color-dark-950: oklch(0.06 0.004 264);
+	/* Base sits at ~#121319 (ink), not black — ~0.03–0.06 L between surface steps */
+	--color-dark-50: oklch(0.93 0.006 275);
+	--color-dark-100: oklch(0.85 0.008 275);
+	--color-dark-200: oklch(0.76 0.01 275);
+	--color-dark-300: oklch(0.66 0.012 275);
+	--color-dark-400: oklch(0.55 0.014 275);
+	--color-dark-500: oklch(0.45 0.015 275);
+	--color-dark-600: oklch(0.36 0.016 275);
+	--color-dark-700: oklch(0.3 0.016 275);
+	--color-dark-800: oklch(0.25 0.014 275);
+	--color-dark-900: oklch(0.215 0.014 275);
+	--color-dark-950: oklch(0.19 0.012 275);
 
 	/* primary scale — chroma tapers at extremes, peaks around 300–400 */
-	--color-primary-50: oklch(0.78 0.06 255);
-	--color-primary-100: oklch(0.7 0.1 255);
-	--color-primary-200: oklch(0.62 0.14 255);
-	--color-primary-300: oklch(0.54 0.17 255);
-	--color-primary-400: oklch(0.46 0.18 255);
-	--color-primary-500: oklch(0.38 0.16 255);
-	--color-primary-600: oklch(0.3 0.14 255);
-	--color-primary-700: oklch(0.23 0.12 255);
-	--color-primary-800: oklch(0.17 0.1 255);
-	--color-primary-900: oklch(0.11 0.08 255);
-	--color-primary-950: oklch(0.06 0.06 255);
+	--color-primary-50: oklch(0.78 0.06 280);
+	--color-primary-100: oklch(0.7 0.1 280);
+	--color-primary-200: oklch(0.62 0.14 280);
+	--color-primary-300: oklch(0.54 0.17 280);
+	--color-primary-400: oklch(0.46 0.18 280);
+	--color-primary-500: oklch(0.38 0.16 280);
+	--color-primary-600: oklch(0.3 0.14 280);
+	--color-primary-700: oklch(0.23 0.12 280);
+	--color-primary-800: oklch(0.17 0.1 280);
+	--color-primary-900: oklch(0.11 0.08 280);
+	--color-primary-950: oklch(0.06 0.06 280);
 
 	/* brand scale — 500 is exactly #fffa00; shades derived via color-mix */
 	--color-brand-50: color-mix(in srgb, #fffa00 12%, white);
@@ -95,10 +95,10 @@
 	--color-destructive-950: oklch(0.06 0.06 27);
 
 	--color-background: var(--color-dark-950);
-	--color-foreground: oklch(0.98 0.002 264);
+	--color-foreground: oklch(0.98 0.003 275);
 
 	--color-primary: var(--color-primary-200);
-	--color-primary-foreground: oklch(0.99 0.002 250);
+	--color-primary-foreground: oklch(0.99 0.002 280);
 
 	--color-brand: var(--color-brand-500);
 	--color-brand-foreground: var(--color-dark-950);
@@ -119,7 +119,7 @@
 	--color-muted-foreground: var(--color-dark-300);
 
 	--color-accent: var(--color-dark-700);
-	--color-accent-foreground: oklch(0.98 0.002 264);
+	--color-accent-foreground: oklch(0.98 0.003 275);
 
 	--color-border: var(--color-dark-600);
 	--color-ring: var(--color-primary-200);
@@ -128,15 +128,22 @@
 	--color-rule: oklch(0.98 0.002 264 / 0.1);
 	--color-rule-strong: oklch(0.98 0.002 264 / 0.18);
 
-	/* Border radius — hybrid: controls use lg/md; structural surfaces use rounded-none */
+	/* Surfaces & item states — quiet lifts instead of flat grey blocks */
+	--color-surface: var(--color-dark-900);
+	--color-item-hover: oklch(0.98 0.002 264 / 0.05);
+	--color-item-active: oklch(0.98 0.002 264 / 0.08);
+	--color-item-active-foreground: var(--color-foreground);
+	--color-sidebar: oklch(0.165 0.01 275);
+
+	/* Border radius — items use md, controls lg, surfaces (panels, menus, dialogs, cards) xl */
 	--radius-xs: 0.125rem;
-	--radius-sm: 0.125rem;
+	--radius-sm: 0.1875rem;
 	--radius-md: 0.25rem;
-	--radius-lg: 0.25rem;
-	--radius-xl: 0.25rem;
-	--radius-2xl: 0.375rem;
-	--radius-3xl: 0.5rem;
-	--radius-4xl: 0.625rem;
+	--radius-lg: 0.3125rem;
+	--radius-xl: 0.4375rem;
+	--radius-2xl: 0.5rem;
+	--radius-3xl: 0.75rem;
+	--radius-4xl: 1rem;
 
 	--font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;

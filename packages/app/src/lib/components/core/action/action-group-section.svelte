@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="TId extends string | number">
 	import type { TranslateFn } from './resolve-translate';
 	import type { SelectableListController } from '$lib/components/core/list/selectable-list.svelte';
 	import type { Snippet } from 'svelte';
@@ -23,8 +23,8 @@
 		label?: string;
 		headerActions?: Snippet;
 		count?: number;
-		groupActionIds?: (string | number)[];
-		selection?: SelectableListController<string | number>;
+		groupActionIds?: TId[];
+		selection?: SelectableListController<TId>;
 		isOverlay?: boolean;
 		collapsed?: boolean;
 		onCollapsedChange?: (collapsed: boolean) => void;

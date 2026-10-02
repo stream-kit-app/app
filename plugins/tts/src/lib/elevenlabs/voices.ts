@@ -1,15 +1,16 @@
+import type { ElevenLabsVoice } from './types';
 import type {
+	HandlerFieldDefinition,
+	PluginSettingsFieldDefinition,
+	SelectItem,
 	SettingsContext,
-	SettingsFieldDefinition,
 	SettingsVisibilityContext
 } from '@stream-kit/plugin';
-import type { HandlerFieldDefinition, SelectItem } from '@stream-kit/plugin';
 
-import type { ElevenLabsVoice } from './types';
-
+import { getTrimmedValue } from '../settings-helpers';
+import { createVoiceOneOfField } from '../voice-one-of-field';
 import { fetchElevenLabsVoices } from './api';
 import { elevenlabs } from './service';
-import { createVoiceOneOfField } from '../voice-one-of-field';
 
 export function formatElevenLabsVoiceLabel(voice: ElevenLabsVoice): string {
 	const languagePart = voice.language ? ` (${voice.language})` : '';
@@ -69,7 +70,7 @@ export function elevenlabsVoiceSelectField(
 
 function elevenlabsVoiceSelectSettingsItems(): (context: SettingsContext) => Promise<SelectItem[]> {
 	return async (context) => {
-		const apiKey = String(context.getValue('elevenlabsApiKey') ?? '').trim();
+		const apiKey = getTrimmedValue(context.getValue, 'elevenlabsApiKey');
 
 		if (!apiKey) {
 			return [];
@@ -93,7 +94,7 @@ export function elevenlabsVoiceSelectSettingsField(
 		required?: boolean;
 		visible?: (context: SettingsVisibilityContext) => boolean;
 	} = {}
-): SettingsFieldDefinition {
+): PluginSettingsFieldDefinition {
 	return {
 		...(options.key ? { key: options.key } : {}),
 		type: 'combobox',

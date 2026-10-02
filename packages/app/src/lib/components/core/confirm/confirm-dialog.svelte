@@ -25,14 +25,14 @@
 			<AlertDialog.Overlay
 				class={cn(
 					'fixed inset-0 z-[70] bg-black/45 backdrop-blur-md duration-75',
-					'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0'
+					'data-[state=closed]:animate-out data-[state=closed]:fill-mode-forwards data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0'
 				)}
 			/>
 			<AlertDialog.Content
 				class={cn(
 					'fixed top-1/2 left-1/2 z-[70] w-full max-w-md -translate-x-1/2 -translate-y-1/2',
-					'rounded-none border border-rule bg-dark-800 p-6 shadow-lg duration-75 outline-none',
-					'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+					'rounded-xl border border-rule bg-dark-800 p-6 shadow-lg duration-75 outline-none',
+					'data-[state=closed]:animate-out data-[state=closed]:fill-mode-forwards data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
 					'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95'
 				)}
 			>

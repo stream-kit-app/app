@@ -1,9 +1,12 @@
+import type { WindowBounds } from './window-bounds';
 import type { Window } from '@tauri-apps/api/window';
 
-import { dev } from '$app/environment';
 import { isTauri } from '@tauri-apps/api/core';
 import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { dev } from '$app/environment';
+
+import { getRestorableWindowBounds, trackWindowBounds } from './window-bounds';
 
 export const MAIN_WINDOW_SIZE = {
 	width: 1680,
@@ -18,9 +21,30 @@ export function usesBootWindowPresentation(): boolean {
 
 async function prepareDevWindow(): Promise<void> {
 	const window = getCurrentWindow();
+	const bounds = await getRestorableWindowBounds();
 
 	await window.setDecorations(true);
-	await window.setSize(new PhysicalSize(MAIN_WINDOW_SIZE.width, MAIN_WINDOW_SIZE.height));
+
+	if (bounds) {
+		await setWindowBounds(window, bounds);
+	} else {
+		await window.setSize(new PhysicalSize(MAIN_WINDOW_SIZE.width, MAIN_WINDOW_SIZE.height));
+	}
+
+	await restoreMaximized(window, bounds);
+}
+
+async function setWindowBounds(window: Window, bounds: WindowBounds): Promise<void> {
+	await Promise.all([
+		window.setSize(new PhysicalSize(bounds.width, bounds.height)),
+		window.setPosition(new PhysicalPosition(bounds.x, bounds.y))
+	]);
+}
+
+async function restoreMaximized(window: Window, bounds: WindowBounds | undefined): Promise<void> {
+	if (bounds?.maximized) {
+		await window.maximize();
+	}
 }
 
 type AnimateWindowSizeOptions = {
@@ -128,6 +152,46 @@ export async function animateWindowSize({
 	});
 }
 
+/** Animates outer position and inner size from the current window rect to `target`. */
+async function animateWindowBounds(target: WindowBounds, durationMs = 75): Promise<void> {
+	const window = getCurrentWindow();
+	const [startPosition, startSize] = await Promise.all([
+		window.outerPosition(),
+		window.innerSize()
+	]);
+
+	if (prefersReducedMotion()) {
+		await setWindowBounds(window, target);
+		return;
+	}
+
+	const lerp = (from: number, to: number, eased: number) =>
+		Math.round(from + (to - from) * eased);
+	const startTime = performance.now();
+
+	await new Promise<void>((resolve) => {
+		const step = (now: number) => {
+			const progress = Math.min((now - startTime) / durationMs, 1);
+			const eased = easeOutCubic(progress);
+
+			if (progress < 1) {
+				void setWindowBounds(window, {
+					...target,
+					x: lerp(startPosition.x, target.x, eased),
+					y: lerp(startPosition.y, target.y, eased),
+					width: lerp(startSize.width, target.width, eased),
+					height: lerp(startSize.height, target.height, eased)
+				});
+				requestAnimationFrame(step);
+			} else {
+				void setWindowBounds(window, target).then(resolve);
+			}
+		};
+
+		requestAnimationFrame(step);
+	});
+}
+
 export async function centerBootWindow(): Promise<void> {
 	if (!usesBootWindowPresentation()) {
 		return;
@@ -135,7 +199,8 @@ export async function centerBootWindow(): Promise<void> {
 
 	const window = getCurrentWindow();
 
-	await Promise.all([window.center(), window.setShadow(false)]);
+	// Native shadow on an undecorated window also gives rounded corners on Windows 11.
+	await Promise.all([window.center(), window.setShadow(true)]);
 }
 
 export async function enableMainWindowPresentation(): Promise<void> {
@@ -151,16 +216,27 @@ export async function revealMainWindow(): Promise<void> {
 		return;
 	}
 
+	const window = getCurrentWindow();
+
 	if (dev) {
 		await prepareDevWindow();
+		await trackWindowBounds(window);
 		return;
 	}
 
-	const window = getCurrentWindow();
+	const bounds = await getRestorableWindowBounds();
 
 	await window.setDecorations(true);
 	await window.setShadow(false);
-	await window.center();
-	await animateWindowSize(MAIN_WINDOW_SIZE);
+
+	if (bounds) {
+		await animateWindowBounds(bounds);
+	} else {
+		await window.center();
+		await animateWindowSize(MAIN_WINDOW_SIZE);
+	}
+
+	await restoreMaximized(window, bounds);
 	await enableMainWindowPresentation();
+	await trackWindowBounds(window);
 }

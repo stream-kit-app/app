@@ -21,7 +21,7 @@ const builtinDashboardWidgets: BuiltinWidgetDefinition[] = [
 		title: 'Running actions',
 		description: 'Actions currently executing with live progress',
 		icon: 'ri:play-circle-line',
-		columns: 2,
+		columns: 1,
 		component: RunningActionsWidget
 	},
 	{
@@ -35,14 +35,14 @@ const builtinDashboardWidgets: BuiltinWidgetDefinition[] = [
 		key: 'connections',
 		title: 'Connections',
 		icon: 'ri:links-line',
-		columns: 2,
+		columns: 1,
 		component: ConnectionsWidget
 	},
 	{
 		key: 'plugin-status',
 		title: 'Plugin status',
 		icon: 'ri:plug-line',
-		columns: 2,
+		columns: 1,
 		component: PluginStatusWidget
 	}
 ];

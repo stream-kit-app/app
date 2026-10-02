@@ -5,9 +5,8 @@
   "description": "YouTube live chat, memberships, moderation, and stream status.",
   "icon": "ri:youtube-fill",
   "entry": "dist/index.js",
-  "dependencies": [
-    "core"
-  ],
+  "dependencies": [],
+  "optionalDependencies": ["core"],
   "streamKitVersion": ">=0.1.0",
   "updateManifestUrl": "https://stream-kit.app/api/plugins/youtube/manifest.json"
 }

@@ -14,7 +14,7 @@
 	const cellClass = $derived(
 		cn(
 			'border-r border-b border-rule bg-background p-6 transition-colors',
-			href && 'block cursor-pointer hover:bg-dark-900/80',
+			href && 'block cursor-pointer hover:bg-dark-700/40',
 			className
 		)
 	);

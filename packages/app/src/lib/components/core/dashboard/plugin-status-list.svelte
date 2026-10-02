@@ -3,10 +3,12 @@
 
 	import Icon from '@iconify/svelte';
 
-	import { Badge } from '@stream-kit/ui/badge';
-	import { Button } from '@stream-kit/ui/button';
+	import { goto } from '$app/navigation';
 
-	import { openPluginSettings } from '$lib/components/core/plugins/open-plugin-settings';
+	import { Badge } from '@stream-kit/ui/badge';
+	import { WidgetList, WidgetRow } from '@stream-kit/ui/widget';
+
+	import { pluginDetailPath } from '$lib/components/core/plugins/plugin-actions';
 	import { app } from '$lib/core';
 	import { useI18n } from '$lib/i18n';
 
@@ -35,18 +37,14 @@
 	}
 </script>
 
-<div class="flex flex-col gap-1 text-sm">
+<WidgetList>
 	{#each plugins as plugin (plugin.key)}
-		<div class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5">
-			<div class="flex min-w-0 items-center gap-3">
-				<div
-					class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
-				>
-					<Icon icon={plugin.icon ?? 'ri:plug-line'} class="size-4" />
-				</div>
-				<span class="truncate text-dark-100">{plugin.name}</span>
-			</div>
-			<div class="flex shrink-0 items-center gap-2">
+		<WidgetRow
+			icon={plugin.icon ?? 'ri:plug-line'}
+			title={plugin.name}
+			onclick={plugin.hasSettings ? () => goto(pluginDetailPath(plugin)) : undefined}
+		>
+			{#snippet trailing()}
 				{#if !plugin.isEnabled}
 					<Badge variant="default" size="sm">{t('Disabled')}</Badge>
 				{:else if hasDependencyIssues(plugin)}
@@ -57,16 +55,13 @@
 					<Badge variant="warning" size="sm">{t('Not configured')}</Badge>
 				{/if}
 				{#if plugin.hasSettings}
-					<Button
-						variant="outline"
-						size="badge"
+					<Icon
 						icon="ri:settings-3-line"
-						onclick={() => openPluginSettings(plugin)}
-					>
-						{t('Configure')}
-					</Button>
+						class="size-4 text-dark-400 transition-colors group-hover/row:text-dark-100"
+						aria-hidden="true"
+					/>
 				{/if}
-			</div>
-		</div>
+			{/snippet}
+		</WidgetRow>
 	{/each}
-</div>
+</WidgetList>

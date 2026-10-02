@@ -421,7 +421,7 @@
 
 		<div class="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
 			<section
-				class="sticky top-4 flex h-[28rem] max-h-[70vh] flex-col self-start overflow-hidden rounded-none border border-rule bg-dark-900 lg:h-[min(36rem,70vh)]"
+				class="sticky top-4 flex h-[28rem] max-h-[70vh] flex-col self-start overflow-hidden rounded-xl border border-rule bg-dark-900 lg:h-[min(36rem,70vh)]"
 			>
 				<div class="flex shrink-0 items-center justify-between border-b border-rule px-4 py-3">
 					<p class="text-sm font-medium text-dark-100">{t('Preview')}</p>
@@ -495,7 +495,7 @@
 								</p>
 								<ul class="space-y-3">
 									{#each actionPresets as entry (entry.preset.key)}
-										<li class="rounded-none border border-rule bg-dark-900/60 p-3">
+										<li class="rounded-lg border border-rule bg-dark-900/60 p-3">
 											<div class="flex items-start gap-3">
 												{#if entry.status === 'installable'}
 													<InputCheckbox
@@ -665,7 +665,7 @@
 						{/if}
 					</Panel>
 				{:else if settings}
-					<section class="rounded-none border border-dashed border-rule bg-dark-900/50 p-4">
+					<section class="rounded-xl border border-dashed border-rule bg-dark-900/50 p-4">
 						<p class="text-sm text-dark-300">
 							{t('This overlay has no configurable settings. Add a settings array to manifest.json in the overlay project.')}
 						</p>

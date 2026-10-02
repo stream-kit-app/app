@@ -1,10 +1,6 @@
 import { extractCommandArgNames } from '@stream-kit/core';
-import type { ActionHandler, PluginAppApi } from '@stream-kit/plugin';
-import {
-	getGlobalVariables,
-	getPrecedingActionVariablesForHandler,
-	mergeContextVariables
-} from '@stream-kit/plugin/action';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import { getGlobalVariables, mergeContextVariables } from '@stream-kit/plugin/action';
 import type { HandlerFieldVariable } from '@stream-kit/ui/types';
 
 const COMMAND_CONTEXT_FIELDS = [
@@ -20,6 +16,8 @@ const COMMAND_CONTEXT_FIELDS = [
 	'liveChatId',
 	'messageId'
 ] as const;
+
+const COMMAND_VARIABLE_GROUP = 'Command';
 
 function formatVariableLabel(key: string): string {
 	return key
@@ -39,7 +37,7 @@ function getCommandArgVariables(commandNames: string[]): HandlerFieldVariable[] 
 			}
 
 			seen.add(name);
-			variables.push({ key: name, label: formatVariableLabel(name) });
+			variables.push({ key: name, label: formatVariableLabel(name), group: COMMAND_VARIABLE_GROUP });
 		}
 	}
 
@@ -50,21 +48,17 @@ export function getCommandContextVariables(commandNames: string[]): HandlerField
 	return [
 		...COMMAND_CONTEXT_FIELDS.map((key) => ({
 			key,
-			label: formatVariableLabel(key)
+			label: formatVariableLabel(key),
+			group: COMMAND_VARIABLE_GROUP
 		})),
 		...getCommandArgVariables(commandNames)
 	];
 }
 
-export function contextVariablesForCommandHandler(
+/** Global and command context variables; the handler editor adds handler outputs per handler. */
+export function getCommandBaseVariables(
 	app: PluginAppApi,
-	handlers: ActionHandler[],
-	handler: ActionHandler,
 	commandNames: string[]
 ): HandlerFieldVariable[] {
-	return mergeContextVariables(
-		getGlobalVariables(app),
-		getCommandContextVariables(commandNames),
-		getPrecedingActionVariablesForHandler(handlers, handler.id)
-	);
+	return mergeContextVariables(getGlobalVariables(app), getCommandContextVariables(commandNames));
 }

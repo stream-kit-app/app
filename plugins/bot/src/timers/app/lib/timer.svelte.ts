@@ -14,6 +14,7 @@ import {
 	reorderBranchHandlersInChain,
 	runHandlerChain,
 	type HandlerBranch,
+	type HandlerInsertTarget,
 	validateHandlerFields
 } from '@stream-kit/plugin/action';
 import type { TimerPlatform, TimerRecord } from './stored-timer';
@@ -182,6 +183,7 @@ export class Timer {
 						? app.i18n.translate('Edit {name}', { name: this.name })
 						: app.i18n.translate('New Timer'),
 				content: TimerForm,
+				size: 'xl',
 				footer: TimerFormFooter,
 				props: { timer: this }
 			});
@@ -209,10 +211,7 @@ export class Timer {
 		this.close();
 	}
 
-	addHandler(
-		definition: HandlerDefinition,
-		target?: { parentId: string; branch: HandlerBranch }
-	): void {
+	addHandler(definition: HandlerDefinition, target?: HandlerInsertTarget): void {
 		this.handlers = addHandlerToChain(this.handlers, definition, target);
 	}
 

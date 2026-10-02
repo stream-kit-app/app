@@ -36,11 +36,41 @@ Click an action to open the editor.
 | Queue | Optional queue assignment |
 | Test | Run the handler chain immediately (bypasses queue) |
 
+### Handler outline and settings
+
+The handler chain is shown as an **outline** on the left and the **settings of the selected handler** on the right. On narrow windows the editor shows one of the two at a time; use **Back to handlers** to return to the outline.
+
+- Click a handler to edit it. Use the arrow keys to move through the outline; Left and Right collapse or expand an **If** handler.
+- **Add Handler** inserts the new handler directly after the selected one.
+- Drag handlers by their grip to reorder them, or to move them into or out of an **If** branch. Empty branches accept drops too.
+- A red dot marks handlers with missing or invalid settings. When saving fails, the first handler with an error is selected for you.
+
+### If handler
+
+**If** runs its **Then** branch when its conditions pass and its **Else** branch otherwise. Each condition compares a value (usually a `{variable}`) with an operator such as *equals* or *contains*.
+
+- Add more conditions and combine them with **AND** / **OR**, or group them with **Add Group** — for example `({role} equals mod OR {role} equals broadcaster) AND {message} contains !clip`. This keeps chains flat instead of nesting several If handlers.
+- **Not** inverts a single condition.
+- Add handlers to a branch with the **+** next to *Then* / *Else* in the outline, or from the branch overview in the If settings.
+
+Actions saved before AND/OR support open with their single condition converted automatically.
+
 ### Handler chain rules
 
 - Handlers call `next()` to continue; omitting `next()` stops the chain (used by **Delay** on invalid input).
 - Thrown errors are logged; the chain continues unless the handler stops explicitly.
-- Async handlers are awaited in order.
+- Async handlers are awaited in order, unless they are non-blocking (see below).
+
+### Blocking and non-blocking handlers
+
+The dot on the line between two handlers in the outline controls whether the next handler waits for the one above it. Click the dot to switch.
+
+- **Orange dot, solid line** (default): blocking. The next handler starts only after this one has finished.
+- **Dark grey dot, dashed line**: non-blocking. The next handler starts right away while this one keeps running, for example to play a sound and show an alert at the same time.
+
+This works inside **If** branches too. A non-blocking **If** runs its whole branch in the background.
+
+The action only counts as finished, for queues and the running state, when all of its handlers are done, including the non-blocking ones. A non-blocking handler cannot stop the chain by skipping `next()`, because the next handler has already started.
 
 Browse handlers in the [API Reference](/docs/api/handlers/core).
 
@@ -58,7 +88,7 @@ See [Action queues](/docs/guide/action-queues).
 
 ## Variables in handlers
 
-Use `\{variableName\}` in text fields. The action editor shows available variables from the trigger and earlier handlers.
+Use `\{variableName\}` in text fields. Type `{` in any text, condition, key-value or JSON field to get suggestions for the variables available at that point: trigger fields, global variables, and variables set by handlers that run earlier.
 
 See [Variables](/docs/guide/variables).
 

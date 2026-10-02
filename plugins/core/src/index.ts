@@ -551,7 +551,7 @@ const plugin = (app: PluginAppApi) => {
 
 				icon: 'ri:database-2-line',
 
-				columns: 4,
+				columns: 2,
 
 				view: 'collections-widget'
 

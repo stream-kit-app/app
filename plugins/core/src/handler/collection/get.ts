@@ -8,7 +8,8 @@ import {
 	createExistingCollectionNameField,
 	keyFieldWithContextVariables,
 	requireCollectionName,
-	targetNameField
+	targetNameField,
+	targetNameOutputs
 } from './fields';
 
 export const createGetCollectionValueHandler = ({
@@ -23,6 +24,7 @@ export const createGetCollectionValueHandler = ({
 			keyFieldWithContextVariables,
 			targetNameField
 		],
+		outputs: targetNameOutputs,
 		execute: async (_action, handler, context, next) => {
 			const collectionName = getFieldValue(handler.fields, 'collection-name');
 			const key = resolveFieldText(variables, handler.fields, 'key', context);

@@ -5,8 +5,9 @@
 
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
+	import { DataTable } from '@stream-kit/ui/data-table';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText } from '@stream-kit/ui/input';
-	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 	import { cn } from '@stream-kit/plugin/utils';
 
 	type Props = {
@@ -14,6 +15,9 @@
 		collectionName: string;
 		modalId: string;
 	};
+
+	type Entry = { key: string; value: string };
+	type EditField = 'key' | 'value';
 
 	let { app, collectionName }: Props = $props();
 
@@ -26,7 +30,10 @@
 	let editingKey = $state<string | null>(null);
 	let editKey = $state('');
 	let editValue = $state('');
+	let editFocus = $state<EditField>('value');
 	let saving = $state(false);
+	let search = $state('');
+	let addForm = $state<HTMLFormElement>();
 
 	const trimmedCollectionName = $derived(collectionName.trim());
 	const lifetime = $derived(
@@ -43,6 +50,19 @@
 
 		return collectionsApi.listEntries(trimmedCollectionName);
 	});
+	const filteredEntries = $derived.by(() => {
+		const query = search.trim().toLowerCase();
+
+		if (!query) {
+			return entries;
+		}
+
+		return entries.filter(
+			(entry) =>
+				entry.key.toLowerCase().includes(query) || entry.value.toLowerCase().includes(query)
+		);
+	});
+	const newKeyExists = $derived(entries.some((entry) => entry.key === newKey.trim()));
 	const canAddEntry = $derived(
 		newKey.trim().length > 0 && !saving && collectionsApi != null && trimmedCollectionName.length > 0
 	);
@@ -85,7 +105,8 @@
 		}
 	}
 
-	function startEditing(key: string, value: string): void {
+	function startEditing(key: string, value: string, focus: EditField = 'value'): void {
+		editFocus = focus;
 		editingKey = key;
 		editKey = key;
 		editValue = value;
@@ -95,6 +116,28 @@
 		editingKey = null;
 		editKey = '';
 		editValue = '';
+	}
+
+	function focusOnMount(node: HTMLInputElement): void {
+		node.focus();
+		node.setSelectionRange(node.value.length, node.value.length);
+	}
+
+	function handleEditKeydown(event: KeyboardEvent): void {
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			void handleSaveEdit();
+		} else if (event.key === 'Escape') {
+			// Cancel the row edit without closing the whole modal.
+			event.preventDefault();
+			event.stopPropagation();
+			cancelEditing();
+		}
+	}
+
+	function handleAddSubmit(event: SubmitEvent): void {
+		event.preventDefault();
+		void handleAddEntry();
 	}
 
 	async function handleAddEntry(): Promise<void> {
@@ -116,12 +159,9 @@
 				return;
 			}
 
-			app.toast.create({
-				title: t('Entry added'),
-				variant: 'success'
-			});
 			newKey = '';
 			newValue = '';
+			addForm?.querySelector('input')?.focus();
 		} finally {
 			saving = false;
 		}
@@ -164,10 +204,6 @@
 				return;
 			}
 
-			app.toast.create({
-				title: t('Entry updated'),
-				variant: 'success'
-			});
 			cancelEditing();
 		} finally {
 			saving = false;
@@ -196,11 +232,6 @@
 			if (editingKey === key) {
 				cancelEditing();
 			}
-
-			app.toast.create({
-				title: t('Entry deleted'),
-				variant: 'success'
-			});
 		} finally {
 			saving = false;
 		}
@@ -211,131 +242,176 @@
 	}
 </script>
 
-{#if trimmedCollectionName}
-	<div class="flex flex-wrap items-center gap-2">
-		<span class="font-mono text-sm text-dark-200">{trimmedCollectionName}</span>
-		{#if lifetime}
-			<Badge variant={lifetime === 'session' ? 'secondary' : 'success'}>
-				{lifetimeLabel(lifetime)}
-			</Badge>
-		{/if}
-	</div>
-	{#if lifetime === 'session'}
-		<p class="mt-2 text-sm text-dark-300">
-			{t('Session collections are cleared when the app closes.')}
-		</p>
-	{/if}
-{/if}
-
-<div class="mt-5 min-h-0">
-	{#if entries.length === 0}
-		<p class="py-4 text-sm text-dark-300">{t('This collection has no entries yet.')}</p>
+{#snippet keyCell(entry: Entry)}
+	{#if editingKey === entry.key}
+		<InputText
+			size="sm"
+			class="font-mono"
+			aria-label={t('Key')}
+			required
+			value={editKey}
+			oninput={(event) => (editKey = event.currentTarget.value)}
+			onkeydown={handleEditKeydown}
+			{@attach editFocus === 'key' ? focusOnMount : undefined}
+		/>
 	{:else}
-		<ScrollArea orientation="vertical" viewportClasses="max-h-64 overflow-hidden">
-			<ul class="grid gap-2 pr-2">
-				{#each entries as entry (entry.key)}
-					<li
-						class={cn(
-							'rounded-none border border-rule bg-dark-700/40 p-3',
-							editingKey === entry.key && 'border-primary-500/40'
-						)}
-					>
-						{#if editingKey === entry.key}
-							<div class="grid gap-3">
-								<InputText
-									label={t('Key')}
-									required
-									value={editKey}
-									oninput={(event) => (editKey = event.currentTarget.value)}
-								/>
-								<InputText
-									label={t('Value')}
-									value={editValue}
-									oninput={(event) => (editValue = event.currentTarget.value)}
-								/>
-								<div class="flex flex-wrap justify-end gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										disabled={saving}
-										onclick={cancelEditing}
-									>
-										{t('Cancel')}
-									</Button>
-									<Button
-										size="sm"
-										disabled={!canSaveEdit}
-										onclick={() => void handleSaveEdit()}
-									>
-										{t('Save')}
-									</Button>
-								</div>
-							</div>
-						{:else}
-							<div class="flex items-start justify-between gap-3">
-								<div class="min-w-0 flex-1">
-									<p
-										class="truncate font-mono text-sm font-medium text-primary-100"
-										title={entry.key}
-									>
-										{entry.key}
-									</p>
-									<p class="mt-1 truncate text-sm text-dark-200" title={entry.value}>
-										{entry.value || t('Empty value')}
-									</p>
-								</div>
-								<div class="flex shrink-0 items-center gap-1">
-									<Button
-										variant="ghost"
-										size="icon-sm"
-										icon="ri:edit-line"
-										aria-label={t('Edit')}
-										disabled={saving}
-										onclick={() => startEditing(entry.key, entry.value)}
-									/>
-									<Button
-										variant="ghost"
-										size="icon-sm"
-										icon="ri:delete-bin-line"
-										aria-label={t('Delete')}
-										disabled={saving}
-										onclick={() => void handleDeleteEntry(entry.key)}
-									/>
-								</div>
-							</div>
-						{/if}
-					</li>
-				{/each}
-			</ul>
-		</ScrollArea>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="truncate font-mono text-primary-100"
+			title={entry.key}
+			ondblclick={() => startEditing(entry.key, entry.value, 'key')}
+		>
+			{entry.key}
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet valueCell(entry: Entry)}
+	{#if editingKey === entry.key}
+		<InputText
+			size="sm"
+			aria-label={t('Value')}
+			value={editValue}
+			oninput={(event) => (editValue = event.currentTarget.value)}
+			onkeydown={handleEditKeydown}
+			{@attach editFocus === 'value' ? focusOnMount : undefined}
+		/>
+	{:else}
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class={cn('truncate', !entry.value && 'text-dark-500 italic')}
+			title={entry.value}
+			ondblclick={() => startEditing(entry.key, entry.value, 'value')}
+		>
+			{entry.value || t('Empty value')}
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet actionsCell(entry: Entry)}
+	{#if editingKey === entry.key}
+		<div class="flex items-center justify-end gap-1">
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				icon="ri:check-line"
+				aria-label={t('Save')}
+				disabled={!canSaveEdit}
+				onclick={() => void handleSaveEdit()}
+			/>
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				icon="ri:close-line"
+				aria-label={t('Cancel')}
+				disabled={saving}
+				onclick={cancelEditing}
+			/>
+		</div>
+	{:else}
+		<div
+			class="flex items-center justify-end gap-1 opacity-0 transition-opacity focus-within:opacity-100 [tr:hover_&]:opacity-100"
+		>
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				icon="ri:edit-line"
+				aria-label={t('Edit')}
+				disabled={saving}
+				onclick={() => startEditing(entry.key, entry.value)}
+			/>
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				icon="ri:delete-bin-line"
+				class="hover:text-destructive-50"
+				aria-label={t('Delete')}
+				disabled={saving}
+				onclick={() => void handleDeleteEntry(entry.key)}
+			/>
+		</div>
+	{/if}
+{/snippet}
+
+<div class="flex flex-wrap items-center justify-between gap-3">
+	{#if trimmedCollectionName}
+		<div class="flex min-w-0 flex-wrap items-center gap-2">
+			<span class="truncate font-mono text-sm text-dark-100">{trimmedCollectionName}</span>
+			{#if lifetime}
+				<Badge variant={lifetime === 'session' ? 'secondary' : 'success'}>
+					{lifetimeLabel(lifetime)}
+				</Badge>
+			{/if}
+			<span class="text-xs text-dark-400 tabular-nums">
+				{t('{count} entries', { count: entries.length })}
+			</span>
+		</div>
+	{/if}
+	{#if entries.length > 0}
+		<InputText
+			size="sm"
+			class="w-full sm:w-56"
+			prependIcon="ri:search-line"
+			placeholder={t('Search entries')}
+			aria-label={t('Search entries')}
+			value={search}
+			oninput={(event) => (search = event.currentTarget.value)}
+		/>
 	{/if}
 </div>
+{#if lifetime === 'session'}
+	<p class="mt-2 text-sm text-dark-300">
+		{t('Session collections are cleared when the app closes.')}
+	</p>
+{/if}
 
-<div class="mt-5 grid gap-3 rounded-none border border-rule bg-dark-700/30 p-4">
-	<p class="text-sm font-medium text-dark-100">{t('Add entry')}</p>
-	<div class="grid gap-3 sm:grid-cols-2">
-		<InputText
-			label={t('Key')}
-			required
-			placeholder="myKey"
-			value={newKey}
-			oninput={(event) => (newKey = event.currentTarget.value)}
+<form
+	bind:this={addForm}
+	class="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-start gap-2"
+	onsubmit={handleAddSubmit}
+>
+	<InputText
+		size="sm"
+		class="font-mono"
+		placeholder={t('Key')}
+		aria-label={t('Key')}
+		value={newKey}
+		oninput={(event) => (newKey = event.currentTarget.value)}
+	/>
+	<InputText
+		size="sm"
+		placeholder={t('Value')}
+		aria-label={t('Value')}
+		value={newValue}
+		oninput={(event) => (newValue = event.currentTarget.value)}
+	/>
+	<Button
+		type="submit"
+		size="sm"
+		icon={newKeyExists ? 'ri:refresh-line' : 'ri:add-line'}
+		disabled={!canAddEntry}
+	>
+		{newKeyExists ? t('Update') : t('Add entry')}
+	</Button>
+	{#if newKeyExists}
+		<p class="col-span-full text-xs text-warning-300">{t('Key exists — will overwrite')}</p>
+	{/if}
+</form>
+
+<div class="mt-3">
+	{#if entries.length === 0}
+		<EmptyState compact icon="ri:database-2-line" title={t('This collection has no entries yet.')} />
+	{:else}
+		<DataTable
+			data={filteredEntries}
+			getRowKey={(entry) => entry.key}
+			empty={t('No matching entries')}
+			maxHeight="max-h-[min(28rem,55vh)]"
+			columns={[
+				{ id: 'key', header: t('Key'), cell: keyCell, class: 'w-1/3 max-w-0' },
+				{ id: 'value', header: t('Value'), cell: valueCell, class: 'max-w-0' },
+				{ id: 'actions', header: '', align: 'right', cell: actionsCell, class: 'w-24' }
+			]}
 		/>
-		<InputText
-			label={t('Value')}
-			placeholder="myValue"
-			value={newValue}
-			oninput={(event) => (newValue = event.currentTarget.value)}
-		/>
-	</div>
-	<div class="flex justify-end">
-		<Button
-			size="sm"
-			icon="ri:add-line"
-			disabled={!canAddEntry}
-			onclick={() => void handleAddEntry()}
-		>
-			{t('Add entry')}
-		</Button>
-	</div>
+	{/if}
 </div>

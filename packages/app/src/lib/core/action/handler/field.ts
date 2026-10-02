@@ -1,4 +1,9 @@
-import type { SelectItem, SelectItemsSource } from '../trigger/condition';
+import type {
+	ConditionDefinition,
+	ConditionGroupNode,
+	SelectItem,
+	SelectItemsSource
+} from '../trigger/condition';
 
 /** Key-value pair for key-value-list handler fields. */
 export type KeyValueEntry = {
@@ -34,7 +39,8 @@ export type HandlerFieldScalarValue =
 	| number
 	| boolean
 	| KeyValueEntry[]
-	| TextSelectTextFieldValue;
+	| TextSelectTextFieldValue
+	| ConditionGroupNode;
 
 /** Runtime value of a handler field (scalar or one-of). */
 export type HandlerFieldValue = HandlerFieldScalarValue | OneOfFieldValue;
@@ -57,6 +63,24 @@ export type HandlerFieldVariable = {
 	key: string;
 	/** Label shown in the variable picker. */
 	label: string;
+	/** Optional help text shown next to the variable in the picker. */
+	description?: string;
+	/** Picker section, for example `Trigger`, `Action` or `Global`. */
+	group?: string;
+	/** True when the variable is only set on some execution paths (for example one IF branch). */
+	maybe?: boolean;
+};
+
+/**
+ * A variable a handler produces or a trigger provides, referenced as `{key}` by later handlers.
+ */
+export type VariableDefinition = {
+	/** Variable key used in `{key}` placeholders. */
+	key: string;
+	/** Label shown in the variable picker. Derived from `key` when omitted. */
+	label?: string;
+	/** Optional help text shown next to the variable in the picker. */
+	description?: string;
 };
 
 type HandlerFieldBase = {
@@ -97,9 +121,9 @@ export type HandlerOneOfMigrateFrom = {
 export type HandlerOneOfInnerFieldDefinition =
 	| (HandlerFieldBase & {
 			type: 'text';
-			/** Variables available in the text field picker. */
-			variables?: HandlerFieldVariable[];
-			/** Include trigger context variables in the picker. */
+			/** Extra variables offered in autocomplete, or `false` to turn autocomplete off. */
+			variables?: HandlerFieldVariable[] | false;
+			/** @deprecated Variables in scope are now offered on every text field. */
 			useContextVariables?: boolean;
 	  })
 	| (HandlerFieldBase & { type: 'switch' })
@@ -142,9 +166,9 @@ export type HandlerOneOfInnerFieldDefinition =
 	  })
 	| (HandlerFieldBase & {
 			type: 'json';
-			/** Variables available in the editor's variable picker. */
-			variables?: HandlerFieldVariable[];
-			/** Include trigger context variables in the picker. */
+			/** Extra variables offered in autocomplete, or `false` to turn autocomplete off. */
+			variables?: HandlerFieldVariable[] | false;
+			/** @deprecated Variables in scope are now offered on every json field. */
 			useContextVariables?: boolean;
 			defaultValue?: string;
 	  })
@@ -186,16 +210,34 @@ export type HandlerFieldDefinition =
 			type: 'key-value-list';
 			keyPlaceholder?: string;
 			valuePlaceholder?: string;
+			/** Set to `false` to turn off variable autocomplete in the value column. */
+			variables?: false;
 	  })
 	| (HandlerFieldBase & {
 			type: 'text-select-text';
 			items: SelectItemsSource;
 			pathPlaceholder?: string;
 			valuePlaceholder?: string;
+			/** Set to `false` to turn off variable autocomplete. */
+			variables?: false;
+			/** @deprecated Variables in scope are now offered on every text-select-text field. */
 			useContextVariables?: boolean;
 			allowNegate?: boolean;
 			valuelessOperators?: readonly string[];
 			defaultValue?: TextSelectTextFieldValue;
+	  })
+	| (HandlerFieldBase & {
+			type: 'condition-group';
+			/** Condition types users can add, combined with AND/OR and optional sub-groups. */
+			conditions: ConditionDefinition[];
+			/** Set to `false` to turn off variable autocomplete in condition inputs. */
+			variables?: false;
+			/**
+			 * Condition key that a stored single `text-select-text` value (`{ path, type, value, negate }`)
+			 * is migrated into, so a field can switch from one condition to a group without losing data.
+			 */
+			migrateFromTextSelectText?: string;
+			defaultValue?: ConditionGroupNode;
 	  })
 	| (HandlerFieldBase & {
 			type: 'one-of';

@@ -1,7 +1,7 @@
 import type { StreamElementsVoice } from './types';
 import type { PluginAppApi, PluginStore } from '@stream-kit/plugin';
 
-import { TtsPlayer } from '../player';
+import { MAX_TTS_VOLUME, TtsPlayer } from '../player';
 import { TTS_SESSION_IDS } from '../session-ids';
 import { fetchStreamElementsSpeech, fetchStreamElementsVoices } from './api';
 
@@ -20,10 +20,14 @@ export class StreamElementsService {
 
 	async boot(app: PluginAppApi, store: PluginStore): Promise<void> {
 		this.store = store;
-		this.player.setPlayback((blob, volume) => app.audio.play(blob, volume, { sessionId: TTS_SESSION_IDS.streamelements }), {
-			sessionId: TTS_SESSION_IDS.streamelements,
-			stopPlayback: (sessionId) => app.audio.stop(sessionId)
-		});
+		this.player.setPlayback(
+			(blob, volume) =>
+				app.audio.play(blob, volume, { sessionId: TTS_SESSION_IDS.streamelements }),
+			{
+				sessionId: TTS_SESSION_IDS.streamelements,
+				stopPlayback: (sessionId) => app.audio.stop(sessionId)
+			}
+		);
 		await this.syncFromStore();
 	}
 
@@ -76,7 +80,7 @@ export class StreamElementsService {
 			return;
 		}
 
-		const clamped = Math.min(1, Math.max(0, volume));
+		const clamped = Math.min(MAX_TTS_VOLUME, Math.max(0, volume));
 		await this.store.set('volume', Math.round(clamped * 100));
 		this.volume = clamped;
 	}

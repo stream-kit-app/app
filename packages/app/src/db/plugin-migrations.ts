@@ -8,13 +8,18 @@ export function registerPluginMigrations(pluginKey: string, migrations: PluginMi
 	pluginMigrations.set(pluginKey, migrations);
 }
 
-export async function runPluginMigrations(sqlite: Database): Promise<void> {
-	for (const [pluginKey, migrations] of pluginMigrations) {
+/** Runs registered plugin migrations; all plugins, or only `pluginKey`. Migrations must be re-runnable. */
+export async function runPluginMigrations(sqlite: Database, pluginKey?: string): Promise<void> {
+	for (const [key, migrations] of pluginMigrations) {
+		if (pluginKey && key !== pluginKey) {
+			continue;
+		}
+
 		for (const migration of migrations) {
 			try {
 				await migration(sqlite);
 			} catch (error) {
-				console.error(`Plugin migration failed for ${pluginKey}`, error);
+				console.error(`Plugin migration failed for ${key}`, error);
 				throw error;
 			}
 		}

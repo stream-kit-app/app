@@ -7,7 +7,15 @@ import { getApp } from '../registry';
 import type { ActionHandler } from './action-handler.svelte';
 import type { Action } from './action.svelte';
 import type { ActionTrigger } from './action-trigger.svelte';
-import { getHandlerFieldValue } from './handler-field';
+import {
+	ACTION_VARIABLE_GROUP,
+	computeVariableScopes,
+	formatVariableLabel,
+	getHandlerOutputs
+} from './variable-scope';
+
+export const TRIGGER_VARIABLE_GROUP = 'Trigger';
+export const GLOBAL_VARIABLE_GROUP = 'Global';
 
 type ProcessEventContext = {
 	executable?: string;
@@ -49,19 +57,12 @@ export function contextToVariables(context: unknown): Record<string, string> {
 	return variables;
 }
 
-function formatVariableLabel(key: string): string {
-	return key
-		.replace(/([a-z])([A-Z])/g, '$1 $2')
-		.replace(/[_-]/g, ' ')
-		.replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
 /** Runtime aliases hidden from variable pickers when the canonical key is present. */
 const VARIABLE_UI_ALIASES: Record<string, string> = {
 	user: 'username'
 };
 
-function toVariableList(variables: Record<string, string>): HandlerFieldVariable[] {
+function toVariableList(variables: Record<string, string>, group?: string): HandlerFieldVariable[] {
 	return Object.keys(variables)
 		.filter((key) => {
 			const canonical = VARIABLE_UI_ALIASES[key];
@@ -71,11 +72,26 @@ function toVariableList(variables: Record<string, string>): HandlerFieldVariable
 		.sort((left, right) => left.localeCompare(right))
 		.map((key) => ({
 			key,
-			label: formatVariableLabel(key)
+			label: formatVariableLabel(key),
+			group
 		}));
 }
 
+/** Variables a trigger provides: its declared `variables`, else keys from its `onTest` sample context. */
 export function getTriggerVariables(action: Action, trigger: ActionTrigger): HandlerFieldVariable[] {
+	const declared = trigger.definition.variables;
+
+	if (declared) {
+		const list = typeof declared === 'function' ? declared(trigger) : declared;
+
+		return list.map((variable) => ({
+			key: variable.key,
+			label: variable.label ?? formatVariableLabel(variable.key),
+			description: variable.description,
+			group: TRIGGER_VARIABLE_GROUP
+		}));
+	}
+
 	if (!trigger.definition.onTest) {
 		return [];
 	}
@@ -84,9 +100,10 @@ export function getTriggerVariables(action: Action, trigger: ActionTrigger): Han
 	const core = getApp().plugins.tryGet<CorePluginApi>('core');
 	const variables = core?.variables.resolveTriggerContext(data) ?? contextToVariables(data);
 
-	return toVariableList(variables);
+	return toVariableList(variables, TRIGGER_VARIABLE_GROUP);
 }
 
+/** Global variable keys. Reactive inside `$derived`: the core store notifies when keys change. */
 export function getGlobalVariables(app: App | PluginAppApi): HandlerFieldVariable[] {
 	const core = app.plugins.tryGet<CorePluginApi>('core');
 
@@ -96,7 +113,8 @@ export function getGlobalVariables(app: App | PluginAppApi): HandlerFieldVariabl
 
 	return core.variables.listKeys('global').map((key) => ({
 		key,
-		label: formatVariableLabel(key)
+		label: formatVariableLabel(key),
+		group: GLOBAL_VARIABLE_GROUP
 	}));
 }
 
@@ -105,7 +123,26 @@ export function getPrecedingActionVariables(
 	handlers: ActionHandler[],
 	handlerIndex: number
 ): HandlerFieldVariable[] {
-	return collectActionVariablesFromHandlers(handlers.slice(0, handlerIndex));
+	const seen = new Set<string>();
+	const variables: HandlerFieldVariable[] = [];
+
+	for (const handler of handlers.slice(0, handlerIndex)) {
+		for (const output of getHandlerOutputs(handler)) {
+			if (seen.has(output.key)) {
+				continue;
+			}
+
+			seen.add(output.key);
+			variables.push({
+				key: output.key,
+				label: output.label ?? formatVariableLabel(output.key),
+				description: output.description,
+				group: ACTION_VARIABLE_GROUP
+			});
+		}
+	}
+
+	return variables;
 }
 
 /** Action-scoped variables from handlers that run before `targetId` in the tree. */
@@ -113,68 +150,7 @@ export function getPrecedingActionVariablesForHandler(
 	rootHandlers: ActionHandler[],
 	targetId: string
 ): HandlerFieldVariable[] {
-	return collectActionVariablesFromHandlers(findPrecedingHandlers(rootHandlers, targetId) ?? []);
-}
-
-function findPrecedingHandlers(
-	handlers: ActionHandler[],
-	targetId: string,
-	prefix: ActionHandler[] = []
-): ActionHandler[] | null {
-	for (let index = 0; index < handlers.length; index += 1) {
-		const handler = handlers[index]!;
-
-		if (handler.id === targetId) {
-			return [...prefix, ...handlers.slice(0, index)];
-		}
-
-		const parentPrefix = [...prefix, ...handlers.slice(0, index)];
-		const inThen = findPrecedingHandlers(handler.thenHandlers, targetId, parentPrefix);
-
-		if (inThen !== null) {
-			return inThen;
-		}
-
-		const inElse = findPrecedingHandlers(handler.elseHandlers, targetId, parentPrefix);
-
-		if (inElse !== null) {
-			return inElse;
-		}
-	}
-
-	return null;
-}
-
-function collectActionVariablesFromHandlers(handlers: ActionHandler[]): HandlerFieldVariable[] {
-	const variables: HandlerFieldVariable[] = [];
-	const seen = new Set<string>();
-
-	for (const handler of handlers) {
-		const targetName = getHandlerFieldValue(handler.fields, 'target-name');
-
-		if (typeof targetName === 'string') {
-			const key = targetName.trim();
-
-			if (key && !seen.has(key)) {
-				seen.add(key);
-				variables.push({ key, label: formatVariableLabel(key) });
-			}
-		}
-
-		const scope = getHandlerFieldValue(handler.fields, 'scope');
-		const variableName = getHandlerFieldValue(handler.fields, 'variable-name');
-
-		if (scope === 'action' && typeof variableName === 'string') {
-			const key = variableName.trim();
-
-			if (key && !seen.has(key)) {
-				seen.add(key);
-				variables.push({ key, label: formatVariableLabel(key) });
-			}
-		}
-	}
-
-	return variables;
+	return computeVariableScopes(rootHandlers, []).get(targetId) ?? [];
 }
 
 export function mergeContextVariables(

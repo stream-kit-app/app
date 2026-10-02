@@ -1,23 +1,23 @@
 import type { HandlerDefinitionProps } from '../action/handler';
 import type { HandlerTriggerContext } from '../action/handler-context';
+import type { ActionRecord, NewActionRecord } from '../action/stored-action';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
+import type { CommandRuntimeFactory, PluginAppApi, PluginDbClient } from './plugin-app-api.types';
+import type { PluginMigration } from '$db/plugin-migrations';
+import type { TranslationKey } from '$lib/i18n';
 import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
-import type { NewActionRecord } from '../action/stored-action';
-import { createFilesystemApi } from '../filesystem/create-api';
-import { isTcpPortReachable } from '../network/tcp-port';
-import { getVideoFileDurationMs } from '../media/file-duration';
-import { withResourceLock } from '../resource-lock';
-import { getSettingsFieldValue } from '../settings/settings-field';
-import { db } from '$db/index';
-import { registerPluginMigrations, type PluginMigration } from '$db/plugin-migrations';
-import { getI18n, translate, type TranslationKey } from '$lib/i18n';
 
-import type {
-	CommandRuntimeFactory,
-	PluginAppApi,
-	PluginDbClient
-} from './plugin-app-api.types';
+import { db } from '$db/index';
+import { registerPluginMigrations } from '$db/plugin-migrations';
+
+import { getI18n, translate } from '$lib/i18n';
+
+import { createFilesystemApi } from '../filesystem/create-api';
+import { getVideoFileDurationMs } from '../media/file-duration';
+import { isTcpPortReachable } from '../network/tcp-port';
+import { withResourceLock } from '../resource-lock';
+import { getSettingsFieldInstance, getSettingsFieldValue } from '../settings/settings-field';
 
 export type { CommandRuntimeFactory, PluginAppApi } from './plugin-app-api.types';
 
@@ -40,9 +40,6 @@ export type BotPluginApi = {
 		deleteByOwner: (ownerPluginKey: string) => Promise<number>;
 	};
 };
-
-/** @deprecated Use BotPluginApi */
-export type CommandsPluginApi = BotPluginApi;
 
 export type PluginDefinitionCollections = {
 	triggers?: TriggerDefinitionProps[];
@@ -137,6 +134,19 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 
 				return getSettingsFieldValue(plugin.fields, settingKey);
 			},
+			setSettingValue: async (pluginKey, settingKey, value) => {
+				const plugin = app.plugins.find(pluginKey);
+				const field = plugin
+					? getSettingsFieldInstance(plugin.fields, settingKey)
+					: undefined;
+
+				if (!plugin || !field) {
+					throw new Error(`Unknown setting "${settingKey}" for plugin "${pluginKey}"`);
+				}
+
+				field.value = value;
+				await plugin.saveFieldInstances(app, [field]);
+			},
 			getSettingsContext: (pluginKey) => {
 				const plugin = app.plugins.find(pluginKey);
 
@@ -190,9 +200,8 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			getQuota: app.userFiles.getQuota.bind(app.userFiles),
 			fetchBlob: app.userFiles.fetchBlob.bind(app.userFiles),
 			pick: async (options) => {
-				const { openCloudFilePicker } = await import(
-					'$lib/components/core/user-files/open-cloud-file-picker'
-				);
+				const { openCloudFilePicker } =
+					await import('$lib/components/core/user-files/open-cloud-file-picker');
 				return openCloudFilePicker({
 					filters: options?.extensions
 						? [{ name: 'Files', extensions: options.extensions }]
@@ -265,17 +274,17 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			getClient: (): PluginDbClient => db
 		},
 		i18n: {
-			t: (key: TranslationKey, params?: Record<string, string | number | null | undefined>) => {
+			t: (
+				key: TranslationKey,
+				params?: Record<string, string | number | null | undefined>
+			) => {
 				const i18n = getI18n();
 
 				if (!i18n) {
 					return key;
 				}
 
-				return i18n.t(
-					key,
-					params as Record<string, string | number> | undefined
-				);
+				return i18n.t(key, params as Record<string, string | number> | undefined);
 			},
 			translate
 		},
@@ -291,9 +300,16 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 				}
 			},
 			hasEnabledProcessTrigger: () => app.actions.hasEnabledProcessTrigger(),
-			runById: (id: number, context: HandlerTriggerContext) => app.actions.runById(id, context),
+			runById: (id: number, context: HandlerTriggerContext) =>
+				app.actions.runById(id, context),
 			findHandler: (id: string) => app.actions.actions.find(id),
 			getHandlers: () => app.actions.actions.items,
+			findTrigger: (id: string) => app.actions.triggers.find(id),
+			getTriggers: () => app.actions.triggers.items,
+			openDraft: (
+				input: Omit<NewActionRecord, 'id'>,
+				options?: { onSaved?: (record: ActionRecord) => void }
+			) => app.actions.openDraft(input, options),
 			create: (input: NewActionRecord, options?: { ownerPluginKey?: string }) =>
 				app.actions.createFromRecord(input, {
 					ownerPluginKey: resolveOwnerPluginKey(scope, options)
@@ -321,6 +337,7 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			login: app.auth.login.bind(app.auth),
 			register: app.auth.register.bind(app.auth),
 			logout: app.auth.logout.bind(app.auth),
+			send: app.auth.send.bind(app.auth),
 			onChange: app.auth.onChange.bind(app.auth)
 		},
 		oauth: {
@@ -376,11 +393,4 @@ function createApiServerApi(app: App, scope?: PluginAppScope) {
 			}
 		}
 	};
-}
-
-let pluginAppInstance: PluginAppApi | undefined;
-
-export function getPluginAppApi(app: App): PluginAppApi {
-	pluginAppInstance ??= createPluginAppApi(app);
-	return pluginAppInstance;
 }

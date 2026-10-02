@@ -1,0 +1,11 @@
+{
+	"key": "ai-actions",
+	"name": "AI Actions",
+	"version": "0.1.0-alpha.0",
+	"description": "Describe an action in plain language and let AI build it.",
+	"icon": "ri:sparkling-2-line",
+	"entry": "dist/index.js",
+	"dependencies": [],
+	"streamKitVersion": ">=0.1.0",
+	"updateManifestUrl": "https://stream-kit.app/api/plugins/ai-actions/manifest.json"
+}

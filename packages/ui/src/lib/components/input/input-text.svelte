@@ -4,8 +4,11 @@
 
 	import Icon from '@iconify/svelte';
 	import { useId } from 'bits-ui';
+	import { onDestroy } from 'svelte';
 
+	import { tooltip } from '../../attachments';
 	import { cn } from '../../utils';
+	import { COPIED_ICON, COPY_ICON, CopyFeedback } from '../copy-button/copy-feedback.svelte';
 	import {
 		inputFieldAdornmentBorder,
 		inputFieldBorder,
@@ -22,8 +25,6 @@
 		inputShellSizeClasses
 	} from './input-size-classes';
 	import Label from './label.svelte';
-
-	const COPY_FEEDBACK_MS = 2000;
 
 	type Props = {
 		label?: string;
@@ -54,26 +55,15 @@
 	}: Props = $props();
 
 	let showPassword = $state(false);
-	let copied = $state(false);
-	let copyFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
+	const copyFeedback = new CopyFeedback();
+	const copied = $derived(copyFeedback.isCopied());
 
 	const isPasswordField = $derived(props.type === 'password');
 	const hasRightAdornment = $derived(Boolean(appendIcon) || isPasswordField || copyable);
 	const inputReadonly = $derived(copyable ? (readonly ?? true) : readonly);
 	const isCopyableReadonly = $derived(copyable && inputReadonly);
 
-	async function copyValue(): Promise<void> {
-		await navigator.clipboard.writeText(String(value ?? ''));
-
-		if (copyFeedbackTimer) {
-			clearTimeout(copyFeedbackTimer);
-		}
-
-		copied = true;
-		copyFeedbackTimer = setTimeout(() => {
-			copied = false;
-		}, COPY_FEEDBACK_MS);
-	}
+	onDestroy(() => copyFeedback.destroy());
 </script>
 
 <div class={cn('relative grid w-full min-w-0 gap-2', className)}>
@@ -139,17 +129,18 @@
 			<button
 				type="button"
 				class={cn(
-					'grid h-full place-items-center rounded-r-lg border transition-colors',
+					'grid h-full place-items-center rounded-r-lg border',
 					inputFieldAdornmentBorder(error),
 					inputFieldSurface,
-					copied ? 'text-success' : 'text-dark-50',
+					copied ? 'text-success-400' : 'text-dark-50',
 					inputAdornmentSizeClasses[size]
 				)}
 				aria-label={copied ? copiedLabel : copyLabel}
-				onclick={() => void copyValue()}
+				onclick={() => void copyFeedback.copy(String(value ?? ''), 'value')}
+				{@attach tooltip(() => (copied ? copiedLabel : copyLabel))}
 			>
 				<Icon
-					icon={copied ? 'ri:checkbox-circle-fill' : 'ri:file-copy-line'}
+					icon={copied ? COPIED_ICON : COPY_ICON}
 					class={inputIconSizeClasses[size]}
 				/>
 			</button>

@@ -29,7 +29,7 @@
 	"scripts": {
 		"build": "tsc --project tsconfig.declarations.json && esbuild src/index.ts --bundle --format=esm --platform=neutral --outfile=dist/index.js",
 		"check": "pnpm build && tsc --noEmit -p tsconfig.json",
-		"dev": "chokidar \"src/**/*.ts\" -c \"pnpm build\" --initial",
+		"dev": "chokidar \"src/**/*.ts\" -c \"pnpm build\"",
 		"prepublishOnly": "pnpm build"
 	},
 	"peerDependencies": {

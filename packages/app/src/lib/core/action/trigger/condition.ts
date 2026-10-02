@@ -6,6 +6,8 @@ export type SelectItem = { value: string; label: string; disabled?: boolean };
 export type SelectItemsSource = SelectItem[] | (() => SelectItem[] | Promise<SelectItem[]>);
 
 type ConditionBase = {
+	/** Stable condition key. Derived from `name` when omitted. */
+	key?: string;
 	name: string;
 	placeholder?: string;
 	loadingPlaceholder?: string;
@@ -36,6 +38,8 @@ export type ConditionDefinition =
 			valuePlaceholder?: string;
 			selectPlaceholder?: string;
 			variables?: HandlerFieldVariable[];
+			/** Operators that compare only the path; the value input is hidden for them. */
+			valuelessOperators?: readonly string[];
 	  });
 
 export type ResolvedConditionDefinition = ConditionDefinition & {

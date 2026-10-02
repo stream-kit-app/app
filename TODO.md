@@ -1,6 +1,6 @@
 # Stream Kit — Roadmap / TODO
 
-> Versie 0.1.0 — laatst bijgewerkt: 31 augustus 2026 (Tauri auto-update)
+> Versie 0.1.0 — laatst bijgewerkt: 2 oktober 2026 (action-editor outline + AND/OR If + variable autocomplete)
 > Doel: volwaardig alternatief voor StreamElements én Streamer.bot
 
 Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
@@ -8,6 +8,7 @@ Legenda: `[x]` klaar · `[~]` deels klaar · `[ ]` nog open
 ## Huidige implementaties
 
 - [x] Actiesysteem (trigger → conditie → handler)
+- [x] Action-editor — outline + detailpaneel (geen geneste If-kaarten), If met AND/OR-groepen, `{variable}`-autocomplete op alle velden incl. Monaco JSON, handler `outputs` + scope-bewuste suggesties ("maybe" na een If-branch)
 - [x] Twitch plugin (brede EventSub + chat coverage)
 - [x] OBS WebSocket plugin (scenes, sources, stream/record, hotkeys)
 - [x] Bot plugin — commands, timers, moderation, custom roles, built-in commands, overview settings (voorheen Commands plugin)

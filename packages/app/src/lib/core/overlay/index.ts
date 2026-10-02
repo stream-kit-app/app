@@ -1,10 +1,10 @@
 export { OverlayService } from './overlay-service.svelte';
 export { registerOverlayHandlers } from './register-handlers';
-export { OVERLAY_FRAMEWORKS, getOverlayFramework, OVERLAY_TEMPLATES, getOverlayTemplate } from './templates';
+export { OVERLAY_FRAMEWORKS, getOverlayFramework } from './templates';
 export { buildOverlayProjectZip, buildOverlayDistZip, overlayProjectSlug } from './overlay-export';
 export { importOverlayProjectFromZip } from './overlay-import';
 export { ensureOverlayScaffold, getOverlayProjectDir, isOverlayBuilt } from './overlay-project';
-export { OVERLAY_FRAMEWORK_ICONS, getOverlayFrameworkIcon, OVERLAY_TEMPLATE_ICONS, getOverlayTemplateIcon } from './template-meta';
+export { OVERLAY_FRAMEWORK_ICONS, getOverlayFrameworkIcon } from './template-meta';
 export type {
 	OverlayManifest,
 	OverlaySettingsFieldJson,

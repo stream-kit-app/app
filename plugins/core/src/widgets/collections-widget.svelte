@@ -1,18 +1,18 @@
 <script lang="ts">
-	import type { CorePluginApi } from '../lib/plugin-api';
 	import type { CollectionSummary } from '../lib/collections/types';
+	import type { CorePluginApi } from '../lib/plugin-api';
 	import type { PluginWidgetProps } from '@stream-kit/plugin';
-
-	import Icon from '@iconify/svelte';
 
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
+	import { EmptyState } from '@stream-kit/ui/empty-state';
+	import { WidgetList, WidgetRow } from '@stream-kit/ui/widget';
 
-	import CollectionCreateForm from './collection-create-form.svelte';
 	import CollectionCreateFormFooter from './collection-create-form-footer.svelte';
+	import CollectionCreateForm from './collection-create-form.svelte';
 	import { CollectionCreateForm as CollectionCreateFormModel } from './collection-create.svelte';
-	import CollectionEditorForm from './collection-editor-form.svelte';
 	import CollectionEditorFormFooter from './collection-editor-form-footer.svelte';
+	import CollectionEditorForm from './collection-editor-form.svelte';
 
 	let { app }: PluginWidgetProps = $props();
 
@@ -140,56 +140,47 @@
 	}
 </script>
 
-<div class="flex min-h-0 flex-1 flex-col">
+<div class="flex min-h-0 flex-1 flex-col gap-3">
 	{#if collectionsApi == null}
-		<p class="text-sm text-dark-100">{t('Core plugin unavailable')}</p>
+		<EmptyState compact icon="ri:plug-disconnected-line" title={t('Core plugin unavailable')} />
 	{:else if collections.length === 0}
-		<p class="text-sm text-dark-300">{t('No collections yet')}</p>
+		<EmptyState
+			compact
+			icon="ri:database-2-line"
+			title={t('No collections yet')}
+			description={t('Create a collection to store key-value data for your actions.')}
+		/>
 	{:else}
-		<div class="flex flex-col gap-1 text-sm">
+		<WidgetList>
 			{#each collections as collection (collection.collectionName)}
-				<div
-					class="flex items-center justify-between gap-3 rounded-none px-2 py-1.5 transition hover:bg-dark-700/50"
+				<WidgetRow
+					icon="ri:database-2-line"
+					title={collection.collectionName}
+					description={t('{count} entries', { count: collection.entryCount })}
+					onclick={() => openEditor(collection.collectionName)}
 				>
-					<div class="flex min-w-0 items-center gap-3">
-						<div
-							class="flex size-8 shrink-0 items-center justify-center border border-rule text-primary"
+					{#snippet trailing()}
+						<Badge
+							variant={collection.lifetime === 'session' ? 'default' : 'success'}
+							size="sm"
 						>
-							<Icon icon="ri:database-2-line" class="size-4" />
-						</div>
-						<div class="min-w-0">
-							<p class="truncate font-medium text-dark-50">{collection.collectionName}</p>
-							<p class="text-xs text-dark-300">
-								{t('{count} entries', { count: collection.entryCount })}
-							</p>
-						</div>
-					</div>
-					<div class="flex shrink-0 items-center gap-2">
-						<Badge variant={collection.lifetime === 'session' ? 'default' : 'success'} size="sm">
 							{collection.lifetime === 'session' ? t('Session') : t('Persistent')}
 						</Badge>
-						<Button
-							variant="outline"
-							size="badge"
-							icon="ri:pencil-line"
-							onclick={() => openEditor(collection.collectionName)}
-						>
-							{t('Edit')}
-						</Button>
 						<Button
 							variant="ghost"
 							size="icon-badge"
 							icon="ri:delete-bin-line"
+							class="text-dark-400 opacity-0 group-hover/row:opacity-100 hover:text-destructive-50 focus-visible:opacity-100"
 							aria-label={t('Delete')}
 							onclick={() => void handleDeleteCollection(collection.collectionName)}
 						/>
-					</div>
-				</div>
+					{/snippet}
+				</WidgetRow>
 			{/each}
-		</div>
+		</WidgetList>
 	{/if}
 
-	<div class="mt-3 border-t border-rule pt-3">
+	<div class="mt-auto flex items-center justify-between gap-2">
 		<Button
 			size="sm"
 			icon="ri:add-line"

@@ -1,3 +1,6 @@
+/** Highest playback gain (2 = 200%), matching the host audio engine. */
+export const MAX_TTS_VOLUME = 2;
+
 type QueueItem = {
 	blob: Blob;
 	volume: number;
@@ -44,7 +47,7 @@ export class TtsPlayer {
 		return new Promise((resolve) => {
 			this.queue.push({
 				blob,
-				volume: Math.min(1, Math.max(0, volume)),
+				volume: Math.min(MAX_TTS_VOLUME, Math.max(0, volume)),
 				resolve
 			});
 

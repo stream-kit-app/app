@@ -14,8 +14,7 @@ export function createSetButtonSettingsHandler(app: PluginAppApi) {
 			{
 				type: 'json',
 				name: 'Settings JSON',
-				placeholder: '{"label":"Live"}',
-				useContextVariables: true
+				placeholder: '{"label":"Live"}'
 			}
 		],
 		execute: async (_action, handler, context, next) => {

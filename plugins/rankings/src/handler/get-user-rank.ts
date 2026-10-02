@@ -76,10 +76,27 @@ function createOutputVarFields() {
 	];
 }
 
+const OUTPUT_VAR_DEFAULTS: Record<string, string> = {
+	foundVar: 'found',
+	userIdVar: 'userId',
+	usernameVar: 'username',
+	pointsVar: 'points',
+	rankVar: 'rank',
+	tierVar: 'tier',
+	watchTimeVar: 'watchTime',
+	positionVar: 'position'
+};
+
 export function createGetUserRankHandler(app: PluginAppApi, rankings: RankingsService) {
 	return {
 		name: 'Get user rank',
 		fields: [createUserTargetField(rankings), ...createOutputVarFields()],
+		outputs: ({ getFieldValue: getValue }) =>
+			Object.entries(OUTPUT_VAR_DEFAULTS).map(([key, fallback]) => {
+				const value = getValue(key);
+
+				return { key: typeof value === 'string' && value.trim() ? value : fallback };
+			}),
 		execute: async (_action, handler, context, next) => {
 			const foundVar = resolveTargetName(handler.fields, 'foundVar', 'found');
 			const userIdVar = resolveTargetName(handler.fields, 'userIdVar', 'userId');

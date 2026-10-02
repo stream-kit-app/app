@@ -20,27 +20,43 @@ Design tokens live in the consumer `@theme` blocks:
 2. Prefer CSS variables under `@theme` so Tailwind v4 emits utilities (`bg-*`, `text-*`, `border-*`).
 3. For repeated decorative CSS (grids, hatches), add an `@utility` in `packages/ui/src/styles/blueprint.css` (or a sibling shared stylesheet) and import it from both `layout.css` files — do not copy `@keyframes` / background recipes into components.
 
+## Light and dark schemes (desktop app)
+
+The desktop app supports a light scheme next to the default dark one. `app.theme` (`packages/app/src/lib/core/theme`) sets `data-theme="light|dark"` on `<html>`; the header toggle sits next to the profile avatar.
+
+- Light values live in the `html[data-theme='light']` block in `packages/app/src/routes/layout.css`. Every new color token needs a value there too.
+- Scales are **mirrored** in light: `dark-950` is the lightest surface and `dark-50` the darkest text, and the same holds for primary/success/warning/destructive. Low numbers always mean high contrast against the background, so `text-dark-50` / `bg-dark-700` keep working in both schemes.
+- Prefer semantic tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-rule`) in new code. For colors outside the token set (Tailwind palette), add a `light:` variant (e.g. `text-sky-300 light:text-sky-700`).
+- Code editors follow `data-theme` through `@stream-kit/ui` `color-scheme.ts`: Monaco switches between `stream-kit-dark` / `stream-kit-light`, and CodeMirror uses `--syntax-*` variables.
+- The marketing site stays dark-only. The light block is app-only and is **not** mirrored into `site/src/routes/layout.css`.
+
 ## Blueprint tokens
 
 | Token | Role |
 | --- | --- |
 | `--color-rule` | Default schematic hairline (weaker than `--color-border`) |
 | `--color-rule-strong` | Emphasized ticks / separators |
+| `--color-surface` | Opaque app card surface (`Panel tone="solid"`), a quiet lift above the background |
+| `--color-item-hover` | Translucent hover / keyboard highlight for items |
+| `--color-item-active` / `--color-item-active-foreground` | Neutral translucent grey for active / selected items (stronger than hover) |
+| `--color-sidebar` | App sidebar background, darker than `--color-background` |
 | `--font-mono` | Eyebrows, indices, numeric readouts (`JetBrains Mono`) |
 
 Use `border-rule` / `bg-rule` for schematic chrome. Keep `border-border` for interactive UI (inputs, menus, dialogs).
 
-## Radius scale (hybrid)
+## Radius scale
 
-Keep app and site `layout.css` radius tokens identical. Structural surfaces use `rounded-none` in components; the theme scale is tightened so any leftover `rounded-xl` still reads sharp:
+Keep app and site `layout.css` radius tokens identical:
 
 | Token | Value | Typical use |
 | --- | --- | --- |
-| `--radius-md` / `--radius-lg` / `--radius-xl` | `0.25rem` | Controls (`rounded-lg`) |
-| `--radius-2xl` | `0.375rem` | Slightly larger control chrome |
-| Structural frames | `rounded-none` | `Panel`, cell grids, tables, empty states |
+| `--radius-sm` | `0.1875rem` | Checkboxes, tiny chips |
+| `--radius-md` | `0.25rem` | Items and rows (`rounded-md`) |
+| `--radius-lg` | `0.3125rem` | Controls (`rounded-lg`) |
+| `--radius-xl` | `0.4375rem` | Surfaces: `Panel`, cell grids, tables, empty states, menus, dialogs, cards (`rounded-xl`) |
+| `--radius-2xl` … `--radius-4xl` | `0.5rem` … `1rem` | Large hero / marketing surfaces |
 
-Do not bump these back up without updating both `layout.css` files.
+Change these only in both `layout.css` files at once.
 
 ## Anti-patterns
 

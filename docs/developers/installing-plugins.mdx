@@ -11,7 +11,7 @@ Official plugins (Core, Bot, Twitch, YouTube, OBS, TTS, WebSocket) ship with Str
 
 - Only install plugins from **sources you trust**. Installed plugins run with full access to Stream Kit and your system.
 - Check the plugin manifest `key` and version.
-- Note any `dependencies` — required plugins must be installed and enabled first.
+- Note any `dependencies` in the manifest — required plugins must be installed and enabled first. `optionalDependencies` are used when available but aren't required.
 
 ## Install from ZIP
 
@@ -27,24 +27,24 @@ Stream Kit extracts the bundle, registers the manifest, and loads the plugin ent
 After install:
 
 1. Enable the plugin toggle if it is disabled.
-2. Open **Settings** on the plugin card.
-3. Complete OAuth or connection steps until status shows **Configured**.
+2. Click **Configure** on the plugin card to open the plugin's settings page.
+3. Complete OAuth or connection steps and click **Save** until status shows **Configured**.
 
-Missing dependencies show a warning on the card with the required plugin keys.
+Missing or disabled dependencies are highlighted on the card and listed on the plugin's settings page.
 
 ## Updates
 
-When update metadata is available, the Plugins page may offer **Update** for installed plugins (requires a configured update source in app settings).
+When update metadata is available, the plugin card and the plugin's settings page offer **Update** for installed plugins (requires a configured update source in app settings).
 
 ## Developer mode
 
-With **Developer mode** enabled in app settings, installed plugins can enable **Dev mode** to watch a local folder instead of the bundled `dist/` — for plugin authors only.
+With **Developer mode** enabled in app settings, installed plugins can enable **Dev mode** on their settings page to watch a local folder instead of the bundled `dist/` — for plugin authors only.
 
 See [Plugin getting started](/docs/developers/plugin-getting-started).
 
 ## Uninstall
 
-Use **Uninstall** on the plugin card. Built-in official plugins cannot be removed.
+Use the remove button on the plugin card, or **Remove plugin** on the plugin's settings page. Built-in official plugins cannot be removed.
 
 ## Authoring plugins
 

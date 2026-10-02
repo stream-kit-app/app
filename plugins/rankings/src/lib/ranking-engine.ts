@@ -58,6 +58,35 @@ export function resolveProgress(totalPoints: number, ordered: OrderedRankEntry[]
 	};
 }
 
+export type NextRankProgress = {
+	next: OrderedRankEntry | null;
+	pointsToNext: number;
+	/** 0–100 progress from the current rank threshold towards the next one; 100 when maxed out. */
+	percent: number;
+};
+
+export function resolveNextRankProgress(
+	totalPoints: number,
+	ordered: OrderedRankEntry[]
+): NextRankProgress {
+	const next = ordered.find((entry) => entry.rank.pointsRequired > totalPoints) ?? null;
+
+	if (!next) {
+		return { next: null, pointsToNext: 0, percent: 100 };
+	}
+
+	const current = resolveProgress(totalPoints, ordered).rank;
+	const floor = current?.pointsRequired ?? 0;
+	const span = next.rank.pointsRequired - floor;
+	const percent = span > 0 ? ((totalPoints - floor) / span) * 100 : 0;
+
+	return {
+		next,
+		pointsToNext: next.rank.pointsRequired - totalPoints,
+		percent: Math.min(100, Math.max(0, percent))
+	};
+}
+
 export function isLastRankInTier(
 	rank: RankRecord | null,
 	tier: TierRecord | null,
@@ -110,7 +139,7 @@ export function sortUsersByPoints(users: UserRankingRecord[]): UserRankingRecord
 			return right.totalPoints - left.totalPoints;
 		}
 
-		return left.username.localeCompare(right.username);
+		return (left.username ?? '').localeCompare(right.username ?? '');
 	});
 }
 

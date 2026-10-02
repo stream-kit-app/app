@@ -2,7 +2,6 @@
 	import { fade } from 'svelte/transition';
 
 	import { Button } from '@stream-kit/ui/button';
-	import { Logo } from '@stream-kit/ui/logo';
 
 	import { useI18n } from '$lib/i18n';
 
@@ -15,81 +14,45 @@
 	let { visible = true, error = null, onRetry }: Props = $props();
 
 	const { t } = useI18n();
+
+	// Styles live in app.html (shared with the static pre-JS splash). Offsetting the
+	// animations by the static splash's start time keeps the handoff seamless.
+	const bootSplashStartedAt =
+		(window as { __bootSplashStartedAt?: number }).__bootSplashStartedAt ?? performance.now();
+	const bootOffsetMs = bootSplashStartedAt - performance.now();
 </script>
 
 {#if visible}
 	<div
-		class="fixed inset-0 z-200 flex items-center justify-center overflow-hidden bg-dark-950"
+		class="boot-splash"
+		style:--boot-offset="{bootOffsetMs}ms"
 		role={error ? 'alert' : 'status'}
 		aria-live={error ? 'assertive' : 'polite'}
 		aria-busy={error ? undefined : 'true'}
-		aria-label={error ? t('Could not start Stream Kit') : t('Loading…')}
 		out:fade={{ duration: 150 }}
 	>
-		<div class="blueprint-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true"></div>
+		<div class="boot-emblem" aria-hidden="true">
+			<svg class="boot-spinner" viewBox="0 0 50 50">
+				<circle class="boot-spinner-track" cx="25" cy="25" r="22" />
+				{#if !error}
+					<circle class="boot-spinner-arc" cx="25" cy="25" r="22" />
+				{/if}
+			</svg>
+			<img class="boot-mark" src="/logo.svg" width="52" height="52" alt="" />
+		</div>
 
-		<div class="relative z-10 flex flex-col items-center gap-8 px-6">
-			<Logo />
-
+		<div class="boot-text">
 			{#if error}
-				<div class="flex w-full max-w-md flex-col items-center gap-3 text-center">
-					<p class="font-outfit text-sm font-semibold text-dark-50">
-						{t('Could not start Stream Kit')}
-					</p>
-					<p class="text-xs wrap-break-word text-dark-300">{error}</p>
-					{#if onRetry}
-						<Button class="mt-2" onclick={onRetry}>{t('Try again')}</Button>
-					{/if}
-				</div>
+				<p class="boot-title">{t('Could not start Stream Kit')}</p>
+				<p class="boot-subtitle line-clamp-3 wrap-break-word" title={error}>{error}</p>
 			{:else}
-				<div class="flex w-full flex-col items-center gap-3">
-					<div class="boot-bar" aria-hidden="true">
-						<div class="boot-bar-fill"></div>
-					</div>
-
-					<p
-						class="font-outfit text-xs font-medium tracking-[0.2em] text-dark-400 uppercase"
-					>
-						{t('Loading…')}
-					</p>
-				</div>
+				<p class="boot-title">{t('Loading…')}</p>
+				<p class="boot-subtitle">Stream Kit</p>
 			{/if}
 		</div>
+
+		{#if error && onRetry}
+			<Button size="sm" onclick={onRetry}>{t('Try again')}</Button>
+		{/if}
 	</div>
 {/if}
-
-<style>
-	.boot-bar {
-		position: relative;
-		width: 10rem;
-		height: 2px;
-		border-radius: 9999px;
-		background: oklch(0.3 0.015 264 / 0.6);
-		overflow: hidden;
-	}
-
-	.boot-bar-fill {
-		position: absolute;
-		inset-block: 0;
-		width: 40%;
-		border-radius: 9999px;
-		background: #fffa00;
-		animation: boot-bar-slide 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-	}
-
-	@keyframes boot-bar-slide {
-		from {
-			translate: -110% 0;
-		}
-
-		to {
-			translate: 260% 0;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.boot-bar-fill {
-			animation: none;
-		}
-	}
-</style>

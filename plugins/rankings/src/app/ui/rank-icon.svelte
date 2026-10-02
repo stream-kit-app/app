@@ -10,7 +10,7 @@
 
 	type Props = {
 		icon?: string;
-		size?: 'sm' | 'md';
+		size?: 'sm' | 'md' | 'lg';
 		class?: string;
 	};
 
@@ -21,9 +21,15 @@
 	let resolvedSrc = $state<string | null>(null);
 	let objectUrl = $state<string | null>(null);
 
-	const shellSizeClass = $derived(size === 'sm' ? 'size-8' : 'size-10');
-	const glyphSizeClass = $derived(size === 'sm' ? 'size-4' : 'size-5');
-	const imageMaxClass = $derived(size === 'sm' ? 'max-h-8 max-w-8' : 'max-h-10 max-w-10');
+	const sizeClasses = {
+		sm: { shell: 'size-8', glyph: 'size-4', image: 'max-h-8 max-w-8' },
+		md: { shell: 'size-10', glyph: 'size-5', image: 'max-h-10 max-w-10' },
+		lg: { shell: 'size-16', glyph: 'size-8', image: 'max-h-16 max-w-16' }
+	} as const;
+
+	const shellSizeClass = $derived(sizeClasses[size].shell);
+	const glyphSizeClass = $derived(sizeClasses[size].glyph);
+	const imageMaxClass = $derived(sizeClasses[size].image);
 
 	function clearObjectUrl(): void {
 		if (objectUrl) {
@@ -77,7 +83,7 @@
 
 <div
 	class={cn(
-		'flex shrink-0 items-center justify-center border border-rule text-primary',
+		'flex shrink-0 items-center justify-center rounded-md border border-rule text-primary',
 		shellSizeClass,
 		className
 	)}

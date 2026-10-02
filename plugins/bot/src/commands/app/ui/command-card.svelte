@@ -261,7 +261,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				icon="ri:file-copy-line"
+				icon="ri:stack-line"
 				class="opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
 				aria-label={t('Clone command')}
 				onclick={handleClone}

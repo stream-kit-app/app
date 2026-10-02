@@ -1,12 +1,28 @@
-import type { HandlerDefinition } from '../action/handler/handler-definition.svelte';
+import type {
+	ActionQueueDefinition,
+	ActionQueueEvent,
+	ActionQueueEventContext,
+	ActionQueueStats
+} from '../action-queue/types';
 import type { HandlerTriggerContext } from '../action/handler-context';
+import type { HandlerDefinition } from '../action/handler/handler-definition.svelte';
+import type { ActionRecord, NewActionRecord } from '../action/stored-action';
+import type { TriggerDefinition } from '../action/trigger/trigger-definition.svelte';
+import type {
+	AuthLoginInput,
+	AuthPublicUser,
+	AuthRegisterInput,
+	AuthSendOptions
+} from '../auth/types';
 import type { ConfirmOptions } from '../confirm/confirm.svelte';
-import type { PluginSettingsContext } from './context';
+import type { FileHandle } from '../filesystem/file-handle';
 import type {
 	CopyFileOptions,
 	CreateOptions,
 	DebouncedWatchOptions,
+	DirEntry,
 	ExistsOptions,
+	FileInfo,
 	FileSystemSaveOptions,
 	FileSystemSelectOptions,
 	MkdirOptions,
@@ -17,46 +33,28 @@ import type {
 	RenameOptions,
 	StatOptions,
 	TruncateOptions,
+	UnwatchFn,
 	WatchEvent,
 	WatchOptions,
 	WriteFileOptions
 } from '../filesystem/types';
-import type { MenuItemLink } from '../menu/types';
-import type { Modal } from '../modal/modal.svelte';
-import type { ModalProps } from '../modal/modal.svelte';
-import type { OAuthStartOptions } from '../oauth/oauth';
-import type {
-	AuthLoginInput,
-	AuthPublicUser,
-	AuthRegisterInput
-} from '../auth/types';
-import type { ToastCreateProps } from '../toast/toast.svelte';
-import type { ToastItem } from '../toast/toast-item.svelte';
-import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
-import type { ActionRecord, NewActionRecord } from '../action/stored-action';
-import type { PluginMigration } from '$db/plugin-migrations';
-import type { DirEntry, FileInfo, UnwatchFn } from '../filesystem/types';
-import type { FileHandle } from '../filesystem/file-handle';
-import type { UnlistenFn } from '@tauri-apps/api/event';
-import type { SettingsFieldValue } from '../settings';
-import type { AppLifecycleContext, AppLifecycleEvent } from '../lifecycle/types';
-import type { ProcessEventContext } from '../process/types';
-import type { RunProgramOptions, RunProgramResult } from '../process/run-program';
-import type { LocalTtsRuntimeInfo, LocalTtsVoiceInfo } from '../tts';
-import type { TranslationKey } from '$lib/i18n';
-import type {
-	ActionQueueDefinition,
-	ActionQueueEvent,
-	ActionQueueEventContext,
-	ActionQueueStats
-} from '../action-queue/types';
 import type { HotkeyEventContext } from '../hotkeys';
-import type {
-	ToolbarConfig,
-	ToolbarAction,
-	ToolbarMetaItem,
-	ToolbarSelectAll
-} from '../toolbar';
+import type { AppLifecycleContext, AppLifecycleEvent } from '../lifecycle/types';
+import type { MenuItemLink } from '../menu/types';
+import type { Modal, ModalProps } from '../modal/modal.svelte';
+import type { OAuthStartOptions } from '../oauth/oauth';
+import type { RunProgramOptions, RunProgramResult } from '../process/run-program';
+import type { ProcessEventContext } from '../process/types';
+import type { SettingsFieldValue } from '../settings';
+import type { ToastItem } from '../toast/toast-item.svelte';
+import type { ToastCreateProps } from '../toast/toast.svelte';
+import type { ToolbarAction, ToolbarConfig, ToolbarMetaItem, ToolbarSelectAll } from '../toolbar';
+import type { LocalTtsRuntimeInfo, LocalTtsVoiceInfo } from '../tts';
+import type { PluginSettingsContext } from './context';
+import type { UnlistenFn } from '@tauri-apps/api/event';
+import type { PluginMigration } from '$db/plugin-migrations';
+import type { TranslationKey } from '$lib/i18n';
+import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
 
 /** Opaque Drizzle client returned by {@link PluginAppDbApi.getClient}. */
 export type PluginDbClient = unknown;
@@ -93,10 +91,7 @@ export interface PluginAppActionQueuesApi {
 
 	stats(queueId: number): ActionQueueStats;
 
-	on(
-		event: ActionQueueEvent,
-		handler: (context: ActionQueueEventContext) => void
-	): () => void;
+	on(event: ActionQueueEvent, handler: (context: ActionQueueEventContext) => void): () => void;
 }
 
 /**
@@ -169,7 +164,7 @@ export interface PluginAppModalApi {
 	 *   title: 'Edit item',
 	 *   content: EditItemModal,
 	 *   props: { itemId: 'abc' },
-	 *   size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'full'
+	 *   size: 'md' // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
 	 * });
 	 * modal.open();
 	 * ```
@@ -215,6 +210,21 @@ export interface PluginAppPluginsApi {
 	 * ```
 	 */
 	getSettingValue(pluginKey: string, settingKey: string): SettingsFieldValue | undefined;
+
+	/**
+	 * Update a single plugin setting, persist it, and run the plugin's `onSave` hook.
+	 * The settings form picks up the new value right away.
+	 *
+	 * @example
+	 * ```ts
+	 * await app.plugins.setSettingValue('tts', 'elevenlabsApiKey', newKey);
+	 * ```
+	 */
+	setSettingValue(
+		pluginKey: string,
+		settingKey: string,
+		value: SettingsFieldValue
+	): Promise<void>;
 
 	/**
 	 * Build lifecycle settings context for a plugin (store, getValue, app API).
@@ -317,7 +327,11 @@ export interface PluginAppFsApi {
 	 * });
 	 * ```
 	 */
-	copyFile(fromPath: string | URL, toPath: string | URL, options?: CopyFileOptions): Promise<void>;
+	copyFile(
+		fromPath: string | URL,
+		toPath: string | URL,
+		options?: CopyFileOptions
+	): Promise<void>;
 
 	/**
 	 * Create a directory.
@@ -755,6 +769,30 @@ export interface PluginAppActionsApi {
 	/** Return all registered action handler definitions. */
 	getHandlers(): HandlerDefinition[];
 
+	/** Find a registered trigger definition by id. */
+	findTrigger(id: string): TriggerDefinition | undefined;
+
+	/** Return all registered trigger definitions. */
+	getTriggers(): TriggerDefinition[];
+
+	/**
+	 * Open the action editor with an unsaved draft. Nothing is stored until the user saves;
+	 * the saved action is user-owned (no `ownerPluginKey`). `onSaved` runs once with the stored
+	 * record when the user saves the draft.
+	 *
+	 * @example
+	 * ```ts
+	 * app.actions.openDraft(
+	 *   { name: 'Hug command', triggers: [...], handlers: [...] },
+	 *   { onSaved: (record) => console.log('published', record.id) }
+	 * );
+	 * ```
+	 */
+	openDraft(
+		input: Omit<NewActionRecord, 'id'>,
+		options?: { onSaved?: (record: ActionRecord) => void }
+	): void;
+
 	/**
 	 * Create a user-configured action record.
 	 *
@@ -804,10 +842,7 @@ export interface PluginAppApiServerApi {
 	 * // → plugin:rankings:getLeaderboard
 	 * ```
 	 */
-	registerMethod(
-		name: string,
-		handler: (params: unknown) => unknown | Promise<unknown>
-	): void;
+	registerMethod(name: string, handler: (params: unknown) => unknown | Promise<unknown>): void;
 
 	/**
 	 * Emit an event to subscribed WebSocket clients. Prefixed with `plugin:<pluginKey>:` in plugin scope.
@@ -874,10 +909,7 @@ export interface PluginAppCommandsApi {
 	 * });
 	 * ```
 	 */
-	create(
-		input: NewCommandRecord,
-		options?: { ownerPluginKey?: string }
-	): Promise<CommandRecord>;
+	create(input: NewCommandRecord, options?: { ownerPluginKey?: string }): Promise<CommandRecord>;
 
 	/**
 	 * Update an existing chat command by id.
@@ -934,6 +966,20 @@ export interface PluginAppAuthApi {
 	logout(): Promise<void>;
 
 	/**
+	 * Authenticated request to a custom Stream Kit cloud route. Rejects with an `Error`
+	 * that carries the HTTP `status` and the server message.
+	 *
+	 * @example
+	 * ```ts
+	 * const result = await app.auth.send<{ ok: boolean }>('/api/my-route', {
+	 *   method: 'POST',
+	 *   body: { hello: 'world' }
+	 * });
+	 * ```
+	 */
+	send<T = unknown>(path: string, options?: AuthSendOptions): Promise<T>;
+
+	/**
 	 * Subscribe to auth changes. Invoked immediately with the current user.
 	 * Returns an unsubscribe function.
 	 */
@@ -981,12 +1027,7 @@ export interface PluginAppToolbarApi {
 	reset(): void;
 }
 
-export type {
-	ToolbarConfig,
-	ToolbarAction,
-	ToolbarMetaItem,
-	ToolbarSelectAll
-};
+export type { ToolbarConfig, ToolbarAction, ToolbarMetaItem, ToolbarSelectAll };
 
 /**
  * Open URLs in the system default browser.

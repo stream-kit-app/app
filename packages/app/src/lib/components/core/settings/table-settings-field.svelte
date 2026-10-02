@@ -7,7 +7,11 @@
 	} from '$lib/core/settings/field';
 	import type { PluginAppApi } from '$lib/core/plugins';
 
+	import { onDestroy } from 'svelte';
+
+	import { tooltip } from '@stream-kit/ui/attachments';
 	import { Button } from '@stream-kit/ui/button';
+	import { COPIED_ICON, COPY_ICON, CopyFeedback, copyToClipboard } from '@stream-kit/ui/copy-button';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText, Label } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
@@ -25,6 +29,9 @@
 
 	let search = $state('');
 	let busyAction = $state<string | null>(null);
+	const copyFeedback = new CopyFeedback();
+
+	onDestroy(() => copyFeedback.destroy());
 
 	const tableRows = resolveTableRows(
 		() => toSettingsTableRowsSource(config.rows, context),
@@ -93,15 +100,23 @@
 		try {
 			if (action.onCopy) {
 				await action.onCopy(context, row, value);
-			} else {
-				await navigator.clipboard.writeText(value);
-				const app = context.app as PluginAppApi;
-				app.toast.create({
-					title: t('Copied'),
-					description: value,
-					variant: 'success'
-				});
+				copyFeedback.mark(actionId);
+				return;
 			}
+
+			const app = context.app as PluginAppApi;
+
+			if (!(await copyToClipboard(value))) {
+				app.toast.create({ title: t('Could not copy'), variant: 'warning' });
+				return;
+			}
+
+			copyFeedback.mark(actionId);
+			app.toast.create({
+				title: t('Copied'),
+				description: value,
+				variant: 'success'
+			});
 		} finally {
 			busyAction = null;
 		}
@@ -127,7 +142,7 @@
 		/>
 	{/if}
 
-	<div class="overflow-hidden rounded-none border border-rule">
+	<div class="overflow-hidden rounded-xl border border-rule">
 		<div
 			class="grid gap-3 border-b border-rule bg-dark-700/40 px-3 py-2 text-xs font-medium text-dark-200"
 			style={gridStyle}
@@ -190,15 +205,23 @@
 									{#each config.actions as action (action.key)}
 										{@const actionId = `${action.key}:${rowIdentity(row)}`}
 										{@const isBusy = busyAction === actionId}
+										{@const copied = copyFeedback.isCopied(actionId)}
+										{@const label = action.ariaLabel ?? t('Copy')}
 										<Button
 											type="button"
 											variant="ghost"
 											size="icon-sm"
 											disabled={isBusy}
-											aria-label={action.ariaLabel ?? t('Copy')}
-											icon={isBusy ? 'ri:loader-4-line' : (action.icon ?? 'ri:file-copy-line')}
+											aria-label={label}
+											icon={isBusy
+												? 'ri:loader-4-line'
+												: copied
+													? COPIED_ICON
+													: (action.icon ?? COPY_ICON)}
+											class={cn('transition-none', copied && 'text-success-400')}
 											iconClass={cn(isBusy && 'animate-spin')}
 											onclick={() => void runAction(action, row)}
+											{@attach tooltip(() => (copied ? t('Copied') : label))}
 										/>
 									{/each}
 								</div>

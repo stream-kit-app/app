@@ -617,6 +617,8 @@ const PLUGIN_APP_API_STUBS = [
 	['UnwatchFn', '() => void'],
 	['TranslationKey', 'string'],
 	['HandlerDefinition', 'unknown'],
+	['TriggerDefinition', 'unknown'],
+	['AuthSendOptions', "{ method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown; signal?: AbortSignal }"],
 	['PluginSettingsContext', 'unknown'],
 	['PluginMigration', 'unknown'],
 	['SettingsFieldValue', 'string | number | boolean'],

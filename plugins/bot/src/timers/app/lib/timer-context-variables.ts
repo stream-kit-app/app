@@ -1,9 +1,5 @@
-import type { ActionHandler, PluginAppApi } from '@stream-kit/plugin';
-import {
-	getGlobalVariables,
-	getPrecedingActionVariablesForHandler,
-	mergeContextVariables
-} from '@stream-kit/plugin/action';
+import type { PluginAppApi } from '@stream-kit/plugin';
+import { getGlobalVariables, mergeContextVariables } from '@stream-kit/plugin/action';
 import type { HandlerFieldVariable } from '@stream-kit/ui/types';
 
 const TIMER_CONTEXT_FIELDS = ['timerId', 'name', 'platforms', 'firedAt'] as const;
@@ -18,18 +14,12 @@ function formatVariableLabel(key: string): string {
 export function getTimerContextVariables(): HandlerFieldVariable[] {
 	return TIMER_CONTEXT_FIELDS.map((key) => ({
 		key,
-		label: formatVariableLabel(key)
+		label: formatVariableLabel(key),
+		group: 'Timer'
 	}));
 }
 
-export function contextVariablesForTimerHandler(
-	app: PluginAppApi,
-	handlers: ActionHandler[],
-	handler: ActionHandler
-): HandlerFieldVariable[] {
-	return mergeContextVariables(
-		getGlobalVariables(app),
-		getTimerContextVariables(),
-		getPrecedingActionVariablesForHandler(handlers, handler.id)
-	);
+/** Global and timer context variables; the handler editor adds handler outputs per handler. */
+export function getTimerBaseVariables(app: PluginAppApi): HandlerFieldVariable[] {
+	return mergeContextVariables(getGlobalVariables(app), getTimerContextVariables());
 }

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Command } from '../lib/command.svelte';
 	import type { CommandSource } from '../lib/stored-command';
-	import type { HandlerDefinition } from '@stream-kit/plugin/action';
 
 	import { getGlobalVariables } from '@stream-kit/plugin/action';
 	import HandlerChainEditor from '@stream-kit/plugin/action-ui/handler-chain-editor.svelte';
@@ -14,7 +13,7 @@
 		Label
 	} from '@stream-kit/ui/input';
 
-	import { contextVariablesForCommandHandler } from '../lib/command-context-variables';
+	import { getCommandBaseVariables } from '../lib/command-context-variables';
 	import { getCommandsService } from '../lib/get-commands';
 
 	type Props = {
@@ -54,22 +53,7 @@
 
 	const globalVariables = $derived(getGlobalVariables(app));
 
-	function addHandler(definition: HandlerDefinition) {
-		if (definition.isGroup || !definition.isAvailable) {
-			return;
-		}
-
-		command.addHandler(definition);
-	}
-
-	function contextVariablesForHandler(handler: (typeof command.handlers)[number]) {
-		return contextVariablesForCommandHandler(
-			app,
-			command.handlers,
-			handler,
-			command.commandNames
-		);
-	}
+	const baseVariables = $derived(getCommandBaseVariables(app, command.commandNames));
 
 	const onNameInput = (event: Event) => {
 		command.name = (event.currentTarget as HTMLInputElement).value;
@@ -223,10 +207,9 @@
 		host={command}
 		definitions={app.actions.getHandlers()}
 		formErrors={command.formErrors}
-		{contextVariablesForHandler}
+		{baseVariables}
 		{globalVariables}
 		showVariablePopover
-		onAddHandler={addHandler}
 		{app}
 		{t}
 	/>

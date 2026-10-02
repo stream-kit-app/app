@@ -1,8 +1,6 @@
 <script lang="ts">
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
 	import type { ActionTrigger } from '$lib/core/action/action-trigger.svelte';
 	import type { Action as ActionType } from '$lib/core/action/action.svelte';
-	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { getActionGroups } from '$db/repositories/actions';
@@ -15,7 +13,6 @@
 	import { tooltip } from '$lib/attachments';
 	import {
 		getGlobalVariables,
-		getPrecedingActionVariablesForHandler,
 		getTriggerVariables,
 		mergeContextVariables
 	} from '$lib/core/action/variable-helpers';
@@ -29,6 +26,7 @@
 	import HandlerChainEditor from './handler-chain-editor.svelte';
 	import { scrollChainItemIntoView } from './scroll-chain-item';
 	import SortableChainList from './sortable-chain-list.svelte';
+	import { StickyHeaderState } from './sticky-header.svelte';
 
 	type Props = {
 		action: ActionType;
@@ -36,6 +34,7 @@
 
 	let { action }: Props = $props();
 	const { t } = useI18n();
+	const triggersHeader = new StickyHeaderState();
 
 	function addTrigger(definition: { id: string }) {
 		const found = getApp().actions.triggers.find(definition.id);
@@ -58,14 +57,6 @@
 
 	function triggerLabel(trigger: ActionTrigger): string {
 		return trigger.definition.name;
-	}
-
-	function addHandler(definition: HandlerDefinition) {
-		if (definition.isGroup || !definition.isAvailable) {
-			return;
-		}
-
-		action.addHandler(definition);
 	}
 
 	const onNameInput: FormEventHandler<HTMLInputElement> = (event) => {
@@ -97,17 +88,10 @@
 			...action.triggers.map((trigger) => getTriggerVariables(action, trigger))
 		)
 	);
-
-	function contextVariablesForHandler(handler: ActionHandler): typeof baseContextVariables {
-		return mergeContextVariables(
-			baseContextVariables,
-			getPrecedingActionVariablesForHandler(action.handlers, handler.id)
-		);
-	}
 </script>
 
 <form
-	class={cn('grid gap-6 rounded-none transition-colors duration-200')}
+	class={cn('grid gap-6 rounded-xl transition-colors duration-200')}
 	onsubmit={(event: SubmitEvent) => event.preventDefault()}
 >
 	<InputText
@@ -132,8 +116,18 @@
 		onValueChange={onQueueChange}
 	/>
 
-	<section class="grid gap-3">
-		<div class="sticky top-0 z-20 -mx-8 flex items-center gap-1 bg-dark-800 px-8 py-2">
+	<section class="relative grid gap-3">
+		<div
+			bind:this={triggersHeader.sentinel}
+			aria-hidden="true"
+			class="pointer-events-none absolute inset-x-0 top-0 h-px"
+		></div>
+		<div
+			class={cn(
+				'sticky top-0 z-20 -mx-8 flex items-center gap-1 border-b border-transparent bg-dark-800 px-8 py-2',
+				triggersHeader.isStuck && 'border-rule'
+			)}
+		>
 			<Label>{t('Triggers')}</Label>
 			<VariablePopover
 				variables={globalVariables}
@@ -171,7 +165,7 @@
 				{#snippet itemContent(trigger: ActionTrigger)}
 					<div
 						class={cn(
-							'grid min-w-0 rounded-none border px-4 pt-4 pb-4 transition-colors duration-200',
+							'grid min-w-0 rounded-xl border px-4 pt-4 pb-4 transition-colors duration-200',
 							{
 								'border-success-200 ring-1 ring-success-200/50':
 									trigger.definition.isAvailable &&
@@ -218,7 +212,7 @@
 								<Button
 									variant="ghost"
 									size="icon"
-									icon="ri:file-copy-line"
+									icon="ri:stack-line"
 									aria-label={t('Clone trigger')}
 									onclick={() => action.cloneTrigger(trigger.id)}
 									{@attach tooltip(() => t('Clone trigger'))}
@@ -269,9 +263,8 @@
 		host={action}
 		definitions={getApp().actions.actions.items}
 		formErrors={action.formErrors}
-		{contextVariablesForHandler}
+		baseVariables={baseContextVariables}
 		{globalVariables}
 		showVariablePopover
-		onAddHandler={addHandler}
 	/>
 </form>

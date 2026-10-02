@@ -1,5 +1,5 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
-import type { Action, ActionTrigger, ConditionGroupNode, TriggerTestFn } from '@stream-kit/plugin';
+import type { Action, ActionTrigger, ConditionGroupNode, FieldValue, TriggerTestFn } from '@stream-kit/plugin';
 
 import { evaluateConditionTree } from '../evaluate-conditions';
 import { resolveConditionValue } from '../resolve-condition-value';
@@ -46,7 +46,7 @@ export function createOnTest<TContext>(factory: () => TContext): TriggerTestFn {
 export function evaluateWith(
 	conditions: ConditionGroupNode,
 	context: unknown,
-	evaluators: Record<string, (value: import('@stream-kit/core').FieldValue) => boolean>
+	evaluators: Record<string, (value: FieldValue) => boolean>
 ): boolean {
 	return evaluateConditionTree(conditions, (key, value) => {
 		const evaluate = evaluators[key];

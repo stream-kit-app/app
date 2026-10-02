@@ -41,13 +41,13 @@
 >
 	<div
 		class={cn(
-			'relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-none border border-dashed border-rule bg-dark-950 text-center',
+			'relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-rule bg-dark-950 text-center',
 			compact ? 'gap-3 px-4 py-6' : 'gap-4 px-6 py-16'
 		)}
 	>
 		<div
 			class={cn(
-				'relative flex items-center justify-center border border-rule bg-dark-800 text-primary',
+				'relative flex items-center justify-center rounded-md border border-rule bg-dark-800 text-primary',
 				compact ? 'size-10' : 'size-16'
 			)}
 		>

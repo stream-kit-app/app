@@ -5,7 +5,6 @@
 	import { PageBlocks } from '@stream-kit/ui/blocks';
 
 	import { app } from '$lib/core/app-init';
-	import { getPluginAppApi } from '$lib/core/plugins/app-api';
 	import {
 		isPageBlocksDefinition,
 		isPageCustomViewDefinition
@@ -20,7 +19,8 @@
 
 	let { entry }: Props = $props();
 
-	const pluginApp = getPluginAppApi(app);
+	// Scoped to the page's plugin so plugin-owned APIs (e.g. app.records) work in custom views.
+	const pluginApp = $derived(entry.plugin.createContext(app).app);
 
 	const customView = $derived(
 		isPageCustomViewDefinition(entry.page) ? entry.page.customView : undefined

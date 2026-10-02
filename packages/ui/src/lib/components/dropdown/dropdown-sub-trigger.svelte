@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import { DropdownMenu } from 'bits-ui';
 
-	import { cn } from '../../utils';
+	import { cn, itemBase, itemHighlighted, itemHover } from '../../utils';
 
 	type Props = DropdownMenu.SubTriggerProps;
 	const { children, class: className, openDelay = 100, ...props }: Props = $props();
@@ -12,8 +12,11 @@
 	{...props}
 	{openDelay}
 	class={cn(
-		'flex cursor-pointer items-center justify-between gap-2 rounded-md px-4 py-2 outline-none hover:bg-dark-700',
-		'data-[state=open]:bg-dark-700',
+		'flex cursor-pointer items-center justify-between gap-2 px-4 py-2 outline-none',
+		itemBase,
+		itemHover,
+		itemHighlighted,
+		'data-[state=open]:bg-dark-700 data-[state=open]:text-dark-50',
 		className
 	)}
 >

@@ -23,6 +23,8 @@ struct PluginManifest {
     pub entry: String,
     #[serde(default)]
     pub dependencies: Vec<String>,
+    #[serde(default)]
+    pub optional_dependencies: Vec<String>,
     pub stream_kit_version: Option<String>,
     pub update_manifest_url: Option<String>,
     pub download_url: Option<String>,
@@ -46,6 +48,7 @@ pub struct InstalledPluginManifest {
     pub icon: Option<String>,
     pub entry: String,
     pub dependencies: Vec<String>,
+    pub optional_dependencies: Vec<String>,
     pub stream_kit_version: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub update_manifest_url: Option<String>,
@@ -68,6 +71,7 @@ impl From<PluginManifest> for InstalledPluginManifest {
             icon: manifest.icon,
             entry: manifest.entry,
             dependencies: manifest.dependencies,
+            optional_dependencies: manifest.optional_dependencies,
             stream_kit_version: manifest.stream_kit_version,
             update_manifest_url: manifest.update_manifest_url,
             download_url: manifest.download_url,
@@ -89,6 +93,8 @@ pub struct RemotePluginManifest {
     pub entry: String,
     #[serde(default)]
     pub dependencies: Vec<String>,
+    #[serde(default)]
+    pub optional_dependencies: Vec<String>,
     pub stream_kit_version: Option<String>,
     pub update_manifest_url: Option<String>,
     pub download_url: Option<String>,
@@ -105,6 +111,7 @@ impl From<PluginManifest> for RemotePluginManifest {
             icon: manifest.icon,
             entry: manifest.entry,
             dependencies: manifest.dependencies,
+            optional_dependencies: manifest.optional_dependencies,
             stream_kit_version: manifest.stream_kit_version,
             update_manifest_url: manifest.update_manifest_url,
             download_url: manifest.download_url,

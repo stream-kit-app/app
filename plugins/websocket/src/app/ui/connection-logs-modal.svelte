@@ -7,6 +7,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Button } from '@stream-kit/ui/button';
+	import { COPIED_ICON, COPY_ICON } from '@stream-kit/ui/copy-button';
 	import { ToggleGroup, type ToggleGroupItem } from '@stream-kit/ui/toggle-group';
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
@@ -245,11 +246,11 @@
 							>
 								{#if copiedId === entry.id}
 									<Icon
-										icon="ri:check-line"
-										class="size-4 animate-in text-success-400 duration-150 zoom-in-50"
+										icon={COPIED_ICON}
+										class="size-4 text-success-400"
 									/>
 								{:else}
-									<Icon icon="ri:file-copy-line" class="size-4" />
+									<Icon icon={COPY_ICON} class="size-4" />
 								{/if}
 							</Button>
 						</div>

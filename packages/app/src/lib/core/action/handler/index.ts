@@ -6,11 +6,13 @@ export type {
 	HandlerFieldVariable,
 	KeyValueEntry,
 	ResolvedHandlerFieldDefinition,
-	TextSelectTextFieldValue
+	TextSelectTextFieldValue,
+	VariableDefinition
 } from './field';
 export type {
 	HandlerDefinitionProps,
 	HandlerExecuteFn,
 	HandlerNext,
+	HandlerOutputsSource,
 	ResolvedHandlerDefinitionProps
 } from './types';
