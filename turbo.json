@@ -58,8 +58,15 @@
 			],
 			"outputs": ["dist/index.js"]
 		},
+		"@stream-kit/app#sync:kit": {
+			"cache": false
+		},
 		"build": {
-			"dependsOn": ["@stream-kit/core#build", "@stream-kit/plugin#build:runtime"],
+			"dependsOn": [
+				"@stream-kit/core#build",
+				"@stream-kit/plugin#build:runtime",
+				"@stream-kit/app#sync:kit"
+			],
 			"inputs": [
 				"src/**",
 				"../../packages/app/src/lib/**",

@@ -7,6 +7,10 @@ description: "Ops notes for the shared PocketBase backend used by the site and t
 
 Ops notes for the shared PocketBase backend used by `@stream-kit/site` and the desktop app account/cloud features. Schema/layout details also live in `.cursor/rules/pocketbase.mdc` and [Site](./site.mdx).
 
+## Superuser (Docker)
+
+The image runs `pocketbase superuser upsert` on every start when `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD` are set (in `site/pb/.env` or the host environment). It creates the superuser or resets its password to the configured value, so changing the password in the PocketBase dashboard is overwritten on the next restart. Leave both empty to skip.
+
 ## Auth rate limits
 
 In production PocketBase admin (`Settings` → **Rate limits** / collection auth options), **enable rate limits** for:

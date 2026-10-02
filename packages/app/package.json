@@ -9,6 +9,7 @@
     "build": "pnpm build:plugin-host && vite build",
     "build:plugin-host": "node scripts/build-plugin-host.mjs",
     "sync:plugin-host": "node scripts/sync-plugin-host-modules.mjs",
+    "sync:kit": "svelte-kit sync",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "node --experimental-strip-types --test src/lib/core/auth/auth-utils.test.ts src/lib/core/auth/subscription-entitlement.test.ts src/lib/core/config-sync/lww.test.ts src/lib/core/config-sync/sync-loop.test.ts src/lib/core/user-files/mime-from-name.test.ts src/lib/core/user-files/user-files-cache.test.ts",
