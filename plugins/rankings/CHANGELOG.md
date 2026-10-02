@@ -1,5 +1,14 @@
 # @stream-kit/plugin-rankings
 
+## 0.1.0-alpha.6
+
+### Patch Changes
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Edit a user's points from the leaderboard and user detail, nicer leaderboard formatting and compact stat cells on the overview.
+
+- Updated dependencies [[`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5)]:
+    - @stream-kit/core@0.2.0-alpha.10
+
 ## 0.1.0-alpha.5
 
 ### Patch Changes

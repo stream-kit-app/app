@@ -1,5 +1,13 @@
 # @stream-kit/script-api
 
+## 0.1.0-alpha.5
+
+### Patch Changes
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Action editor: outline + detail panel instead of nested If cards, If handler with AND/OR condition groups (`condition-group` field, existing conditions are migrated), handler `outputs` and scope-aware `{variable}` suggestions. Adds `ConditionTreeNode`, `ConditionGroupFieldValue` and `HandlerOutputsSource` to the plugin SDK.
+
+- [`420bdcd`](https://github.com/stream-kit-app/app/commit/420bdcd3674f7cb80bffe334bb9f8c6b55fc22e5) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - AI Actions plugin: describe an action in plain language and open the generated draft in the action editor. Adds `app.actions.openDraft`, `getTriggers`/`findTrigger`, `app.auth.send` and the `InputTextarea` UI component.
+
 ## 0.1.0-alpha.4
 
 ### Patch Changes
