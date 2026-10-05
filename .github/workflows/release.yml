@@ -37,28 +37,28 @@ jobs:
 
             - name: Create Release Pull Request
               id: changesets
-              uses: changesets/action@v1
+              uses: changesets/action@v2
               with:
-                  version: pnpm version-packages
-                  commit: 'chore: version packages'
-                  title: 'chore: version packages'
-                  createGithubReleases: false
-              env:
-                  GITHUB_TOKEN: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+                  version-script: pnpm version-packages
+                  commit-message: 'chore: version packages'
+                  pr-title: 'chore: version packages'
+                  create-github-releases: false
+                  push-git-tags: false
+                  github-token: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
 
             - name: Sync main branch
-              if: steps.changesets.outputs.hasChangesets == 'false'
+              if: steps.changesets.outputs.has-changesets == 'false'
               run: |
                   git fetch origin main --tags
                   git checkout -B main origin/main
                   git pull --ff-only origin main
 
             - name: Push release tag
-              if: steps.changesets.outputs.hasChangesets == 'false'
+              if: steps.changesets.outputs.has-changesets == 'false'
               run: pnpm release
 
             - name: Trigger release workflows
-              if: steps.changesets.outputs.hasChangesets == 'false'
+              if: steps.changesets.outputs.has-changesets == 'false'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
@@ -68,19 +68,19 @@ jobs:
                   gh workflow run build-release.yml --ref main -f tag="${RELEASE_TAG}"
 
             - name: Trigger Publish npm
-              if: steps.changesets.outputs.hasChangesets == 'false'
+              if: steps.changesets.outputs.has-changesets == 'false'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: gh workflow run publish-npm.yml --ref main -f tag="${{ env.RELEASE_TAG }}"
 
             - name: Trigger Publish Plugins
-              if: steps.changesets.outputs.hasChangesets == 'false'
+              if: steps.changesets.outputs.has-changesets == 'false'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: gh workflow run publish-plugins.yml --ref main -f tag="${{ env.RELEASE_TAG }}"
 
             - name: Trigger Publish PocketBase
-              if: steps.changesets.outputs.hasChangesets == 'false'
+              if: steps.changesets.outputs.has-changesets == 'false'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: gh workflow run publish-pocketbase.yml --ref main
