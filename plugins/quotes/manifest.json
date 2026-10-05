@@ -1,7 +1,7 @@
 {
 	"key": "quotes",
 	"name": "Quotes",
-	"version": "0.1.0-alpha.4",
+	"version": "0.1.0-alpha.5",
 	"description": "Save and recall memorable chat quotes.",
 	"icon": "ri:double-quotes-l",
 	"entry": "dist/index.js",

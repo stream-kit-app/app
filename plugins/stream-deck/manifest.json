@@ -1,7 +1,7 @@
 {
 	"key": "stream-deck",
 	"name": "Stream Deck",
-	"version": "0.1.0-alpha.2",
+	"version": "0.1.0-alpha.3",
 	"description": "Integrate Elgato Stream Deck with Stream Kit actions, triggers, and button feedback.",
 	"icon": "ri:keyboard-box-line",
 	"entry": "dist/index.js",
