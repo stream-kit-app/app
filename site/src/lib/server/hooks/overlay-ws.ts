@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 
 /**
  * Route `/ws` WebSocket upgrades to the OverlayRoom Durable Object (one DO per overlayId).

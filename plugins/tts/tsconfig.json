@@ -20,8 +20,8 @@
 				"../../packages/ui/src/lib/components/*",
 				"../../packages/ui/src/lib/*"
 			],
-			"$env/static/public": ["../../packages/plugin/stubs/env-static-public.ts"],
-			"$env/dynamic/public": ["../../packages/plugin/stubs/env-dynamic-public.ts"]
+			"$app/env/public": ["../../packages/plugin/stubs/app-env-public.ts"],
+			"$app/env": ["../../packages/plugin/stubs/app-env.ts"]
 		}
 	},
 	"include": [

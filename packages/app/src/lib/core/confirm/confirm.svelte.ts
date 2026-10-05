@@ -1,4 +1,4 @@
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 /**
  * Options for {@link Confirm.ask} and `app.confirm.ask`.

@@ -1,22 +1,23 @@
-declare module '$lib/locales/en.json' {
+declare module '#lib/locales/en.json' {
 	const dictionary: Record<string, string>;
 	export default dictionary;
 }
 
-declare module '$lib/locales/nl.json' {
+declare module '#lib/locales/nl.json' {
 	const dictionary: Record<string, string>;
 	export default dictionary;
 }
 
-declare module '$env/dynamic/public' {
-	export const env: {
-		readonly PUBLIC_POCKETBASE_URL?: string;
-		readonly [key: string]: string | undefined;
-	};
-}
-
-declare module '$env/static/public' {
+declare module '$app/env/public' {
 	export const PUBLIC_POCKETBASE_URL: string | undefined;
+	export const PUBLIC_SITE_URL: string | undefined;
+}
+
+declare module '$app/env' {
+	export const browser: boolean;
+	export const dev: boolean;
+	export const building: boolean;
+	export const version: string;
 }
 
 export {};

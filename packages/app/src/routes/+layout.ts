@@ -4,8 +4,8 @@
 
 import { createI18n } from '@svelte-i18n/core';
 
-import { app } from '$lib/core';
-import { getSavedLocale } from '$lib/core/locale/store';
+import { app } from '#lib/core/index.js';
+import { getSavedLocale } from '#lib/core/locale/store.js';
 
 // See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
 export const ssr = false;
@@ -18,8 +18,8 @@ export const load = async () => {
 		locale: savedLocale,
 		fallbackLocale: 'en',
 		dictionaries: {
-			en: async () => (await import('$lib/locales/en.json')).default,
-			nl: async () => (await import('$lib/locales/nl.json')).default
+			en: async () => (await import('#lib/locales/en.json')).default,
+			nl: async () => (await import('#lib/locales/nl.json')).default
 		}
 	});
 

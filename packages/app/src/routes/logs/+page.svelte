@@ -5,8 +5,8 @@
 	import { Container } from '@stream-kit/ui/container';
 	import { LogViewer } from '@stream-kit/ui/log-viewer';
 
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import { app } from '#lib/core/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 

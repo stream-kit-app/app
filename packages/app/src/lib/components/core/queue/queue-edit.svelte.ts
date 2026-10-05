@@ -1,7 +1,7 @@
-import type { ActionQueueDefinition } from '$lib/core/action-queue/action-queues.svelte';
+import type { ActionQueueDefinition } from '#lib/core/action-queue/action-queues.svelte.js';
 
-import { concurrencyFromBlocking, isQueueBlocking } from '$lib/core/action-queue/queue-mode';
-import { getApp } from '$lib/core/registry';
+import { concurrencyFromBlocking, isQueueBlocking } from '#lib/core/action-queue/queue-mode.js';
+import { getApp } from '#lib/core/registry.js';
 
 function parseOptionalNumber(value: string): number | null {
 	const trimmed = value.trim();

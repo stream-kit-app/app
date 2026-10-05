@@ -4,7 +4,7 @@ import type { Window } from '@tauri-apps/api/window';
 import { isTauri } from '@tauri-apps/api/core';
 import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 
 import { getRestorableWindowBounds, trackWindowBounds } from './window-bounds';
 

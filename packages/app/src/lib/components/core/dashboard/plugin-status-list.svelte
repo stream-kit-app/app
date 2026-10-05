@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RegisteredPlugin } from '$lib/core/plugins';
+	import type { RegisteredPlugin } from '#lib/core/plugins/index.js';
 
 	import Icon from '@iconify/svelte';
 
@@ -8,9 +8,9 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { WidgetList, WidgetRow } from '@stream-kit/ui/widget';
 
-	import { pluginDetailPath } from '$lib/components/core/plugins/plugin-actions';
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import { pluginDetailPath } from '#lib/components/core/plugins/plugin-actions.js';
+	import { app } from '#lib/core/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		plugins: RegisteredPlugin[];

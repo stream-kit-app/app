@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { ActionBulkEditForm } from './action-bulk-edit.svelte';
 
-	import { getActionGroups } from '$db/repositories/actions';
+	import { getActionGroups } from '#db/repositories/actions.js';
 
 	import { InputCheckbox, InputSelect, InputTextSelect } from '@stream-kit/ui/input';
 
 	import { ACTION_BULK_EDIT_NO_QUEUE } from './action-bulk-edit.svelte';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
+	import { getApp } from '#lib/core/registry.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		form: ActionBulkEditForm;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { OverlayFrameworkId, OverlayWidgetId } from '$lib/core/overlay';
+	import type { OverlayFrameworkId, OverlayWidgetId } from '#lib/core/overlay/index.js';
 
 	import Icon from '@iconify/svelte';
 
@@ -11,14 +11,14 @@
 	import { InputText } from '@stream-kit/ui/input';
 	import { ToggleGroup } from '@stream-kit/ui/toggle-group';
 
-	import { app } from '$lib/core';
+	import { app } from '#lib/core/index.js';
 	import {
 		getOverlayFrameworkIcon,
 		OVERLAY_FRAMEWORKS,
 		OVERLAY_WIDGET_TEMPLATES
-	} from '$lib/core/overlay';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	} from '#lib/core/overlay/index.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	const { t } = useI18n();
 

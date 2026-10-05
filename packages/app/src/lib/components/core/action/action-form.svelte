@@ -1,24 +1,24 @@
 <script lang="ts">
-	import type { ActionTrigger } from '$lib/core/action/action-trigger.svelte';
-	import type { Action as ActionType } from '$lib/core/action/action.svelte';
+	import type { ActionTrigger } from '#lib/core/action/action-trigger.svelte.js';
+	import type { Action as ActionType } from '#lib/core/action/action.svelte.js';
 	import type { FormEventHandler } from 'svelte/elements';
 
-	import { getActionGroups } from '$db/repositories/actions';
+	import { getActionGroups } from '#db/repositories/actions.js';
 
 	import { Button } from '@stream-kit/ui/button';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputSelect, InputText, InputTextSelect, Label } from '@stream-kit/ui/input';
 	import { VariablePopover } from '@stream-kit/ui/variable-popover';
 
-	import { tooltip } from '$lib/attachments';
+	import { tooltip } from '#lib/attachments/index.js';
 	import {
 		getGlobalVariables,
 		getTriggerVariables,
 		mergeContextVariables
-	} from '$lib/core/action/variable-helpers';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	} from '#lib/core/action/variable-helpers.js';
+	import { getApp } from '#lib/core/registry.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import ConditionGroup from './condition-group.svelte';
 	import DefinitionIdPopover from './definition-id-popover.svelte';

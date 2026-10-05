@@ -8,7 +8,7 @@ import type {
 	TriggerVariablesSource
 } from './types';
 
-import { slugify, uniqueSlug } from '$lib/utils';
+import { slugify, uniqueSlug } from '#lib/utils.js';
 
 type TriggerDefinitionInput<TContext = unknown> = TriggerDefinitionProps<TContext> & { id?: string };
 type TriggerDefinitionAddOptions = {

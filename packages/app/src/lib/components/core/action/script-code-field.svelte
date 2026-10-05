@@ -2,21 +2,21 @@
 	import type { TranslateFn } from './resolve-translate';
 	import type { PluginAppApi } from '@stream-kit/plugin';
 	import type { HandlerFieldVariable } from '@stream-kit/ui/types';
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
-	import type { Action } from '$lib/core/action/action.svelte';
-	import type { HandlerFieldInstance } from '$lib/core/action/handler/field';
+	import type { ActionHandler } from '#lib/core/action/action-handler.svelte.js';
+	import type { Action } from '#lib/core/action/action.svelte.js';
+	import type { HandlerFieldInstance } from '#lib/core/action/handler/field.js';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { Debounced, watch } from 'runed';
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCode } from '@stream-kit/ui/input';
 
-	import { buildScriptExtraLibs, buildScriptHandlerUri } from '$lib/core/script/build-script-extra-libs';
+	import { buildScriptExtraLibs, buildScriptHandlerUri } from '#lib/core/script/build-script-extra-libs.js';
 	import {
 		openScriptProjectInEditor,
 		syncScriptProjectToDisk,
 		watchScriptProject
-	} from '$lib/core/script/script-project-service';
+	} from '#lib/core/script/script-project-service.js';
 
 	type Props = {
 		action?: Action;

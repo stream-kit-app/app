@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { ToastItem } from '$lib/core/toast';
+	import type { ToastItem } from '#lib/core/toast/index.js';
 
 	import Icon from '@iconify/svelte';
 
-	import { useI18n } from '$lib/i18n';
+	import { useI18n } from '#lib/i18n.js';
 
 	import { toastIconVariants } from './toast-variants';
 

@@ -9,7 +9,7 @@ import type {
 	SettingsSelectItemsSource
 } from './field';
 
-import { slugify, uniqueSlug } from '$lib/utils';
+import { slugify, uniqueSlug } from '#lib/utils.js';
 
 export function toSettingsSelectItemsSource(
 	items: SettingsSelectItemsSource,

@@ -4,7 +4,7 @@ import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
 import type { HandlerDefinitionProps, HandlerExecuteFn, HandlerOutputsSource } from './types';
 
-import { slugify, uniqueSlug } from '$lib/utils';
+import { slugify, uniqueSlug } from '#lib/utils.js';
 
 import { resolveConditionDefinitions } from '../trigger/trigger-definition.svelte';
 

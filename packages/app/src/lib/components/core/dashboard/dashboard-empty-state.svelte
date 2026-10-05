@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
-	import { useI18n } from '$lib/i18n';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		onAddWidget?: () => void;

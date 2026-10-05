@@ -193,7 +193,7 @@
 	}
 
 	/*
-	 * Light scheme — set via `data-theme="light"` on <html> (see $lib/core/theme).
+	 * Light scheme — set via `data-theme="light"` on <html> (see #lib/core/theme).
 	 * Scales are mirrored (950 = lightest surface, 50 = darkest text) so existing
 	 * `dark-*` / status-scale utilities keep their meaning: low numbers = high contrast.
 	 */

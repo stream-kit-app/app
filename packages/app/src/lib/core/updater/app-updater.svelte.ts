@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { getApp } from '../registry';
 

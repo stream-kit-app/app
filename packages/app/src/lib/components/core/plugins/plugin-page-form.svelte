@@ -1,20 +1,20 @@
 <script lang="ts">
-	import type { PluginPageFormItem } from '$lib/core/plugins';
-	import type { RegisteredPlugin } from '$lib/core/plugins/registered-plugin.svelte';
-	import type { SettingsContext, SettingsFieldInstance, SettingsFieldItem } from '$lib/core/settings';
+	import type { PluginPageFormItem } from '#lib/core/plugins/index.js';
+	import type { RegisteredPlugin } from '#lib/core/plugins/registered-plugin.svelte.js';
+	import type { SettingsContext, SettingsFieldInstance, SettingsFieldItem } from '#lib/core/settings/index.js';
 
 	import Icon from '@iconify/svelte';
 
-	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
-	import { app } from '$lib/core';
+	import SettingsFieldGroup from '#lib/components/core/settings/settings-field-group.svelte';
+	import { app } from '#lib/core/index.js';
 	import {
 		createSettingsFields,
 		flattenSettingsFieldItems,
 		isPersistedSettingsField,
 		withGeneratedSettingsKeys
-	} from '$lib/core/settings/settings-field';
-	import { validateSettingsFields, type SettingsFormErrors } from '$lib/core/settings/validate-settings';
-	import { useI18n } from '$lib/i18n';
+	} from '#lib/core/settings/settings-field.js';
+	import { validateSettingsFields, type SettingsFormErrors } from '#lib/core/settings/validate-settings.js';
+	import { useI18n } from '#lib/i18n.js';
 	import { Button } from '@stream-kit/ui/button';
 	import { Heading } from '@stream-kit/ui/heading';
 

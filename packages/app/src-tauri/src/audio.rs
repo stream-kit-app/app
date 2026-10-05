@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use rodio::{Decoder, OutputStream, Sink, Source};
+use rodio::{Decoder, DeviceSinkBuilder, Player, Source};
 use tokio::time::timeout;
 
 const PLAYBACK_TIMEOUT_MARGIN: Duration = Duration::from_secs(5);
@@ -94,15 +94,15 @@ fn playback_timeout(source_duration: Option<Duration>) -> Duration {
 		.max(PLAYBACK_TIMEOUT_MARGIN)
 }
 
-fn sleep_until_end_or_timeout(sink: &Arc<Sink>, limit: Duration) {
+fn sleep_until_end_or_timeout(player: &Arc<Player>, limit: Duration) {
 	let (done_tx, done_rx) = mpsc::channel::<()>();
-	let sink_for_timeout = Arc::clone(sink);
+	let player_for_timeout = Arc::clone(player);
 	let watchdog = std::thread::spawn(move || {
 		if done_rx.recv_timeout(limit).is_err() {
-			sink_for_timeout.stop();
+			player_for_timeout.stop();
 		}
 	});
-	sink.sleep_until_end();
+	player.sleep_until_end();
 	let _ = done_tx.send(());
 	let _ = watchdog.join();
 }
@@ -116,29 +116,29 @@ fn play_source<R>(
 where
 	R: Read + Seek + Send + Sync + 'static,
 {
-	let (_stream, stream_handle) = OutputStream::try_default()
+	let mut device_sink = DeviceSinkBuilder::open_default_sink()
 		.map_err(|error| format!("failed to open default audio output: {error}"))?;
+	device_sink.log_on_drop(false);
 	let source = Decoder::new(read)
 		.map_err(|error| format!("failed to decode audio stream: {error}"))?
 		.amplify(volume.clamp(0.0, 2.0));
 	let limit = playback_timeout(source.total_duration());
-	let sink = Sink::try_new(&stream_handle)
-		.map_err(|error| format!("failed to create audio sink: {error}"))?;
-	sink.append(source);
-	let sink = Arc::new(sink);
+	let player = Player::connect_new(device_sink.mixer());
+	player.append(source);
+	let player = Arc::new(player);
 
 	if let (Some(session_id), Some(state)) = (session_id, state) {
-		let sink_for_stop = Arc::clone(&sink);
+		let player_for_stop = Arc::clone(&player);
 		let generation = state.register_stop(
 			session_id.clone(),
 			Box::new(move || {
-				sink_for_stop.stop();
+				player_for_stop.stop();
 			}),
 		);
-		sleep_until_end_or_timeout(&sink, limit);
+		sleep_until_end_or_timeout(&player, limit);
 		state.unregister(&session_id, generation);
 	} else {
-		sleep_until_end_or_timeout(&sink, limit);
+		sleep_until_end_or_timeout(&player, limit);
 	}
 
 	Ok(())

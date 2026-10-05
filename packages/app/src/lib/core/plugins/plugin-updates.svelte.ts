@@ -2,7 +2,7 @@ import type { PluginUpdateInfo } from './plugin-update';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { getApp } from '../registry';
 import { checkAllPluginUpdates, canApplyPluginUpdates } from './plugin-update';

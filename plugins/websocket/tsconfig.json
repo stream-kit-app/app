@@ -17,8 +17,8 @@
 			"@stream-kit/ui/*": ["../../packages/ui/src/lib/*"],
 			"$lib/*": ["../../packages/app/src/lib/*"],
 			"$db/*": ["../../packages/app/src/db/*"],
-			"$env/static/public": ["../../packages/plugin/stubs/env-static-public.ts"],
-			"$env/dynamic/public": ["../../packages/plugin/stubs/env-dynamic-public.ts"]
+			"$app/env/public": ["../../packages/plugin/stubs/app-env-public.ts"],
+			"$app/env": ["../../packages/plugin/stubs/app-env.ts"]
 		}
 	},
 	"include": [

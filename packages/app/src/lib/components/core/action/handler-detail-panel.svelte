@@ -7,16 +7,16 @@
 		ActionHandler,
 		HandlerBranch,
 		HandlerFieldFormErrors
-	} from '$lib/core/action/action-handler.svelte';
-	import type { Action } from '$lib/core/action/action.svelte';
-	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+	} from '#lib/core/action/action-handler.svelte.js';
+	import type { Action } from '#lib/core/action/action.svelte.js';
+	import type { HandlerDefinition } from '#lib/core/action/handler/handler-definition.svelte.js';
 
 	import { Button } from '@stream-kit/ui/button';
 
-	import { tooltip } from '$lib/attachments';
-	import { findHandlerLocation } from '$lib/core/action/handler-tree';
-	import { isIfHandler } from '$lib/core/action/if-condition';
-	import { cn } from '$lib/utils';
+	import { tooltip } from '#lib/attachments/index.js';
+	import { findHandlerLocation } from '#lib/core/action/handler-tree.js';
+	import { isIfHandler } from '#lib/core/action/if-condition.js';
+	import { cn } from '#lib/utils.js';
 
 	import DefinitionIdPopover from './definition-id-popover.svelte';
 	import HandlerBranchBoard from './handler-branch-board.svelte';

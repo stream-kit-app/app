@@ -1,7 +1,7 @@
 import PocketBase, { type RecordModel } from 'pocketbase';
-import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
+import { PUBLIC_POCKETBASE_URL } from '$app/env/public';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import {
 	AUTH_MEMBERSHIP_EXPAND,

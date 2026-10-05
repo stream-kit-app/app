@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Button } from '@stream-kit/ui/button';
 
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import { app } from '#lib/core/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		modalId: string;

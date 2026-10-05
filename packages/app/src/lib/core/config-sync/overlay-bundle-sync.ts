@@ -1,6 +1,6 @@
 import type { App } from '../app.svelte';
 
-import { getOverlays, updateOverlaySourceHash } from '$db/repositories/overlays';
+import { getOverlays, updateOverlaySourceHash } from '#db/repositories/overlays.js';
 import { BaseDirectory } from '@tauri-apps/plugin-fs';
 
 import { buildOverlayProjectZip } from '../overlay/overlay-export';

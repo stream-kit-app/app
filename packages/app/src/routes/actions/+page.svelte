@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { DndDragEvent } from '$lib/components/core/action/dnd-events';
-	import type { DndActionLayout } from '$lib/core/action/action-layout';
+	import type { DndDragEvent } from '#lib/components/core/action/dnd-events.js';
+	import type { DndActionLayout } from '#lib/core/action/action-layout.js';
 
 	import {
 		DragDropProvider,
@@ -19,22 +19,22 @@
 	import {
 		collapsedGroups,
 		setActionGroupCollapsed
-	} from '$lib/components/core/action/action-group-collapse.svelte';
-	import ActionGroupSection from '$lib/components/core/action/action-group-section.svelte';
-	import { ActionBulkEditForm } from '$lib/components/core/action/action-bulk-edit.svelte';
-	import ActionBulkEditFormContent from '$lib/components/core/action/action-bulk-edit-form.svelte';
-	import ActionBulkEditFormFooter from '$lib/components/core/action/action-bulk-edit-form-footer.svelte';
-	import ActionSortableItem from '$lib/components/core/action/action-sortable-item.svelte';
-	import { applyDndMove } from '$lib/components/core/action/dnd-events';
-	import { createSelectableList } from '$lib/components/core/list/selectable-list.svelte';
-	import { app } from '$lib/core';
-	import { Action } from '$lib/core/action';
+	} from '#lib/components/core/action/action-group-collapse.svelte.js';
+	import ActionGroupSection from '#lib/components/core/action/action-group-section.svelte';
+	import { ActionBulkEditForm } from '#lib/components/core/action/action-bulk-edit.svelte.js';
+	import ActionBulkEditFormContent from '#lib/components/core/action/action-bulk-edit-form.svelte';
+	import ActionBulkEditFormFooter from '#lib/components/core/action/action-bulk-edit-form-footer.svelte';
+	import ActionSortableItem from '#lib/components/core/action/action-sortable-item.svelte';
+	import { applyDndMove } from '#lib/components/core/action/dnd-events.js';
+	import { createSelectableList } from '#lib/components/core/list/selectable-list.svelte.js';
+	import { app } from '#lib/core/index.js';
+	import { Action } from '#lib/core/action/index.js';
 	import {
 		buildDndLayout,
 		dndLayoutToUpdates,
 		getGroupOrder
-	} from '$lib/core/action/action-layout';
-	import { useI18n } from '$lib/i18n';
+	} from '#lib/core/action/action-layout.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 	const sensors = [KeyboardSensor, PointerSensor];

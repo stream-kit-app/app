@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { Toast } from '$lib/core/toast';
+	import type { Toast } from '#lib/core/toast/index.js';
 
 	import { fly } from 'svelte/transition';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	import ToastItem from './toast-item.svelte';
 	import { toastVariants } from './toast-variants';

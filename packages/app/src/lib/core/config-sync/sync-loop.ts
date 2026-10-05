@@ -3,7 +3,7 @@ import type { SyncAdapter, SyncAdapterContext, SyncLocalRow, SyncRemoteRow } fro
 import {
 	clearConfigSyncTombstone,
 	listConfigSyncTombstones
-} from '$db/repositories/config-sync-tombstones';
+} from '#db/repositories/config-sync-tombstones.js';
 
 import { remoteWinsLww, toLwwSide } from './lww';
 

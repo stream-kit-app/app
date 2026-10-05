@@ -5,7 +5,7 @@ import type { RegisterPluginOptions } from './installed-plugin';
 import type { PluginAppApi } from './plugin-app-api.types';
 import type { PluginPublicApi } from './types';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { createPluginAppApi } from './app-api';
 import { sortByDependencies } from './plugin-order';

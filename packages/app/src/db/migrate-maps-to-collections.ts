@@ -2,13 +2,13 @@ import type {
 	ConditionGroupNode,
 	ConditionLeafNode,
 	FieldValue
-} from '$lib/core/action/trigger/condition';
+} from '#lib/core/action/trigger/condition.js';
 import type {
 	HandlerFieldInstance,
 	HandlerFieldScalarValue,
 	HandlerFieldValue
-} from '$lib/core/action/handler/field';
-import type { StoredActionHandler, StoredActionTrigger } from '$lib/core/action/stored-action';
+} from '#lib/core/action/handler/field.js';
+import type { StoredActionHandler, StoredActionTrigger } from '#lib/core/action/stored-action.js';
 
 const DEFINITION_ID_REPLACEMENTS: ReadonlyArray<[string, string]> = [
 	['core:core:map:map-value-changed', 'core:core:collection:collection-value-changed'],

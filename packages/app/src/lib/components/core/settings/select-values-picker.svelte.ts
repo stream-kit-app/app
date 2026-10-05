@@ -1,13 +1,13 @@
-import type { SettingsContext } from '$lib/core/settings/context';
-import type { SettingsFieldDefinition } from '$lib/core/settings/field';
-import type { SelectItem } from '$lib/core/action/trigger/condition';
+import type { SettingsContext } from '#lib/core/settings/context.js';
+import type { SettingsFieldDefinition } from '#lib/core/settings/field.js';
+import type { SelectItem } from '#lib/core/action/trigger/condition.js';
 
 import { SvelteMap } from 'svelte/reactivity';
 
 import { resolveSelectItems } from '@stream-kit/ui/input';
 
-import { getApp } from '$lib/core/registry';
-import { toSettingsSelectItemsSource } from '$lib/core/settings/settings-field';
+import { getApp } from '#lib/core/registry.js';
+import { toSettingsSelectItemsSource } from '#lib/core/settings/settings-field.js';
 
 export type SelectValuesFieldConfig = Extract<SettingsFieldDefinition, { type: 'select-values' }>;
 

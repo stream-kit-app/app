@@ -6,9 +6,9 @@ import { unzipSync } from 'fflate';
 
 import { BaseDirectory } from '@tauri-apps/plugin-fs';
 
-import { getOverlay, saveOverlay, type SaveOverlayInput } from '$db/repositories/overlays';
+import { getOverlay, saveOverlay, type SaveOverlayInput } from '#db/repositories/overlays.js';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { collectOverlayDefaultConfig, parseOverlayManifest } from './overlay-manifest';
 import { serializeOverlayManifest } from './overlay-manifest-schema';

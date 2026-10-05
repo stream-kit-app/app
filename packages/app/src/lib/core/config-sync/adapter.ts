@@ -1,4 +1,4 @@
-import type { ConfigSyncEntityType } from '$db/schemas/config-sync-tombstones';
+import type { ConfigSyncEntityType } from '#db/schemas/config-sync-tombstones.js';
 
 /** Minimal local row shape the LWW loop needs. */
 export type SyncLocalRow = {

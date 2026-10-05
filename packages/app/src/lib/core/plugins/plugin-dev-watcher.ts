@@ -4,7 +4,7 @@ import type { InstalledPluginManifest } from './installed-plugin';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { resolveEntryPath } from './plugin-loader';
 import { syncDevPluginEntry } from './plugin-dev-link';

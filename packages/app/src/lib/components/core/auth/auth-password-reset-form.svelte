@@ -4,8 +4,8 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputText } from '@stream-kit/ui/input';
 
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
+	import { getApp } from '#lib/core/registry.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	import { openLoginModal } from './open-auth-modals';
 

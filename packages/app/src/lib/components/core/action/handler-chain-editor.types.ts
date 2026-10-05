@@ -2,9 +2,9 @@ import type {
 	ActionHandler,
 	HandlerFieldFormErrors,
 	HandlerBranch
-} from '$lib/core/action/action-handler.svelte';
-import type { HandlerInsertTarget } from '$lib/core/action/handler-chain-mutations';
-import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+} from '#lib/core/action/action-handler.svelte.js';
+import type { HandlerInsertTarget } from '#lib/core/action/handler-chain-mutations.js';
+import type { HandlerDefinition } from '#lib/core/action/handler/handler-definition.svelte.js';
 
 export type HandlerChainFormErrors = {
 	handlers?: string;

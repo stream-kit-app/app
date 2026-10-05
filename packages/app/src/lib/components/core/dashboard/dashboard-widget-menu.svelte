@@ -4,8 +4,8 @@
 	import { Button } from '@stream-kit/ui/button';
 	import * as Dropdown from '@stream-kit/ui/dropdown';
 
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		wide: boolean;

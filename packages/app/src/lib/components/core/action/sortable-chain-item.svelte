@@ -5,7 +5,7 @@
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	import { getHandlerChainDndContext } from './handler-chain-dnd-context.svelte';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';

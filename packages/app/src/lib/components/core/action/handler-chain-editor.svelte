@@ -7,10 +7,10 @@
 	import type { TranslateFn } from './resolve-translate';
 	import type { PluginAppApi } from '@stream-kit/plugin';
 	import type { HandlerFieldVariable } from '@stream-kit/ui/types';
-	import type { ActionHandler, HandlerBranch } from '$lib/core/action/action-handler.svelte';
-	import type { Action } from '$lib/core/action/action.svelte';
-	import type { HandlerDndLayout } from '$lib/core/action/handler-chain-dnd';
-	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+	import type { ActionHandler, HandlerBranch } from '#lib/core/action/action-handler.svelte.js';
+	import type { Action } from '#lib/core/action/action.svelte.js';
+	import type { HandlerDndLayout } from '#lib/core/action/handler-chain-dnd.js';
+	import type { HandlerDefinition } from '#lib/core/action/handler/handler-definition.svelte.js';
 
 	import {
 		DragDropProvider,
@@ -32,11 +32,11 @@
 		HANDLER_DND_ROOT_KEY,
 		handlerTreeSignature,
 		layoutHasInvalidHandlerPlacements
-	} from '$lib/core/action/handler-chain-dnd';
-	import { findHandlerDefinition, flattenActionHandlers } from '$lib/core/action/handler-tree';
-	import { isIfHandler } from '$lib/core/action/if-condition';
-	import { computeVariableScopes } from '$lib/core/action/variable-scope';
-	import { cn } from '$lib/utils';
+	} from '#lib/core/action/handler-chain-dnd.js';
+	import { findHandlerDefinition, flattenActionHandlers } from '#lib/core/action/handler-tree.js';
+	import { isIfHandler } from '#lib/core/action/if-condition.js';
+	import { computeVariableScopes } from '#lib/core/action/variable-scope.js';
+	import { cn } from '#lib/utils.js';
 
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
 	import { applyDndMove } from './dnd-events';

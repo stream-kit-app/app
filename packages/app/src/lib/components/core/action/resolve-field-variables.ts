@@ -1,6 +1,6 @@
-import type { HandlerFieldVariable } from '$lib/core/action/handler/field';
+import type { HandlerFieldVariable } from '#lib/core/action/handler/field.js';
 
-import { mergeContextVariables } from '$lib/core/action/variable-helpers';
+import { mergeContextVariables } from '#lib/core/action/variable-helpers.js';
 
 /**
  * Variables offered by a handler field: everything in scope plus the field's own extras.

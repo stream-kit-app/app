@@ -6,7 +6,7 @@ import type {
 } from './trigger/condition';
 import type { HandlerFieldInstance, ResolvedHandlerFieldDefinition } from './handler/field';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import type { HandlerFieldFormErrors } from './action-handler.svelte';
 import { isConditionGroupNode } from './condition-tree';

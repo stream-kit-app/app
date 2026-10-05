@@ -1,4 +1,4 @@
-import { getApp } from '$lib/core/registry';
+import { getApp } from '#lib/core/registry.js';
 
 export const ACTION_BULK_EDIT_NO_QUEUE = 'none';
 

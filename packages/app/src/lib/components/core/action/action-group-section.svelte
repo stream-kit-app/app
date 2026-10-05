@@ -1,6 +1,6 @@
 <script lang="ts" generics="TId extends string | number">
 	import type { TranslateFn } from './resolve-translate';
-	import type { SelectableListController } from '$lib/components/core/list/selectable-list.svelte';
+	import type { SelectableListController } from '#lib/components/core/list/selectable-list.svelte.js';
 	import type { Snippet } from 'svelte';
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
@@ -11,7 +11,7 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	import { resolveTranslate } from './resolve-translate';
 

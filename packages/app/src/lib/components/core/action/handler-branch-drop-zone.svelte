@@ -4,7 +4,7 @@
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	import { resolveTranslate } from './resolve-translate';
 

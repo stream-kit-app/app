@@ -13,15 +13,15 @@ export function reactScaffold(slug: string, overlayId: string) {
 				preview: 'vite preview'
 			},
 			dependencies: {
-				react: '^19.2.0',
-				'react-dom': '^19.2.0'
+				react: '^19.3.0',
+				'react-dom': '^19.3.0'
 			},
 			devDependencies: {
-				'@types/react': '^19.2.2',
-				'@types/react-dom': '^19.2.2',
-				'@vitejs/plugin-react': '^5.1.0',
+				'@types/react': '^19.3.0',
+				'@types/react-dom': '^19.3.0',
+				'@vitejs/plugin-react': '^6.1.1',
 				typescript: '~6.0.3',
-				vite: '^8.0.16'
+				vite: '^8.3.2'
 			}
 		},
 		null,

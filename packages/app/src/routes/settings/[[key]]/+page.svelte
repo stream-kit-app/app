@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ApiServerBind, ApiServerSettings } from '$lib/core/api-server';
-	import type { SettingsFieldItem } from '$lib/core/settings/field';
-	import type { SupportedLocale } from '$lib/i18n';
+	import type { ApiServerBind, ApiServerSettings } from '#lib/core/api-server/index.js';
+	import type { SettingsFieldItem } from '#lib/core/settings/field.js';
+	import type { SupportedLocale } from '#lib/i18n.js';
 
 	import { watch } from 'runed';
 	import { untrack } from 'svelte';
@@ -10,15 +10,15 @@
 	import { Container } from '@stream-kit/ui/container';
 	import { CopyButton } from '@stream-kit/ui/copy-button';
 
-	import { SettingsFieldGroup } from '$lib/components/core/settings';
-	import { app } from '$lib/core';
-	import { saveLocale } from '$lib/core/locale/store';
+	import { SettingsFieldGroup } from '#lib/components/core/settings/index.js';
+	import { app } from '#lib/core/index.js';
+	import { saveLocale } from '#lib/core/locale/store.js';
 	import {
 		stopAllPluginDevWatchers,
 		syncPluginDevWatchers
-	} from '$lib/core/plugins/plugin-dev-watcher';
-	import { appUpdater } from '$lib/core/updater/app-updater.svelte';
-	import { useI18n } from '$lib/i18n';
+	} from '#lib/core/plugins/plugin-dev-watcher.js';
+	import { appUpdater } from '#lib/core/updater/app-updater.svelte.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t, getLocale, setLocale } = useI18n();
 

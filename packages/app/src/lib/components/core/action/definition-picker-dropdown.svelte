@@ -2,7 +2,7 @@
 	import { Button } from '@stream-kit/ui/button';
 	import * as Dropdown from '@stream-kit/ui/dropdown';
 
-	import { tooltip } from '$lib/attachments';
+	import { tooltip } from '#lib/attachments/index.js';
 
 	type DefinitionNode = {
 		id: string;

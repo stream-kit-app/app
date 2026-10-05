@@ -26,8 +26,8 @@ export async function createPluginViteBuildConfig(options = {}) {
 		resolve: {
 			alias: {
 				'$lib': path.resolve(appRoot, 'lib'),
-				'$env/static/public': path.resolve(pluginStubs, 'env-static-public.ts'),
-				'$env/dynamic/public': path.resolve(pluginStubs, 'env-dynamic-public.ts'),
+				'$app/env/public': path.resolve(pluginStubs, 'app-env-public.ts'),
+				'$app/env': path.resolve(pluginStubs, 'app-env.ts'),
 				'@stream-kit/plugin/action-ui': path.resolve(
 					appRoot,
 					'lib/components/core/action'

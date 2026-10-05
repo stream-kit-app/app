@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
 
-import { db } from '$db';
-import { overlays, type NewOverlayRecord, type OverlayRecord } from '$db/schemas/overlays';
-import { createSyncId } from '$db/sync-id';
-import { notifyConfigLocalChange } from '$db/config-sync-notify';
+import { db } from '#db';
+import { overlays, type NewOverlayRecord, type OverlayRecord } from '#db/schemas/overlays.js';
+import { createSyncId } from '#db/sync-id.js';
+import { notifyConfigLocalChange } from '#db/config-sync-notify.js';
 import { recordConfigSyncTombstone } from './config-sync-tombstones';
 
 export type SaveOverlayInput = {

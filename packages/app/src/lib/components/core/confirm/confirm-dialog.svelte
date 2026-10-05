@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { Confirm } from '$lib/core/confirm';
+	import type { Confirm } from '#lib/core/confirm/index.js';
 
 	import { AlertDialog } from 'bits-ui';
 
 	import { Button } from '@stream-kit/ui/button';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		confirm: Confirm;

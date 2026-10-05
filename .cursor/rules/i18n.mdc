@@ -20,11 +20,11 @@ alwaysApply: false
 | Context | Use |
 | --- | --- |
 | App Svelte components | `useI18n()` / `t()` |
-| App non-Svelte modules | `translate()` from `$lib/i18n` |
+| App non-Svelte modules | `translate()` from `#lib/i18n.js` |
 | Plugin Svelte UI | `app.i18n.t` |
 | Plugin TS modules | `app.i18n.translate` |
 
-Plugins must **not** import `$lib/i18n` — use `app.i18n` only.
+Plugins must **not** import `#lib/i18n.js` — use `app.i18n` only.
 
 ## Definitions
 

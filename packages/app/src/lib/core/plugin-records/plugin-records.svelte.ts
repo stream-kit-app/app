@@ -5,8 +5,8 @@ import {
 	listPluginRecords,
 	updatePluginRecord,
 	type PluginRecordRow
-} from '$db/repositories/plugin-records';
-import { isSyncId } from '$db/sync-id';
+} from '#db/repositories/plugin-records.js';
+import { isSyncId } from '#db/sync-id.js';
 
 export type PluginRecordChange =
 	| { type: 'create' | 'update'; collection: string; id: string; data: Record<string, unknown> }

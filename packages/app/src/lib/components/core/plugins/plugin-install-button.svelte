@@ -3,10 +3,10 @@
 	import { isString } from 'es-toolkit';
 
 	import { Button } from '@stream-kit/ui/button';
-	import { app } from '$lib/core';
-	import { linkPluginDev } from '$lib/core/plugins/plugin-dev-link';
-	import { installPluginFromZip } from '$lib/core/plugins/plugin-loader';
-	import { useI18n } from '$lib/i18n';
+	import { app } from '#lib/core/index.js';
+	import { linkPluginDev } from '#lib/core/plugins/plugin-dev-link.js';
+	import { installPluginFromZip } from '#lib/core/plugins/plugin-loader.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		size?: 'default' | 'sm' | 'lg';

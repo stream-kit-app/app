@@ -2,14 +2,14 @@ import type { RecordModel } from 'pocketbase';
 
 import type { App } from '../../app.svelte';
 import type { SyncAdapter } from '../adapter';
-import type { OverlayRecord } from '$db/schemas/overlays';
+import type { OverlayRecord } from '#db/schemas/overlays.js';
 
 import {
 	deleteOverlayBySyncIdFromSync,
 	getOverlays,
 	upsertOverlayFromSync
-} from '$db/repositories/overlays';
-import { writeConfigSyncTrash } from '$db/repositories/config-sync-trash';
+} from '#db/repositories/overlays.js';
+import { writeConfigSyncTrash } from '#db/repositories/config-sync-trash.js';
 
 import { readRevision, toEpochMs } from '../sync-loop';
 

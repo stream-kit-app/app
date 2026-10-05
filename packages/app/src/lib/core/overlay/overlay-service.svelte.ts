@@ -13,7 +13,7 @@ import {
 	getOverlay,
 	saveOverlayManifestMetadata,
 	type SaveOverlayInput
-} from '$db/repositories/overlays';
+} from '#db/repositories/overlays.js';
 
 
 
@@ -25,7 +25,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 
 
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 
 

@@ -1,6 +1,6 @@
 import type { ServiceError } from './base.service';
 import type { ResultAsync } from 'neverthrow';
-import type { UserOverlaysResponse } from '$lib/pocketbase/types';
+import type { UserOverlaysResponse } from '#lib/pocketbase/types.js';
 
 import { unzipSync } from 'fflate';
 import { fromPromise } from 'neverthrow';

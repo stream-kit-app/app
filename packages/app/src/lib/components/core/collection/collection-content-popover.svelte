@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CorePluginApi } from '$lib/types/core-plugin-api';
+	import type { CorePluginApi } from '#lib/types/core-plugin-api.js';
 	import type { PluginAppApi } from '@stream-kit/plugin';
 
 	import Icon from '@iconify/svelte';
@@ -13,9 +13,9 @@
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
-	import { resolveApp } from '$lib/components/core/action/resolve-app';
-	import { resolveTranslate, type TranslateFn } from '$lib/components/core/action/resolve-translate';
-	import { cn } from '$lib/utils';
+	import { resolveApp } from '#lib/components/core/action/resolve-app.js';
+	import { resolveTranslate, type TranslateFn } from '#lib/components/core/action/resolve-translate.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		collectionName: string;

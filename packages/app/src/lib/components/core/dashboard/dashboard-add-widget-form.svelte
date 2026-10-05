@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { DashboardWidgetDefinition } from '$lib/core/dashboard/types';
+	import type { DashboardWidgetDefinition } from '#lib/core/dashboard/types.js';
 
 	import Icon from '@iconify/svelte';
 
@@ -7,10 +7,10 @@
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { isWideWidget } from '$lib/core/dashboard/dashboard-layout';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { app } from '#lib/core/index.js';
+	import { isWideWidget } from '#lib/core/dashboard/dashboard-layout.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		modalId?: string;

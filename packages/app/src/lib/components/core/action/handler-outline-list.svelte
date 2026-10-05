@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { HandlerChainEditorHost } from './handler-chain-editor.types';
 	import type { TranslateFn } from './resolve-translate';
-	import type { ActionHandler, HandlerBranch } from '$lib/core/action/action-handler.svelte';
-	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+	import type { ActionHandler, HandlerBranch } from '#lib/core/action/action-handler.svelte.js';
+	import type { HandlerDefinition } from '#lib/core/action/handler/handler-definition.svelte.js';
 
-	import { branchContainerKey, HANDLER_DND_ROOT_KEY } from '$lib/core/action/handler-chain-dnd';
-	import { isIfHandler } from '$lib/core/action/if-condition';
-	import { cn } from '$lib/utils';
+	import { branchContainerKey, HANDLER_DND_ROOT_KEY } from '#lib/core/action/handler-chain-dnd.js';
+	import { isIfHandler } from '#lib/core/action/if-condition.js';
+	import { cn } from '#lib/utils.js';
 
 	import { getHandlerChainDndContext } from './handler-chain-dnd-context.svelte';
 	import { getHandlerChainEditorState } from './handler-chain-editor-state.svelte';

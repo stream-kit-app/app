@@ -3,7 +3,7 @@
 
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 
-	import { useI18n } from '$lib/i18n';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		form: QueueEditForm;

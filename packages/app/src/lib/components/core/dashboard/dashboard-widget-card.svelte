@@ -2,7 +2,7 @@
 	import type {
 		DashboardWidgetDefinition,
 		DashboardWidgetInstance
-	} from '$lib/core/dashboard/types';
+	} from '#lib/core/dashboard/types.js';
 
 	import Icon from '@iconify/svelte';
 
@@ -10,9 +10,9 @@
 	import { masonryItem, tooltip } from '@stream-kit/ui/attachments';
 	import { panelVariants } from '@stream-kit/ui/blueprint';
 
-	import { isWideWidget, toWidgetColumns } from '$lib/core/dashboard/dashboard-layout';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { isWideWidget, toWidgetColumns } from '#lib/core/dashboard/dashboard-layout.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import DashboardWidgetHost from './dashboard-widget-host.svelte';
 	import DashboardWidgetMenu from './dashboard-widget-menu.svelte';

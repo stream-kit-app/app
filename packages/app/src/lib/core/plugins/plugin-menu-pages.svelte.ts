@@ -6,7 +6,7 @@ import type {
 	PluginPageDefinition
 } from './types';
 
-import { uniqueSlug } from '$lib/utils';
+import { uniqueSlug } from '#lib/utils.js';
 
 export type PluginMenuPageEntry = {
 	plugin: RegisteredPlugin;

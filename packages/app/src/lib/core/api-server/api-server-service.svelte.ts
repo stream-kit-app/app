@@ -3,8 +3,8 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 import type { App } from '../app.svelte';
 import type { ActionQueueEvent } from '../action-queue/types';
-import type { CorePluginApi } from '$lib/types/core-plugin-api';
-import { translate } from '$lib/i18n';
+import type { CorePluginApi } from '#lib/types/core-plugin-api.js';
+import { translate } from '#lib/i18n.js';
 
 import { registerBuiltinApiMethods } from './builtin-methods';
 import { clientSubscribed } from './events';

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { SettingsContext } from '$lib/core/settings/context';
+	import type { SettingsContext } from '#lib/core/settings/context.js';
 	import type {
 		SettingsFieldDefinition,
 		SettingsFieldInstance,
 		SettingsFieldItem,
 		SettingsFieldSectionDefinition,
 		SettingsFieldValue
-	} from '$lib/core/settings/field';
+	} from '#lib/core/settings/field.js';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import Icon from '@iconify/svelte';
@@ -35,16 +35,16 @@
 		toStoredCloudFileValue,
 		uploadLocalFileToCloud,
 		usesCloudFileStorage
-	} from '$lib/components/core/user-files/cloud-file-actions';
-	import { getApp } from '$lib/core/registry';
+	} from '#lib/components/core/user-files/cloud-file-actions.js';
+	import { getApp } from '#lib/core/registry.js';
 	import {
 		filterVisibleFieldItems,
 		flattenSettingsFieldItems,
 		isSettingsFieldSection,
 		toSettingsSelectItemsSource
-	} from '$lib/core/settings/settings-field';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	} from '#lib/core/settings/settings-field.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import SelectValuesSettingsField from './select-values-settings-field.svelte';
 	import TableSettingsField from './table-settings-field.svelte';

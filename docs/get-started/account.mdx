@@ -42,7 +42,7 @@ Active plans also unlock **cloud overlays**: built overlays publish to the cloud
 
 ## Developers / local setup
 
-The desktop app talks to PocketBase using `PUBLIC_POCKETBASE_URL` from `$env/static/public` (baked in at build time). Cloud overlays also need `PUBLIC_SITE_URL` (the marketing site origin).
+The desktop app talks to PocketBase using `PUBLIC_POCKETBASE_URL` from `$app/env/public` (baked in at build time). Cloud overlays also need `PUBLIC_SITE_URL` (the marketing site origin).
 
 Root `pnpm dev` bootstraps this automatically:
 

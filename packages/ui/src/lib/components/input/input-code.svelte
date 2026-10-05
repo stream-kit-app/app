@@ -250,7 +250,7 @@
 				wordWrap: 'on',
 				padding: { top: 12, bottom: 12 },
 				overviewRulerLanes: 0,
-				hover: { enabled: true },
+				hover: { enabled: 'on' },
 				parameterHints: { enabled: true },
 				suggestOnTriggerCharacters: true,
 				quickSuggestions: {

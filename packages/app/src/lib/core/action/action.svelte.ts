@@ -23,12 +23,12 @@ import {
 	updateActionEnabled,
 	updateActionsEnabled,
 	updateActionsQueue
-} from '$db/repositories/actions';
+} from '#db/repositories/actions.js';
 
-import ActionFormFooter from '$lib/components/core/action/action-form-footer.svelte';
-import ActionFormHeader from '$lib/components/core/action/action-form-header.svelte';
-import ActionForm from '$lib/components/core/action/action-form.svelte';
-import { translate } from '$lib/i18n';
+import ActionFormFooter from '#lib/components/core/action/action-form-footer.svelte';
+import ActionFormHeader from '#lib/components/core/action/action-form-header.svelte';
+import ActionForm from '#lib/components/core/action/action-form.svelte';
+import { translate } from '#lib/i18n.js';
 
 import { hasEnabledProcessTrigger } from '../process/is-process-trigger';
 import { getApp } from '../registry';

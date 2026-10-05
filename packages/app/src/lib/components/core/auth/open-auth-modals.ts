@@ -1,7 +1,7 @@
 import type { Component } from 'svelte';
 
-import { getApp } from '$lib/core/registry';
-import { translate } from '$lib/i18n';
+import { getApp } from '#lib/core/registry.js';
+import { translate } from '#lib/i18n.js';
 
 import { AuthModalForm } from './auth-modal-form.svelte';
 import AuthModalFooter from './auth-modal-footer.svelte';

@@ -6,8 +6,8 @@
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputCheckbox, InputText } from '@stream-kit/ui/input';
 
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		picker: SelectValuesPicker;

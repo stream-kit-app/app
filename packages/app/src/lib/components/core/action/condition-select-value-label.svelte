@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
+	import type { SelectItemsSource } from '#lib/core/action/trigger/condition.js';
 
 	import { resolveSelectItems } from '@stream-kit/ui/input';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		items: SelectItemsSource;

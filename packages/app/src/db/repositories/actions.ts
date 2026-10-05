@@ -4,7 +4,7 @@ import type {
 	StoredActionHandler,
 	StoredActionTrigger
 } from '../schemas/actions';
-import type { SelectItem } from '$lib/core/action/trigger/condition';
+import type { SelectItem } from '#lib/core/action/trigger/condition.js';
 
 import { asc, eq, inArray, max, sql } from 'drizzle-orm';
 

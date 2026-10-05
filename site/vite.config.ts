@@ -26,8 +26,7 @@ export default defineConfig(async ({ mode }) => {
 					}
 				}),
 				experimental: {
-					remoteFunctions: true,
-					handleRenderingErrors: true
+					remoteFunctions: true
 				},
 				compilerOptions: {
 					runes: ({ filename }) =>
@@ -45,7 +44,7 @@ export default defineConfig(async ({ mode }) => {
 			}
 		},
 		ssr: {
-			noExternal: ['@stream-kit/ui', 'bits-ui', 'runed', '@iconify/svelte']
+			noExternal: ['@stream-kit/ui', 'bits-ui', 'runed', 'svelte-toolbelt', '@iconify/svelte']
 		}
 	};
 });

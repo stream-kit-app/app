@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Button } from '@stream-kit/ui/button';
 
-	import { app } from '$lib/core';
-	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
-	import { useI18n } from '$lib/i18n';
+	import { app } from '#lib/core/index.js';
+	import { pluginUpdates } from '#lib/core/plugins/plugin-updates.svelte.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		size?: 'default' | 'sm' | 'lg';

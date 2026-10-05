@@ -1,135 +1,219 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-
-	import { Button } from '@stream-kit/ui/button';
-	import { Crosshair, GridFrame, SectionRule } from '@stream-kit/ui/blueprint';
-	import { Logo } from '@stream-kit/ui/logo';
-
+	import { afterNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { slide } from 'svelte/transition';
 
-	import favicon from '$lib/assets/favicon.svg';
+	import { Button } from '@stream-kit/ui/button';
+	import { Logo } from '@stream-kit/ui/logo';
+
+	import favicon from '#lib/assets/favicon.svg';
+	import { DOCS_URL, docsUrl, DOWNLOAD_URL, GITHUB_URL } from '#lib/marketing/links.js';
 
 	import '../layout.css';
 
-	// TODO: replace with the real download URL once available
-	const downloadUrl = '#';
-
 	let { children } = $props();
 
-	const pluginsPath = resolve('/plugins');
-	const homePath = resolve('/');
-	const pathname = $derived(page.url.pathname);
+	const homePath = resolve('') || '/';
+	const pluginsPath = resolve('plugins');
 
-	const isHome = $derived(pathname === homePath || pathname === '/');
-	const isPlugins = $derived(
-		pathname === pluginsPath || pathname.startsWith(`${pluginsPath}/`)
-	);
+	const navLinks = [
+		{ label: 'Features', href: `${homePath}#features` },
+		{ label: 'How it works', href: `${homePath}#how-it-works` },
+		{ label: 'Plugins', href: pluginsPath },
+		{ label: 'Pricing', href: `${homePath}#pricing` }
+	];
+
+	const footerColumns = [
+		{
+			title: 'Product',
+			links: [
+				{ label: 'Features', href: `${homePath}#features` },
+				{ label: 'Plugins', href: pluginsPath },
+				{ label: 'Pricing', href: `${homePath}#pricing` },
+				{ label: 'Download', href: DOWNLOAD_URL }
+			]
+		},
+		{
+			title: 'Resources',
+			links: [
+				{ label: 'Documentation', href: DOCS_URL },
+				{ label: 'Getting started', href: docsUrl('get-started/introduction') },
+				{ label: 'Build a plugin', href: docsUrl('developers/plugin-getting-started') },
+				{ label: 'FAQ', href: `${homePath}#faq` }
+			]
+		},
+		{
+			title: 'Project',
+			links: [
+				{ label: 'GitHub', href: GITHUB_URL },
+				{ label: 'Releases', href: `${GITHUB_URL}/releases` }
+			]
+		}
+	];
+
+	const pathname = $derived(page.url.pathname);
+	const isPlugins = $derived(pathname === pluginsPath || pathname.startsWith(`${pluginsPath}/`));
+
+	let scrollY = $state(0);
+	let menuOpen = $state(false);
 
 	const year = new Date().getFullYear();
 
-	const navLinkClass =
-		'relative flex h-full items-center px-3 font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors hover:text-foreground';
-	const navActiveClass = 'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-primary';
+	afterNavigate(() => {
+		menuOpen = false;
+	});
+
+	function isExternal(href: string): boolean {
+		return href.startsWith('http');
+	}
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<GridFrame>
-	<header class="sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
-		<div class="relative flex h-12 items-stretch">
-			<Crosshair position="top-left" size="sm" />
-			<Crosshair position="top-right" size="sm" />
+<svelte:window bind:scrollY />
 
+<header
+	class={[
+		'sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md transition-colors duration-200',
+		scrollY > 8 || menuOpen ? 'border-rule' : 'border-transparent'
+	]}
+>
+	<div class="mx-auto flex h-16 max-w-6xl items-center gap-8 px-6">
+		<a
+			href={homePath}
+			class="flex shrink-0 cursor-pointer items-center [&_svg]:h-7 [&_svg]:w-7 [&>span]:grid-cols-[28px_auto] [&>span]:gap-2 [&>span>span]:text-sm"
+			aria-label="Stream Kit home"
+		>
+			<Logo />
+		</a>
+
+		<nav class="hidden items-center gap-1 md:flex" aria-label="Main">
+			{#each navLinks as link (link.label)}
+				<a
+					href={link.href}
+					class={[
+						'cursor-pointer rounded-md px-3 py-1.5 text-sm transition-colors duration-150 hover:text-foreground',
+						link.href === pluginsPath && isPlugins
+							? 'text-foreground'
+							: 'text-muted-foreground'
+					]}
+				>
+					{link.label}
+				</a>
+			{/each}
+			<a
+				href={DOCS_URL}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="cursor-pointer rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+			>
+				Docs
+			</a>
+		</nav>
+
+		<div class="ms-auto flex items-center gap-2">
+			<Button
+				href={DOWNLOAD_URL}
+				size="sm"
+				icon="ri:download-2-line"
+				class="hidden sm:inline-flex"
+			>
+				Download
+			</Button>
+			<button
+				type="button"
+				class="flex size-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground hover:bg-item-hover hover:text-foreground md:hidden"
+				aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+				aria-expanded={menuOpen}
+				onclick={() => (menuOpen = !menuOpen)}
+			>
+				<Icon icon={menuOpen ? 'ri:close-line' : 'ri:menu-line'} class="size-5" />
+			</button>
+		</div>
+	</div>
+
+	{#if menuOpen}
+		<nav
+			class="border-t border-rule md:hidden"
+			aria-label="Mobile"
+			transition:slide={{ duration: 200 }}
+		>
+			<div class="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-4">
+				{#each navLinks as link (link.label)}
+					<a
+						href={link.href}
+						class="cursor-pointer rounded-md px-3 py-2.5 text-dark-100 hover:bg-item-hover"
+						onclick={() => (menuOpen = false)}
+					>
+						{link.label}
+					</a>
+				{/each}
+				<a
+					href={DOCS_URL}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="cursor-pointer rounded-md px-3 py-2.5 text-dark-100 hover:bg-item-hover"
+				>
+					Docs
+				</a>
+				<Button href={DOWNLOAD_URL} icon="ri:download-2-line" class="mt-3">
+					Download for Windows
+				</Button>
+			</div>
+		</nav>
+	{/if}
+</header>
+
+<main>
+	{@render children()}
+</main>
+
+<footer class="border-t border-rule">
+	<div class="mx-auto grid max-w-6xl gap-12 px-6 py-16 sm:grid-cols-2 lg:grid-cols-5">
+		<div class="flex flex-col gap-4 lg:col-span-2">
 			<a
 				href={homePath}
-				class="flex shrink-0 items-center border-r border-rule px-4 hover:bg-dark-900/40 [&>span]:grid-cols-[28px_auto] [&>span]:gap-1.5 [&_svg]:h-7 [&_svg]:w-7 [&>span>span]:text-sm"
+				class="w-fit cursor-pointer [&_svg]:h-7 [&_svg]:w-7 [&>span]:grid-cols-[28px_auto] [&>span]:gap-2 [&>span>span]:text-sm"
 				aria-label="Stream Kit home"
 			>
 				<Logo />
 			</a>
-
-			<nav class="hidden flex-1 items-stretch sm:flex">
-				<a href={homePath} class="{navLinkClass} {isHome ? navActiveClass : ''}" data-active={isHome}>
-					Home
-				</a>
-				<a
-					href="https://docs.stream-kit.app"
-					class={navLinkClass}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Docs
-				</a>
-				<a
-					href={pluginsPath}
-					class="{navLinkClass} {isPlugins ? navActiveClass : ''}"
-					data-active={isPlugins}
-				>
-					Plugins
-				</a>
-			</nav>
-
-			<div class="ms-auto flex items-stretch border-l border-rule">
-				<Button
-					href={downloadUrl}
-					variant="ghost"
-					size="sm"
-					class="h-full rounded-none border-0 px-5 font-mono text-[11px] tracking-[0.14em] uppercase hover:bg-primary/10 hover:text-primary"
-				>
-					<Icon icon="mdi:download" class="size-3.5" />
-					Download
-				</Button>
-			</div>
+			<p class="max-w-xs text-sm leading-relaxed text-muted-foreground">
+				Automate your Twitch and YouTube stream without code. Free for Windows 10 &amp; 11.
+			</p>
 		</div>
-		<SectionRule />
-	</header>
 
-	<main>
-		{@render children()}
-	</main>
+		{#each footerColumns as column (column.title)}
+			<div class="flex flex-col gap-4">
+				<p class="text-sm font-semibold text-foreground">{column.title}</p>
+				<ul class="flex flex-col gap-3">
+					{#each column.links as link (link.label)}
+						<li>
+							<a
+								href={link.href}
+								class="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground"
+								target={isExternal(link.href) ? '_blank' : undefined}
+								rel={isExternal(link.href) ? 'noopener noreferrer' : undefined}
+							>
+								{link.label}
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/each}
+	</div>
 
-	<footer>
-		<SectionRule />
-		<div class="grid gap-8 px-6 py-12 sm:grid-cols-3">
-			<div class="flex flex-col gap-3">
-				<p class="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-					Product
-				</p>
-				<nav class="flex flex-col gap-2 text-sm">
-					<a href={homePath} class="text-muted-foreground hover:text-foreground">Home</a>
-					<a href={pluginsPath} class="text-muted-foreground hover:text-foreground">Plugins</a>
-					<a
-						href="https://docs.stream-kit.app"
-						class="text-muted-foreground hover:text-foreground"
-					>
-						Docs
-					</a>
-				</nav>
-			</div>
-			<div class="flex flex-col gap-3">
-				<p class="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-					Resources
-				</p>
-				<nav class="flex flex-col gap-2 text-sm">
-					<a
-						href="https://docs.stream-kit.app"
-						class="text-muted-foreground hover:text-foreground"
-					>
-						Documentation
-					</a>
-					<a href="/contact" class="text-muted-foreground hover:text-foreground">Contact</a>
-				</nav>
-			</div>
-			<div class="flex flex-col gap-3 sm:items-end">
-				<p class="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-					Stream Kit
-				</p>
-				<p class="text-sm text-muted-foreground">© {year} Stream Kit. All rights reserved.</p>
-			</div>
+	<div class="border-t border-rule">
+		<div
+			class="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-6 text-sm text-muted-foreground sm:flex-row sm:justify-between"
+		>
+			<p>© {year} Stream Kit</p>
+			<p>Early access · Windows 10 &amp; 11</p>
 		</div>
-		<SectionRule />
-	</footer>
-</GridFrame>
+	</div>
+</footer>

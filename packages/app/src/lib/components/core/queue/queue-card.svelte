@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ActionQueueDefinition } from '$lib/core/action-queue/action-queues.svelte';
+	import type { ActionQueueDefinition } from '#lib/core/action-queue/action-queues.svelte.js';
 
 	import Icon from '@iconify/svelte';
 
@@ -8,10 +8,10 @@
 	import { Panel } from '@stream-kit/ui/blueprint';
 	import { Button } from '@stream-kit/ui/button';
 
-	import QueueActionEntries from '$lib/components/core/queue/queue-action-entries.svelte';
-	import { app } from '$lib/core';
-	import { isQueueBlocking } from '$lib/core/action-queue/queue-mode';
-	import { useI18n } from '$lib/i18n';
+	import QueueActionEntries from '#lib/components/core/queue/queue-action-entries.svelte';
+	import { app } from '#lib/core/index.js';
+	import { isQueueBlocking } from '#lib/core/action-queue/queue-mode.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		queue: ActionQueueDefinition;

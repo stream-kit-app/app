@@ -3,8 +3,8 @@
 	import { Button } from '@stream-kit/ui/button';
 	import * as Dropdown from '@stream-kit/ui/dropdown';
 
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
+	import { getApp } from '#lib/core/registry.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	import UserAvatar from './user-avatar.svelte';
 	import { openLoginModal } from './open-auth-modals';

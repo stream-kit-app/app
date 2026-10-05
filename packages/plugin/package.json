@@ -49,11 +49,11 @@
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
 		"@stream-kit/ui": "workspace:*",
-		"@types/node": "^24.12.4",
+		"@types/node": "^26.6.4",
 		"chokidar-cli": "^3.0.0",
 		"dts-bundle-generator": "^9.5.1",
-		"esbuild": "^0.25.12",
-		"svelte": "^5.56.1",
+		"esbuild": "^0.28.2",
+		"svelte": "^5.57.1",
 		"typescript": "~6.0.3"
 	}
 }

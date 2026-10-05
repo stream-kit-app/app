@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { Action as ActionType } from '$lib/core/action/action.svelte';
+	import type { Action as ActionType } from '#lib/core/action/action.svelte.js';
 
 	import { Button } from '@stream-kit/ui/button';
 
-	import { useI18n } from '$lib/i18n';
+	import { useI18n } from '#lib/i18n.js';
 
 	import ActionIdCopy from './action-id-copy.svelte';
 

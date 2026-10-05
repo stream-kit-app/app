@@ -13,12 +13,12 @@ export function preactScaffold(slug: string, overlayId: string) {
 				preview: 'vite preview'
 			},
 			dependencies: {
-				preact: '^10.27.2'
+				preact: '^10.29.8'
 			},
 			devDependencies: {
-				'@preact/preset-vite': '^2.10.2',
+				'@preact/preset-vite': '^2.10.6',
 				typescript: '~6.0.3',
-				vite: '^8.0.16'
+				vite: '^8.3.2'
 			}
 		},
 		null,

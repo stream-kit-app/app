@@ -4,12 +4,12 @@ import type { App } from '../app.svelte';
 import type { AuthPublicUser } from '../auth/types';
 import type { SettingsFieldValue } from '../settings/field';
 
-import { saveAction } from '$db/repositories/actions';
-import { saveOverlayConfig } from '$db/repositories/overlays';
+import { saveAction } from '#db/repositories/actions.js';
+import { saveOverlayConfig } from '#db/repositories/overlays.js';
 
 import { isOneOfFieldValue } from '@stream-kit/core';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { flattenActionHandlers } from '../action/handler-tree';
 import { BaseDirectory } from '../filesystem';

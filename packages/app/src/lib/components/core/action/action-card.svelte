@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Action as ActionType } from '$lib/core/action/action.svelte';
+	import type { Action as ActionType } from '#lib/core/action/action.svelte.js';
 
 	import Icon from '@iconify/svelte';
 
@@ -9,9 +9,9 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { getApp } from '#lib/core/registry.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import ActionIdCopy from './action-id-copy.svelte';
 

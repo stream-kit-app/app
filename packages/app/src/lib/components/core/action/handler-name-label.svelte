@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
+	import type { ActionHandler } from '#lib/core/action/action-handler.svelte.js';
 
-	import { getHandlerOutputs } from '$lib/core/action/variable-scope';
+	import { getHandlerOutputs } from '#lib/core/action/variable-scope.js';
 
 	type Props = {
 		handler: ActionHandler;

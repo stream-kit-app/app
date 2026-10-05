@@ -15,7 +15,7 @@ import {
 	reorderDashboardLayout,
 	seedDefaultDashboardLayout,
 	updateDashboardWidgetColumns
-} from '$db/repositories/dashboard-widgets';
+} from '#db/repositories/dashboard-widgets.js';
 
 import { createDefinitionId } from './types';
 

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
+	import { watch } from 'runed';
 
-	import { ensurePluginHostTooltipProvider } from '$lib/core/plugins/plugin-host-tooltip';
-	import { importPluginHostSvelte } from '$lib/core/plugins/plugin-host-url';
+	import { ensurePluginHostTooltipProvider } from '#lib/core/plugins/plugin-host-tooltip.js';
+	import { importPluginHostSvelte } from '#lib/core/plugins/plugin-host-url.js';
 
 	type Props = {
 		component: Component<any>;
@@ -14,17 +15,20 @@
 	let target = $state<HTMLDivElement | undefined>();
 	let hostProps = $state<Record<string, unknown>>({});
 
-	$effect(() => {
-		const nextProps = props;
-
-		for (const key of Object.keys(hostProps)) {
-			if (!(key in nextProps)) {
-				delete hostProps[key];
+	// Spread so every top-level prop value is a source; the callback is untracked,
+	// so syncing into `hostProps` can't re-trigger itself.
+	watch(
+		() => ({ ...props }),
+		(nextProps) => {
+			for (const key of Object.keys(hostProps)) {
+				if (!(key in nextProps)) {
+					delete hostProps[key];
+				}
 			}
-		}
 
-		Object.assign(hostProps, nextProps);
-	});
+			Object.assign(hostProps, nextProps);
+		}
+	);
 
 	$effect(() => {
 		const element = target;

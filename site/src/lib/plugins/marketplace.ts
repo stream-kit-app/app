@@ -1,4 +1,4 @@
-import type { PluginsCategoryOptions, PluginsTagsOptions } from '$lib/pocketbase/types';
+import type { PluginsCategoryOptions, PluginsTagsOptions } from '#lib/pocketbase/types.js';
 
 export const PLUGIN_CATEGORIES = [
 	'core',

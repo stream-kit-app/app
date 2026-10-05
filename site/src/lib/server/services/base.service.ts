@@ -1,5 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import type { TypedPocketBase } from '$lib/pocketbase/types';
+import type { TypedPocketBase } from '#lib/pocketbase/types.js';
 
 import { getRequestEvent } from '$app/server';
 import { ClientResponseError } from 'pocketbase';

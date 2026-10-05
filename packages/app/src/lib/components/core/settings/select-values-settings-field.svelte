@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SettingsContext } from '$lib/core/settings/context';
+	import type { SettingsContext } from '#lib/core/settings/context.js';
 	import type { SelectValuesFieldConfig } from './select-values-picker.svelte';
 
 	import Icon from '@iconify/svelte';
@@ -12,9 +12,9 @@
 	import { SelectValuesPicker } from './select-values-picker.svelte';
 	import SelectValuesPickerForm from './select-values-picker-form.svelte';
 	import SelectValuesPickerFormFooter from './select-values-picker-form-footer.svelte';
-	import { getApp } from '$lib/core/registry';
-	import { toSettingsSelectItemsSource } from '$lib/core/settings/settings-field';
-	import { useI18n } from '$lib/i18n';
+	import { getApp } from '#lib/core/registry.js';
+	import { toSettingsSelectItemsSource } from '#lib/core/settings/settings-field.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		config: SelectValuesFieldConfig;

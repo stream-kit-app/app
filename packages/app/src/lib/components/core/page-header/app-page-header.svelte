@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	import { AuthHeaderControls } from '$lib/components/core/auth';
-	import { ThemeToggle } from '$lib/components/core/theme';
-	import { app } from '$lib/core';
-	import { resolvePageTitle } from '$lib/core/page-header';
+	import { AuthHeaderControls } from '#lib/components/core/auth/index.js';
+	import { ThemeToggle } from '#lib/components/core/theme/index.js';
+	import { app } from '#lib/core/index.js';
+	import { resolvePageTitle } from '#lib/core/page-header/index.js';
 
 	const resolved = $derived(
 		resolvePageTitle(page.url.pathname, app.menu.items, app.pluginMenuPages.entries)

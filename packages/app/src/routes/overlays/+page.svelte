@@ -6,13 +6,13 @@
 	import { Container } from '@stream-kit/ui/container';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
-	import { OverlayCard, OverlayInstallButton } from '$lib/components/core/overlay';
-	import { app } from '$lib/core';
+	import { OverlayCard, OverlayInstallButton } from '#lib/components/core/overlay/index.js';
+	import { app } from '#lib/core/index.js';
 	import {
 		overlayNeedsAttention,
 		resolveOverlayStatus
-	} from '$lib/components/core/overlay/overlay-status';
-	import { useI18n } from '$lib/i18n';
+	} from '#lib/components/core/overlay/overlay-status.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 

@@ -8,30 +8,30 @@ globs:
 
 The public marketing site lives in `site/` (`@stream-kit/site`). Dark-only. English copy for now.
 
+The site is **calm**: lots of whitespace, large Outfit headings, few lines. It shares the app's tokens, fonts, radius scale and `@stream-kit/ui` components, but **not** the blueprint chrome (no `GridFrame`, `SectionRule`, `Crosshair`, `CellGrid`, numbered `Eyebrow`s or `blueprint-*` backgrounds).
+
 ## Route groups
 
 | Group / path | Chrome |
 | --- | --- |
-| `(marketing)/*` | `GridFrame`, sticky header, footer — marketing chrome |
+| `(marketing)/*` | Sticky header, footer — marketing chrome |
 | `/app/*` | **No** marketing chrome (overlay host today; future logged-in dashboard) |
 
-Keep marketing chrome in `(marketing)/+layout.svelte` only. Never wrap `/app` routes with `GridFrame` or the marketing header/footer.
+Keep marketing chrome in `(marketing)/+layout.svelte` only. Never wrap `/app` routes with the marketing header/footer.
 
 ## Layout
 
-- Exactly **one** `GridFrame` per marketing layout.
+- Content column: `mx-auto max-w-6xl px-6` (narrower `max-w-3xl`/`max-w-4xl` for FAQ, pricing, hero copy).
+- Sections are separated by whitespace (`py-24 sm:py-32`), not rules. At most an occasional `bg-sidebar` band with `border-y border-rule` (How it works, Pricing).
+- Header: sticky, translucent `bg-background/80 backdrop-blur-md`, hairline only after scrolling; plain `text-sm` links, `Button size="sm"` download; hamburger menu below `md`.
 - Footer belongs in the marketing layout (shared across `/`, `/plugins`, …), not duplicated per page.
-- Sections are separated by `SectionRule` from `@stream-kit/ui/blueprint`.
-- **Header** must match the blueprint: mono uppercase nav links, active = bottom hairline (not pill), hairline vertical dividers between logo / nav / CTA, sharp/ghost download control — do not reuse the app's rounded `NavLink` pills.
 
-## Section anatomy
+## Structure
 
-Every major landing section should follow:
-
-1. `Eyebrow` with optional zero-padded index (`01`, `02`, …)
-2. `h2` with `font-outfit` + tight tracking
-3. Short muted lede
-4. Content (`CellGrid`, `Panel`, list, …)
+- Homepage = composition only. Each section is a component in `site/src/lib/components/marketing/` (`hero`, `integrations`, `how-it-works`, `features`, `plugins-overview`, `power-users`, `pricing`, `faq`, `final-cta`).
+- Copy lives in `site/src/lib/marketing/content.ts`; URLs (`DOWNLOAD_URL`, `DOCS_URL`, `GITHUB_URL`, `docsUrl()`) in `site/src/lib/marketing/links.ts`. Never hardcode a download link.
+- Section intros use `SectionHeading` (`components/marketing/section-heading.svelte`): small `text-primary` label → Outfit heading → muted lede. Page intros pass `as="h1"`.
+- Product visuals are HTML mocks in `components/marketing/mocks/`, wrapped in `MockFrame` (decorative, `aria-hidden`). `app-mock.svelte` mirrors the real app shell (`packages/app/src/routes/+layout.svelte`, page header, nav item states) — update it when the shell changes.
 
 ## Page metadata
 
@@ -39,20 +39,22 @@ Every public page must set `<svelte:head>` with a unique `title` and `meta name=
 
 ## Visual language
 
-Follow `design-system.mdc`. Prefer `@stream-kit/ui` + `@stream-kit/ui/blueprint` over custom chrome.
-
-- Structural frames: `rounded-none`, `border-rule`
-- Controls: keep `@stream-kit/ui` button/input radius
-- Mono for indices, eyebrows, small metadata (`font-mono`)
+- Same radius scale as the app: surfaces `rounded-xl`, controls `rounded-lg`, icon tiles/items `rounded-md`–`rounded-lg`.
+- Lines `border-rule`; cards and lists `Panel tone="solid"` or `bg-surface` + `border-rule`.
+- Controls: `@stream-kit/ui/button`, `@stream-kit/ui/input`, `Badge` — no hand-rolled fields or chips.
+- No decorative gradients or glow blobs; depth comes from `bg-surface` and `shadow-2xl shadow-black/40` on mocks only.
+- Mono only for code-like content (variables, file names, timestamps), not for labels or nav.
 
 ## Copy
 
-- Tone: direct, product-focused, no hype filler
-- English only until i18n is introduced
-- Keep homepage copy in plain arrays/constants at the top of the page script so it can be extracted later
+- Tone: direct, product-focused, no hype filler or unverifiable claims ("lightweight", "under a minute", "join thousands").
+- Every claim must match `docs/` and the plugin manifests: free app + optional **Pro** (cloud sync, cloud files, cloud overlays, AI Actions); Windows 10/11 only; early access; supported integrations only (no Kick/TikTok).
+- Mention Streamer.bot only in the FAQ.
+- English only until i18n is introduced.
 
 ## Stack reminders
 
 - SvelteKit + Tailwind v4 + `@stream-kit/ui`
 - PocketBase for plugin catalog (see `pocketbase.mdc`)
 - Do not import Tauri APIs in `site/`
+- `@stream-kit/ui/input` needs `bits-ui`, `runed` and `svelte-toolbelt` in `ssr.noExternal` (`site/vite.config.ts`)

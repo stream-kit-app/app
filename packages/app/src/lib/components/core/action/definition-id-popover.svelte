@@ -8,7 +8,7 @@
 		Trigger as PopoverTrigger
 	} from '@stream-kit/ui/popover';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
 

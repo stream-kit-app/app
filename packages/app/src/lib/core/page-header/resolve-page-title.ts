@@ -2,7 +2,7 @@ import type { MenuItem, MenuItemLink } from '../menu/types';
 import { isMenuItemLink } from '../menu/types';
 import type { PluginMenuPageEntry } from '../plugins/plugin-menu-pages.svelte';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 export type ResolvedPageTitle = {
 	title: string;

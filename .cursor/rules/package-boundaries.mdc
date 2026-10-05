@@ -12,7 +12,7 @@ alwaysApply: false
 
 ## `@stream-kit/ui`
 
-App-agnostic Svelte primitives. **Do not** import from `packages/app`, `$lib`, SvelteKit routes, app stores, app i18n, or Tauri. Keep exports theme-token based; the app supplies Tailwind tokens.
+App-agnostic Svelte primitives. **Do not** import from `packages/app`, `#lib`, SvelteKit routes, app stores, app i18n, or Tauri. Keep exports theme-token based; the app supplies Tailwind tokens.
 
 ## Plugins
 
@@ -26,7 +26,7 @@ Do not import other first-party plugin packages as hard dependencies for cross-p
 
 ## First-party `$lib` alias
 
-Vite may resolve `$lib` → `packages/app/src/lib` for monorepo plugins (`create-vite-build-config.js`). Treat that as **monorepo-only**. Prefer `@stream-kit/ui` or plugin-local code for anything that should stay portable; don’t grow new `$lib` couplings for shared UI.
+The app itself uses `#lib` / `#db` subpath imports (SvelteKit 3). For monorepo plugins only, Vite still resolves `$lib` → `packages/app/src/lib` (`create-vite-build-config.js`), and `$app/env` / `$app/env/public` → stubs in `packages/plugin/stubs`. Treat that as **monorepo-only**. Prefer `@stream-kit/ui` or plugin-local code for anything that should stay portable; don’t grow new `$lib` couplings for shared UI.
 
 ## App
 

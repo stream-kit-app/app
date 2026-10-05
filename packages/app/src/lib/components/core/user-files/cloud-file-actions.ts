@@ -1,12 +1,12 @@
-import { openLoginModal } from '$lib/components/core/auth/open-auth-modals';
-import { getApp } from '$lib/core/registry';
-import { toRelativeCloudFilePath } from '$lib/core/user-files';
+import { openLoginModal } from '#lib/components/core/auth/open-auth-modals.js';
+import { getApp } from '#lib/core/registry.js';
 import {
 	hasCloudFileAccess,
 	isLocalFilePath,
 	usesCloudFileStorage
-} from '$lib/core/user-files/cloud-file-path';
-import { translate } from '$lib/i18n';
+} from '#lib/core/user-files/cloud-file-path.js';
+import { toRelativeCloudFilePath } from '#lib/core/user-files/index.js';
+import { translate } from '#lib/i18n.js';
 
 import { openCloudFilePicker } from './open-cloud-file-picker';
 
@@ -14,7 +14,7 @@ export {
 	hasCloudFileAccess,
 	isLocalFilePath,
 	usesCloudFileStorage
-} from '$lib/core/user-files/cloud-file-path';
+} from '#lib/core/user-files/cloud-file-path.js';
 
 type FileFilter = { name: string; extensions: string[] };
 

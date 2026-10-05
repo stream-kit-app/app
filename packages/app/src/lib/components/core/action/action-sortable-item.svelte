@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { Action } from '$lib/core/action/action.svelte';
+	import type { Action } from '#lib/core/action/action.svelte.js';
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 	import Icon from '@iconify/svelte';
 
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import ActionCard from './action-card.svelte';
 

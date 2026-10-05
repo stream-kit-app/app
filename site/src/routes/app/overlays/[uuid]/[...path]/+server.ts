@@ -25,7 +25,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	}
 
 	const asset = result.value;
-	return new Response(asset.bytes, {
+	return new Response(asset.bytes as Uint8Array<ArrayBuffer>, {
 		headers: {
 			'content-type': asset.contentType,
 			'cache-control': 'public, max-age=60'

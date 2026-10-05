@@ -13,13 +13,13 @@ export function vueScaffold(slug: string, overlayId: string) {
 				preview: 'vite preview'
 			},
 			dependencies: {
-				vue: '^3.5.22'
+				vue: '^3.5.43'
 			},
 			devDependencies: {
-				'@vitejs/plugin-vue': '^6.0.1',
+				'@vitejs/plugin-vue': '^6.0.9',
 				typescript: '~6.0.3',
-				vite: '^8.0.16',
-				'vue-tsc': '^3.1.0'
+				vite: '^8.3.2',
+				'vue-tsc': '^3.3.12'
 			}
 		},
 		null,

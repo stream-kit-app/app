@@ -7,12 +7,12 @@ globs:
 
 # App modals
 
-In `@stream-kit/app`, use the **built-in modal system** (`app.createModal` / `app.modals`) for dialogs and slide-over panels. Do **not** add standalone `bits-ui` `Dialog` wrappers in app components unless you are editing the modal shell itself (`$lib/components/core/modal/modal.svelte`).
+In `@stream-kit/app`, use the **built-in modal system** (`app.createModal` / `app.modals`) for dialogs and slide-over panels. Do **not** add standalone `bits-ui` `Dialog` wrappers in app components unless you are editing the modal shell itself (`#lib/components/core/modal/modal.svelte`).
 
 ## Opening a modal
 
 ```ts
-import { app } from '$lib/core';
+import { app } from '#lib/core/index.js';
 import MyForm from './my-form.svelte';
 import MyFormFooter from './my-form-footer.svelte';
 

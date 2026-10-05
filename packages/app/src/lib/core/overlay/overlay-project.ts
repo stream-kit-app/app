@@ -5,7 +5,7 @@ import type { OverlayWidgetId } from './widget-templates';
 
 import { BaseDirectory } from '@tauri-apps/plugin-fs';
 
-import { deleteOverlay, getOverlays, saveOverlay, type SaveOverlayInput } from '$db/repositories/overlays';
+import { deleteOverlay, getOverlays, saveOverlay, type SaveOverlayInput } from '#db/repositories/overlays.js';
 
 import { createOverlayManifest } from './overlay-manifest-defaults';
 import {

@@ -48,13 +48,13 @@
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
+		"@twurple/api": "^8.2.0",
+		"@twurple/auth": "^8.2.0",
+		"@twurple/chat": "^8.2.0",
+		"@types/node": "^26.6.4",
 		"chokidar-cli": "^3.0.0",
-		"@twurple/api": "^8.1.4",
-		"@twurple/auth": "^8.1.4",
-		"@twurple/chat": "^8.1.4",
-		"@types/node": "^24.12.4",
-		"esbuild": "^0.25.0",
-		"svelte": "^5.56.1",
+		"esbuild": "^0.28.2",
+		"svelte": "^5.57.1",
 		"typescript": "~6.0.3"
 	},
 	"dependencies": {

@@ -1,4 +1,4 @@
-import type { HandlerTriggerContext } from '$lib/core/action/handler-context';
+import type { HandlerTriggerContext } from '#lib/core/action/handler-context.js';
 
 export type ActionLogLevel = 'info' | 'warn' | 'error' | 'debug';
 

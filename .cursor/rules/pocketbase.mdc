@@ -78,7 +78,7 @@ export const load = async ({ locals }) => {
 
 ## Desktop app auth
 
-- Implement auth in `packages/app/src/lib/core/auth` with the public PocketBase SDK and `PUBLIC_POCKETBASE_URL` (`$env/static/public`, build-time).
+- Implement auth in `packages/app/src/lib/core/auth` with the public PocketBase SDK and `PUBLIC_POCKETBASE_URL` (`$app/env/public`, declared `static` in `src/env.ts`, build-time).
 - Persist the session with PocketBase `AsyncAuthStore` backed by the Tauri store (`app.auth.json`) — not `localStorage` (plugins share the same window origin).
 - On boot: `authRefresh` **before** `authStore.onChange(..., true)` so consumers never start on a stale token. Wrap `pb.send` to retry once after `authRefresh` on 401; also refresh on a 30‑minute interval while signed in.
 - Prefer `pb.filter('user={:id}', { id })` (and similar) over string-interpolated filters.

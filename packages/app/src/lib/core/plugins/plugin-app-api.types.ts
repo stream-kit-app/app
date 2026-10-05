@@ -52,9 +52,9 @@ import type { ToolbarAction, ToolbarConfig, ToolbarMetaItem, ToolbarSelectAll } 
 import type { LocalTtsRuntimeInfo, LocalTtsVoiceInfo } from '../tts';
 import type { PluginSettingsContext } from './context';
 import type { UnlistenFn } from '@tauri-apps/api/event';
-import type { PluginMigration } from '$db/plugin-migrations';
-import type { TranslationKey } from '$lib/i18n';
-import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
+import type { PluginMigration } from '#db/plugin-migrations.js';
+import type { TranslationKey } from '#lib/i18n.js';
+import type { CommandRecord, NewCommandRecord } from '#lib/types/command-types.js';
 
 /** Opaque Drizzle client returned by {@link PluginAppDbApi.getClient}. */
 export type PluginDbClient = unknown;

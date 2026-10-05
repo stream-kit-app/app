@@ -4,7 +4,7 @@ import type { RegisterPluginOptions } from './plugins/installed-plugin';
 
 import { SvelteMap } from 'svelte/reactivity';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { Actions } from './action/action.svelte';
 import { ActionQueues } from './action-queue/action-queues.svelte';

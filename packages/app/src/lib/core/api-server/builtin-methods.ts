@@ -1,11 +1,11 @@
 import type { App } from '../app.svelte';
 import type { NewActionRecord } from '../action/stored-action';
 import type { HandlerTriggerContext } from '../action/handler-context';
-import type { NewCommandRecord } from '$lib/types/command-types';
+import type { NewCommandRecord } from '#lib/types/command-types.js';
 import type {
 	CorePluginApi,
 	VariableScope
-} from '$lib/types/core-plugin-api';
+} from '#lib/types/core-plugin-api.js';
 
 import {
 	asRecord,

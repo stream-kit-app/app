@@ -20,18 +20,18 @@
 	},
 	"dependencies": {
 		"@stream-kit/core": "workspace:*",
-		"@twurple/api": "^8.1.4",
-		"@twurple/auth": "^8.1.4",
-		"@twurple/chat": "^8.1.4",
-		"@twurple/eventsub-ws": "^8.1.4"
+		"@twurple/api": "^8.2.0",
+		"@twurple/auth": "^8.2.0",
+		"@twurple/chat": "^8.2.0",
+		"@twurple/eventsub-ws": "^8.2.0"
 	},
 	"devDependencies": {
 		"@stream-kit/app": "workspace:*",
 		"@stream-kit/plugin": "workspace:*",
-		"@sveltejs/vite-plugin-svelte": "^7.1.2",
-		"svelte": "^5.56.1",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"svelte": "^5.57.1",
 		"typescript": "~6.0.3",
-		"vite": "^8.0.16",
+		"vite": "^8.3.2",
 		"vite-plugin-node-polyfills": "^0.28.0"
 	}
 }

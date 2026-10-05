@@ -1,11 +1,11 @@
-import type { RegisteredPlugin } from '$lib/core/plugins';
-import type { TranslationKey } from '$lib/i18n';
+import type { RegisteredPlugin } from '#lib/core/plugins/index.js';
+import type { TranslationKey } from '#lib/i18n.js';
 
-import { getApp } from '$lib/core/registry';
-import { uninstallInstalledPlugin } from '$lib/core/plugins/plugin-loader';
-import { canApplyPluginUpdates } from '$lib/core/plugins/plugin-update';
-import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
-import { translate } from '$lib/i18n';
+import { getApp } from '#lib/core/registry.js';
+import { uninstallInstalledPlugin } from '#lib/core/plugins/plugin-loader.js';
+import { canApplyPluginUpdates } from '#lib/core/plugins/plugin-update.js';
+import { pluginUpdates } from '#lib/core/plugins/plugin-updates.svelte.js';
+import { translate } from '#lib/i18n.js';
 
 export type PluginStatus = 'disabled' | 'unavailable' | 'configured' | 'not-configured';
 

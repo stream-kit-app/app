@@ -1,7 +1,7 @@
 import type { App } from '../app.svelte';
 import type { OverlayManifest } from './overlay-manifest';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 export function missingRequiredPlugins(manifest: OverlayManifest, app: App): string[] {
 	return (manifest.requiredPlugins ?? []).filter((key) => !app.plugins.find(key));

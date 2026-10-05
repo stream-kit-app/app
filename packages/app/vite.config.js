@@ -1,7 +1,9 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, loadEnv } from 'vite';
 
@@ -45,7 +47,18 @@ export default defineConfig(({ mode, command }) => {
 	assertProductionPublicEnv(mode, command);
 
 	return {
-		plugins: [tailwindcss(), sveltekit()],
+		plugins: [
+			tailwindcss(),
+			sveltekit({
+				preprocess: vitePreprocess(),
+				// Tauri doesn't have a Node.js server to do proper SSR
+				// so we use adapter-static with a fallback to index.html to put the site in SPA mode
+				// See: https://svelte.dev/docs/kit/single-page-apps
+				// See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
+				adapter: adapter({ fallback: 'index.html' }),
+				compilerOptions: { experimental: { async: true } }
+			})
+		],
 		define: {
 			'import.meta.env.VITE_STREAM_KIT_WORKSPACE_ROOT': JSON.stringify(workspaceRoot)
 		},
@@ -71,11 +84,11 @@ export default defineConfig(({ mode, command }) => {
 		optimizeDeps: {
 			include: [
 				'monaco-editor',
-				'monaco-editor/esm/vs/editor/editor.worker',
-				'monaco-editor/esm/vs/language/typescript/ts.worker',
-				'monaco-editor/esm/vs/language/json/json.worker',
-				'monaco-editor/esm/vs/language/css/css.worker',
-				'monaco-editor/esm/vs/language/html/html.worker',
+				'monaco-editor/editor/editor.worker',
+				'monaco-editor/language/typescript/ts.worker',
+				'monaco-editor/language/json/json.worker',
+				'monaco-editor/language/css/css.worker',
+				'monaco-editor/language/html/html.worker',
 				'@dnd-kit-svelte/svelte',
 				'@dnd-kit-svelte/svelte/sortable',
 				'@dnd-kit/helpers',

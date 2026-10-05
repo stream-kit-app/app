@@ -1,17 +1,20 @@
 {
-	"extends": "../app/.svelte-kit/tsconfig.json",
 	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"lib": ["esnext", "DOM", "DOM.Iterable"],
+		"types": ["node"],
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"allowImportingTsExtensions": true,
 		"noEmit": true,
 		"skipLibCheck": true,
 		"strict": true,
 		"paths": {
 			"@stream-kit/core": ["./src/index.ts"],
-			"$db": ["../app/src/db"],
-			"$db/*": ["../app/src/db/*"],
-			"$lib": ["../app/src/lib"],
-			"$lib/locales/en.json": ["./stubs/locale-en.d.ts"],
-			"$lib/locales/nl.json": ["./stubs/locale-nl.d.ts"],
-			"$lib/*": ["../app/src/lib/*"]
+			"#lib/locales/en.json": ["./stubs/locale-en.d.ts"],
+			"#lib/locales/nl.json": ["./stubs/locale-nl.d.ts"]
 		}
 	},
 	"include": [

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RegisteredPlugin } from '$lib/core/plugins';
+	import type { RegisteredPlugin } from '#lib/core/plugins/index.js';
 
 	import Icon from '@iconify/svelte';
 
@@ -7,11 +7,11 @@
 	import { Button } from '@stream-kit/ui/button';
 	import { InputSwitch } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { canApplyPluginUpdates } from '$lib/core/plugins/plugin-update';
-	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { app } from '#lib/core/index.js';
+	import { canApplyPluginUpdates } from '#lib/core/plugins/plugin-update.js';
+	import { pluginUpdates } from '#lib/core/plugins/plugin-updates.svelte.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import {
 		pluginDetailPath,

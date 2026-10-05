@@ -2,11 +2,11 @@ import type { ActionQueueRecord, SaveActionQueueInput } from '../schemas/action-
 
 import { asc, eq, max, sql } from 'drizzle-orm';
 
-import { DEFAULT_ACTION_QUEUE_NAME } from '$lib/core/action/stored-action';
+import { DEFAULT_ACTION_QUEUE_NAME } from '#lib/core/action/stored-action.js';
 import {
 	QUEUE_CONCURRENCY_BLOCKING,
 	QUEUE_CONCURRENCY_UNLIMITED
-} from '$lib/core/action-queue/queue-mode';
+} from '#lib/core/action-queue/queue-mode.js';
 
 import { db } from '../index';
 import { createSyncId } from '../sync-id';

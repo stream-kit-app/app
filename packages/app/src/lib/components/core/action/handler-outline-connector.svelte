@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	/**
 	 * Spine line on the grip axis (24px grip → x 12–13px). Shared with the If
@@ -12,7 +12,7 @@
 
 <script lang="ts">
 	import type { TranslateFn } from './resolve-translate';
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
+	import type { ActionHandler } from '#lib/core/action/action-handler.svelte.js';
 
 	import { tooltip } from '@stream-kit/ui/attachments';
 

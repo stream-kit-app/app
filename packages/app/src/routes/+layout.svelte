@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LayoutProps } from './$types';
 
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { onMount, tick } from 'svelte';
@@ -12,20 +12,20 @@
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 	import { TooltipProvider } from '@stream-kit/ui/tooltip';
 
-	import { BootScreen } from '$lib/components/core/boot';
-	import { ConfirmDialog } from '$lib/components/core/confirm';
-	import { Modal } from '$lib/components/core/modal';
-	import { AppPageHeader } from '$lib/components/core/page-header';
-	import { Toast } from '$lib/components/core/toast';
-	import { AppToolbar } from '$lib/components/core/toolbar';
-	import { app, bootApp } from '$lib/core';
-	import { appUpdater } from '$lib/core/updater/app-updater.svelte';
+	import { BootScreen } from '#lib/components/core/boot/index.js';
+	import { ConfirmDialog } from '#lib/components/core/confirm/index.js';
+	import { Modal } from '#lib/components/core/modal/index.js';
+	import { AppPageHeader } from '#lib/components/core/page-header/index.js';
+	import { Toast } from '#lib/components/core/toast/index.js';
+	import { AppToolbar } from '#lib/components/core/toolbar/index.js';
+	import { app, bootApp } from '#lib/core/index.js';
+	import { appUpdater } from '#lib/core/updater/app-updater.svelte.js';
 	import {
 		centerBootWindow,
 		MAIN_WINDOW_CORNER_RADIUS_PX,
 		revealMainWindow
-	} from '$lib/core/window';
-	import { registerI18n, useI18n } from '$lib/i18n';
+	} from '#lib/core/window/index.js';
+	import { registerI18n, useI18n } from '#lib/i18n.js';
 
 	import './layout.css';
 

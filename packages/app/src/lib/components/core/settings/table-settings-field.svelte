@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { SettingsContext } from '$lib/core/settings/context';
+	import type { SettingsContext } from '#lib/core/settings/context.js';
 	import type {
 		SettingsFieldDefinition,
 		SettingsTableActionDefinition,
 		SettingsTableRow
-	} from '$lib/core/settings/field';
-	import type { PluginAppApi } from '$lib/core/plugins';
+	} from '#lib/core/settings/field.js';
+	import type { PluginAppApi } from '#lib/core/plugins/index.js';
 
 	import { onDestroy } from 'svelte';
 
@@ -15,9 +15,9 @@
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText, Label } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
-	import { resolveTableRows, toSettingsTableRowsSource } from '$lib/core/settings/resolve-table-rows.svelte';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
+	import { resolveTableRows, toSettingsTableRowsSource } from '#lib/core/settings/resolve-table-rows.svelte.js';
 
 	type Props = {
 		config: Extract<SettingsFieldDefinition, { type: 'table' }>;

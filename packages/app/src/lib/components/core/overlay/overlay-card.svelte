@@ -5,8 +5,8 @@
 
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
-	import type { SaveOverlayInput } from '$db/repositories/overlays';
-	import type { OverlayFrameworkId } from '$lib/core/overlay';
+	import type { SaveOverlayInput } from '#db/repositories/overlays.js';
+	import type { OverlayFrameworkId } from '#lib/core/overlay/index.js';
 
 	import Icon from '@iconify/svelte';
 	import { goto } from '$app/navigation';
@@ -19,15 +19,15 @@
 	import * as Dropdown from '@stream-kit/ui/dropdown';
 	import { InputText } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { getOverlayFrameworkIcon } from '$lib/core/overlay';
-	import type { OverlayManifest } from '$lib/core/overlay/overlay-manifest';
+	import { app } from '#lib/core/index.js';
+	import { getOverlayFrameworkIcon } from '#lib/core/overlay/index.js';
+	import type { OverlayManifest } from '#lib/core/overlay/overlay-manifest.js';
 	import {
 		disabledRequiredPlugins,
 		missingRequiredPlugins
-	} from '$lib/core/overlay/overlay-dependencies';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	} from '#lib/core/overlay/overlay-dependencies.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import {
 		overlayNeedsAttention,

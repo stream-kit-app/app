@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Action } from '$lib/core/action';
+	import { Action } from '#lib/core/action/index.js';
 	import { Button } from '@stream-kit/ui/button';
 </script>
 

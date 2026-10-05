@@ -15,7 +15,7 @@ alwaysApply: false
 | UI components | `@stream-kit/ui/<component>` subpaths (e.g. `@stream-kit/ui/button`) |
 | Plugin types | `import type { … } from '@stream-kit/plugin'` |
 | Shared runtime helpers | `@stream-kit/core` |
-| App internals (app package only) | `$lib/core/…`, `$lib/components/core/…` |
+| App internals (app package only) | `#lib/core/….js`, `#lib/components/core/…` (subpath imports in `packages/app/package.json`; `#db` for `src/db`) |
 
 ## Avoid
 

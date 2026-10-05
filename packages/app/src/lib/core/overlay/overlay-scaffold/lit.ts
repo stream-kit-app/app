@@ -13,11 +13,11 @@ export function litScaffold(slug: string, overlayId: string) {
 				preview: 'vite preview'
 			},
 			dependencies: {
-				lit: '^3.3.1'
+				lit: '^3.3.3'
 			},
 			devDependencies: {
 				typescript: '~6.0.3',
-				vite: '^8.0.16'
+				vite: '^8.3.2'
 			}
 		},
 		null,

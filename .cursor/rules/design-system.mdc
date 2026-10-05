@@ -1,5 +1,5 @@
 ---
-description: Cloudflare-style blueprint visual language for site, UI package, and dashboards
+description: Cloudflare-style blueprint visual language for the UI package and app dashboards
 globs:
   - site/**/*.svelte
   - packages/ui/**/*.svelte
@@ -8,7 +8,9 @@ globs:
 
 # Design system (blueprint)
 
-Stream Kit marketing and dashboard UIs share a **blueprint** visual language inspired by Cloudflare product pages: persistent vertical rails, full-bleed hairline rules, crosshair intersections, and collapsed-border schematic grids.
+The Stream Kit app and `@stream-kit/ui` use a **blueprint** visual language inspired by Cloudflare product pages: hairline rules, crosshair intersections, and collapsed-border schematic grids.
+
+The marketing site (`site/`) shares tokens, radius, item states and components, but uses a calmer layout without blueprint chrome — see `marketing-site.mdc`; where the two rules differ for `site/`, `marketing-site.mdc` wins.
 
 Use `@stream-kit/ui/blueprint` primitives — do not reinvent rails, crosshairs, or cell grids with one-off markup.
 
@@ -47,7 +49,7 @@ Interactive items (nav, dropdown, select/command, handler rows) share one recipe
 
 ## Rules
 
-1. **Rails once** — draw vertical rails via a single `GridFrame` in the marketing layout, never per section. App shell uses a left-nav rail instead.
+1. **Rails once** — if you use `GridFrame`, use one per layout, never per section. The app shell uses a left-nav rail instead.
 2. **Hairlines vs UI borders** — schematic lines use `border-rule` / `bg-rule` / `text-rule-strong`. Interactive UI chrome (inputs, buttons, dialogs) keeps `border-border`. Floating menus keep `border-dark-600` for readable edges above content.
 3. **Rounded structure** — surfaces use `rounded-xl`, controls `rounded-lg`, items `rounded-md` (see Radius).
 4. **Collapsed grids over gapped cards** — prefer `CellGrid` + `Cell` over `gap-4` floating cards for feature matrices and marketplace grids. Exception: drag-and-drop dashboard grids stay gapped.

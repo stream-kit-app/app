@@ -1,21 +1,20 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import type { PluginCategory, PluginSort, PluginTag } from '#lib/plugins/marketplace.js';
 
+	import Icon from '@iconify/svelte';
 	import { goto } from '$app/navigation';
 
 	import { Badge } from '@stream-kit/ui/badge';
 	import { Button } from '@stream-kit/ui/button';
+	import { InputSelect, InputText, Label } from '@stream-kit/ui/input';
 
 	import {
 		PLUGIN_CATEGORIES,
 		PLUGIN_CATEGORY_LABELS,
 		PLUGIN_SORT_OPTIONS,
 		PLUGIN_TAG_LABELS,
-		PLUGIN_TAGS,
-		type PluginCategory,
-		type PluginSort,
-		type PluginTag
-	} from '$lib/plugins/marketplace';
+		PLUGIN_TAGS
+	} from '#lib/plugins/marketplace.js';
 
 	type Props = {
 		search: string;
@@ -54,45 +53,40 @@
 	}
 
 	function applySearch() {
-		goto(buildParams({ search: searchDraft }), { keepFocus: true, noScroll: true });
+		goto(buildParams({ search: searchDraft }), { reset: false });
 	}
 
 	function toggleCategory(category: PluginCategory) {
 		const next = categories.includes(category)
 			? categories.filter((item) => item !== category)
 			: [...categories, category];
-		goto(buildParams({ categories: next }), { keepFocus: true, noScroll: true });
+		goto(buildParams({ categories: next }), { reset: false });
 	}
 
 	function toggleTag(tag: PluginTag) {
 		const next = tags.includes(tag) ? tags.filter((item) => item !== tag) : [...tags, tag];
-		goto(buildParams({ tags: next }), { keepFocus: true, noScroll: true });
+		goto(buildParams({ tags: next }), { reset: false });
 	}
 
-	function onSortChange(event: Event) {
-		const value = (event.currentTarget as HTMLSelectElement).value as PluginSort;
-		goto(buildParams({ sort: value }), { keepFocus: true, noScroll: true });
+	function onSortChange(value: string) {
+		goto(buildParams({ sort: value as PluginSort }), { reset: false });
 	}
 
 	function clearFilters() {
 		searchDraft = '';
-		goto('/plugins', { keepFocus: true, noScroll: true });
+		goto('/plugins', { reset: false });
 	}
 
 	const hasFilters = $derived(
 		Boolean(search.trim()) || categories.length > 0 || tags.length > 0 || sort !== 'newest'
 	);
 
-	const fieldClass =
-		'box-border h-8 w-full rounded-none border border-rule bg-dark-900 px-3.5 text-xs text-foreground outline-none placeholder:text-muted-foreground hover:border-rule-strong focus:ring-2 focus:ring-ring';
-
-	const labelClass =
-		'px-1 font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase';
+	const labelClass = 'px-1 text-sm font-medium text-foreground';
 </script>
 
-<aside class="flex w-full shrink-0 flex-col gap-5 px-6 py-6 lg:w-64 lg:pr-6">
+<aside class="flex w-full shrink-0 flex-col gap-6 lg:sticky lg:top-24 lg:w-60">
 	<div class="flex flex-col gap-2">
-		<label for="plugin-search" class={labelClass}>Search</label>
+		<Label for="plugin-search" class={labelClass}>Search</Label>
 		<form
 			class="flex flex-col gap-2"
 			onsubmit={(event) => {
@@ -100,29 +94,27 @@
 				applySearch();
 			}}
 		>
-			<input
+			<InputText
 				id="plugin-search"
 				type="search"
-				bind:value={searchDraft}
+				prependIcon="ri:search-line"
+				value={searchDraft}
+				oninput={(event) => (searchDraft = event.currentTarget.value)}
 				placeholder="Name or description…"
-				class={fieldClass}
 			/>
 			<Button type="submit" size="sm" variant="outline" class="w-full">Search</Button>
 		</form>
 	</div>
 
 	<div class="flex flex-col gap-2">
-		<label for="plugin-sort" class={labelClass}>Sort</label>
-		<select
+		<Label for="plugin-sort" class={labelClass}>Sort</Label>
+		<InputSelect
 			id="plugin-sort"
+			items={PLUGIN_SORT_OPTIONS}
 			value={sort}
-			onchange={onSortChange}
-			class="{fieldClass} cursor-pointer appearance-none"
-		>
-			{#each PLUGIN_SORT_OPTIONS as option (option.value)}
-				<option value={option.value}>{option.label}</option>
-			{/each}
-		</select>
+			searchable={false}
+			onValueChange={onSortChange}
+		/>
 	</div>
 
 	<div class="flex flex-col gap-1">
@@ -133,13 +125,13 @@
 				<li>
 					<button
 						type="button"
-						class="flex w-full cursor-pointer items-center gap-2 px-2 py-1.5 text-sm font-medium text-muted-foreground hover:bg-dark-900 hover:text-foreground"
+						class="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm font-medium text-dark-200 transition-colors duration-150 hover:bg-item-hover hover:text-dark-50"
 						onclick={() => toggleCategory(category)}
 					>
 						<span
-							class="inline-flex size-5 shrink-0 items-center justify-center border transition-colors {selected
+							class="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border transition-colors {selected
 								? 'border-primary bg-primary/15 text-primary'
-								: 'border-rule bg-dark-900'}"
+								: 'border-border'}"
 							aria-hidden="true"
 						>
 							{#if selected}
@@ -162,7 +154,7 @@
 					<Badge
 						variant={selected ? 'default' : 'outline'}
 						size="sm"
-						class={selected ? '' : 'border-rule bg-dark-900 text-muted-foreground hover:text-foreground'}
+						class={selected ? '' : 'text-muted-foreground hover:text-foreground'}
 					>
 						{PLUGIN_TAG_LABELS[tag]}
 					</Badge>
@@ -174,7 +166,7 @@
 	{#if hasFilters}
 		<button
 			type="button"
-			class="cursor-pointer px-1 text-left font-mono text-[11px] tracking-wide text-muted-foreground uppercase hover:text-foreground"
+			class="w-fit cursor-pointer px-1 text-left text-sm text-primary hover:text-primary-100"
 			onclick={clearFilters}
 		>
 			Clear filters

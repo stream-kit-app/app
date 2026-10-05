@@ -29,7 +29,7 @@ const config = {
 			mapRoot: isWatching ? './' : undefined,
 			noEmitOnError: true,
 			compilerOptions: {
-				moduleResolution: 'node',
+				moduleResolution: 'bundler',
 				module: 'ESNext',
 				target: 'ES2022'
 			}

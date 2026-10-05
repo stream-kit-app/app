@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserFileRecord, UserFilesQuota } from '$lib/core/user-files';
+	import type { UserFileRecord, UserFilesQuota } from '#lib/core/user-files/index.js';
 
 	import Icon from '@iconify/svelte';
 	import { onMount } from 'svelte';
@@ -10,9 +10,9 @@
 	import { InputSwitch, InputText } from '@stream-kit/ui/input';
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
-	import { isPocketBaseAutoCancelled } from '$lib/core/auth/auth-utils';
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
+	import { isPocketBaseAutoCancelled } from '#lib/core/auth/auth-utils.js';
+	import { getApp } from '#lib/core/registry.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 	const app = getApp();

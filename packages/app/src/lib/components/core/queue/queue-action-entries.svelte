@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type { QueuedActionEntry } from '$lib/core/action-queue/action-queues.svelte';
+	import type { QueuedActionEntry } from '#lib/core/action-queue/action-queues.svelte.js';
 
 	import Icon from '@iconify/svelte';
 
 	import { Eyebrow } from '@stream-kit/ui/blueprint';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
-	import { getApp } from '$lib/core/registry';
-	import { cn } from '$lib/utils';
+	import { getApp } from '#lib/core/registry.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		title: string;

@@ -4,8 +4,8 @@ import type { Plugin } from './types';
 
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 
-import { runRegisteredPluginMigrations } from '$db';
-import { translate } from '$lib/i18n';
+import { runRegisteredPluginMigrations } from '#db';
+import { translate } from '#lib/i18n.js';
 
 import { registerOverlayDefinitions } from '../overlay/register-overlay-definitions';
 import { stopPluginDevWatcher } from './plugin-dev-watcher';

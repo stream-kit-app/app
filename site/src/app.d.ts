@@ -1,8 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { TypedPocketBase } from '$lib/pocketbase/types';
-import type { Services } from '$lib/server/services/services';
+import type { TypedPocketBase } from '#lib/pocketbase/types.js';
+import type { Services } from '#lib/server/services/services.js';
 
 declare global {
 	namespace App {

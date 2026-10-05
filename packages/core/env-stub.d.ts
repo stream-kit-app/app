@@ -5,12 +5,12 @@ declare module '@stream-kit/core' {
 	): string;
 }
 
-declare module '$lib/locales/en.json' {
+declare module '#lib/locales/en.json' {
 	const dictionary: Record<string, string>;
 	export default dictionary;
 }
 
-declare module '$lib/locales/nl.json' {
+declare module '#lib/locales/nl.json' {
 	const dictionary: Record<string, string>;
 	export default dictionary;
 }

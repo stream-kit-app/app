@@ -3,8 +3,8 @@
 
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import { app } from '#lib/core/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	import PluginPageRenderer from './plugin-page-renderer.svelte';
 

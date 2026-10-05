@@ -189,7 +189,7 @@ Increments on every change; useful for making Svelte `$derived` reactive.
 ```svelte
 <script lang="ts">
   import type { CorePluginApi } from '@stream-kit/plugin-handlers';
-  import { app } from '$lib/core';
+  import { app } from '#lib/core/index.js';
 
   const core = $derived(app.plugins.tryGet<CorePluginApi>('core'));
   let revision = $state(0);

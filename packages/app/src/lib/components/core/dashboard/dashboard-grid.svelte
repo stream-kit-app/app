@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { DndDragEvent } from '$lib/components/core/action/dnd-events';
-	import type { DndWidgetItem } from '$lib/core/dashboard/dashboard-layout';
+	import type { DndDragEvent } from '#lib/components/core/action/dnd-events.js';
+	import type { DndWidgetItem } from '#lib/core/dashboard/dashboard-layout.js';
 
 	import {
 		DragDropProvider,
@@ -10,18 +10,18 @@
 	} from '@dnd-kit-svelte/svelte';
 	import { watch } from 'runed';
 
-	import { applyDndMove } from '$lib/components/core/action/dnd-events';
-	import DashboardAddTile from '$lib/components/core/dashboard/dashboard-add-tile.svelte';
-	import DashboardWidgetCard from '$lib/components/core/dashboard/dashboard-widget-card.svelte';
-	import DashboardWidgetItem from '$lib/components/core/dashboard/dashboard-widget-item.svelte';
-	import { app } from '$lib/core';
+	import { applyDndMove } from '#lib/components/core/action/dnd-events.js';
+	import DashboardAddTile from '#lib/components/core/dashboard/dashboard-add-tile.svelte';
+	import DashboardWidgetCard from '#lib/components/core/dashboard/dashboard-widget-card.svelte';
+	import DashboardWidgetItem from '#lib/components/core/dashboard/dashboard-widget-item.svelte';
+	import { app } from '#lib/core/index.js';
 	import {
 		buildLayoutUpdates,
 		compareLayoutUpdates,
 		instancesFromDndItems,
 		toDndWidgetItems
-	} from '$lib/core/dashboard/dashboard-layout';
-	import { useI18n } from '$lib/i18n';
+	} from '#lib/core/dashboard/dashboard-layout.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		onAddWidget?: () => void;

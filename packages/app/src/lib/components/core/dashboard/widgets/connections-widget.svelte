@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ObsPluginApi } from '@stream-kit/plugin-obs';
 	import type { WebSocketPluginApi } from '@stream-kit/plugin-websocket';
-	import type { PluginWidgetProps } from '$lib/core/plugins/types';
+	import type { PluginWidgetProps } from '#lib/core/plugins/types.js';
 
 	import ConnectionsPanel from '../connections-panel.svelte';
 

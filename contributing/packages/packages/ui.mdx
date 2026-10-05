@@ -22,7 +22,7 @@ At runtime the app resolves `@stream-kit/ui/*` from `static/plugin-host/` via th
 
 ## Design rules
 
-- **No app imports** — do not import from `packages/app`, `$lib`, SvelteKit routes, app stores, app i18n, or Tauri APIs
+- **No app imports** — do not import from `packages/app`, `#lib`, SvelteKit routes, app stores, app i18n, or Tauri APIs
 - **Theme tokens** — components use Tailwind utility classes; the app supplies design tokens and global styles
 - **Stable exports** — subpath exports are part of the public contract for the plugin host
 - **Svelte 5** — snippets, runes, and typed props throughout

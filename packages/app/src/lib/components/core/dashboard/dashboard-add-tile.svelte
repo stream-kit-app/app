@@ -3,7 +3,7 @@
 
 	import { masonryItem } from '@stream-kit/ui/attachments';
 
-	import { useI18n } from '$lib/i18n';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		onclick?: () => void;

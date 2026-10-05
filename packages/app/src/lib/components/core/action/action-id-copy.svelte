@@ -5,9 +5,9 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { CopyButton, CopyFeedback } from '@stream-kit/ui/copy-button';
 
-	import { getApp } from '$lib/core/registry';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { getApp } from '#lib/core/registry.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		id: number;

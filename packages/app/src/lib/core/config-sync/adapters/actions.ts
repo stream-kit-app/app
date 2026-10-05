@@ -11,10 +11,10 @@ import {
 	deleteActionBySyncId,
 	getActions,
 	upsertActionFromSync
-} from '$db/repositories/actions';
-import { getActionQueues } from '$db/repositories/action-queues';
-import { snapshotActionToTrash } from '$db/repositories/config-sync-trash';
-import type { ActionRecord } from '$db/schemas/actions';
+} from '#db/repositories/actions.js';
+import { getActionQueues } from '#db/repositories/action-queues.js';
+import { snapshotActionToTrash } from '#db/repositories/config-sync-trash.js';
+import type { ActionRecord } from '#db/schemas/actions.js';
 import { normalizeCloudFileRefsInHandlers } from '../../user-files/normalize-cloud-file-refs';
 
 import { readRevision, toEpochMs } from '../sync-loop';

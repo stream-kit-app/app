@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { SettingsContext } from '$lib/core/settings/context';
-	import type { SettingsFieldInstance, SettingsFieldItem } from '$lib/core/settings/field';
-	import type { SettingsFormErrors } from '$lib/core/settings/validate-settings';
+	import type { SettingsContext } from '#lib/core/settings/context.js';
+	import type { SettingsFieldInstance, SettingsFieldItem } from '#lib/core/settings/field.js';
+	import type { SettingsFormErrors } from '#lib/core/settings/validate-settings.js';
 
-	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
+	import SettingsFieldGroup from '#lib/components/core/settings/settings-field-group.svelte';
 	import { Button } from '@stream-kit/ui/button';
 
 	type Props = {

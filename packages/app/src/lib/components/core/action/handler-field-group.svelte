@@ -2,8 +2,8 @@
 	import type {
 		ActionHandler,
 		HandlerFieldFormErrors
-	} from '$lib/core/action/action-handler.svelte';
-	import type { Action } from '$lib/core/action/action.svelte';
+	} from '#lib/core/action/action-handler.svelte.js';
+	import type { Action } from '#lib/core/action/action.svelte.js';
 	import type {
 		HandlerFieldDefinition,
 		HandlerFieldInstance,
@@ -13,11 +13,11 @@
 		OneOfFieldValue,
 		ResolvedHandlerFieldDefinition,
 		TextSelectTextFieldValue
-	} from '$lib/core/action/handler/field';
+	} from '#lib/core/action/handler/field.js';
 	import type {
 		ResolvedConditionDefinition,
 		SelectItemsSource
-	} from '$lib/core/action/trigger/condition';
+	} from '#lib/core/action/trigger/condition.js';
 	import type { PluginAppApi } from '@stream-kit/plugin';
 	import type { FormEventHandler } from 'svelte/elements';
 
@@ -42,7 +42,7 @@
 	import HandlerSubFieldInput from './handler-sub-field-input.svelte';
 	import ScriptCodeField from './script-code-field.svelte';
 
-	import { CollectionContentPopover } from '$lib/components/core/collection';
+	import { CollectionContentPopover } from '#lib/components/core/collection/index.js';
 	import {
 		hasCloudFileAccess,
 		isLocalFilePath,
@@ -51,12 +51,12 @@
 		toStoredCloudFileValue,
 		uploadLocalFileToCloud,
 		usesCloudFileStorage
-	} from '$lib/components/core/user-files/cloud-file-actions';
-	import { createConditionEditor, isConditionGroupNode } from '$lib/core/action/condition-tree';
+	} from '#lib/components/core/user-files/cloud-file-actions.js';
+	import { createConditionEditor, isConditionGroupNode } from '#lib/core/action/condition-tree.js';
 	import { resolveApp } from './resolve-app';
 	import { resolveVariablesForField } from './resolve-field-variables';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		action?: Action;

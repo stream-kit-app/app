@@ -1,0 +1,2776 @@
+<!doctype html>
+<html lang="nl">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<title>Stream Kit Marktverkenning</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap"
+		/>
+		<style>
+			/* Layout: a broadcast rundown — sticky cue-sheet index on the left, report column on the right; tally red = action, preview green = present. */
+			:root {
+				--bg: #f4f6f8;
+				--surface: #ffffff;
+				--ink: #14181e;
+				--muted: #586271;
+				--line: #d8dde4;
+				--tally: #c8302a;
+				--tally-soft: #fbe9e7;
+				--preview: #1d8a4c;
+				--preview-soft: #e5f4eb;
+				--amber: #a8700a;
+				--amber-soft: #fbf1dc;
+				--font-display: 'Archivo', 'Arial Narrow', system-ui, sans-serif;
+				--font-body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+				--font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+				color-scheme: light;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root:not([data-theme='light']) {
+					--bg: #0e1115;
+					--surface: #161a20;
+					--ink: #e6e9ed;
+					--muted: #98a2ae;
+					--line: #2a313a;
+					--tally: #ff5d52;
+					--tally-soft: #3a1b1a;
+					--preview: #3fcd7f;
+					--preview-soft: #16301f;
+					--amber: #f0b53a;
+					--amber-soft: #352a12;
+					color-scheme: dark;
+				}
+			}
+			:root[data-theme='dark'] {
+				--bg: #0e1115;
+				--surface: #161a20;
+				--ink: #e6e9ed;
+				--muted: #98a2ae;
+				--line: #2a313a;
+				--tally: #ff5d52;
+				--tally-soft: #3a1b1a;
+				--preview: #3fcd7f;
+				--preview-soft: #16301f;
+				--amber: #f0b53a;
+				--amber-soft: #352a12;
+				color-scheme: dark;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+			html {
+				scroll-behavior: smooth;
+			}
+			@media (prefers-reduced-motion: reduce) {
+				html {
+					scroll-behavior: auto;
+				}
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--ink);
+				font-family: var(--font-body);
+				font-size: 17px;
+				line-height: 1.6;
+				padding-inline: 16px;
+			}
+			a {
+				color: var(--ink);
+				text-decoration-color: var(--tally);
+				text-underline-offset: 3px;
+			}
+			a:hover {
+				color: var(--tally);
+			}
+			a:focus-visible,
+			summary:focus-visible {
+				outline: 2px solid var(--tally);
+				outline-offset: 2px;
+				border-radius: 2px;
+			}
+			code,
+			.mono {
+				font-family: var(--font-mono);
+				font-size: 0.82em;
+			}
+			code {
+				background: var(--bg);
+				border: 1px solid var(--line);
+				padding: 0.05em 0.35em;
+				border-radius: 3px;
+				word-break: break-word;
+			}
+
+			h1,
+			h2,
+			h3,
+			h4 {
+				font-family: var(--font-display);
+				font-stretch: 80%;
+				line-height: 1.1;
+				text-wrap: balance;
+				margin: 0;
+			}
+			h1 {
+				font-size: clamp(2.4rem, 6vw, 4rem);
+				font-weight: 800;
+				letter-spacing: -0.01em;
+			}
+			h2 {
+				font-size: clamp(1.7rem, 3.5vw, 2.3rem);
+				font-weight: 750;
+			}
+			h3 {
+				font-size: 1.35rem;
+				font-weight: 700;
+			}
+			h4 {
+				font-size: 0.78rem;
+				font-weight: 700;
+				font-stretch: 100%;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--muted);
+			}
+			p {
+				margin: 0;
+				max-width: 68ch;
+			}
+
+			.shell {
+				max-width: 1180px;
+				margin: 0 auto;
+				padding-block: 40px 80px;
+				display: grid;
+				grid-template-columns: 220px minmax(0, 1fr);
+				gap: 56px;
+			}
+			@media (max-width: 960px) {
+				.shell {
+					grid-template-columns: minmax(0, 1fr);
+					gap: 32px;
+					padding-block: 24px 64px;
+				}
+			}
+
+			/* Cue-sheet index */
+			.toc {
+				position: sticky;
+				top: calc(env(safe-area-inset-top, 0px) + 24px);
+				align-self: start;
+				font-family: var(--font-display);
+				font-stretch: 85%;
+			}
+			.toc .brand {
+				font-weight: 800;
+				font-size: 0.85rem;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				margin-bottom: 18px;
+			}
+			.tally {
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				background: var(--tally);
+				display: inline-block;
+				box-shadow: 0 0 0 3px var(--tally-soft);
+				flex: none;
+			}
+			.toc ol {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: grid;
+				gap: 2px;
+				counter-reset: cue;
+			}
+			.toc li {
+				counter-increment: cue;
+			}
+			.toc a {
+				display: grid;
+				grid-template-columns: 30px 1fr;
+				padding: 6px 8px;
+				border-radius: 4px;
+				text-decoration: none;
+				font-weight: 600;
+				font-size: 0.98rem;
+				color: var(--muted);
+			}
+			.toc a::before {
+				content: counter(cue, decimal-leading-zero);
+				font-family: var(--font-mono);
+				font-size: 0.75rem;
+				padding-top: 3px;
+			}
+			.toc a:hover {
+				background: var(--surface);
+				color: var(--ink);
+			}
+			.toc .meta {
+				margin-top: 20px;
+				font-family: var(--font-mono);
+				font-size: 0.72rem;
+				color: var(--muted);
+				line-height: 1.5;
+			}
+			@media (max-width: 960px) {
+				.toc {
+					position: static;
+				}
+				.toc ol {
+					grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+				}
+			}
+
+			main {
+				display: grid;
+				gap: 72px;
+				min-width: 0;
+			}
+			section {
+				display: grid;
+				gap: 22px;
+				min-width: 0;
+				scroll-margin-top: 24px;
+			}
+			.eyebrow {
+				font-family: var(--font-mono);
+				font-size: 0.75rem;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+				color: var(--tally);
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.lede {
+				font-size: 1.2rem;
+				line-height: 1.55;
+			}
+			.muted {
+				color: var(--muted);
+			}
+			.small {
+				font-size: 0.9rem;
+			}
+
+			/* Hero */
+			.hero {
+				display: grid;
+				gap: 22px;
+				padding-bottom: 8px;
+				border-bottom: 1px solid var(--line);
+			}
+			.verdict {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 16px;
+				align-items: start;
+				background: var(--surface);
+				border: 1px solid var(--line);
+				border-left: 4px solid var(--tally);
+				padding: 20px 22px;
+				border-radius: 4px;
+				max-width: 760px;
+			}
+			.verdict .label {
+				font-family: var(--font-mono);
+				font-size: 0.72rem;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--surface);
+				background: var(--tally);
+				padding: 3px 7px;
+				border-radius: 3px;
+			}
+			.verdict p {
+				font-size: 1.05rem;
+			}
+			.keyfacts {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 0;
+				border-top: 1px solid var(--line);
+				border-bottom: 1px solid var(--line);
+			}
+			.keyfacts div {
+				padding: 14px 16px 14px 0;
+				display: grid;
+				gap: 2px;
+			}
+			.keyfacts strong {
+				font-family: var(--font-display);
+				font-stretch: 80%;
+				font-size: 1.6rem;
+				font-weight: 750;
+				font-variant-numeric: tabular-nums;
+			}
+			.keyfacts span {
+				font-size: 0.88rem;
+				color: var(--muted);
+				line-height: 1.4;
+			}
+
+			/* Tables */
+			.table-wrap {
+				overflow-x: auto;
+				border: 1px solid var(--line);
+				border-radius: 4px;
+				background: var(--surface);
+			}
+			table {
+				border-collapse: collapse;
+				width: 100%;
+				font-size: 0.92rem;
+				line-height: 1.45;
+			}
+			th,
+			td {
+				text-align: left;
+				vertical-align: top;
+				padding: 10px 12px;
+				border-bottom: 1px solid var(--line);
+			}
+			th {
+				font-family: var(--font-display);
+				font-stretch: 85%;
+				font-weight: 700;
+				font-size: 0.8rem;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				color: var(--muted);
+				background: var(--bg);
+				white-space: nowrap;
+			}
+			tr:last-child td {
+				border-bottom: 0;
+			}
+			td.num,
+			th.num {
+				text-align: center;
+				font-family: var(--font-mono);
+				font-variant-numeric: tabular-nums;
+			}
+			td a {
+				word-break: break-word;
+			}
+			.total {
+				font-weight: 600;
+			}
+			.rank-1 td {
+				background: var(--tally-soft);
+			}
+
+			/* Chips */
+			.chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				font-family: var(--font-mono);
+				font-size: 0.72rem;
+				padding: 2px 8px;
+				border-radius: 999px;
+				white-space: nowrap;
+				border: 1px solid transparent;
+			}
+			.chip::before {
+				content: '';
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: currentColor;
+			}
+			.chip.on {
+				color: var(--preview);
+				background: var(--preview-soft);
+			}
+			.chip.off {
+				color: var(--tally);
+				background: var(--tally-soft);
+			}
+			.chip.part {
+				color: var(--amber);
+				background: var(--amber-soft);
+			}
+			.chip.size {
+				color: var(--muted);
+				border-color: var(--line);
+			}
+			.chip.size::before {
+				display: none;
+			}
+
+			/* Capability matrix */
+			.caps {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+				gap: 0;
+				border: 1px solid var(--line);
+				border-radius: 4px;
+				background: var(--surface);
+			}
+			.caps > div {
+				padding: 16px 18px;
+				border-bottom: 1px solid var(--line);
+				display: grid;
+				gap: 10px;
+				align-content: start;
+			}
+			.caps ul {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+				display: grid;
+				gap: 7px;
+				font-size: 0.92rem;
+				line-height: 1.4;
+			}
+			.caps li {
+				display: grid;
+				grid-template-columns: 92px 1fr;
+				gap: 10px;
+				align-items: baseline;
+			}
+
+			/* Quadrant */
+			.quad-wrap {
+				display: grid;
+				grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+				gap: 28px;
+				align-items: start;
+			}
+			@media (max-width: 820px) {
+				.quad-wrap {
+					grid-template-columns: minmax(0, 1fr);
+				}
+			}
+			.quad {
+				background: var(--surface);
+				border: 1px solid var(--line);
+				border-radius: 4px;
+				padding: 8px;
+				overflow-x: auto;
+			}
+			.quad svg {
+				display: block;
+				width: 100%;
+				min-width: 420px;
+				height: auto;
+			}
+			.quad .axis {
+				stroke: var(--line);
+				stroke-width: 1;
+			}
+			.quad .mid {
+				stroke: var(--muted);
+				stroke-width: 1;
+				stroke-dasharray: 4 4;
+				opacity: 0.6;
+			}
+			.quad .zone {
+				fill: var(--tally-soft);
+			}
+			.quad text {
+				fill: var(--muted);
+				font-family: var(--font-mono);
+				font-size: 11px;
+			}
+			.quad .lbl {
+				fill: var(--ink);
+				font-family: var(--font-display);
+				font-size: 12.5px;
+				font-weight: 600;
+			}
+			.quad .lbl.hot {
+				fill: var(--tally);
+				font-weight: 800;
+			}
+			.quad .dot {
+				fill: var(--ink);
+			}
+			.quad .dot.hot {
+				fill: var(--tally);
+			}
+
+			/* Market cards */
+			.markets {
+				display: grid;
+				gap: 14px;
+			}
+			details.market {
+				background: var(--surface);
+				border: 1px solid var(--line);
+				border-radius: 4px;
+			}
+			details.market[open] {
+				padding-bottom: 6px;
+			}
+			details.market > summary {
+				list-style: none;
+				cursor: pointer;
+				padding: 16px 20px;
+				display: grid;
+				grid-template-columns: 1fr auto;
+				gap: 6px 16px;
+				align-items: center;
+			}
+			details.market > summary::-webkit-details-marker {
+				display: none;
+			}
+			summary .title {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				flex-wrap: wrap;
+			}
+			summary .score {
+				font-family: var(--font-mono);
+				font-size: 0.85rem;
+				color: var(--muted);
+				font-variant-numeric: tabular-nums;
+			}
+			summary .score b {
+				color: var(--ink);
+				font-size: 1.05rem;
+			}
+			summary .oneliner {
+				grid-column: 1 / -1;
+				color: var(--muted);
+				font-size: 0.96rem;
+			}
+			summary .caret {
+				font-family: var(--font-mono);
+				color: var(--muted);
+			}
+			details[open] > summary .caret {
+				transform: rotate(90deg);
+				display: inline-block;
+			}
+			.market.focus {
+				border-color: var(--tally);
+			}
+			.mbody {
+				padding: 4px 20px 18px;
+				display: grid;
+				gap: 18px;
+				border-top: 1px solid var(--line);
+				padding-top: 18px;
+				margin-inline: 0;
+			}
+			.cols {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+				gap: 18px 28px;
+			}
+			.cols > div {
+				display: grid;
+				gap: 8px;
+				align-content: start;
+				min-width: 0;
+			}
+			.cols ul {
+				margin: 0;
+				padding-left: 1.1em;
+				display: grid;
+				gap: 4px;
+				font-size: 0.95rem;
+			}
+
+			/* Cue chain: trigger → handler */
+			.chain {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+				align-items: center;
+				font-family: var(--font-mono);
+				font-size: 0.8rem;
+			}
+			.chain span {
+				padding: 4px 9px;
+				border: 1px solid var(--line);
+				border-radius: 3px;
+				background: var(--bg);
+			}
+			.chain span.t {
+				border-color: var(--preview);
+				color: var(--preview);
+			}
+			.chain i {
+				font-style: normal;
+				color: var(--muted);
+			}
+
+			/* Roadmap */
+			.phase {
+				display: grid;
+				grid-template-columns: 120px minmax(0, 1fr);
+				gap: 24px;
+				padding-top: 22px;
+				border-top: 1px solid var(--line);
+			}
+			@media (max-width: 700px) {
+				.phase {
+					grid-template-columns: minmax(0, 1fr);
+					gap: 12px;
+				}
+			}
+			.phase-head {
+				display: grid;
+				gap: 6px;
+				align-content: start;
+			}
+			.phase-head .tag {
+				font-family: var(--font-display);
+				font-stretch: 75%;
+				font-size: 2.6rem;
+				font-weight: 800;
+				line-height: 1;
+				color: var(--tally);
+			}
+			.phase-head .when {
+				font-family: var(--font-mono);
+				font-size: 0.75rem;
+				color: var(--muted);
+			}
+			.phase-body {
+				display: grid;
+				gap: 14px;
+				min-width: 0;
+			}
+			.features {
+				display: grid;
+				gap: 0;
+				border: 1px solid var(--line);
+				border-radius: 4px;
+				background: var(--surface);
+			}
+			.feature {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto;
+				gap: 4px 14px;
+				padding: 14px 16px;
+				border-bottom: 1px solid var(--line);
+			}
+			.feature:last-child {
+				border-bottom: 0;
+			}
+			.feature h3 {
+				font-size: 1.08rem;
+				font-stretch: 90%;
+			}
+			.feature p {
+				grid-column: 1 / -1;
+				font-size: 0.94rem;
+			}
+			.feature .where {
+				grid-column: 1 / -1;
+				font-size: 0.8rem;
+				color: var(--muted);
+			}
+			.feature .chips {
+				display: flex;
+				gap: 6px;
+				flex-wrap: wrap;
+				justify-content: flex-end;
+				align-items: start;
+			}
+
+			.callout {
+				background: var(--surface);
+				border: 1px solid var(--line);
+				border-radius: 4px;
+				padding: 18px 20px;
+				display: grid;
+				gap: 8px;
+			}
+			.grid2 {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 14px;
+			}
+			ol.steps,
+			ul.plain {
+				margin: 0;
+				padding-left: 1.2em;
+				display: grid;
+				gap: 6px;
+				max-width: 72ch;
+			}
+			.sources {
+				font-size: 0.88rem;
+				columns: 2 320px;
+				column-gap: 32px;
+			}
+			.sources p {
+				margin-bottom: 6px;
+				break-inside: avoid;
+			}
+			footer {
+				font-family: var(--font-mono);
+				font-size: 0.75rem;
+				color: var(--muted);
+				border-top: 1px solid var(--line);
+				padding-top: 16px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="shell">
+			<nav class="toc" aria-label="Inhoud">
+				<div class="brand"><span class="tally" aria-hidden="true"></span>Stream Kit</div>
+				<ol>
+					<li><a href="#samenvatting">Samenvatting</a></li>
+					<li><a href="#vandaag">Wat er al staat</a></li>
+					<li><a href="#scoring">Markten gescoord</a></li>
+					<li><a href="#markten">Markten in detail</a></li>
+					<li><a href="#roadmap">Roadmap</a></li>
+					<li><a href="#validatie">Validatie</a></li>
+					<li><a href="#risicos">Risico's</a></li>
+					<li><a href="#bronnen">Bronnen</a></li>
+				</ol>
+				<div class="meta">
+					Marktverkenning<br />3 oktober 2026<br />Basis: codebase + webresearch
+				</div>
+			</nav>
+
+			<main>
+				<!-- 01 -->
+				<header class="hero" id="samenvatting">
+					<div class="eyebrow">
+						<span class="tally" aria-hidden="true"></span>Marktverkenning · voorbij
+						streaming
+					</div>
+					<h1>Stream Kit is een automation-engine die toevallig met streamers begon</h1>
+					<p class="lede">
+						Triggers, handlers, state, lokale HTML-overlays, Stream Deck, TTS, scripts
+						en een LAN-API vormen samen iets wat veel markten missen: een lokale,
+						visuele "als dit gebeurt, doe dat"-motor die met hardware en schermen praat.
+						We hebben negen markten bekeken en gescoord.
+					</p>
+					<div class="verdict">
+						<span class="label">Advies</span>
+						<p>
+							<strong>Kies live productie als eerste markt:</strong> kerken, scholen,
+							events en kleine sportuitzendingen. Bouw eerst een generieke basis
+							(HTTP/webhooks, OSC, MIDI, MQTT, een web-remote, templates) die elke
+							markt helpt. Daarna volgt een productiepakket met ATEM, ProPresenter,
+							PTZ-camera's, broadcast-widgets en een cue-lijst.
+							Windows-desktopautomatisering lift gratis mee op die basis en is de
+							beste tweede gok.
+						</p>
+					</div>
+					<div class="keyfacts">
+						<div>
+							<strong>~73%</strong
+							><span
+								>van Amerikaanse kerken draaide hybride diensten; in 2019 streamde
+								~20%</span
+							>
+						</div>
+						<div>
+							<strong>1.600+</strong
+							><span>Nederlandse kerken aangesloten op Kerkdienstgemist</span>
+						</div>
+						<div>
+							<strong>700+</strong
+							><span>modules in Bitfocus Companion, de huidige "lijm" in AV</span>
+						</div>
+						<div>
+							<strong>0</strong
+							><span
+								>tools die event-automatisering, overlays en apparaatbesturing
+								combineren</span
+							>
+						</div>
+					</div>
+				</header>
+
+				<!-- 02 -->
+				<section id="vandaag">
+					<div class="eyebrow">Uitgangspositie</div>
+					<h2>Wat er vandaag al staat, en wat ontbreekt</h2>
+					<p>
+						De bouwstenen hieronder komen uit de codebase. Groen is aanwezig, rood
+						ontbreekt. De rode items komen in bijna elke markt terug als eerste vraag.
+					</p>
+					<div class="caps">
+						<div>
+							<h4>Automatisering</h4>
+							<ul>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span
+										>Actions: trigger → conditie → handler, met action
+										queues</span
+									>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span
+										>Hotkeys, cron/schema, procesbewaking, app-lifecycle</span
+									>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span>Variables, collections, <code>if</code>, delay</span>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span>TypeScript-scripts met getypte triggerdata</span>
+								</li>
+								<li>
+									<span class="chip part">deels</span
+									><span>AI-actions (cloud, betaald abonnement)</span>
+								</li>
+							</ul>
+						</div>
+						<div>
+							<h4>Output en schermen</h4>
+							<ul>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span
+										>Lokale overlay-server (<code>:7891</code>) met
+										tweeweg-WebSocket</span
+									>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span
+										>Widgets: alerts, chatbox, timer, teller, doel,
+										leaderboard</span
+									>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span
+										>Cloud overlays, eigen overlay-templates (React, Svelte,
+										…)</span
+									>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span>Audio, TTS (Piper lokaal, ElevenLabs)</span>
+								</li>
+								<li>
+									<span class="chip off">ontbreekt</span
+									><span
+										>Broadcast-widgets: lower third, scorebord, songtekst</span
+									>
+								</li>
+							</ul>
+						</div>
+						<div>
+							<h4>Apparaten en protocollen</h4>
+							<ul>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span>OBS (volledig), Stream Deck, uitgaande WebSocket</span>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span>API-server (<code>:7892</code>, LAN, token)</span>
+								</li>
+								<li>
+									<span class="chip off">ontbreekt</span
+									><span>HTTP-request, webhook-trigger</span>
+								</li>
+								<li>
+									<span class="chip off">ontbreekt</span
+									><span>OSC, MIDI, MQTT</span>
+								</li>
+								<li>
+									<span class="chip off">ontbreekt</span
+									><span>ATEM, vMix, ProPresenter, PTZ (VISCA)</span>
+								</li>
+							</ul>
+						</div>
+						<div>
+							<h4>Product en distributie</h4>
+							<ul>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span>Plugin-marketplace, zip-plugins met self-update</span>
+								</li>
+								<li>
+									<span class="chip on">aanwezig</span
+									><span>Accounts, cloud sync tussen pc's</span>
+								</li>
+								<li>
+									<span class="chip off">ontbreekt</span
+									><span
+										>Web-remote / operatorpaneel voor telefoon en tablet</span
+									>
+								</li>
+								<li>
+									<span class="chip off">ontbreekt</span
+									><span>Starter-templates en presetpakketten</span>
+								</li>
+								<li>
+									<span class="chip part">deels</span
+									><span>Alleen Windows-alpha; geen macOS-release</span>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<!-- 03 -->
+				<section id="scoring">
+					<div class="eyebrow">Afweging</div>
+					<h2>Negen markten, vijf criteria</h2>
+					<p>
+						Elke markt is gescoord van 1 tot 5. Hoger is altijd beter, dus "bouwgemak" 5
+						betekent weinig nieuw werk en "ruimte" 5 betekent weinig concurrentie. De
+						scores zijn een onderbouwd oordeel op basis van het onderzoek hieronder.
+						Gemeten waarden zijn het niet.
+					</p>
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>Markt</th>
+									<th class="num">Herge&shy;bruik</th>
+									<th class="num">Bouw&shy;gemak</th>
+									<th class="num">Betaal&shy;bereidheid</th>
+									<th class="num">Ruimte</th>
+									<th class="num">Bereik</th>
+									<th class="num">Totaal /25</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="rank-1">
+									<td>
+										<a href="#m-live">Live productie (kerk, school, event)</a>
+									</td>
+									<td class="num">4</td>
+									<td class="num">3</td>
+									<td class="num">4</td>
+									<td class="num">4</td>
+									<td class="num">3</td>
+									<td class="num total">18</td>
+								</tr>
+								<tr>
+									<td><a href="#m-desktop">Windows-desktopautomatisering</a></td>
+									<td class="num">4</td>
+									<td class="num">4</td>
+									<td class="num">3</td>
+									<td class="num">4</td>
+									<td class="num">2</td>
+									<td class="num total">17</td>
+								</tr>
+								<tr>
+									<td><a href="#m-quiz">Pubquiz en interactieve events</a></td>
+									<td class="num">4</td>
+									<td class="num">3</td>
+									<td class="num">3</td>
+									<td class="num">3</td>
+									<td class="num">3</td>
+									<td class="num total">16</td>
+								</tr>
+								<tr>
+									<td><a href="#m-ttrpg">Tabletop-RPG-spelleiders</a></td>
+									<td class="num">4</td>
+									<td class="num">3</td>
+									<td class="num">2</td>
+									<td class="num">4</td>
+									<td class="num">2</td>
+									<td class="num total">15</td>
+								</tr>
+								<tr>
+									<td><a href="#m-sim">Sim racing (naast SimHub)</a></td>
+									<td class="num">3</td>
+									<td class="num">3</td>
+									<td class="num">2</td>
+									<td class="num">2</td>
+									<td class="num">4</td>
+									<td class="num total">14</td>
+								</tr>
+								<tr>
+									<td><a href="#m-discord">Discord-communities</a></td>
+									<td class="num">3</td>
+									<td class="num">4</td>
+									<td class="num">2</td>
+									<td class="num">2</td>
+									<td class="num">3</td>
+									<td class="num total">14</td>
+								</tr>
+								<tr>
+									<td><a href="#m-access">Toegankelijkheid</a></td>
+									<td class="num">3</td>
+									<td class="num">2</td>
+									<td class="num">3</td>
+									<td class="num">4</td>
+									<td class="num">1</td>
+									<td class="num total">13</td>
+								</tr>
+								<tr>
+									<td><a href="#m-signage">Digital signage (reactief)</a></td>
+									<td class="num">3</td>
+									<td class="num">2</td>
+									<td class="num">3</td>
+									<td class="num">1</td>
+									<td class="num">2</td>
+									<td class="num total">11</td>
+								</tr>
+								<tr>
+									<td>
+										<a href="#m-workflow">Lokale workflow-automatisering</a>
+									</td>
+									<td class="num">2</td>
+									<td class="num">2</td>
+									<td class="num">3</td>
+									<td class="num">1</td>
+									<td class="num">2</td>
+									<td class="num total">10</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div class="quad-wrap">
+						<figure class="quad" style="margin: 0">
+							<svg viewBox="0 0 600 430" role="img" aria-labelledby="quad-title">
+								<title id="quad-title">
+									Kwadrant: fit met huidige code tegen marktaantrekkelijkheid
+								</title>
+								<!-- plot area x 60..560 (1..5), y 380..20 (1..5) -->
+								<rect class="zone" x="310" y="20" width="250" height="180"></rect>
+								<line class="axis" x1="60" y1="380" x2="560" y2="380"></line>
+								<line class="axis" x1="60" y1="20" x2="60" y2="380"></line>
+								<line class="mid" x1="310" y1="20" x2="310" y2="380"></line>
+								<line class="mid" x1="60" y1="200" x2="560" y2="200"></line>
+								<text x="60" y="398" text-anchor="middle">1</text>
+								<text x="185" y="398" text-anchor="middle">2</text>
+								<text x="310" y="398" text-anchor="middle">3</text>
+								<text x="435" y="398" text-anchor="middle">4</text>
+								<text x="560" y="398" text-anchor="middle">5</text>
+								<text x="50" y="384" text-anchor="end">1</text>
+								<text x="50" y="294" text-anchor="end">2</text>
+								<text x="50" y="204" text-anchor="end">3</text>
+								<text x="50" y="114" text-anchor="end">4</text>
+								<text x="50" y="24" text-anchor="end">5</text>
+								<text x="310" y="420" text-anchor="middle">
+									Fit: gemiddelde van hergebruik en bouwgemak →
+								</text>
+								<text
+									x="16"
+									y="200"
+									text-anchor="middle"
+									transform="rotate(-90 16 200)"
+								>
+									Aantrekkelijkheid: betaling, ruimte, bereik →
+								</text>
+								<text x="552" y="38" text-anchor="end">kansrijk</text>
+
+								<circle class="dot hot" cx="372.5" cy="140" r="7"></circle>
+								<text class="lbl hot" x="384" y="144">Live productie</text>
+
+								<circle class="dot" cx="435" cy="200" r="5.5"></circle>
+								<text class="lbl" x="446" y="190">Desktop-automatisering</text>
+
+								<circle class="dot" cx="372.5" cy="200" r="5.5"></circle>
+								<text class="lbl" x="362" y="190" text-anchor="end">
+									Pubquiz en events
+								</text>
+
+								<circle class="dot" cx="372.5" cy="230" r="5.5"></circle>
+								<text class="lbl" x="384" y="234">TTRPG</text>
+
+								<circle class="dot" cx="372.5" cy="260" r="5.5"></circle>
+								<text class="lbl" x="384" y="264">Discord</text>
+
+								<circle class="dot" cx="310" cy="230" r="5.5"></circle>
+								<text class="lbl" x="310" y="252" text-anchor="middle">
+									Sim racing
+								</text>
+
+								<circle class="dot" cx="247.5" cy="230" r="5.5"></circle>
+								<text class="lbl" x="237" y="234" text-anchor="end">
+									Toegankelijkheid
+								</text>
+
+								<circle class="dot" cx="247.5" cy="290" r="5.5"></circle>
+								<text class="lbl" x="237" y="294" text-anchor="end">Signage</text>
+
+								<circle class="dot" cx="185" cy="290" r="5.5"></circle>
+								<text class="lbl" x="185" y="312" text-anchor="middle">
+									Workflow (n8n-achtig)
+								</text>
+							</svg>
+						</figure>
+						<div style="display: grid; gap: 14px; min-width: 0">
+							<h3>Hoe je het kwadrant leest</h3>
+							<p>
+								Rechtsboven ligt de combinatie van veel hergebruik en een markt die
+								betaalt, ruimte laat en bereikbaar is. Alleen live productie valt
+								daar duidelijk in.
+							</p>
+							<p>
+								Desktopautomatisering heeft de beste fit, want het gat "Keyboard
+								Maestro voor Windows" is echt open. De markt is alleen lastig te
+								bereiken en PowerToys schuift langzaam op. Omdat de generieke basis
+								(fase A) dit segment grotendeels gratis bedient, is het de logische
+								tweede.
+							</p>
+							<p>
+								Pubquiz en TTRPG zijn sterke niches die vooral templates en een
+								web-remote vragen. Dat zijn dezelfde bouwstenen als voor live
+								productie.
+							</p>
+						</div>
+					</div>
+				</section>
+
+				<!-- 04 -->
+				<section id="markten">
+					<div class="eyebrow">Per markt</div>
+					<h2>Markten in detail</h2>
+					<p>
+						Per markt beschrijven we het probleem, de doelgroep, de concurrenten (met
+						bron), wat Stream Kit al kan hergebruiken, wat ontbreekt, en een voorbeeld
+						als trigger → handler-keten. Prijzen komen deels van vergelijkingssites;
+						controleer ze bij de leverancier voordat je ze extern gebruikt.
+					</p>
+
+					<div class="markets">
+						<!-- Live productie -->
+						<details class="market focus" id="m-live" open>
+							<summary>
+								<span class="title"
+									><h3>Live productie: kerken, scholen, events</h3>
+									<span class="chip off">beachhead</span></span
+								>
+								<span class="score"><b>18</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Vrijwilligers draaien elke week een uitzending met losse tools
+									die niet met elkaar praten.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem</h4>
+										<p>
+											De markt bestaat uit losse puntoplossingen: graphics
+											(H2R, Singular), switching (vMix, ATEM), songteksten
+											(ProPresenter), timers (Stagetimer, Ontime) en cues
+											(QLab). Bitfocus Companion is de lijm, maar het is
+											knopgericht en complexe logica wordt "a nightmare to
+											program and to maintain". Vrijwilligers zijn
+											"overutilized, undertrained, and afraid to make a
+											mistake". Vaak bedient één persoon audio, beeld en
+											songteksten tegelijk.
+										</p>
+									</div>
+									<div>
+										<h4>Doelgroep</h4>
+										<ul>
+											<li>
+												De vrijwillige AV-coördinator van een kerk met 100
+												tot 500 leden en een ATEM Mini, OBS en ProPresenter
+											</li>
+											<li>
+												Een docent die schoolsport of een diploma-uitreiking
+												streamt
+											</li>
+											<li>
+												Een kleine eventtechnicus (congres, lokaal
+												esports-toernooi)
+											</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Marktsignalen</h4>
+										<ul>
+											<li>
+												~73% van de Amerikaanse kerken draaide hybride
+												diensten, tegen ~20% in 2019
+											</li>
+											<li>Kerk-AV in de VS is ruim $1 mld per jaar</li>
+											<li>
+												In Nederland: 1.600 tot 1.850 kerken op
+												Kerkdienstgemist, ~250+ met video
+											</li>
+											<li>
+												NFHS Network: 9.000+ Amerikaanse highschools, 300k+
+												events per jaar
+											</li>
+										</ul>
+									</div>
+								</div>
+								<div class="table-wrap">
+									<table>
+										<thead>
+											<tr>
+												<th>Concurrent</th>
+												<th>Prijs</th>
+												<th>Sterk</th>
+												<th>Gat</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>
+													<a href="https://bitfocus.io/companion"
+														>Bitfocus Companion</a
+													>
+												</td>
+												<td>Gratis, open source</td>
+												<td>700+ modules, de de-facto hub</td>
+												<td>
+													Logica onderhoudbaar houden op schaal, beperkte
+													triggers, geen graphics (<a
+														href="https://github.com/bitfocus/companion/issues/3662"
+														>issue</a
+													>)
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<a href="https://h2r.graphics/pro/"
+														>H2R Graphics</a
+													>
+												</td>
+												<td>Gratis; Pro $80 eenmalig</td>
+												<td>Simpel, browser-output, kerkvriendelijk</td>
+												<td>Alleen graphics, geen automatisering</td>
+											</tr>
+											<tr>
+												<td>
+													<a
+														href="https://www.renewedvision.com/blog/propresenter-is-now-available-as-a-subscription"
+														>ProPresenter</a
+													>
+												</td>
+												<td>$289/jaar of $29/mnd</td>
+												<td>Standaard in kerken, netwerk-API</td>
+												<td>
+													Dia → camerawissel vraagt MIDI- of
+													Companion-omwegen (<a
+														href="https://forum.blackmagicdesign.com/viewtopic.php?f=4&amp;t=112104"
+														>forum</a
+													>)
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<a
+														href="https://www.vmix.com/purchase/upgrades.aspx"
+														>vMix</a
+													>
+												</td>
+												<td>$60 tot $1.200 eenmalig</td>
+												<td>Krachtig, scriptbaar</td>
+												<td>Alleen Windows, overkill voor vrijwilligers</td>
+											</tr>
+											<tr>
+												<td>
+													<a href="https://www.singular.live/pricing"
+														>Singular.live</a
+													>
+												</td>
+												<td>Pro $150/mnd</td>
+												<td>Cloud, API-first</td>
+												<td>Cloudafhankelijk, duur</td>
+											</tr>
+											<tr>
+												<td>
+													<a href="https://newbluefx.com/sport/"
+														>NewBlue Captivate</a
+													>
+												</td>
+												<td>Sport $599/jaar</td>
+												<td>Sport-scoreborden, replay</td>
+												<td>Te duur voor scholen en kerken</td>
+											</tr>
+											<tr>
+												<td><a href="https://qlab.app/shop/">QLab 5</a></td>
+												<td>$599+ eenmalig</td>
+												<td>Theaterstandaard, OSC/MIDI</td>
+												<td>Alleen Mac, cue-lijst in plaats van events</td>
+											</tr>
+											<tr>
+												<td>
+													<a href="https://www.getontime.no/">Ontime</a> /
+													<a href="https://stagetimer.io/pricing/"
+														>Stagetimer</a
+													>
+												</td>
+												<td>Gratis / $210 per jaar</td>
+												<td>Timers, rundown, API</td>
+												<td>Smalle scope</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="cols">
+									<div>
+										<h4>Hergebruik uit Stream Kit</h4>
+										<ul>
+											<li>OBS-plugin (scènes, bronnen, opname, stream)</li>
+											<li>
+												Overlays: timer-, teller- en leaderboard-widgets als
+												basis voor scoreborden
+											</li>
+											<li>
+												Stream Deck-plugin en de action queues (sequenties)
+											</li>
+											<li>API-server op LAN voor een operatorpaneel</li>
+											<li>TTS en audio voor aankondigingen</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Ontbreekt</h4>
+										<ul>
+											<li>ATEM, ProPresenter, VISCA-PTZ, vMix</li>
+											<li>OSC en MIDI (QLab, mengpanelen, Resolume)</li>
+											<li>
+												Broadcast-widgets: lower thirds, scorebord,
+												songtekst, stage timer
+											</li>
+											<li>
+												Cue-lijst met GO-knop en een vergrendelde
+												operatormodus
+											</li>
+											<li>
+												macOS-build, want ProPresenter- en QLab-gebruikers
+												zitten vaak op Mac
+											</li>
+										</ul>
+									</div>
+								</div>
+								<div style="display: grid; gap: 8px">
+									<h4>Voorbeeld: zondagsdienst</h4>
+									<div class="chain">
+										<span class="t">ProPresenter: dia-groep "Preek"</span
+										><i>▸</i><span>ATEM: camera 2</span><i>▸</i
+										><span>PTZ: preset "Kansel"</span><i>▸</i
+										><span>Overlay: lower third "Ds. Jansen"</span>
+									</div>
+									<div class="chain">
+										<span class="t">Schema: zo 09:55</span><i>▸</i
+										><span>OBS: start stream</span><i>▸</i
+										><span>Overlay: countdown 5 min</span><i>▸</i
+										><span>Audio: aanloopmuziek</span>
+									</div>
+								</div>
+							</div>
+						</details>
+
+						<!-- Desktop -->
+						<details class="market" id="m-desktop" open>
+							<summary>
+								<span class="title"
+									><h3>Windows-desktopautomatisering</h3>
+									<span class="chip part">tweede gok</span></span
+								>
+								<span class="score"><b>17</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Keyboard Maestro bestaat alleen voor Mac. Op Windows kies je
+									tussen code (AHK) of enterprise (Power Automate).</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem</h4>
+										<p>
+											Power users op Windows willen hotkeys, macro's en "als
+											dit programma start, doe dat", zonder te programmeren.
+											AutoHotkey heeft een "steep learning curve", de GUI-laag
+											Pulover's Macro Creator is sinds 2021 verlaten, en Power
+											Automate Desktop is zwaar en Microsoft-account-gericht.
+										</p>
+									</div>
+									<div>
+										<h4>Doelgroep</h4>
+										<ul>
+											<li>
+												Een developer of designer met vaste routines
+												(werkplek opstarten, vensters, audio-apparaten)
+											</li>
+											<li>
+												Een gamer die hotkeys, macro's en een Stream Deck
+												combineert
+											</li>
+											<li>
+												Een kleine ondernemer die repetitieve pc-taken wil
+												automatiseren
+											</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Marktsignalen</h4>
+										<ul>
+											<li>Keyboard Maestro: $36 eenmalig, alleen macOS</li>
+											<li>
+												Power users betalen $10 tot $36 eenmalig (KM,
+												BetterTouchTool)
+											</li>
+											<li>
+												Risico: PowerToys 0.98 en 0.100 voegen hotkey →
+												actie en een extensiegalerij toe
+											</li>
+										</ul>
+									</div>
+								</div>
+								<div class="table-wrap">
+									<table>
+										<thead>
+											<tr>
+												<th>Concurrent</th>
+												<th>Prijs</th>
+												<th>Sterk</th>
+												<th>Gat</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>
+													<a
+														href="https://wiki.keyboardmaestro.com/manual/Purchase"
+														>Keyboard Maestro</a
+													>
+												</td>
+												<td>$36 eenmalig</td>
+												<td>Volwassen trigger → actie-model</td>
+												<td>Geen Windows</td>
+											</tr>
+											<tr>
+												<td>
+													<a href="https://auto-hotkey.io/"
+														>AutoHotkey v2</a
+													>
+												</td>
+												<td>Gratis</td>
+												<td>Kan alles</td>
+												<td>
+													Alleen code, geen UI (<a
+														href="https://textexpander.com/blog/autohotkey-alternatives"
+														>bron</a
+													>)
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<a
+														href="https://www.microsoft.com/en-us/power-platform/products/power-automate/pricing"
+														>Power Automate Desktop</a
+													>
+												</td>
+												<td>Gratis; premium $15/mnd</td>
+												<td>Voorgeïnstalleerd, RPA</td>
+												<td>Enterprise-gericht, geen hotkey-focus</td>
+											</tr>
+											<tr>
+												<td>
+													<a
+														href="https://devblogs.microsoft.com/commandline/powertoys-0-98-is-here-new-keyboard-manager-ux-the-command-palette-dock-and-better-cursorwrap/"
+														>PowerToys</a
+													>
+												</td>
+												<td>Gratis</td>
+												<td>Remaps die tekst sturen of apps openen</td>
+												<td>
+													Geen ketens, cron, variabelen of procestriggers
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="cols">
+									<div>
+										<h4>Hergebruik</h4>
+										<ul>
+											<li>Hotkey-, proces-, cron- en lifecycle-triggers</li>
+											<li>Run program, fire hotkey, scripts, audio</li>
+											<li>AI-actions: "beschrijf het, krijg een concept"</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Ontbreekt</h4>
+										<ul>
+											<li>Venster- en klembordtriggers, bestandswatcher</li>
+											<li>Tray-modus met autostart</li>
+											<li>Positionering en onboarding los van streaming</li>
+										</ul>
+									</div>
+								</div>
+								<div class="chain">
+									<span class="t">Proces gestart: Teams.exe</span><i>▸</i
+									><span>Audio-output: headset</span><i>▸</i
+									><span>Run program: notities-app</span><i>▸</i
+									><span>Hue (MQTT): bureaulamp rood</span>
+								</div>
+							</div>
+						</details>
+
+						<!-- Quiz -->
+						<details class="market" id="m-quiz" open>
+							<summary>
+								<span class="title"><h3>Pubquiz en interactieve events</h3></span>
+								<span class="score"><b>16</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Lokaal gehost, met scorebord, geluid en telefoons als buzzer,
+									zonder betalen per avond of per deelnemer.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem</h4>
+										<p>
+											Mentimeter, Slido en Kahoot zijn cloud-SaaS met
+											deelnemerslimieten en jaarabonnementen. Pubquizsoftware
+											rekent per avond, en kroegeigenaren vragen al om een
+											ander prijsmodel. Fysieke buzzers, licht, geluid en een
+											beamer zitten zelden in één product.
+										</p>
+									</div>
+									<div>
+										<h4>Doelgroep</h4>
+										<ul>
+											<li>Een quizmaster in een café of sportkantine</li>
+											<li>Een bedrijfsuitje of bruiloft met spelshow</li>
+											<li>
+												Een docent die een klassenquiz op het digibord doet
+											</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Marktsignalen</h4>
+										<ul>
+											<li>Kahoot: 24M actieve gebruikers in 12 maanden</li>
+											<li>Mentimeter: ~$38M omzet in 2024</li>
+											<li>
+												SpeedQuizzing: £7 tot £21 per avond, desktop-host
+											</li>
+										</ul>
+									</div>
+								</div>
+								<div class="table-wrap">
+									<table>
+										<thead>
+											<tr>
+												<th>Concurrent</th>
+												<th>Prijs</th>
+												<th>Sterk</th>
+												<th>Gat</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>
+													<a
+														href="https://www.trustradius.com/products/mentimeter/pricing"
+														>Mentimeter</a
+													>
+												</td>
+												<td>$11,99 tot $24,99/mnd (jaarlijks)</td>
+												<td>Gepolijst</td>
+												<td>Cloud, per presentator</td>
+											</tr>
+											<tr>
+												<td>
+													<a
+														href="https://www.wooclap.com/en/blog/kahoot-pricing/"
+														>Kahoot!</a
+													>
+												</td>
+												<td>$19 tot $59/mnd</td>
+												<td>Enorme schaal</td>
+												<td>Spelerslimieten, niet offline</td>
+											</tr>
+											<tr>
+												<td>
+													<a
+														href="https://www.speedquizzing.com/docs-live/speedquizzing-live-pricing/"
+														>SpeedQuizzing</a
+													>
+												</td>
+												<td>£7 tot £21 per avond</td>
+												<td>Desktop-host, vragenpakketten</td>
+												<td>Betalen per avond, netwerkgevoelig</td>
+											</tr>
+											<tr>
+												<td>
+													<a
+														href="https://www.getapp.com/collaboration-software/a/crowdpurr/"
+														>Crowdpurr</a
+													>
+												</td>
+												<td>$49,99 tot $499,99/mnd</td>
+												<td>Bar-trivia</td>
+												<td>
+													Duur voor kleine locaties (<a
+														href="https://community.crowdpurr.com/t/pub-restaurant-pricing/298"
+														>community</a
+													>)
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="cols">
+									<div>
+										<h4>Hergebruik</h4>
+										<ul>
+											<li>Rankings en leaderboard-widget</li>
+											<li>Timer-widget, audio, TTS</li>
+											<li>Collections voor vragensets</li>
+											<li>Overlay-tweeweg-WebSocket</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Ontbreekt</h4>
+										<ul>
+											<li>
+												Spelerspagina op telefoon via QR-code (web-remote)
+											</li>
+											<li>Quiz-widget: vraag, antwoorden, reveal</li>
+											<li>Template "Pubquiz"</li>
+										</ul>
+									</div>
+								</div>
+								<div class="chain">
+									<span class="t">Web-remote: team drukt buzzer</span><i>▸</i
+									><span>Collection: eerste team vastleggen</span><i>▸</i
+									><span>Audio: buzzer-geluid</span><i>▸</i
+									><span>Overlay: teamnaam groot</span>
+								</div>
+							</div>
+						</details>
+
+						<!-- TTRPG -->
+						<details class="market" id="m-ttrpg" open>
+							<summary>
+								<span class="title"><h3>Tabletop-RPG-spelleiders</h3></span>
+								<span class="score"><b>15</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Eén "scène"-knop voor geluid, licht, spelersscherm en
+									stream.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem</h4>
+										<p>
+											Spelleiders jongleren met Syrinscape of Kenku (audio),
+											een virtuele speltafel (Foundry, Owlbear), Discord en
+											lampen. Er is geen scène-trigger die ze aan elkaar
+											knoopt. Bestaande Foundry-lichtmodules sturen alleen
+											virtueel licht, geen echte Hue-lampen.
+										</p>
+									</div>
+									<div>
+										<h4>Doelgroep</h4>
+										<ul>
+											<li>
+												Een spelleider met een vaste groep aan tafel of op
+												Discord
+											</li>
+											<li>Een "actual play"-streamer</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Marktsignalen</h4>
+										<ul>
+											<li>
+												TTRPG-markt ~$1,8 tot 2,15 mld (2025), 12 tot 13%
+												groei
+											</li>
+											<li>Syrinscape SuperSyrin $12,99/mnd</li>
+											<li>Foundry VTT: $50 eenmalig, duizenden modules</li>
+										</ul>
+									</div>
+								</div>
+								<div class="table-wrap">
+									<table>
+										<thead>
+											<tr>
+												<th>Concurrent</th>
+												<th>Prijs</th>
+												<th>Sterk</th>
+												<th>Gat</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>
+													<a
+														href="https://syrinscape.com/subscriptions/3-supersyrin/"
+														>Syrinscape</a
+													>
+												</td>
+												<td>$12,99/mnd</td>
+												<td>Gecureerde soundscapes</td>
+												<td>Lock-in op eigen bibliotheek</td>
+											</tr>
+											<tr>
+												<td>
+													<a href="https://www.kenku.fm/">Kenku FM</a>
+												</td>
+												<td>Gratis</td>
+												<td>Audio naar Discord, Stream Deck</td>
+												<td>Alleen audio</td>
+											</tr>
+											<tr>
+												<td>
+													<a href="https://foundryvtt.com/article/faq/"
+														>Foundry VTT</a
+													>
+												</td>
+												<td>$50 eenmalig</td>
+												<td>JS-modules, groot ecosysteem</td>
+												<td>Geen koppeling met fysieke lampen of OBS</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="cols">
+									<div>
+										<h4>Hergebruik</h4>
+										<ul>
+											<li>Audio play folder, queues, Stream Deck</li>
+											<li>Discord-plugin, OBS, overlays als spelersscherm</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Ontbreekt</h4>
+										<ul>
+											<li>MQTT/Hue voor lampen</li>
+											<li>
+												Foundry-module of Owlbear-extensie die events naar
+												de API-server stuurt
+											</li>
+											<li>Template "Spelavond"</li>
+										</ul>
+									</div>
+								</div>
+								<div class="chain">
+									<span class="t">Stream Deck: "Gevecht"</span><i>▸</i
+									><span>Audio: battle-playlist</span><i>▸</i
+									><span>MQTT: lampen rood flikkeren</span><i>▸</i
+									><span>Overlay: initiative tracker</span>
+								</div>
+							</div>
+						</details>
+
+						<!-- Sim racing -->
+						<details class="market" id="m-sim">
+							<summary>
+								<span class="title"><h3>Sim racing (naast SimHub)</h3></span>
+								<span class="score"><b>14</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Niet concurreren op dashboards, wel race-events gebruiken voor
+									stream- en scène-automatisering.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem en positie</h4>
+										<p>
+											SimHub is gratis en diep verankerd (dashboards, Arduino,
+											haptics); daar win je niet. Sim racers die streamen
+											willen wel dat race-events (pit, incident, finish)
+											automatisch OBS-scènes, overlays en alerts aansturen.
+											Stream Kit kan de laag naast SimHub zijn.
+										</p>
+									</div>
+									<div>
+										<h4>Marktsignalen</h4>
+										<ul>
+											<li>Racing-simulatormarkt ~$1 tot 1,3 mld (2025)</li>
+											<li>
+												iRacing: record van 300k actieve accounts (Daytona
+												2025)
+											</li>
+											<li>RaceLab-overlays: €4,90/mnd</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Concurrenten</h4>
+										<ul>
+											<li>
+												<a href="https://www.simhubdash.com/">SimHub</a>:
+												gratis, licentie €8 tot 30
+											</li>
+											<li>
+												<a href="https://sales.z1racetech.com/"
+													>Z1 Dashboard</a
+												>: $4 tot 20/mnd
+											</li>
+											<li>
+												<a
+													href="https://allcreatortools.com/blog/overlays-for-sim-racing-racelab-and-its-alternatives"
+													>RaceLab, iOverlay</a
+												>
+											</li>
+										</ul>
+									</div>
+								</div>
+								<div class="chain">
+									<span class="t">Telemetrie (via SimHub-API): pit in</span
+									><i>▸</i><span>OBS: scène "Pitstop"</span><i>▸</i
+									><span>Overlay: bandenstrategie</span><i>▸</i
+									><span>Twitch: chatbericht</span>
+								</div>
+							</div>
+						</details>
+
+						<!-- Discord -->
+						<details class="market" id="m-discord">
+							<summary>
+								<span class="title"><h3>Discord-communities</h3></span>
+								<span class="score"><b>14</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Bot-builder zonder code, die ook de lokale pc kan
+									aansturen.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem en positie</h4>
+										<p>
+											MEE6, Carl-bot en BotGhost zijn cloud-bots met prijzen
+											per server. Geen van hen stuurt een lokale pc, OBS,
+											licht of overlays aan. De Discord-plugin bestaat al,
+											maar het segment betaalt weinig en ligt dicht tegen de
+											streamerdoelgroep.
+										</p>
+									</div>
+									<div>
+										<h4>Prijzen</h4>
+										<ul>
+											<li>
+												<a
+													href="https://peakbot.pro/blog/mee6-premium-worth-it-2026"
+													>MEE6</a
+												>: ~$11,95/mnd per server
+											</li>
+											<li>
+												<a
+													href="https://peakbot.pro/blog/discord-bot-pricing-comparison-2026"
+													>Carl-bot</a
+												>: ~$7,99/mnd
+											</li>
+											<li>
+												<a
+													href="https://documentation.botghost.com/premium/premium-and-priority-hosting-plans"
+													>BotGhost</a
+												>: $5 tot 10/mnd
+											</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Conclusie</h4>
+										<p>
+											Geen aparte markt om op te richten. Wel de
+											Discord-plugin afmaken (TODO P1), omdat elke andere
+											markt (TTRPG, quiz, kerk) Discord-notificaties gebruikt.
+										</p>
+									</div>
+								</div>
+							</div>
+						</details>
+
+						<!-- Accessibility -->
+						<details class="market" id="m-access">
+							<summary>
+								<span class="title"><h3>Toegankelijkheid</h3></span>
+								<span class="score"><b>13</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Een eigen macrolaag voor mensen met een motorische beperking,
+									zonder scripten.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem en positie</h4>
+										<p>
+											Talon en AutoHotkey zijn krachtig, maar vragen scripten.
+											Dragon is duur en wordt nauwelijks doorontwikkeld. Een
+											GUI die spraak, schakelaars of voetpedalen koppelt aan
+											meerstapsacties met TTS-feedback bestaat niet.
+										</p>
+									</div>
+									<div>
+										<h4>Financiering in Nederland</h4>
+										<ul>
+											<li>
+												UWV vergoedt spraakherkenning als werkvoorziening,
+												alleen vooraf aangevraagd en via vaste leveranciers
+												(<a
+													href="https://www.cedere.nl/arbeid-beperkt/vergoedingen"
+													>bron</a
+												>)
+											</li>
+											<li>Wmo-maatwerkvoorziening via de gemeente</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Conclusie</h4>
+										<p>
+											Sociaal waardevol, maar het verkoopkanaal loopt via
+											hulpmiddelleveranciers. Laat MIDI en voice control (TODO
+											P1) dit segment later bedienen, en verken het dan met
+											een leverancier.
+										</p>
+									</div>
+								</div>
+							</div>
+						</details>
+
+						<!-- Signage -->
+						<details class="market" id="m-signage">
+							<summary>
+								<span class="title"><h3>Digital signage (reactief)</h3></span>
+								<span class="score"><b>11</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Overlays als schermen in kantine, sportschool of
+									esports-zaal.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem en positie</h4>
+										<p>
+											Overlays plus cron plus LAN-triggers vormen al een
+											lokale signage-engine. De markt is wel verzadigd en
+											vraagt fleetbeheer, een player-app en een
+											contentplanner. Alleen "reactieve schermen" (een
+											scorebord in de sportkantine, een leaderboard in een
+											gamezaal) zijn een logisch bijproduct.
+										</p>
+									</div>
+									<div>
+										<h4>Prijzen</h4>
+										<ul>
+											<li>
+												<a href="https://www.yodeck.com/pricing/">Yodeck</a
+												>: $8 tot 16 per scherm per maand
+											</li>
+											<li>
+												<a
+													href="https://digitalsignage.com/digital_signage/docs/guides/xibo-vs-yodeck-2026/"
+													>Xibo</a
+												>: $4,90 tot 12,60, CMS open source
+											</li>
+											<li>
+												<a
+													href="https://digitalsignage.com/digital_signage/docs/guides/screencloud-pricing-2026/"
+													>ScreenCloud</a
+												>: $20
+											</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Conclusie</h4>
+										<p>
+											Niet actief op richten. Neem het mee als use-case-pagina
+											zodra er scorebord-widgets zijn.
+										</p>
+									</div>
+								</div>
+							</div>
+						</details>
+
+						<!-- Workflow -->
+						<details class="market" id="m-workflow">
+							<summary>
+								<span class="title"><h3>Lokale workflow-automatisering</h3></span>
+								<span class="score"><b>10</b>/25 <span class="caret">▸</span></span>
+								<span class="oneliner"
+									>Een lokale Zapier: groot, maar vol en
+									server-georiënteerd.</span
+								>
+							</summary>
+							<div class="mbody">
+								<div class="cols">
+									<div>
+										<h4>Probleem en positie</h4>
+										<p>
+											n8n (waardering $2,5 mld), Zapier, Make, Activepieces en
+											Node-RED draaien op een server of in de browser. Een
+											desktop-app is hier eerder een nadeel. Wel bruikbaar: de
+											HTTP- en webhook-features uit fase A maken van Stream
+											Kit een goede "desktop-arm" van n8n of Home Assistant.
+										</p>
+									</div>
+									<div>
+										<h4>Signalen</h4>
+										<ul>
+											<li>
+												iPaaS: $8,5 mld (2024), +23% (<a
+													href="https://cyclr.com/blog/ipaas-market-growth-as-embedded-ipaas-continues-to-rise"
+													>Gartner via Cyclr</a
+												>)
+											</li>
+											<li>
+												Home Assistant: 2M+ installaties (<a
+													href="https://www.home-assistant.io/blog/2025/04/16/state-of-the-open-home-recap/"
+													>HA</a
+												>)
+											</li>
+											<li>
+												Node-RED: MQTT-gebruik van 24% naar 44% (<a
+													href="https://nodered.org/about/community/survey/2023/"
+													>survey</a
+												>)
+											</li>
+										</ul>
+									</div>
+									<div>
+										<h4>Conclusie</h4>
+										<p>
+											Integreren, niet concurreren. Een n8n-node en een Home
+											Assistant-integratie zijn goedkope distributie.
+										</p>
+									</div>
+								</div>
+							</div>
+						</details>
+					</div>
+				</section>
+
+				<!-- 05 -->
+				<section id="roadmap">
+					<div class="eyebrow">
+						<span class="tally" aria-hidden="true"></span>Plan van aanpak
+					</div>
+					<h2>Roadmap: eerst de basis, dan het productiepakket</h2>
+					<p>
+						De schattingen gaan uit van één ontwikkelaar:
+						<span class="chip size">S</span> is tot een week,
+						<span class="chip size">M</span> twee tot drie weken,
+						<span class="chip size">L</span> vier weken of meer. Het zijn grove
+						schattingen. De paden verwijzen naar de plek in de code waar het werk landt.
+					</p>
+
+					<div class="phase">
+						<div class="phase-head">
+							<span class="tag">A</span><strong>Generieke basis</strong
+							><span class="when">Q4 2026 · ~10 tot 12 weken</span>
+						</div>
+						<div class="phase-body">
+							<p>
+								Elk item helpt minstens drie markten, en een deel staat al in
+								TODO.md. Na deze fase is Stream Kit zonder extra werk bruikbaar als
+								desktopautomatisering en als "desktop-arm" van n8n of Home
+								Assistant.
+							</p>
+							<div class="features">
+								<div class="feature">
+									<h3>HTTP-request-handler en webhook-trigger</h3>
+									<div class="chips">
+										<span class="chip size">S–M</span
+										><span class="chip on">alle markten</span>
+									</div>
+									<p>
+										Een handler voor GET/POST met headers, body en het antwoord
+										als variabelen. Een trigger voor inkomende webhooks op een
+										eigen pad met token. Daarmee is vrijwel elk apparaat of elke
+										dienst met een REST-API direct bereikbaar, ook vMix en
+										ProPresenter voordat er een eigen plugin is.
+									</p>
+									<p class="where">
+										Handler/trigger in <code>plugins/core/src/handler</code> en
+										<code>plugins/core/src/trigger</code>. Webhook-route op de
+										bestaande server in
+										<code>packages/app/src-tauri/src/overlay_server</code> of
+										<code>api_server</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>OSC-plugin (in en uit)</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip on">live, theater</span>
+									</div>
+									<p>
+										Triggers op adres-patronen en een handler die een bericht
+										met argumenten verstuurt. OSC is de taal van QLab, Ontime,
+										Resolume en digitale mengpanelen.
+									</p>
+									<p class="where">
+										Nieuwe <code>plugins/osc</code> naar het patroon van
+										<code>plugins/websocket</code>. UDP-socket aan de Rust-kant
+										naast <code>network.rs</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>MIDI-plugin</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip part">TODO P1</span>
+									</div>
+									<p>
+										Note, CC en program change als trigger en als handler. Dit
+										dekt controllers, voetpedalen (toegankelijkheid),
+										ProPresenter-cues en mengpanelen.
+									</p>
+									<p class="where">
+										Nieuwe <code>plugins/midi</code>, met de devicetoegang in
+										<code>packages/app/src-tauri</code> (bijvoorbeeld de crate
+										<code>midir</code>).
+									</p>
+								</div>
+								<div class="feature">
+									<h3>MQTT-plugin</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip on">TTRPG, desktop, IoT</span>
+									</div>
+									<p>
+										Subscribe als trigger, publish als handler. Via Home
+										Assistant, Zigbee2MQTT en Hue-bridges krijg je in één keer
+										toegang tot vrijwel alle lampen en IoT. Lumia Stream laat
+										zien dat creators $6 per maand betalen voor reactief licht.
+									</p>
+									<p class="where">
+										Nieuwe <code>plugins/mqtt</code>. Overweeg daarna een native
+										Home Assistant-plugin via de WebSocket-API.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Web-remote en operatorpaneel</h3>
+									<div class="chips">
+										<span class="chip size">L</span
+										><span class="chip on">live, quiz, TTRPG</span>
+									</div>
+									<p>
+										Een pagina op het LAN (QR-code in de app) met grote knoppen,
+										status en variabelen, die je met de bestaande
+										dashboardwidgets samenstelt. Hetzelfde mechanisme levert de
+										spelerspagina voor een quiz. De vrijwilliger achter de mixer
+										en de quizmaster hoeven dan niet achter de pc te zitten.
+									</p>
+									<p class="where">
+										Statische pagina via
+										<code>packages/app/src-tauri/src/api_server</code>, met de
+										methodes uit
+										<code
+											>packages/app/src/lib/core/api-server/builtin-methods.ts</code
+										>. Staat als "companion app" in TODO P3; die moet naar
+										voren.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Starter-templates en presetpakketten</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip part">TODO P0 / P3</span>
+									</div>
+									<p>
+										Een pakket van actions, overlays, collections en queues dat
+										je in één keer installeert, met invulvelden ("naam van je
+										ATEM", "naam predikant"). Het grootste pijnpunt in elke
+										markt is de leercurve, en dit is het antwoord.
+									</p>
+									<p class="where">
+										Bouwt voort op import/export
+										(<code>overlay-export.ts</code>, actions) en de marketplace
+										in <code>site/pb</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Tray-modus, autostart en crash-herstel</h3>
+									<div class="chips">
+										<span class="chip size">S</span
+										><span class="chip on">live, desktop</span>
+									</div>
+									<p>
+										Stream Kit moet onopvallend "altijd aan" kunnen staan, en na
+										een crash herstarten met dezelfde staat. Voor een kerkdienst
+										is betrouwbaarheid een harde eis.
+									</p>
+									<p class="where">
+										<code>packages/app/src-tauri/src/lib.rs</code> (tray,
+										autostart-plugin).
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="phase">
+						<div class="phase-head">
+							<span class="tag">B</span><strong>Productiepakket</strong
+							><span class="when">Q1 2027 · ~12 weken</span>
+						</div>
+						<div class="phase-body">
+							<p>
+								Het minimum om geloofwaardig te zijn bij een kerk-AV-team of een
+								schoolstudio: ATEM, ProPresenter, PTZ, OSC/MIDI en een simpele
+								operatormodus.
+							</p>
+							<div class="features">
+								<div class="feature">
+									<h3>Blackmagic ATEM-plugin</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip off">must-have</span>
+									</div>
+									<p>
+										Triggers voor program/preview-wissel, tally en opname.
+										Handlers voor cut, auto, input kiezen, macro starten, DSK en
+										USK. Er is een volwassen open-source TypeScript-library
+										(<code>atem-connection</code>) die Companion ook gebruikt.
+									</p>
+									<p class="where">
+										Nieuwe <code>plugins/atem</code>, structuur als
+										<code>plugins/obs</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>ProPresenter-plugin</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip off">must-have</span>
+									</div>
+									<p>
+										Via de netwerk-API (7.9+): triggers voor dia-wissel, groep
+										en playlist-item. Handlers voor volgende/vorige, wissen en
+										een stage-bericht. Dit lost de meest gevraagde koppeling op:
+										dia wisselt, camera volgt.
+									</p>
+									<p class="where">Nieuwe <code>plugins/propresenter</code>.</p>
+								</div>
+								<div class="feature">
+									<h3>PTZ-camera's (VISCA over IP)</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip off">must-have</span>
+									</div>
+									<p>
+										Presets oproepen en opslaan, pan/tilt/zoom en focus.
+										PTZOptics is dominant in kerken.
+									</p>
+									<p class="where">
+										Nieuwe <code>plugins/ptz</code>. UDP/TCP via de Rust-kant,
+										gedeeld met OSC.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Broadcast-widgets</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip on">live, quiz, signage</span>
+									</div>
+									<p>
+										Lower third (naam en functie), scorebord (thuis/uit,
+										periode, klok), songtekst of schriftlezing, en een
+										stage-timer of countdown. Dit komt naast de bestaande
+										alerts, timer en leaderboard, en sluit aan op H2R Graphics,
+										de prijsreferentie van $80.
+									</p>
+									<p class="where">
+										<code
+											>packages/app/src/lib/core/overlay/widget-templates/</code
+										>, bijvoorbeeld <code>lower-third.ts</code> en
+										<code>scoreboard.ts</code> naast <code>timer.ts</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Cue-lijst en show-runner</h3>
+									<div class="chips">
+										<span class="chip size">M</span
+										><span class="chip on">live, theater</span>
+									</div>
+									<p>
+										Een geordende lijst cues met een GO-knop (ook via Stream
+										Deck, MIDI of de web-remote), een voorvertoning van de
+										volgende cue, en terugspringen. Dit is het mentale model van
+										QLab en Ontime, gebouwd op de bestaande queues.
+									</p>
+									<p class="where">
+										Uitbreiding van
+										<code>packages/app/src/lib/core/action-queue</code> met een
+										nieuwe <code>queue-mode</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Operatormodus</h3>
+									<div class="chips">
+										<span class="chip size">S–M</span
+										><span class="chip on">live</span>
+									</div>
+									<p>
+										Een vergrendelde weergave met alleen knoppen, cues en
+										status, zonder editors. Uitschakelen kan met een pincode. Zo
+										hoeft een vrijwilliger niets kapot te kunnen maken.
+									</p>
+									<p class="where">
+										App-route plus instelling. Hergebruikt de dashboardwidgets.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Templatepakketten "Zondagsdienst" en "Schoolevent"</h3>
+									<div class="chips">
+										<span class="chip size">S</span
+										><span class="chip on">live</span>
+									</div>
+									<p>
+										Kant-en-klare actions, overlays en cue-lijsten voor ATEM
+										Mini, OBS en ProPresenter. Doel: binnen 30 minuten een
+										werkende dienst.
+									</p>
+									<p class="where">Gebruikt de presetpakketten uit fase A.</p>
+								</div>
+								<div class="feature">
+									<h3>macOS-release</h3>
+									<div class="chips">
+										<span class="chip size">M–L</span
+										><span class="chip part">TODO P0</span>
+									</div>
+									<p>
+										ProPresenter- en QLab-gebruikers zitten vaak op Mac. Zonder
+										Mac-build mist het pakket een groot deel van de kerken en
+										theaters.
+									</p>
+									<p class="where">
+										Tauri-build, Rust-modules als
+										<code>process_watcher.rs</code>,
+										<code>run_program.rs</code> en hotkeys per platform.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="phase">
+						<div class="phase-head">
+							<span class="tag">C</span><strong>Positionering en distributie</strong
+							><span class="when">loopt parallel aan B</span>
+						</div>
+						<div class="phase-body">
+							<div class="features">
+								<div class="feature">
+									<h3>Companion-module voor Stream Kit</h3>
+									<div class="chips">
+										<span class="chip size">S</span
+										><span class="chip on">distributie</span>
+									</div>
+									<p>
+										Companion is gratis en geliefd; vecht er niet tegen. Met een
+										module die actions start en variabelen leest via de
+										API-server komt Stream Kit in de 700+-modulelijst, bij
+										precies de juiste doelgroep. Stagetimer en Ontime deden
+										hetzelfde.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Stream Deck-plugin in de Elgato Marketplace</h3>
+									<div class="chips">
+										<span class="chip size">S</span
+										><span class="chip part">TODO P1</span>
+									</div>
+									<p>
+										Volgens Elgato bereikt de Marketplace "millions of Stream
+										Deck users". De plugin bestaat al in
+										<code>integrations/stream-deck</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Neutrale kern, use-case-pagina's</h3>
+									<div class="chips">
+										<span class="chip size">S</span
+										><span class="chip on">marketing</span>
+									</div>
+									<p>
+										README en de site openen nu met "voor streamers". Presenteer
+										de kern neutraal (Actions, Overlays, Plugins) met per markt
+										een pagina: "Voor kerken", "Voor quizavonden", "Voor Windows
+										power users". Een naamswijziging heroverweeg je pas als een
+										tweede markt aantoonbaar aanslaat.
+									</p>
+									<p class="where">
+										<code>site/</code> (marketing), <code>README.md</code>,
+										<code>docs/get-started</code>.
+									</p>
+								</div>
+								<div class="feature">
+									<h3>Prijshypothese voor productie</h3>
+									<div class="chips">
+										<span class="chip size">–</span
+										><span class="chip part">te valideren</span>
+									</div>
+									<p>
+										Positioneer tussen H2R ($80 eenmalig) en ProPresenter
+										($289/jaar). Bijvoorbeeld een Production-plan rond €99 per
+										jaar, met korting voor kerken en onderwijs. Streamers
+										blijven gratis of goedkoop, omdat dat de norm is in dat
+										segment.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="phase">
+						<div class="phase-head">
+							<span class="tag">D</span><strong>Tweede markten</strong
+							><span class="when">vanaf Q2 2027, na validatie</span>
+						</div>
+						<div class="phase-body">
+							<p>
+								Pas starten als fase B betalende gebruikers heeft. Elk pakket bouwt
+								bijna volledig op A en B.
+							</p>
+							<div class="grid2">
+								<div class="callout">
+									<h4>Pubquizpakket</h4>
+									<p class="small">
+										Quiz-widget, spelerspagina via de web-remote, teamscores via
+										rankings. Prijs per jaar in plaats van per avond.
+									</p>
+								</div>
+								<div class="callout">
+									<h4>Desktop-editie</h4>
+									<p class="small">
+										Venster- en klembordtriggers, bestandswatcher, onboarding
+										zonder streamingbegrippen. Gericht op Windows power users.
+									</p>
+								</div>
+								<div class="callout">
+									<h4>Spelavondpakket</h4>
+									<p class="small">
+										Foundry-module en Owlbear-extensie die events naar de
+										API-server sturen, plus MQTT-lichtscènes.
+									</p>
+								</div>
+								<div class="callout">
+									<h4>Sim racing-bridge</h4>
+									<p class="small">
+										Een SimHub-telemetriekoppeling als triggerbron voor OBS en
+										overlays.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- 06 -->
+				<section id="validatie">
+					<div class="eyebrow">Toetsen voordat je bouwt</div>
+					<h2>Validatieplan</h2>
+					<div class="grid2">
+						<div class="callout">
+							<h4>Gesprekken (nu, tijdens fase A)</h4>
+							<ol class="steps small">
+								<li>
+									Voer 8 tot 10 interviews met AV-vrijwilligers van Nederlandse
+									kerken (via Kerkdienstgemist-gebruikers en lokale kerken) en 2
+									tot 3 scholen of eventtechnici.
+								</li>
+								<li>
+									Vraag naar hun huidige setup, de laatste keer dat het misging,
+									wie het bedient, en wat ze nu betalen.
+								</li>
+								<li>
+									Laat een klikbare demo zien van "dia → camera → lower third" en
+									meet of ze direct een eigen use case noemen.
+								</li>
+							</ol>
+						</div>
+						<div class="callout">
+							<h4>Pilot (begin fase B)</h4>
+							<ol class="steps small">
+								<li>
+									Laat 3 kerken en 1 school vier weken lang elke week hun dienst
+									of event met Stream Kit draaien.
+								</li>
+								<li>
+									Begeleid de eerste installatie, en kijk daarna mee zonder in te
+									grijpen.
+								</li>
+								<li>
+									Toets de prijs met een concreet aanbod, zoals €99 per jaar, en
+									vraag niet alleen of ze "zouden betalen".
+								</li>
+							</ol>
+						</div>
+						<div class="callout">
+							<h4>Succescriteria</h4>
+							<ul class="plain small">
+								<li>Binnen 30 minuten van installatie naar een werkend template</li>
+								<li>3 of meer pilots draaien na week 4 nog wekelijks</li>
+								<li>
+									Minder dan 1 handmatige ingreep per dienst door een Stream
+									Kit-fout
+								</li>
+								<li>2 van de 4 pilots betalen na de proefperiode</li>
+							</ul>
+						</div>
+						<div class="callout">
+							<h4>Stopcriteria</h4>
+							<ul class="plain small">
+								<li>
+									Pilots vallen terug op Companion omdat Stream Kit "te veel" is
+								</li>
+								<li>Geen bereidheid om meer dan €50 per jaar te betalen</li>
+								<li>
+									De hardware-supportlast vreet meer dan 30% van de ontwikkeltijd
+								</li>
+							</ul>
+							<p class="small muted">
+								Als je hierop stopt, verschuift de focus naar desktopautomatisering.
+								Fase A is dan niet verloren.
+							</p>
+						</div>
+					</div>
+				</section>
+
+				<!-- 07 -->
+				<section id="risicos">
+					<div class="eyebrow">Wat kan misgaan</div>
+					<h2>Risico's</h2>
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>Risico</th>
+									<th>Waarom</th>
+									<th>Mitigatie</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>Focusverlies</td>
+									<td>
+										TODO.md heeft nog veel P1/P2-werk voor Streamer.bot- en
+										StreamElements-pariteit.
+									</td>
+									<td>
+										Fase A telt voor beide richtingen. Parkeer P2-monetisatie
+										(donaties, loyalty store) tot na de validatie.
+									</td>
+								</tr>
+								<tr>
+									<td>Hardware-testmatrix</td>
+									<td>ATEM, PTZ en mengpanelen zijn duur en divers.</td>
+									<td>
+										Gebruik emulators en de software-ATEM, test met pilotkerken,
+										en houd plugins dun bovenop bewezen libraries.
+									</td>
+								</tr>
+								<tr>
+									<td>Betrouwbaarheid</td>
+									<td>Een crash tijdens een dienst kost direct vertrouwen.</td>
+									<td>
+										Crash-herstel, een operatormodus, en een "veilige modus"
+										zonder externe plugins.
+									</td>
+								</tr>
+								<tr>
+									<td>Alleen Windows</td>
+									<td>Kerken en theaters gebruiken vaak een Mac.</td>
+									<td>macOS-release in fase B (TODO P0).</td>
+								</tr>
+								<tr>
+									<td>Companion is gratis</td>
+									<td>Gevestigde, geliefde open-sourcehub.</td>
+									<td>
+										Integreer via een Companion-module. Onderscheid je met
+										overlays, logica en templates, niet met knoppen.
+									</td>
+								</tr>
+								<tr>
+									<td>PowerToys groeit</td>
+									<td>Microsoft voegt gratis hotkey → actie toe.</td>
+									<td>
+										Concurreer op ketens, state en overlays, waar PowerToys niet
+										heen gaat.
+									</td>
+								</tr>
+								<tr>
+									<td>Merknaam</td>
+									<td>"Stream Kit" klinkt als streamingtool.</td>
+									<td>
+										Eerst use-case-pagina's; een naambeslissing pas na
+										validatie.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<!-- 08 -->
+				<section id="bronnen">
+					<div class="eyebrow">Onderbouwing</div>
+					<h2>Bronnen en betrouwbaarheid</h2>
+					<p class="small muted">
+						De webresearch is uitgevoerd op 3 oktober 2026. Prijzen komen deels van
+						vergelijkingssites. Marktgroottes van analistenbureaus lopen 2 tot 3 keer
+						uiteen, dus lees ze als richting. Reddit kon niet worden opgehaald;
+						pijnpunten komen uit artikelen, fora en GitHub-issues. Van SimHub, Touch
+						Portal, Stream Deck en Streamer.bot zijn geen publieke gebruikersaantallen
+						gevonden.
+					</p>
+					<div class="sources">
+						<p><strong>Live productie</strong></p>
+						<p>
+							<a href="https://bitfocus.io/companion">Bitfocus Companion</a> ·
+							<a href="https://github.com/bitfocus/companion/issues/3662"
+								>issue #3662</a
+							>
+							·
+							<a href="https://github.com/bitfocus/companion/discussions/2387"
+								>discussie #2387</a
+							>
+						</p>
+						<p>
+							<a href="https://h2r.graphics/posts/20260116-new-in-v3/"
+								>H2R Graphics v3</a
+							>
+							· <a href="https://www.singular.live/pricing">Singular</a> ·
+							<a href="https://www.loopic.io/pricing">Loopic</a>
+						</p>
+						<p>
+							<a
+								href="https://www.baptistmessenger.com/lifeway-research-5-current-challenges-facing-u-s-churches/"
+								>Lifeway via Baptist Messenger</a
+							>
+							·
+							<a
+								href="https://news.lifeway.com/2023/06/20/churchgoers-still-watch-livestream-services-at-least-occasionally/"
+								>Lifeway 2023</a
+							>
+						</p>
+						<p>
+							<a href="https://www.ravepubs.com/worship-market-money/"
+								>rAVe: worship market</a
+							>
+							·
+							<a
+								href="https://www.svconline.com/markets/church-av-market-size-confusing-topic-398429"
+								>SVC: marktgrootte</a
+							>
+						</p>
+						<p>
+							<a href="https://kerkdienstgemist.nl/">Kerkdienstgemist</a> ·
+							<a href="https://info.kerkdienstgemist.nl/kerk/kerktv-kijken">KerkTV</a>
+						</p>
+						<p>
+							<a href="https://nfhsnetwork.playonsports.com/overview">NFHS Network</a>
+							·
+							<a
+								href="https://esportsinsider.com/2025/07/playvs-college-league-scholastic-esports"
+								>PlayVS</a
+							>
+						</p>
+						<p>
+							<a
+								href="https://www.christianitytoday.com/2022/07/church-volunteer-technology-av-livestream-pandemic-training/"
+								>Christianity Today: AV-vrijwilligers</a
+							>
+							·
+							<a
+								href="https://soundpro.com/blogs/house-of-worship/church-live-streaming-equipment-guide-2026"
+								>SoundPro gids 2026</a
+							>
+						</p>
+						<p><strong>Interactie en hobby</strong></p>
+						<p>
+							<a href="https://kahoot.com/company/">Kahoot</a> ·
+							<a href="https://getlatka.com/companies/mentimeter">Mentimeter omzet</a>
+							·
+							<a href="https://smartpubtools.com/best-digital-pub-quiz-software-2025/"
+								>Pubquizsoftware 2025</a
+							>
+						</p>
+						<p>
+							<a
+								href="https://www.fortunebusinessinsights.com/racing-simulator-market-115926"
+								>Racing-simulatormarkt</a
+							>
+							·
+							<a
+								href="https://boxthislap.org/iracing-breaks-historic-record-with-300000-simultaneous-active-accounts/"
+								>iRacing-record</a
+							>
+						</p>
+						<p>
+							<a
+								href="https://www.marketreportsworld.com/market-reports/tabletop-role-playing-game-ttrpg-market-14722144"
+								>TTRPG-markt</a
+							>
+							· <a href="https://www.owlbear.rodeo/pricing">Owlbear Rodeo</a>
+						</p>
+						<p>
+							<a href="https://www.touch-portal.com/">Touch Portal</a> ·
+							<a href="https://docs.elgato.com/sdk/plugins/distribution"
+								>Elgato Marketplace</a
+							>
+							·
+							<a
+								href="https://ir.corsair.com/news-releases/news-release-details/elgato-launches-stream-deck-studio-collaboration-bitfocus-brings"
+								>Stream Deck Studio × Bitfocus</a
+							>
+						</p>
+						<p><strong>Automatisering en adjacent</strong></p>
+						<p>
+							<a href="https://n8n.io/pricing/">n8n</a> ·
+							<a
+								href="https://siliconangle.com/2025/10/09/nvidia-backs-180m-round-workflow-automation-startup-n8n/"
+								>n8n Series C</a
+							>
+							·
+							<a
+								href="https://automationatlas.io/answers/activepieces-pricing-explained-2026/"
+								>Activepieces</a
+							>
+						</p>
+						<p>
+							<a href="https://lumiastream.com/pricing">Lumia Stream</a> ·
+							<a href="https://streamer.bot/">Streamer.bot</a> ·
+							<a
+								href="https://meldstudio.co/blog/best-streamelements-alternatives-in-2026/"
+								>Meld: alternatieven</a
+							>
+						</p>
+						<p>
+							<a
+								href="https://digitalsignage.com/digital_signage/docs/guides/digital-signage-pricing-index-2026/"
+								>Signage-prijsindex 2026</a
+							>
+						</p>
+						<p>
+							<a href="https://www.yaps.ai/blog/talon-voice-alternative"
+								>Talon en Dragon</a
+							>
+							·
+							<a href="https://www.eengoedhulpmiddel.nl/praktische-informatie/uwv"
+								>UWV-hulpmiddelen</a
+							>
+						</p>
+					</div>
+				</section>
+
+				<footer>
+					Stream Kit · marktverkenning · opgesteld op 3 oktober 2026 op basis van de
+					codebase (commit c94b92d) en webresearch
+				</footer>
+			</main>
+		</div>
+	</body>
+</html>

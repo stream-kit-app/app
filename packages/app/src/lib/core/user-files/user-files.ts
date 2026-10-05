@@ -1,6 +1,6 @@
 import type { RecordModel } from 'pocketbase';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import type { Auth } from '../auth/auth.svelte';
 import { pocketBaseErrorMessage } from '../auth/auth-utils';

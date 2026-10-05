@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { Modal } from '$lib/core/modal';
+	import type { Modal } from '#lib/core/modal/index.js';
 
 	import Icon from '@iconify/svelte';
 	import { Dialog } from 'bits-ui';
 
 	import { ScrollArea } from '@stream-kit/ui/scroll-area';
 
-	import PluginComponentHost from '$lib/components/core/plugins/plugin-component-host.svelte';
-	import { getModalPanelWidth } from '$lib/components/core/modal/modal-panel-width';
-	import { MODAL_OVERLAY_DURATION_MS } from '$lib/components/core/modal/modal-overlay-motion';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import PluginComponentHost from '#lib/components/core/plugins/plugin-component-host.svelte';
+	import { getModalPanelWidth } from '#lib/components/core/modal/modal-panel-width.js';
+	import { MODAL_OVERLAY_DURATION_MS } from '#lib/components/core/modal/modal-overlay-motion.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		modal: Modal;

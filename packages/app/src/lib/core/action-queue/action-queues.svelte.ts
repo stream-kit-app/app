@@ -8,8 +8,8 @@ import {
 	saveActionQueue,
 	type ActionQueueRecord,
 	type SaveActionQueueInput
-} from '$db';
-import { DEFAULT_ACTION_QUEUE_NAME } from '$lib/core/action/stored-action';
+} from '#db';
+import { DEFAULT_ACTION_QUEUE_NAME } from '#lib/core/action/stored-action.js';
 
 import { QUEUE_CONCURRENCY_UNLIMITED } from './queue-mode';
 import type {

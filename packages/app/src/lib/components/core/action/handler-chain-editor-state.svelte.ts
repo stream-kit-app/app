@@ -1,9 +1,9 @@
-import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
+import type { ActionHandler } from '#lib/core/action/action-handler.svelte.js';
 
 import { getContext, setContext } from 'svelte';
 import { SvelteSet } from 'svelte/reactivity';
 
-import { findHandler, flattenActionHandlers } from '$lib/core/action/handler-tree';
+import { findHandler, flattenActionHandlers } from '#lib/core/action/handler-tree.js';
 
 const HANDLER_CHAIN_EDITOR_STATE_KEY = Symbol('handler-chain-editor-state');
 

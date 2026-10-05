@@ -7,7 +7,7 @@ alwaysApply: true
 
 Plugin custom views, modals, widgets, and dashboard widgets are **not** rendered by the app Vite Svelte tree. `PluginComponentHost` mounts them with the **plugin-host** Svelte runtime (`/plugin-host/svelte.js` + import map for `svelte`, `@stream-kit/ui`, etc.).
 
-The app shell (`+layout.svelte`, `$lib`, routes) uses a **different** Svelte module instance.
+The app shell (`+layout.svelte`, `#lib`, routes) uses a **different** Svelte module instance.
 
 Treat “plugin bug” / “plugin UI crash” as a **two-runtime** problem until proven otherwise.
 
@@ -16,7 +16,7 @@ Treat “plugin bug” / “plugin UI crash” as a **two-runtime** problem unti
 | Same runtime | Cross-runtime (unsafe unless designed for it) |
 | --- | --- |
 | Plugin view ↔ plugin-host `@stream-kit/ui` / `svelte` | Passing Svelte **snippets**, **components**, or compiler internals from plugin → app (or reverse) and rendering them |
-| App routes / `$lib` ↔ app Vite `svelte` / `@stream-kit/ui` | Assuming one Bits UI provider, portal root, or module singleton serves both trees |
+| App routes / `#lib` ↔ app Vite `svelte` / `@stream-kit/ui` | Assuming one Bits UI provider, portal root, or module singleton serves both trees |
 | Plain data via `app.*` (strings, numbers, JSON, callbacks that only use platform APIs) | Sharing reactive Svelte state objects across the boundary |
 
 Typical symptoms: `Cannot read properties of null (reading 'nodes')`, `derived_inert`, stacks that mix **plugin-host** `client-*.js` with **app** layout providers.

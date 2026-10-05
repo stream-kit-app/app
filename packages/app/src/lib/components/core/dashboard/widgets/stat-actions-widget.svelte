@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { PluginWidgetProps } from '$lib/core/plugins/types';
+	import type { PluginWidgetProps } from '#lib/core/plugins/types.js';
 
 	import { WidgetStat } from '@stream-kit/ui/widget';
 
-	import { getApp } from '$lib/core/registry';
+	import { getApp } from '#lib/core/registry.js';
 
 	let { app }: PluginWidgetProps = $props();
 

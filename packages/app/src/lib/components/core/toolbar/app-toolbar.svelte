@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { ButtonVariant } from '@stream-kit/ui/button';
-	import type { ToolbarAction } from '$lib/core/toolbar';
+	import type { ToolbarAction } from '#lib/core/toolbar/index.js';
 
 	import Icon from '@iconify/svelte';
 
 	import { Button } from '@stream-kit/ui/button';
 	import { InputCheckbox } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { cn } from '$lib/utils';
+	import { app } from '#lib/core/index.js';
+	import { cn } from '#lib/utils.js';
 
 	const toolbar = $derived(app.toolbar);
 

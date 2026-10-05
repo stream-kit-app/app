@@ -2,8 +2,8 @@
 	import type { DndDragEvent } from './dnd-events';
 	import type { HandlerChainEditorHost } from './handler-chain-editor.types';
 	import type { TranslateFn } from './resolve-translate';
-	import type { ActionHandler, HandlerBranch } from '$lib/core/action/action-handler.svelte';
-	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+	import type { ActionHandler, HandlerBranch } from '#lib/core/action/action-handler.svelte.js';
+	import type { HandlerDefinition } from '#lib/core/action/handler/handler-definition.svelte.js';
 
 	import {
 		DragDropProvider,
@@ -15,7 +15,7 @@
 
 	import { Label } from '@stream-kit/ui/input';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
 	import { applyDndMove } from './dnd-events';

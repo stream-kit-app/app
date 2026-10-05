@@ -8,11 +8,11 @@
 		PluginCard,
 		PluginCheckUpdatesButton,
 		PluginInstallButton
-	} from '$lib/components/core/plugins';
-	import { resolvePluginStatus } from '$lib/components/core/plugins/plugin-actions';
-	import { app } from '$lib/core';
-	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
-	import { useI18n } from '$lib/i18n';
+	} from '#lib/components/core/plugins/index.js';
+	import { resolvePluginStatus } from '#lib/components/core/plugins/plugin-actions.js';
+	import { app } from '#lib/core/index.js';
+	import { pluginUpdates } from '#lib/core/plugins/plugin-updates.svelte.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 

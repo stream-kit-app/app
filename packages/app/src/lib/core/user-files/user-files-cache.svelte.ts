@@ -1,6 +1,6 @@
 import { appDataDir, join, sep } from '@tauri-apps/api/path';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { BaseDirectory } from '../filesystem';
 import type { Filesystem } from '../filesystem';

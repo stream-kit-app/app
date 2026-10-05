@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { TranslateFn } from './resolve-translate';
-	import type { HandlerDefinition } from '$lib/core/action/handler/handler-definition.svelte';
+	import type { HandlerDefinition } from '#lib/core/action/handler/handler-definition.svelte.js';
 	import type { Snippet } from 'svelte';
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	import DefinitionPickerDropdown from './definition-picker-dropdown.svelte';
 	import { getHandlerChainDndContext } from './handler-chain-dnd-context.svelte';

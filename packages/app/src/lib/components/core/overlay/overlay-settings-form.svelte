@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { OverlaySettingsDefinition } from '$lib/core/overlay/overlay-settings.svelte';
+	import type { OverlaySettingsDefinition } from '#lib/core/overlay/overlay-settings.svelte.js';
 
-	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
-	import { app } from '$lib/core';
-	import { getSettingsFieldInstance } from '$lib/core/settings/settings-field';
-	import { useI18n } from '$lib/i18n';
+	import SettingsFieldGroup from '#lib/components/core/settings/settings-field-group.svelte';
+	import { app } from '#lib/core/index.js';
+	import { getSettingsFieldInstance } from '#lib/core/settings/settings-field.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	type Props = {
 		settings: OverlaySettingsDefinition;

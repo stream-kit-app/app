@@ -14,11 +14,11 @@ export function svelteScaffold(slug: string, overlayId: string) {
 				check: 'svelte-check --tsconfig ./tsconfig.json'
 			},
 			devDependencies: {
-				'@sveltejs/vite-plugin-svelte': '^7.1.2',
-				svelte: '^5.56.1',
-				'svelte-check': '^4.5.0',
+				'@sveltejs/vite-plugin-svelte': '^7.3.1',
+				svelte: '^5.57.1',
+				'svelte-check': '^4.7.6',
 				typescript: '~6.0.3',
-				vite: '^8.0.16'
+				vite: '^8.3.2'
 			}
 		},
 		null,

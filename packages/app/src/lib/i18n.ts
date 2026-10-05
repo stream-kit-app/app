@@ -3,10 +3,7 @@ import { createContext } from 'svelte';
 
 type LocaleDictionary = Record<string, string>;
 
-export type I18nContext = I18nInstance<
-	'en' | 'nl',
-	{ en: () => Promise<LocaleDictionary>; nl: () => Promise<LocaleDictionary> }
->;
+export type I18nContext = I18nInstance<LocaleDictionary, 'en' | 'nl'>;
 
 const [getContext, setContext] = createContext<I18nContext>();
 

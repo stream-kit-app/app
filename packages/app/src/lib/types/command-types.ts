@@ -1,4 +1,4 @@
-import type { StoredActionHandler } from '$lib/core/action/stored-action';
+import type { StoredActionHandler } from '#lib/core/action/stored-action.js';
 
 export type CommandSource = 'twitch' | 'youtube';
 

@@ -2,7 +2,7 @@
 	import { Badge } from '@stream-kit/ui/badge';
 	import { WidgetList, WidgetRow } from '@stream-kit/ui/widget';
 
-	import { useI18n } from '$lib/i18n';
+	import { useI18n } from '#lib/i18n.js';
 
 	type ObsConnection = {
 		isConnected: boolean;

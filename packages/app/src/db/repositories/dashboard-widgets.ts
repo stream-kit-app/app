@@ -1,12 +1,12 @@
-import { createSyncId } from '$db/sync-id';
-import { notifyConfigLocalChange } from '$db/config-sync-notify';
+import { createSyncId } from '#db/sync-id.js';
+import { notifyConfigLocalChange } from '#db/config-sync-notify.js';
 import { recordConfigSyncTombstone } from './config-sync-tombstones';
-import type { PluginWidgetColumns } from '$lib/core/plugins/types';
-import type { DashboardWidgetLayoutUpdate } from '$lib/core/dashboard/types';
+import type { PluginWidgetColumns } from '#lib/core/plugins/types.js';
+import type { DashboardWidgetLayoutUpdate } from '#lib/core/dashboard/types.js';
 
 import { asc, eq, max, sql } from 'drizzle-orm';
 
-import { DEFAULT_DASHBOARD_LAYOUT } from '$lib/core/dashboard/types';
+import { DEFAULT_DASHBOARD_LAYOUT } from '#lib/core/dashboard/types.js';
 
 import { db } from '../index';
 import { dashboardWidgets } from '../schemas/dashboard-widgets';

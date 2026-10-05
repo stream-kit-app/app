@@ -1,10 +1,10 @@
 import type { BuiltinWidgetDefinition } from './types';
 
-import ConnectionsWidget from '$lib/components/core/dashboard/widgets/connections-widget.svelte';
-import PluginStatusWidget from '$lib/components/core/dashboard/widgets/plugin-status-widget.svelte';
-import RunningActionsWidget from '$lib/components/core/dashboard/widgets/running-actions-widget.svelte';
-import StatActionsWidget from '$lib/components/core/dashboard/widgets/stat-actions-widget.svelte';
-import StatPluginsWidget from '$lib/components/core/dashboard/widgets/stat-plugins-widget.svelte';
+import ConnectionsWidget from '#lib/components/core/dashboard/widgets/connections-widget.svelte';
+import PluginStatusWidget from '#lib/components/core/dashboard/widgets/plugin-status-widget.svelte';
+import RunningActionsWidget from '#lib/components/core/dashboard/widgets/running-actions-widget.svelte';
+import StatActionsWidget from '#lib/components/core/dashboard/widgets/stat-actions-widget.svelte';
+import StatPluginsWidget from '#lib/components/core/dashboard/widgets/stat-plugins-widget.svelte';
 
 import { getApp } from '../registry';
 

@@ -2,14 +2,14 @@ import type { RecordModel } from 'pocketbase';
 
 import type { App } from '../../app.svelte';
 import type { SyncAdapter } from '../adapter';
-import type { DashboardWidgetRecord } from '$db/schemas/dashboard-widgets';
+import type { DashboardWidgetRecord } from '#db/schemas/dashboard-widgets.js';
 
 import {
 	deleteDashboardWidgetBySyncIdFromSync,
 	getDashboardWidgets,
 	upsertDashboardWidgetFromSync
-} from '$db/repositories/dashboard-widgets';
-import { writeConfigSyncTrash } from '$db/repositories/config-sync-trash';
+} from '#db/repositories/dashboard-widgets.js';
+import { writeConfigSyncTrash } from '#db/repositories/config-sync-trash.js';
 
 import { readRevision, toEpochMs } from '../sync-loop';
 

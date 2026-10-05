@@ -1,4 +1,4 @@
-import { getApp } from '$lib/core/registry';
+import { getApp } from '#lib/core/registry.js';
 
 /**
  * Shared state for auth modals: the content renders the `<form>` and fields,

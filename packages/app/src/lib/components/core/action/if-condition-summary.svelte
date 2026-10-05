@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { TranslateFn } from './resolve-translate';
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
-	import type { IfSummaryPart } from '$lib/core/action/if-condition';
+	import type { ActionHandler } from '#lib/core/action/action-handler.svelte.js';
+	import type { IfSummaryPart } from '#lib/core/action/if-condition.js';
 
-	import { summarizeIfCondition } from '$lib/core/action/if-condition';
-	import { cn } from '$lib/utils';
+	import { summarizeIfCondition } from '#lib/core/action/if-condition.js';
+	import { cn } from '#lib/utils.js';
 
 	import { resolveTranslate } from './resolve-translate';
 

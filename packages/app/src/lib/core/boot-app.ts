@@ -1,4 +1,4 @@
-import { initDb, runRegisteredPluginMigrations } from '$db';
+import { initDb, runRegisteredPluginMigrations } from '#db';
 
 import { app } from './app-init';
 import { registerBuiltinDashboardWidgets } from './dashboard/register-builtin-widgets';

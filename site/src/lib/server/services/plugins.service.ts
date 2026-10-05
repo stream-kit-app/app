@@ -1,11 +1,11 @@
 import type { ExpandedRecord } from '../pocketbase/expand-relations';
-import type { ListPluginsFilters, PluginSort } from '$lib/plugins/marketplace';
+import type { ListPluginsFilters, PluginSort } from '#lib/plugins/marketplace.js';
 import type { ServiceError } from './base.service';
 import type { ResultAsync } from 'neverthrow';
 
 import { fromPromise } from 'neverthrow';
 
-import { filesSchema, pluginsSchema, pluginVersionsSchema } from '$lib/pocketbase/schema';
+import { filesSchema, pluginsSchema, pluginVersionsSchema } from '#lib/pocketbase/schema.js';
 
 import { expand } from '../pocketbase/expand-relations';
 import { Service } from './base.service';

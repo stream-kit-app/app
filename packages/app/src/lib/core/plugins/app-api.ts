@@ -4,14 +4,14 @@ import type { ActionRecord, NewActionRecord } from '../action/stored-action';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
 import type { CommandRuntimeFactory, PluginAppApi, PluginDbClient } from './plugin-app-api.types';
-import type { PluginMigration } from '$db/plugin-migrations';
-import type { TranslationKey } from '$lib/i18n';
-import type { CommandRecord, NewCommandRecord } from '$lib/types/command-types';
+import type { PluginMigration } from '#db/plugin-migrations.js';
+import type { TranslationKey } from '#lib/i18n.js';
+import type { CommandRecord, NewCommandRecord } from '#lib/types/command-types.js';
 
-import { db } from '$db/index';
-import { registerPluginMigrations } from '$db/plugin-migrations';
+import { db } from '#db/index.js';
+import { registerPluginMigrations } from '#db/plugin-migrations.js';
 
-import { getI18n, translate } from '$lib/i18n';
+import { getI18n, translate } from '#lib/i18n.js';
 
 import { createFilesystemApi } from '../filesystem/create-api';
 import { getVideoFileDurationMs } from '../media/file-duration';
@@ -201,7 +201,7 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			fetchBlob: app.userFiles.fetchBlob.bind(app.userFiles),
 			pick: async (options) => {
 				const { openCloudFilePicker } =
-					await import('$lib/components/core/user-files/open-cloud-file-picker');
+					await import('#lib/components/core/user-files/open-cloud-file-picker.js');
 				return openCloudFilePicker({
 					filters: options?.extensions
 						? [{ name: 'Files', extensions: options.extensions }]

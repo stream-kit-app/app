@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { Action } from '$lib/core/action/action.svelte';
-	import type { PluginWidgetProps } from '$lib/core/plugins/types';
+	import type { Action } from '#lib/core/action/action.svelte.js';
+	import type { PluginWidgetProps } from '#lib/core/plugins/types.js';
 
 	import Icon from '@iconify/svelte';
 
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { WidgetFooterLink, WidgetList, WidgetRow } from '@stream-kit/ui/widget';
 
-	import { findHandler, flattenActionHandlers } from '$lib/core/action/handler-tree';
-	import { getApp } from '$lib/core/registry';
+	import { findHandler, flattenActionHandlers } from '#lib/core/action/handler-tree.js';
+	import { getApp } from '#lib/core/registry.js';
 
 	let { app }: PluginWidgetProps = $props();
 

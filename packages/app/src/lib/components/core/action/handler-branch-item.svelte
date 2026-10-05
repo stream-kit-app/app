@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { TranslateFn } from './resolve-translate';
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
+	import type { ActionHandler } from '#lib/core/action/action-handler.svelte.js';
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 
 	import { Button } from '@stream-kit/ui/button';
 
-	import { isIfHandler } from '$lib/core/action/if-condition';
-	import { cn } from '$lib/utils';
+	import { isIfHandler } from '#lib/core/action/if-condition.js';
+	import { cn } from '#lib/utils.js';
 
 	import HandlerNameLabel from './handler-name-label.svelte';
 	import IfConditionSummary from './if-condition-summary.svelte';

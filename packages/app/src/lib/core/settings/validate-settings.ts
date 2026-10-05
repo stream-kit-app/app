@@ -1,7 +1,7 @@
 import type { SettingsVisibilityContext } from './context';
 import type { SettingsFieldInstance, SettingsFieldItem } from './field';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import {
 	filterVisibleFieldItems,

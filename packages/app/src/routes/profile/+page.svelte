@@ -11,11 +11,11 @@
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputText } from '@stream-kit/ui/input';
 
-	import { openLoginModal, UserAvatar } from '$lib/components/core/auth';
-	import { CloudFileManager } from '$lib/components/core/user-files';
-	import { app } from '$lib/core';
-	import { AUTH_AVATAR_MAX_BYTES, validateAvatarFile } from '$lib/core/auth';
-	import { useI18n } from '$lib/i18n';
+	import { openLoginModal, UserAvatar } from '#lib/components/core/auth/index.js';
+	import { CloudFileManager } from '#lib/components/core/user-files/index.js';
+	import { app } from '#lib/core/index.js';
+	import { AUTH_AVATAR_MAX_BYTES, validateAvatarFile } from '#lib/core/auth/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 

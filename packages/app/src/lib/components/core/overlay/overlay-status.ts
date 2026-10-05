@@ -1,7 +1,7 @@
-import type { SaveOverlayInput } from '$db/repositories/overlays';
-import type { TranslationKey } from '$lib/i18n';
+import type { SaveOverlayInput } from '#db/repositories/overlays.js';
+import type { TranslationKey } from '#lib/i18n.js';
 
-import { getApp } from '$lib/core/registry';
+import { getApp } from '#lib/core/registry.js';
 
 export type OverlayStatus = 'unavailable' | 'not-built' | 'building' | 'ready';
 

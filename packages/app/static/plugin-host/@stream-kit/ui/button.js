@@ -1,3 +1,3 @@
-import { n as e, t } from "../../chunks/button-rY2iKe1u.js";
-import "../../chunks/button-BWDTVjor.js";
+import { n as e, t } from "../../chunks/button-DGOI4Wpk.js";
+import "../../chunks/button-CBfuPA65.js";
 export { t as Button, e as buttonVariants };

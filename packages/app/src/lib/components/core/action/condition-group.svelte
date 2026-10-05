@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { ConditionEditor } from '$lib/core/action/condition-editor';
+	import type { ConditionEditor } from '#lib/core/action/condition-editor.js';
 	import type {
 		ConditionGroupNode,
 		ConditionLeafNode,
 		ConditionNode,
 		ResolvedConditionDefinition
-	} from '$lib/core/action/trigger';
-	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
-	import type { HandlerFieldVariable } from '$lib/core/action/handler/field';
-	import type { ConditionFormErrors } from '$lib/core/action/validate-form';
+	} from '#lib/core/action/trigger/index.js';
+	import type { SelectItemsSource } from '#lib/core/action/trigger/condition.js';
+	import type { HandlerFieldVariable } from '#lib/core/action/handler/field.js';
+	import type { ConditionFormErrors } from '#lib/core/action/validate-form.js';
 	import type { FormEventHandler } from 'svelte/elements';
 
 	import { tooltip } from '@stream-kit/ui/attachments';
@@ -25,8 +25,8 @@
 		Label
 	} from '@stream-kit/ui/input';
 
-	import { mergeContextVariables } from '$lib/core/action/variable-helpers';
-	import { cn } from '$lib/utils';
+	import { mergeContextVariables } from '#lib/core/action/variable-helpers.js';
+	import { cn } from '#lib/utils.js';
 
 	import Self from './condition-group.svelte';
 	import ConditionSelectValueLabel from './condition-select-value-label.svelte';

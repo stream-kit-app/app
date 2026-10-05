@@ -68,7 +68,7 @@
 	}
 
 	:global(.plugin-markdown a) {
-		color: var(--color-primary-200);
+		color: var(--color-primary);
 		text-decoration: underline;
 		text-underline-offset: 2px;
 		cursor: pointer;
@@ -84,17 +84,17 @@
 	}
 
 	:global(.plugin-markdown code) {
-		border-radius: 0.35rem;
-		background: color-mix(in oklch, var(--color-dark-700) 80%, transparent);
+		border-radius: var(--radius-sm);
+		background: var(--color-dark-800);
 		padding: 0.15em 0.4em;
 		font-size: 0.875em;
 	}
 
 	:global(.plugin-markdown pre) {
 		overflow-x: auto;
-		border-radius: 0.75rem;
-		border: 1px solid var(--color-dark-600);
-		background: var(--color-dark-900);
+		border-radius: var(--radius-xl);
+		border: 1px solid var(--color-rule);
+		background: var(--color-surface);
 		padding: 1rem;
 	}
 
@@ -104,9 +104,9 @@
 	}
 
 	:global(.plugin-markdown blockquote) {
-		border-left: 3px solid var(--color-primary-400);
+		border-left: 2px solid var(--color-primary);
 		padding-left: 1rem;
-		color: var(--color-dark-200);
+		color: var(--color-muted-foreground);
 	}
 
 	:global(.plugin-markdown table) {
@@ -118,12 +118,13 @@
 
 	:global(.plugin-markdown th),
 	:global(.plugin-markdown td) {
-		border: 1px solid var(--color-dark-600);
+		border: 1px solid var(--color-rule);
 		padding: 0.5rem 0.75rem;
 		text-align: left;
 	}
 
 	:global(.plugin-markdown th) {
-		background: var(--color-dark-800);
+		background: var(--color-dark-900);
+		font-weight: 600;
 	}
 </style>

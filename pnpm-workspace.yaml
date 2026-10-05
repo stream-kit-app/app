@@ -10,3 +10,11 @@ onlyBuiltDependencies:
     - '@tailwindcss/oxide'
     - esbuild
     - workerd
+
+# runed/bits-ui declare an optional peer on SvelteKit 2; keep a single Kit 3 in the tree.
+overrides:
+    '@sveltejs/kit': ^3.0.0
+
+peerDependencyRules:
+    allowedVersions:
+        '@sveltejs/kit': '3'

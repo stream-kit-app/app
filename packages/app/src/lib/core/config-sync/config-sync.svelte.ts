@@ -8,8 +8,8 @@ import {
 	pocketBaseErrorMessage
 } from '../auth/auth-utils';
 import type { SyncUpsertRemoteOptions } from './adapter';
-import { translate } from '$lib/i18n';
-import { setConfigSyncLocalChangeHandler } from '$db/config-sync-notify';
+import { translate } from '#lib/i18n.js';
+import { setConfigSyncLocalChangeHandler } from '#db/config-sync-notify.js';
 
 import { createActionAdapter } from './adapters/actions';
 import { createActionQueueAdapter } from './adapters/action-queues';

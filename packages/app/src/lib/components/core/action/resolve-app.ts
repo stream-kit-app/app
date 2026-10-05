@@ -1,6 +1,6 @@
 import type { PluginAppApi } from '@stream-kit/plugin';
 
-import { getApp, tryGetApp } from '$lib/core/registry';
+import { getApp, tryGetApp } from '#lib/core/registry.js';
 
 export function resolveApp(prop?: PluginAppApi): PluginAppApi {
 	if (prop) {

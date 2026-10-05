@@ -1,6 +1,4 @@
-import { json } from '@sveltejs/kit';
-
-import { pocketbaseFileUrl } from '$lib/server/pocketbase/file-url';
+import { pocketbaseFileUrl } from '#lib/server/pocketbase/file-url.js';
 
 import type { RequestHandler } from './$types';
 
@@ -18,22 +16,22 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	const result = await locals.services.plugins().getLatestByKey(params.key);
 
 	if (result.isErr()) {
-		return json({ message: result.error.message }, { status: 500 });
+		return Response.json({ message: result.error.message }, { status: 500 });
 	}
 
 	const version = result.value;
 
 	if (!version) {
-		return json({ message: 'Plugin not found' }, { status: 404 });
+		return Response.json({ message: 'Plugin not found' }, { status: 404 });
 	}
 
 	const { plugin, file } = version;
 
 	if (!file?.id || !file.file) {
-		return json({ message: 'Plugin release file not found' }, { status: 404 });
+		return Response.json({ message: 'Plugin release file not found' }, { status: 404 });
 	}
 
-	return json(
+	return Response.json(
 		{
 			key: plugin.key,
 			name: plugin.name,

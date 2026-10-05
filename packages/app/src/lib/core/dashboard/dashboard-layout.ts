@@ -1,7 +1,7 @@
 import type {
 	DashboardWidgetInstance,
 	DashboardWidgetLayoutUpdate
-} from '$lib/core/dashboard/types';
+} from '#lib/core/dashboard/types.js';
 
 export type DndWidgetItem = {
 	id: string;

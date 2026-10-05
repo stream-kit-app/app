@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { PluginWidgetProps } from '$lib/core/plugins/types';
+	import type { PluginWidgetProps } from '#lib/core/plugins/types.js';
 
-	import { getApp } from '$lib/core/registry';
+	import { getApp } from '#lib/core/registry.js';
 
 	import PluginStatusList from '../plugin-status-list.svelte';
 

@@ -2,14 +2,14 @@ import type { RecordModel } from 'pocketbase';
 
 import type { App } from '../../app.svelte';
 import type { SyncAdapter } from '../adapter';
-import type { PluginRecordRow } from '$db/schemas/plugin-records';
+import type { PluginRecordRow } from '#db/schemas/plugin-records.js';
 
 import {
 	deletePluginRecordBySyncIdFromSync,
 	listAllPluginRecords,
 	snapshotPluginRecordToTrash,
 	upsertPluginRecordFromSync
-} from '$db/repositories/plugin-records';
+} from '#db/repositories/plugin-records.js';
 
 import { readRevision, toEpochMs } from '../sync-loop';
 

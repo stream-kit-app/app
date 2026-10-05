@@ -18,9 +18,9 @@
 		HandlerFieldScalarValue,
 		HandlerFieldVariable,
 		HandlerOneOfInnerFieldDefinition
-	} from '$lib/core/action/handler/field';
-	import type { SelectItemsSource } from '$lib/core/action/trigger/condition';
-	import type { ActionHandler } from '$lib/core/action/action-handler.svelte';
+	} from '#lib/core/action/handler/field.js';
+	import type { SelectItemsSource } from '#lib/core/action/trigger/condition.js';
+	import type { ActionHandler } from '#lib/core/action/action-handler.svelte.js';
 	import {
 		hasCloudFileAccess,
 		isLocalFilePath,
@@ -29,7 +29,7 @@
 		toStoredCloudFileValue,
 		uploadLocalFileToCloud,
 		usesCloudFileStorage
-	} from '$lib/components/core/user-files/cloud-file-actions';
+	} from '#lib/components/core/user-files/cloud-file-actions.js';
 	import { resolveApp } from './resolve-app';
 	import { resolveVariablesForField } from './resolve-field-variables';
 	import { resolveTranslate, type TranslateFn } from './resolve-translate';

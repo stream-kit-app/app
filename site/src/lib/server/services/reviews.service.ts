@@ -5,7 +5,7 @@ import type { ResultAsync } from 'neverthrow';
 import { errAsync, fromPromise, okAsync } from 'neverthrow';
 import { z } from 'zod';
 
-import { pluginReviewsSchema } from '$lib/pocketbase/schema';
+import { pluginReviewsSchema } from '#lib/pocketbase/schema.js';
 
 import { expand } from '../pocketbase/expand-relations';
 import { Service } from './base.service';

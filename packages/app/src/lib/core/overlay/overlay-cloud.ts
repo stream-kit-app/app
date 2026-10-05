@@ -1,14 +1,14 @@
 import type { App } from '../app.svelte';
 
-import { translate } from '$lib/i18n';
-import { env } from '$env/dynamic/public';
+import { translate } from '#lib/i18n.js';
+import { PUBLIC_SITE_URL } from '$app/env/public';
 
 import { pocketBaseErrorMessage } from '../auth/auth-utils';
 import { buildOverlayDistZip } from './overlay-export';
 import { isOverlayBuilt } from './overlay-project';
 import { overlayCloudBrowserSourceUrl } from './types';
 
-export function resolveSiteUrl(raw: string | undefined = env.PUBLIC_SITE_URL): string | null {
+export function resolveSiteUrl(raw: string | undefined = PUBLIC_SITE_URL): string | null {
 	const trimmed = typeof raw === 'string' ? raw.trim().replace(/\/$/, '') : '';
 	if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
 		return null;

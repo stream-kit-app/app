@@ -238,7 +238,11 @@ fn verify_sha256(path: &Path, expected: &str) -> Result<(), String> {
         hasher.update(&buffer[..read]);
     }
 
-    let digest = format!("{:x}", hasher.finalize());
+    let digest: String = hasher
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
 
     if digest != expected {
         return Err("downloaded plugin archive failed SHA-256 verification".to_string());

@@ -11,19 +11,19 @@
 	import { InputCheckbox } from '@stream-kit/ui/input';
 	import { InputText } from '@stream-kit/ui/input';
 
-	import OverlaySettingsForm from '$lib/components/core/overlay/overlay-settings-form.svelte';
-	import { app } from '$lib/core';
-	import type { OverlaySettingsDefinition } from '$lib/core/overlay/overlay-settings.svelte';
+	import OverlaySettingsForm from '#lib/components/core/overlay/overlay-settings-form.svelte';
+	import { app } from '#lib/core/index.js';
+	import type { OverlaySettingsDefinition } from '#lib/core/overlay/overlay-settings.svelte.js';
 	import {
 		disabledRequiredPlugins,
 		formatRequiredPluginLabels,
 		missingRequiredPlugins
-	} from '$lib/core/overlay/overlay-dependencies';
-	import { getPresetEventSummary } from '$lib/core/overlay/overlay-action-presets';
-	import type { OverlayActionPresetValidation } from '$lib/core/overlay/overlay-action-presets';
-	import type { OverlayManifest } from '$lib/core/overlay/overlay-manifest';
-	import { getOverlayFrameworkIcon } from '$lib/core/overlay';
-	import { useI18n } from '$lib/i18n';
+	} from '#lib/core/overlay/overlay-dependencies.js';
+	import { getPresetEventSummary } from '#lib/core/overlay/overlay-action-presets.js';
+	import type { OverlayActionPresetValidation } from '#lib/core/overlay/overlay-action-presets.js';
+	import type { OverlayManifest } from '#lib/core/overlay/overlay-manifest.js';
+	import { getOverlayFrameworkIcon } from '#lib/core/overlay/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 

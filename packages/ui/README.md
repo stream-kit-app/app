@@ -80,7 +80,7 @@ External zip plugins cannot register `customViews`; they use declarative page bl
 ## Notes
 
 - Components assume the Stream Kit Tailwind theme is present in the host app.
-- This package must not import from `@stream-kit/app`, `$lib`, SvelteKit routes, app stores, app i18n, or Tauri APIs.
+- This package must not import from `@stream-kit/app`, `#lib`, SvelteKit routes, app stores, app i18n, or Tauri APIs.
 - Plugin menu pages must not use raw HTML, `{@html}`, or plugin-provided Svelte components.
 - Page block types and the generic `PageBlocks` renderer live in `@stream-kit/ui/blocks`.
 - Button blocks may define an `onClick` handler; the plugin controls that callback.

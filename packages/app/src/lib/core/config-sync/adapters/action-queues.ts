@@ -9,9 +9,9 @@ import {
 	replaceActionQueueSyncId,
 	upsertActionQueueFromSync,
 	type ActionQueueRecord
-} from '$db/repositories/action-queues';
-import { clearConfigSyncTombstone } from '$db/repositories/config-sync-tombstones';
-import { snapshotActionQueueToTrash } from '$db/repositories/config-sync-trash';
+} from '#db/repositories/action-queues.js';
+import { clearConfigSyncTombstone } from '#db/repositories/config-sync-tombstones.js';
+import { snapshotActionQueueToTrash } from '#db/repositories/config-sync-trash.js';
 import { DEFAULT_ACTION_QUEUE_NAME } from '../../action/stored-action';
 
 import { readRevision, toEpochMs } from '../sync-loop';
@@ -76,7 +76,7 @@ export function createActionQueueAdapter(app: App): SyncAdapter<ActionQueueRecor
 			if (!local || isDefaultActionQueue(local)) {
 				return;
 			}
-			const { deleteActionQueue } = await import('$db/repositories/action-queues');
+			const { deleteActionQueue } = await import('#db/repositories/action-queues.js');
 			await deleteActionQueue(local.id);
 		},
 		toRemotePayload(local, ctx) {

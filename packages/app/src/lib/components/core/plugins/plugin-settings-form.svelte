@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { RegisteredPlugin } from '$lib/core/plugins';
+	import type { RegisteredPlugin } from '#lib/core/plugins/index.js';
 
-	import SettingsFieldGroup from '$lib/components/core/settings/settings-field-group.svelte';
-	import { app } from '$lib/core';
+	import SettingsFieldGroup from '#lib/components/core/settings/settings-field-group.svelte';
+	import { app } from '#lib/core/index.js';
 
 	type Props = {
 		plugin: RegisteredPlugin;

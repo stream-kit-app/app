@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { AuthPublicUser } from '$lib/core/auth/types';
+	import type { AuthPublicUser } from '#lib/core/auth/types.js';
 
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		user: AuthPublicUser | null;

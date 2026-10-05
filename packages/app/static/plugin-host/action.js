@@ -1,5 +1,5 @@
-import { Jr as e, Lr as t, On as n, cr as r, nr as i, or as a } from "./chunks/client-xxWnFgeR.js";
-import { a as o } from "./chunks/dist-7Fg9me4U.js";
+import { Bn as e, Rr as t, Yr as n, _r as r, pr as i, yr as a } from "./chunks/client-BFeMv2Ma.js";
+import { a as o } from "./chunks/dist-DRvBcEUk.js";
 //#region src/lib/core/action/condition-tree.ts
 function s() {
 	return {
@@ -19,7 +19,7 @@ function l(e) {
 	} : e.type === "select-text" ? {
 		type: "",
 		value: ""
-	} : e.type === "checkbox" ? !0 : (e.type === "cron-expression" || e.type, "") : c(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
+	} : e.type === "checkbox" || (e.type === "cron-expression" || e.type, "") : c(e, e.defaultValue) ? { ...e.defaultValue } : e.defaultValue;
 }
 function u(e, t) {
 	return e?.find((e) => e.key === t);
@@ -120,7 +120,7 @@ function y(e, t) {
 function ne(e, t) {
 	if (e.type !== "condition-group" || t === void 0 || m(t)) return;
 	let n = e.migrateFromTextSelectText;
-	if (!(!n || typeof t != "object" || !("path" in t))) return g(t, n);
+	if (n && typeof t == "object" && "path" in t) return g(t, n);
 }
 function re(e, t) {
 	if (t === void 0 || e.type !== "one-of" || o(t) || typeof t != "string" && typeof t != "number" && typeof t != "boolean") return t;
@@ -151,7 +151,7 @@ function ie(e) {
 	return b(e);
 }
 function ae(e, t) {
-	if (!(e.type !== "one-of" || !t?.length || !e.migrateFrom?.length) && !t.some((t) => t.key === e.key)) for (let n of e.migrateFrom) {
+	if (e.type === "one-of" && t?.length && e.migrateFrom?.length && !t.some((t) => t.key === e.key)) for (let n of e.migrateFrom) {
 		let r = /* @__PURE__ */ new Map();
 		for (let e of n.keys) {
 			let i = t.find((t) => t.key === e);
@@ -177,7 +177,7 @@ function ae(e, t) {
 	}
 }
 function x(e, t) {
-	return !e || e.type === "one-of" ? !0 : w({
+	return !e || e.type === "one-of" || w({
 		...e,
 		key: "inner"
 	}, t);
@@ -197,7 +197,7 @@ function w(e, t) {
 		return x(r.field, i);
 	}
 	if (e.type === "condition-group") return !m(t) || t.children.length === 0;
-	if (e.type === "key-value-list") return !Array.isArray(t) || t.length === 0 ? !0 : t.every((e) => !e.key.trim());
+	if (e.type === "key-value-list") return !Array.isArray(t) || t.length === 0 || t.every((e) => !e.key.trim());
 	if (e.type === "text-select-text") {
 		if (!t || typeof t != "object" || !("path" in t)) return !0;
 		let n = t;
@@ -220,33 +220,33 @@ function E(e) {
 var D = class t {
 	id;
 	definition;
-	#e = r(i([]));
+	#e = a(i([]));
 	get fields() {
-		return n(this.#e);
+		return e(this.#e);
 	}
 	set fields(e) {
-		a(this.#e, e, !0);
+		r(this.#e, e, !0);
 	}
-	#t = r(i([]));
+	#t = a(i([]));
 	get thenHandlers() {
-		return n(this.#t);
+		return e(this.#t);
 	}
 	set thenHandlers(e) {
-		a(this.#t, e, !0);
+		r(this.#t, e, !0);
 	}
-	#n = r(i([]));
+	#n = a(i([]));
 	get elseHandlers() {
-		return n(this.#n);
+		return e(this.#n);
 	}
 	set elseHandlers(e) {
-		a(this.#n, e, !0);
+		r(this.#n, e, !0);
 	}
-	#r = r(!0);
+	#r = a(!0);
 	get blocking() {
-		return n(this.#r);
+		return e(this.#r);
 	}
 	set blocking(e) {
-		a(this.#r, e, !0);
+		r(this.#r, e, !0);
 	}
 	constructor(e, t) {
 		this.id = t?.id ?? crypto.randomUUID(), this.definition = e;
@@ -276,19 +276,19 @@ var D = class t {
 		this.elseHandlers = t;
 	}
 	toStored() {
-		let t = {
+		let e = {
 			id: this.id,
 			handlerTypeId: this.definition.id,
-			fields: e(this.fields)
+			fields: n(this.fields)
 		};
-		return this.blocking || (t.blocking = !1), this.thenHandlers.length > 0 && (t.thenHandlers = this.thenHandlers.map((e) => e.toStored())), this.elseHandlers.length > 0 && (t.elseHandlers = this.elseHandlers.map((e) => e.toStored())), t;
+		return this.blocking || (e.blocking = !1), this.thenHandlers.length > 0 && (e.thenHandlers = this.thenHandlers.map((e) => e.toStored())), this.elseHandlers.length > 0 && (e.elseHandlers = this.elseHandlers.map((e) => e.toStored())), e;
 	}
-	static clone(n) {
-		return new t(n.definition, {
-			fields: structuredClone(e(n.fields)),
-			thenHandlers: n.thenHandlers.map((e) => t.clone(e)),
-			elseHandlers: n.elseHandlers.map((e) => t.clone(e)),
-			blocking: n.blocking
+	static clone(e) {
+		return new t(e.definition, {
+			fields: structuredClone(n(e.fields)),
+			thenHandlers: e.thenHandlers.map((e) => t.clone(e)),
+			elseHandlers: e.elseHandlers.map((e) => t.clone(e)),
+			blocking: e.blocking
 		});
 	}
 };
@@ -314,12 +314,12 @@ function oe(e) {
 //#endregion
 //#region src/lib/core/action/handler/handler-definition.svelte.ts
 var se = class {
-	#e = r([]);
+	#e = a([]);
 	get items() {
-		return n(this.#e);
+		return e(this.#e);
 	}
 	set items(e) {
-		a(this.#e, e);
+		r(this.#e, e);
 	}
 	add(e, t = {}) {
 		let n = {
@@ -343,12 +343,12 @@ var se = class {
 }, A = class {
 	id;
 	name;
-	#e = r(!0);
+	#e = a(!0);
 	get isAvailable() {
-		return n(this.#e);
+		return e(this.#e);
 	}
 	set isAvailable(e) {
-		a(this.#e, e, !0);
+		r(this.#e, e, !0);
 	}
 	fields;
 	execute;
@@ -389,7 +389,7 @@ function le(e, t, n, r = "item") {
 }
 //#endregion
 //#region src/lib/core/action/run-handler-chain.ts
-async function ue(e, t, n, r) {
+async function M(e, t, n, r) {
 	let i = [], a = async (e, i, a) => {
 		let o = !1, s, c = () => {
 			o || (o = !0, r?.onHandlerComplete?.(e, i), s?.());
@@ -437,34 +437,34 @@ async function ue(e, t, n, r) {
 }
 //#endregion
 //#region src/lib/core/action/definition-id.ts
-function M(e) {
+function N(e) {
 	return e.split(":").map((e) => e.replace(/-\d+$/, "") || e).join(":");
 }
-function N(e, t) {
+function P(e, t) {
 	let n = e.find(t);
 	if (n) return n;
-	let r = M(t);
+	let r = N(t);
 	if (r !== t) return e.find(r);
 }
 //#endregion
 //#region src/lib/core/action/handler-tree.ts
-function P(e, t) {
-	for (let n of e) {
-		if (n.id === t) return n;
-		let e = P(n.children.items, t);
-		if (e) return e;
-	}
-}
 function F(e, t) {
 	for (let n of e) {
 		if (n.id === t) return n;
-		let e = F(n.thenHandlers, t);
+		let e = F(n.children.items, t);
 		if (e) return e;
-		let r = F(n.elseHandlers, t);
+	}
+}
+function I(e, t) {
+	for (let n of e) {
+		if (n.id === t) return n;
+		let e = I(n.thenHandlers, t);
+		if (e) return e;
+		let r = I(n.elseHandlers, t);
 		if (r) return r;
 	}
 }
-function I(e, t, n = null, r = null) {
+function L(e, t, n = null, r = null) {
 	for (let i = 0; i < e.length; i += 1) {
 		let a = e[i];
 		if (a.id === t) return {
@@ -473,36 +473,36 @@ function I(e, t, n = null, r = null) {
 			parent: n,
 			branch: r
 		};
-		let o = I(a.thenHandlers, t, a, "then");
+		let o = L(a.thenHandlers, t, a, "then");
 		if (o) return o;
-		let s = I(a.elseHandlers, t, a, "else");
+		let s = L(a.elseHandlers, t, a, "else");
 		if (s) return s;
 	}
 	return null;
 }
-function L(e, t, n) {
-	return R(e, (e) => N(t, e), n);
-}
 function R(e, t, n) {
+	return z(e, (e) => P(t, e), n);
+}
+function z(e, t, n) {
 	return new D(t(e.handlerTypeId) ?? n(e.handlerTypeId), {
 		id: e.id,
 		fields: E(e),
-		thenHandlers: (e.thenHandlers ?? []).map((e) => R(e, t, n)),
-		elseHandlers: (e.elseHandlers ?? []).map((e) => R(e, t, n)),
+		thenHandlers: (e.thenHandlers ?? []).map((e) => z(e, t, n)),
+		elseHandlers: (e.elseHandlers ?? []).map((e) => z(e, t, n)),
 		blocking: e.blocking !== !1
 	});
 }
-function z(e) {
+function B(e) {
 	return e.flatMap((e) => [
 		e,
-		...z(e.thenHandlers),
-		...z(e.elseHandlers)
+		...B(e.thenHandlers),
+		...B(e.elseHandlers)
 	]);
 }
 //#endregion
 //#region src/lib/core/action/handler-chain-mutations.ts
-function B(e, t, n) {
-	let r = new D(t), i = n?.afterId ? I(e, n.afterId) : null;
+function V(e, t, n) {
+	let r = new D(t), i = n?.afterId ? L(e, n.afterId) : null;
 	if (i) {
 		let t = [
 			...i.handlers.slice(0, i.index + 1),
@@ -512,19 +512,19 @@ function B(e, t, n) {
 		return i.parent && i.branch ? (i.parent.setBranchHandlers(i.branch, t), [...e]) : t;
 	}
 	if (!n?.parentId || !n.branch) return [...e, r];
-	let a = F(e, n.parentId);
+	let a = I(e, n.parentId);
 	if (!a) return e;
 	let o = a.getBranchHandlers(n.branch);
 	return a.setBranchHandlers(n.branch, [...o, r]), [...e];
 }
-function V(e, t) {
-	let n = I(e, t);
+function H(e, t) {
+	let n = L(e, t);
 	if (!n) return e;
 	let r = n.handlers.filter((e) => e.id !== t);
 	return n.parent && n.branch ? (n.parent.setBranchHandlers(n.branch, r), [...e]) : r;
 }
-function H(e, t) {
-	let n = I(e, t);
+function U(e, t) {
+	let n = L(e, t);
 	if (!n) return e;
 	let r = D.clone(n.handlers[n.index]), i = [
 		...n.handlers.slice(0, n.index + 1),
@@ -533,38 +533,38 @@ function H(e, t) {
 	];
 	return n.parent && n.branch ? (n.parent.setBranchHandlers(n.branch, i), [...e]) : i;
 }
-function U(e, t, n, r) {
-	let i = F(e, t);
+function W(e, t, n, r) {
+	let i = I(e, t);
 	return i ? (i.setBranchHandlers(n, r), [...e]) : e;
 }
 //#endregion
 //#region src/lib/core/action/variable-scope.ts
-var W = "Action";
-function G(e) {
+var G = "Action";
+function K(e) {
 	return e.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/\b\w/g, (e) => e.toUpperCase());
 }
-function K(e) {
+function q(e) {
 	let t = e.definition.outputs;
 	return t ? (typeof t == "function" ? t({ getFieldValue: (t) => C(e.fields, t) }) : t).map((e) => ({
 		...e,
 		key: e.key.trim()
-	})).filter((e) => e.key.length > 0) : de(e);
+	})).filter((e) => e.key.length > 0) : ue(e);
 }
-function de(e) {
+function ue(e) {
 	let t = [], n = C(e.fields, "target-name");
 	typeof n == "string" && n.trim() && t.push({ key: n.trim() });
 	let r = C(e.fields, "scope"), i = C(e.fields, "variable-name");
 	return r === "action" && typeof i == "string" && i.trim() && t.push({ key: i.trim() }), t;
 }
-function fe(e) {
+function de(e) {
 	return {
 		key: e.key,
-		label: e.label ?? G(e.key),
+		label: e.label ?? K(e.key),
 		description: e.description,
-		group: W
+		group: G
 	};
 }
-function pe(e, t) {
+function fe(e, t) {
 	let n = /* @__PURE__ */ new Map();
 	for (let [r, i] of e) {
 		let e = t.get(r);
@@ -579,59 +579,59 @@ function pe(e, t) {
 	});
 	return n;
 }
-function me(e) {
+function pe(e) {
 	return [...e.values()].sort((e, t) => e.key.localeCompare(t.key));
 }
-function q(e, t, n) {
+function J(e, t, n) {
 	let r = t;
 	for (let t of e) {
-		n.set(t.id, me(r)), (t.thenHandlers.length > 0 || t.elseHandlers.length > 0) && (r = pe(q(t.thenHandlers, new Map(r), n), q(t.elseHandlers, new Map(r), n)));
-		let e = K(t);
+		n.set(t.id, pe(r)), (t.thenHandlers.length > 0 || t.elseHandlers.length > 0) && (r = fe(J(t.thenHandlers, new Map(r), n), J(t.elseHandlers, new Map(r), n)));
+		let e = q(t);
 		if (e.length > 0) {
 			r = new Map(r);
-			for (let t of e) r.set(t.key, fe(t));
+			for (let t of e) r.set(t.key, de(t));
 		}
 	}
 	return r;
 }
-function J(e, t) {
+function Y(e, t) {
 	let n = /* @__PURE__ */ new Map();
-	return q(e, new Map(t.map((e) => [e.key, e])), n), n;
+	return J(e, new Map(t.map((e) => [e.key, e])), n), n;
 }
 //#endregion
 //#region src/lib/core/action/variable-helpers.ts
-var he = "Global";
-function ge(e) {
+var me = "Global";
+function he(e) {
 	let t = e.plugins.tryGet("core");
 	return t ? t.variables.listKeys("global").map((e) => ({
 		key: e,
-		label: G(e),
-		group: he
+		label: K(e),
+		group: me
 	})) : [];
 }
-function _e(e, t) {
+function ge(e, t) {
 	let n = /* @__PURE__ */ new Set(), r = [];
-	for (let i of e.slice(0, t)) for (let e of K(i)) n.has(e.key) || (n.add(e.key), r.push({
+	for (let i of e.slice(0, t)) for (let e of q(i)) n.has(e.key) || (n.add(e.key), r.push({
 		key: e.key,
-		label: e.label ?? G(e.key),
+		label: e.label ?? K(e.key),
 		description: e.description,
-		group: W
+		group: G
 	}));
 	return r;
 }
-function Y(e, t) {
-	return J(e, []).get(t) ?? [];
+function X(e, t) {
+	return Y(e, []).get(t) ?? [];
 }
-function ve(...e) {
+function _e(...e) {
 	let t = /* @__PURE__ */ new Set(), n = [];
 	for (let r of e) for (let e of r) t.has(e.key) || (t.add(e.key), n.push(e));
 	return n.sort((e, t) => e.key.localeCompare(t.key));
 }
 //#endregion
 //#region src/lib/i18n.ts
-var [ye, be] = t(), X = null;
+var [ve, ye] = t();
 function Z(e, t) {
-	return X ? X.t(e, t) : e;
+	return e;
 }
 //#endregion
 //#region src/lib/core/action/validate-form.ts
@@ -648,7 +648,7 @@ function $(e, t) {
 	let n = t;
 	return !n.type.trim() || !n.value.trim();
 }
-function xe(e, t) {
+function be(e, t) {
 	let n = {};
 	for (let r of Q(e)) {
 		let e = t.find((e) => e.key === r.key);
@@ -656,7 +656,7 @@ function xe(e, t) {
 	}
 	return n;
 }
-function Se(e, t) {
+function xe(e, t) {
 	let n = {
 		fieldErrors: {},
 		missingFields: []
@@ -671,12 +671,12 @@ function Se(e, t) {
 			n.fieldErrors[t.id] = Z("{field} is required", { field: r.name });
 			continue;
 		}
-		r.type === "condition-group" && m(t.value) && Object.assign(n.fieldErrors, xe(t.value, r.conditions));
+		r.type === "condition-group" && m(t.value) && Object.assign(n.fieldErrors, be(t.value, r.conditions));
 	}
 	return n;
 }
-function Ce(e) {
+function Se(e) {
 	return e.missingFields.length > 0 || Object.keys(e.fieldErrors).length > 0;
 }
 //#endregion
-export { D as ActionHandler, A as HandlerDefinition, d as addConditionToGroup, f as addGroupToRoot, B as addHandlerToChain, H as cloneHandlerInChain, J as computeVariableScopes, y as createHandlerFields, s as emptyConditionGroup, F as findHandler, P as findHandlerDefinition, I as findHandlerLocation, z as flattenActionHandlers, u as getConditionDefinition, ge as getGlobalVariables, C as getHandlerFieldValue, K as getHandlerOutputs, _e as getPrecedingActionVariables, Y as getPrecedingActionVariablesForHandler, L as handlerFromStored, R as handlerFromStoredWithResolver, Ce as hasHandlerErrors, l as initConditionValue, $ as isFieldValueEmpty, ve as mergeContextVariables, E as migrateLegacyHandlerFields, p as normalizeConditionGroupOperators, ee as removeConditionChild, V as removeHandlerFromChain, U as reorderBranchHandlersInChain, ue as runHandlerChain, te as setConditionOperator, Se as validateHandlerFields };
+export { D as ActionHandler, A as HandlerDefinition, d as addConditionToGroup, f as addGroupToRoot, V as addHandlerToChain, U as cloneHandlerInChain, Y as computeVariableScopes, y as createHandlerFields, s as emptyConditionGroup, I as findHandler, F as findHandlerDefinition, L as findHandlerLocation, B as flattenActionHandlers, u as getConditionDefinition, he as getGlobalVariables, C as getHandlerFieldValue, q as getHandlerOutputs, ge as getPrecedingActionVariables, X as getPrecedingActionVariablesForHandler, R as handlerFromStored, z as handlerFromStoredWithResolver, Se as hasHandlerErrors, l as initConditionValue, $ as isFieldValueEmpty, _e as mergeContextVariables, E as migrateLegacyHandlerFields, p as normalizeConditionGroupOperators, ee as removeConditionChild, H as removeHandlerFromChain, W as reorderBranchHandlersInChain, M as runHandlerChain, te as setConditionOperator, xe as validateHandlerFields };

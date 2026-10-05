@@ -1,6 +1,6 @@
 import { getContext, setContext } from 'svelte';
 
-import type { HandlerDndLayout } from '$lib/core/action/handler-chain-dnd';
+import type { HandlerDndLayout } from '#lib/core/action/handler-chain-dnd.js';
 
 export const HANDLER_CHAIN_DND_CONTEXT_KEY = Symbol('handler-chain-dnd');
 

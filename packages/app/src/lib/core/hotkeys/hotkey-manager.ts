@@ -5,7 +5,7 @@ import {
 } from '@tauri-apps/plugin-global-shortcut';
 
 import { getApp } from '../registry';
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { formatShortcutLabel, normalizeShortcut, parseShortcut } from './shortcut';
 import type { HotkeyEventContext } from './types';

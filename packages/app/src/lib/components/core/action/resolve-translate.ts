@@ -1,5 +1,5 @@
-import type { I18nContext } from '$lib/i18n';
-import { getI18n, useI18n } from '$lib/i18n';
+import type { I18nContext } from '#lib/i18n.js';
+import { getI18n, useI18n } from '#lib/i18n.js';
 
 export type TranslateFn = I18nContext['t'];
 

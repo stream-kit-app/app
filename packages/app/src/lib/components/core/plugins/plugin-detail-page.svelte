@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { InstalledPluginManifest } from '$lib/core/plugins/installed-plugin';
+	import type { InstalledPluginManifest } from '#lib/core/plugins/installed-plugin.js';
 
 	import Icon from '@iconify/svelte';
 	import { invoke } from '@tauri-apps/api/core';
@@ -12,12 +12,12 @@
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 	import { InputSwitch } from '@stream-kit/ui/input';
 
-	import { app } from '$lib/core';
-	import { setPluginDevMode } from '$lib/core/plugins/plugin-dev-watcher';
-	import { canApplyPluginUpdates } from '$lib/core/plugins/plugin-update';
-	import { pluginUpdates } from '$lib/core/plugins/plugin-updates.svelte';
-	import { useI18n } from '$lib/i18n';
-	import { cn } from '$lib/utils';
+	import { app } from '#lib/core/index.js';
+	import { setPluginDevMode } from '#lib/core/plugins/plugin-dev-watcher.js';
+	import { canApplyPluginUpdates } from '#lib/core/plugins/plugin-update.js';
+	import { pluginUpdates } from '#lib/core/plugins/plugin-updates.svelte.js';
+	import { useI18n } from '#lib/i18n.js';
+	import { cn } from '#lib/utils.js';
 
 	import {
 		pluginStatusDotClasses,

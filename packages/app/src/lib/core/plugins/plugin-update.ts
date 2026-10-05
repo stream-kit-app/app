@@ -4,7 +4,7 @@ import type { InstalledPluginManifest } from './installed-plugin';
 import { invoke } from '@tauri-apps/api/core';
 import semver from 'semver';
 
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 import { reloadInstalledPlugin } from './plugin-loader';
 

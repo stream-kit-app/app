@@ -4,8 +4,8 @@ import {
 	parsePluginCategories,
 	parsePluginSort,
 	parsePluginTags
-} from '$lib/plugins/marketplace';
-import { pocketbaseFileUrl } from '$lib/server/pocketbase/file-url';
+} from '#lib/plugins/marketplace.js';
+import { pocketbaseFileUrl } from '#lib/server/pocketbase/file-url.js';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const search = url.searchParams.get('q')?.trim() ?? '';

@@ -1,9 +1,9 @@
 import CloudFilePickerFooter from './cloud-file-picker-footer.svelte';
 import CloudFilePickerModal from './cloud-file-picker-modal.svelte';
 
-import { getApp } from '$lib/core/registry';
-import type { UserFileRecord } from '$lib/core/user-files';
-import { translate } from '$lib/i18n';
+import { getApp } from '#lib/core/registry.js';
+import type { UserFileRecord } from '#lib/core/user-files/index.js';
+import { translate } from '#lib/i18n.js';
 
 export type OpenCloudFilePickerOptions = {
 	filters?: { name: string; extensions: string[] }[];

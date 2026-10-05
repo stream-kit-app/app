@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { PluginPageFormBlock } from '$lib/core/plugins';
-	import type { PluginMenuPageEntry } from '$lib/core/plugins/plugin-menu-pages.svelte';
+	import type { PluginPageFormBlock } from '#lib/core/plugins/index.js';
+	import type { PluginMenuPageEntry } from '#lib/core/plugins/plugin-menu-pages.svelte.js';
 
 	import { PageBlocks } from '@stream-kit/ui/blocks';
 
-	import { app } from '$lib/core/app-init';
+	import { app } from '#lib/core/app-init.js';
 	import {
 		isPageBlocksDefinition,
 		isPageCustomViewDefinition
-	} from '$lib/core/plugins/page-definition';
+	} from '#lib/core/plugins/page-definition.js';
 
 	import PluginPageForm from './plugin-page-form.svelte';
 	import PluginCustomViewHost from './plugin-custom-view-host.svelte';

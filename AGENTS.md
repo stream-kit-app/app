@@ -37,3 +37,14 @@ After completing the code, ask the user if they want a playground link. Only cal
 ### 7. Important: Separation of Tauri Logic
 
 Do **not** include any Tauri-specific logic directly inside plugin packages. All Tauri API usage and logic should be handled exclusively within the main app layer (e.g., in `@stream-kit/app`). Plugins should only interact with Tauri or platform-specific features by calling app-provided APIs or interfaces. For example, if a plugin needs filesystem access, it should use an abstraction like `app.fs` rather than importing or using Tauri APIs directly. This ensures plugins remain portable, testable, and decoupled from Tauri, while keeping all platform logic centralized in the app itself.
+
+<!-- BEGIN:turborepo-agent-rules -->
+
+# This is NOT the Turborepo you know
+
+Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
+
+Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
+
+This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
+<!-- END:turborepo-agent-rules -->

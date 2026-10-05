@@ -1,8 +1,8 @@
-import type { StoredActionHandler, StoredActionTrigger } from '$lib/core/action/stored-action';
+import type { StoredActionHandler, StoredActionTrigger } from '#lib/core/action/stored-action.js';
 
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-import { DEFAULT_ACTION_GROUP } from '$lib/core/action/stored-action';
+import { DEFAULT_ACTION_GROUP } from '#lib/core/action/stored-action.js';
 
 export {
 	DEFAULT_ACTION_GROUP,
@@ -11,7 +11,7 @@ export {
 	type StoredActionHandler,
 	type StoredActionTrigger,
 	type ActionLayoutUpdate
-} from '$lib/core/action/stored-action';
+} from '#lib/core/action/stored-action.js';
 
 /** User-configured actions saved to the local database. */
 export const actions = sqliteTable('actions', {

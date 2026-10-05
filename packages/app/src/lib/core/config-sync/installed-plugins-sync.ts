@@ -7,8 +7,8 @@ import {
 	createPluginRecord,
 	listPluginRecords,
 	updatePluginRecord
-} from '$db/repositories/plugin-records';
-import { translate } from '$lib/i18n';
+} from '#db/repositories/plugin-records.js';
+import { translate } from '#lib/i18n.js';
 
 const APP_PLUGIN_KEY = '__app__';
 const INSTALLED_PLUGINS_COLLECTION = 'installedPlugins';

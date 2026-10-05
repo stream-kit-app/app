@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { DndWidgetItem } from '$lib/core/dashboard/dashboard-layout';
-	import type { DashboardWidgetDefinition } from '$lib/core/dashboard/types';
+	import type { DndWidgetItem } from '#lib/core/dashboard/dashboard-layout.js';
+	import type { DashboardWidgetDefinition } from '#lib/core/dashboard/types.js';
 
 	import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
 

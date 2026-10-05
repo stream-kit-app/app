@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { ActionQueueDefinition } from '$lib/core/action-queue/action-queues.svelte';
+	import type { ActionQueueDefinition } from '#lib/core/action-queue/action-queues.svelte.js';
 
 	import { Cell, CellGrid } from '@stream-kit/ui/blueprint';
 	import { Container } from '@stream-kit/ui/container';
 	import { EmptyState } from '@stream-kit/ui/empty-state';
 
-	import QueueCard from '$lib/components/core/queue/queue-card.svelte';
-	import { QueueEditForm } from '$lib/components/core/queue/queue-edit.svelte';
-	import QueueEditFormContent from '$lib/components/core/queue/queue-edit-form.svelte';
-	import QueueEditFormFooter from '$lib/components/core/queue/queue-edit-form-footer.svelte';
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import QueueCard from '#lib/components/core/queue/queue-card.svelte';
+	import { QueueEditForm } from '#lib/components/core/queue/queue-edit.svelte.js';
+	import QueueEditFormContent from '#lib/components/core/queue/queue-edit-form.svelte';
+	import QueueEditFormFooter from '#lib/components/core/queue/queue-edit-form-footer.svelte';
+	import { app } from '#lib/core/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 

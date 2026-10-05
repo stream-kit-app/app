@@ -8,12 +8,12 @@ import type {
 } from './overlay-manifest';
 
 import { resolveHandlerDefinition, resolveTriggerDefinition } from '../action/definition-id';
-import { saveAction } from '$db/repositories/actions';
-import { saveOverlayInstalledActionKeys } from '$db/repositories/overlays';
+import { saveAction } from '#db/repositories/actions.js';
+import { saveOverlayInstalledActionKeys } from '#db/repositories/overlays.js';
 
 import { OVERLAY_SELF_FIELD_TOKEN } from './overlay-manifest';
 import { canUseOverlay, missingRequiredPlugins } from './overlay-dependencies';
-import { translate } from '$lib/i18n';
+import { translate } from '#lib/i18n.js';
 
 export type OverlayActionPresetStatus = 'installable' | 'installed' | 'blocked';
 

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { DashboardWidgetDefinition } from '$lib/core/dashboard/types';
+	import type { DashboardWidgetDefinition } from '#lib/core/dashboard/types.js';
 
 	import { Alert } from '@stream-kit/ui/alert';
 
-	import PluginComponentHost from '$lib/components/core/plugins/plugin-component-host.svelte';
-	import { app } from '$lib/core';
+	import PluginComponentHost from '#lib/components/core/plugins/plugin-component-host.svelte';
+	import { app } from '#lib/core/index.js';
 
 	type Props = {
 		definition: DashboardWidgetDefinition;

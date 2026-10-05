@@ -2,8 +2,8 @@ import type { Actions, PageServerLoad } from './$types';
 
 import { error, fail } from '@sveltejs/kit';
 
-import { renderPluginMarkdown } from '$lib/server/markdown';
-import { pocketbaseFileUrl } from '$lib/server/pocketbase/file-url';
+import { renderPluginMarkdown } from '#lib/server/markdown.js';
+import { pocketbaseFileUrl } from '#lib/server/pocketbase/file-url.js';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const tabParam = url.searchParams.get('tab');

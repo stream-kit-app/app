@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Container } from '@stream-kit/ui/container';
 
-	import DashboardAddWidgetFormFooter from '$lib/components/core/dashboard/dashboard-add-widget-form-footer.svelte';
-	import DashboardAddWidgetForm from '$lib/components/core/dashboard/dashboard-add-widget-form.svelte';
-	import DashboardEmptyState from '$lib/components/core/dashboard/dashboard-empty-state.svelte';
-	import DashboardGrid from '$lib/components/core/dashboard/dashboard-grid.svelte';
-	import DashboardToolbar from '$lib/components/core/dashboard/dashboard-toolbar.svelte';
-	import { app } from '$lib/core';
-	import { useI18n } from '$lib/i18n';
+	import DashboardAddWidgetFormFooter from '#lib/components/core/dashboard/dashboard-add-widget-form-footer.svelte';
+	import DashboardAddWidgetForm from '#lib/components/core/dashboard/dashboard-add-widget-form.svelte';
+	import DashboardEmptyState from '#lib/components/core/dashboard/dashboard-empty-state.svelte';
+	import DashboardGrid from '#lib/components/core/dashboard/dashboard-grid.svelte';
+	import DashboardToolbar from '#lib/components/core/dashboard/dashboard-toolbar.svelte';
+	import { app } from '#lib/core/index.js';
+	import { useI18n } from '#lib/i18n.js';
 
 	const { t } = useI18n();
 

@@ -10,7 +10,7 @@ import type { OverlayManifest, OverlayTestHandlerDefinition } from './overlay-ma
 
 import { BaseDirectory } from '@tauri-apps/plugin-fs';
 
-import { getOverlay, saveOverlayConfig } from '$db/repositories/overlays';
+import { getOverlay, saveOverlayConfig } from '#db/repositories/overlays.js';
 
 import {
 	createSettingsFields,
