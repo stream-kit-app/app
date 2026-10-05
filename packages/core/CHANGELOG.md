@@ -1,5 +1,13 @@
 # @stream-kit/core
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- Action editor: outline + detail panel instead of nested If cards, If handler with AND/OR condition groups (`condition-group` field, existing conditions are migrated), handler `outputs` and scope-aware `{variable}` suggestions. Adds `ConditionTreeNode`, `ConditionGroupFieldValue` and `HandlerOutputsSource` to the plugin SDK.
+
+- [`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Upgrade to SvelteKit 3 and update all dependencies to their latest versions. The app now uses `#lib` / `#db` subpath imports and `$app/env`; the Tauri backend moves to rodio 0.22 and the latest crates.
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # @stream-kit/plugin-bot
 
+## 0.2.0-alpha.9
+
+### Minor Changes
+
+- feat; cloud features, design updates and much more
+
+### Patch Changes
+
+- major version update, to much to describe and no need
+
+- The core handlers plugin is now an optional dependency, so these plugins can be enabled on their own. Bot lists Twitch and YouTube as optional dependencies; Bot command and timer editors pick up the new variable autocomplete.
+
+- feat; add toolbar and change app design
+- Updated dependencies [[`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b)]:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes

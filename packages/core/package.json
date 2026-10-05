@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/core",
-	"version": "0.2.0-alpha.10",
+	"version": "0.2.0-alpha.11",
 	"description": "Platform-neutral runtime utilities for Stream Kit plugins",
 	"type": "module",
 	"license": "MIT",

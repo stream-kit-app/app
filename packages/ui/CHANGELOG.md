@@ -1,5 +1,37 @@
 # @stream-kit/ui
 
+## 0.2.0-alpha.11
+
+### Minor Changes
+
+- Align shared UI with the blueprint design system: hybrid radius (sharp surfaces, lightly rounded controls), Panel `tone` variants, rail-style nav, and sharper structural surfaces (data-table, empty-state, menus, alerts, card blocks).
+
+- Add `@stream-kit/ui/blueprint` primitives (GridFrame, SectionRule, Crosshair, CellGrid, Panel, Eyebrow) and shared blueprint CSS utilities for the Cloudflare-style schematic design system.
+
+- feat; cloud features, design updates and much more
+
+### Patch Changes
+
+- AI Actions plugin: describe an action in plain language and open the generated draft in the action editor. Adds `app.actions.openDraft`, `getTriggers`/`findTrigger`, `app.auth.send` and the `InputTextarea` UI component.
+
+- major version update, to much to describe and no need
+
+- add auth and cloud features
+
+- cloud storage sync
+
+- many small fixes
+
+- feat; update UI
+
+- feat; add toolbar and change app design
+
+- [`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Upgrade to SvelteKit 3 and update all dependencies to their latest versions. The app now uses `#lib` / `#db` subpath imports and `$app/env`; the Tauri backend moves to rodio 0.22 and the latest crates.
+
+- New UI components: `VariableAutocomplete` (also in Monaco JSON editors), `Widget`, `CopyButton` and a `masonry` attachment. Text inputs with variables now share the autocomplete instead of their own popover logic.
+- Updated dependencies [[`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b)]:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes

@@ -1,5 +1,39 @@
 # @stream-kit/pocketbase
 
+## 0.2.0-alpha.9
+
+### Minor Changes
+
+- AI action generator route (`POST /api/ai/generate-action`) and `ai_usage` collection
+
+- Multi-PC Pro cloud sync: generic ConfigSync adapters, `app.records` / `user_plugin_records`, overlay project + dashboard sync, settings account/device split, and restore flow.
+
+- feat; cloud features, design updates and much more
+
+### Patch Changes
+
+- Add `revision` to user config sync collections; protect `user_files` and tighten mime allowlist.
+
+- fix; add type generator to dockerignore
+
+- add auth and cloud features
+
+- fix; null error in pocketbase
+
+- Raise published overlay bundle size limit from 25MB to 100MB, and allow non-UUID local overlay ids (slugs) on `user_overlays.overlayId`.
+
+- Fix `ReferenceError` in PocketBase hooks: handlers run in isolated runtimes, so entitlement, `user_files`, and plugin rating helpers now live in `pb_hooks/shared/*` and are loaded with `require()` inside each handler.
+
+- Docker image creates or updates the superuser on start from `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD`.
+
+- fix; null error in pocketbase
+
+- fix; null error in pocketbase
+
+- Fix cloud file uploads rejecting signed-in users: move auth, ownership, metadata, and quota checks from `onRecordCreate` (no request auth) to `onRecordCreateRequest`.
+
+- Add `user_overlays` for cloud-hosted overlay browser sources (published dist zip + config).
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes
