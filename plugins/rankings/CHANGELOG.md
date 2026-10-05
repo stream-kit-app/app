@@ -2,19 +2,8 @@
 
 ## 0.1.0-alpha.7
 
-### Minor Changes
-
-- feat; cloud features, design updates and much more
-
 ### Patch Changes
 
-- major version update, to much to describe and no need
-
-- add auth and cloud features
-
-- cloud storage sync
-
-- Edit a user's points from the leaderboard and user detail, nicer leaderboard formatting and compact stat cells on the overview.
 - Updated dependencies [[`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b)]:
     - @stream-kit/core@0.2.0-alpha.11
 

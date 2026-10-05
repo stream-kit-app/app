@@ -2,17 +2,8 @@
 
 ## 0.2.0-alpha.6
 
-### Minor Changes
-
-- feat; cloud features, design updates and much more
-
 ### Patch Changes
 
-- Action editor: outline + detail panel instead of nested If cards, If handler with AND/OR condition groups (`condition-group` field, existing conditions are migrated), handler `outputs` and scope-aware `{variable}` suggestions. Adds `ConditionTreeNode`, `ConditionGroupFieldValue` and `HandlerOutputsSource` to the plugin SDK.
-
-- cloud storage sync
-
-- The core handlers plugin is now an optional dependency, so these plugins can be enabled on their own. Bot lists Twitch and YouTube as optional dependencies; Bot command and timer editors pick up the new variable autocomplete.
 - Updated dependencies [[`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b)]:
     - @stream-kit/core@0.2.0-alpha.11
 

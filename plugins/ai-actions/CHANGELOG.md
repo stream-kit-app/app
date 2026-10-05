@@ -2,9 +2,9 @@
 
 ## 0.1.0-alpha.2
 
-### Minor Changes
+### Patch Changes
 
-- AI Actions plugin: describe an action in plain language and open the generated draft in the action editor. Adds `app.actions.openDraft`, `getTriggers`/`findTrigger`, `app.auth.send` and the `InputTextarea` UI component.
+- No functional changes (version bump caused by the Changesets v3 pre-mode migration).
 
 ## 0.1.0-alpha.1
 

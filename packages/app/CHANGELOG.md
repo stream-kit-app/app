@@ -4,43 +4,10 @@
 
 ### Minor Changes
 
-- Multi-PC Pro cloud sync: generic ConfigSync adapters, `app.records` / `user_plugin_records`, overlay project + dashboard sync, settings account/device split, and restore flow.
-
-- feat; cloud features, design updates and much more
-
 - [`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Upgrade to SvelteKit 3 and update all dependencies to their latest versions. The app now uses `#lib` / `#db` subpath imports and `$app/env`; the Tauri backend moves to rodio 0.22 and the latest crates.
-
-- Add in-app auto-updates for GitHub Windows installs (check on startup and from Settings).
 
 ### Patch Changes
 
-- Action editor: outline + detail panel instead of nested If cards, If handler with AND/OR condition groups (`condition-group` field, existing conditions are migrated), handler `outputs` and scope-aware `{variable}` suggestions. Adds `ConditionTreeNode`, `ConditionGroupFieldValue` and `HandlerOutputsSource` to the plugin SDK.
-
-- AI Actions plugin: describe an action in plain language and open the generated draft in the action editor. Adds `app.actions.openDraft`, `getTriggers`/`findTrigger`, `app.auth.send` and the `InputTextarea` UI component.
-
-- Theme settings, a dedicated plugin detail page (`/plugins/[pluginKey]`), add-tile and widget menu on the dashboard, and remembered window size/position.
-
-- major version update, to much to describe and no need
-
-- add auth and cloud features
-
-- cloud storage sync
-
-- fix; null error in pocketbase
-
-- many small fixes
-
-- feat; update UI
-
-- feat; add toolbar and change app design
-
-- fix; null error in pocketbase
-
-- feat; add new rankings plugin
-
-- fix; null error in pocketbase
-
-- New UI components: `VariableAutocomplete` (also in Monaco JSON editors), `Widget`, `CopyButton` and a `masonry` attachment. Text inputs with variables now share the autocomplete instead of their own popover logic.
 - Updated dependencies [[`6fa4ba0`](https://github.com/stream-kit-app/app/commit/6fa4ba0c9e2cf0a5951689ecae80dd1ae987410b)]:
     - @stream-kit/core@0.2.0-alpha.11
     - @stream-kit/plugin@0.2.0-alpha.11

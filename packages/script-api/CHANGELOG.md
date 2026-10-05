@@ -2,27 +2,9 @@
 
 ## 0.1.0-alpha.6
 
-### Minor Changes
-
-- feat; cloud features, design updates and much more
-
 ### Patch Changes
 
-- Action editor: outline + detail panel instead of nested If cards, If handler with AND/OR condition groups (`condition-group` field, existing conditions are migrated), handler `outputs` and scope-aware `{variable}` suggestions. Adds `ConditionTreeNode`, `ConditionGroupFieldValue` and `HandlerOutputsSource` to the plugin SDK.
-
-- AI Actions plugin: describe an action in plain language and open the generated draft in the action editor. Adds `app.actions.openDraft`, `getTriggers`/`findTrigger`, `app.auth.send` and the `InputTextarea` UI component.
-
-- major version update, to much to describe and no need
-
-- add auth and cloud features
-
-- cloud storage sync
-
-- feat; update UI
-
-- feat; add toolbar and change app design
-
-- feat; add new rankings plugin
+- No functional changes (version bump caused by the Changesets v3 pre-mode migration).
 
 ## 0.1.0-alpha.5
 

@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- fix some build errors
+- No functional changes (version bump caused by the Changesets v3 pre-mode migration).
 
 ## 0.0.1-alpha.0
 
