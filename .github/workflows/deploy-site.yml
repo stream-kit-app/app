@@ -7,6 +7,8 @@ on:
     paths:
       - 'site/**'
       - 'packages/ui/**'
+      - 'packages/core/**'
+      - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/deploy-site.yml'
