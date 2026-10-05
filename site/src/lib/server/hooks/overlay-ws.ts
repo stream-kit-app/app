@@ -1,4 +1,5 @@
 import type { Handle } from '@sveltejs/kit/hooks';
+import { env } from 'cloudflare:workers';
 
 /**
  * Route `/ws` WebSocket upgrades to the OverlayRoom Durable Object (one DO per overlayId).
@@ -13,7 +14,7 @@ export const overlayWs: Handle = async ({ event, resolve }) => {
 		return new Response('Expected WebSocket', { status: 426 });
 	}
 
-	const rooms = event.platform?.env?.OVERLAY_ROOMS;
+	const rooms = env.OVERLAY_ROOMS;
 	if (!rooms) {
 		return new Response('Overlay WebSocket hub unavailable', { status: 503 });
 	}

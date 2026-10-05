@@ -15,15 +15,14 @@ declare global {
 		}
 		interface PageData {}
 		// interface PageState {}
-		interface Platform {
-			env: {
-				ASSETS: Fetcher;
-				OVERLAY_ROOMS: DurableObjectNamespace;
-				PUBLIC_POCKETBASE_URL: string;
-			};
-			context: ExecutionContext;
-			caches: CacheStorage;
-			cf?: IncomingRequestCfProperties;
+	}
+
+	/** Worker bindings, read via `import { env } from 'cloudflare:workers'`. */
+	namespace Cloudflare {
+		interface Env {
+			ASSETS: Fetcher;
+			OVERLAY_ROOMS: DurableObjectNamespace;
+			PUBLIC_POCKETBASE_URL: string;
 		}
 	}
 }
