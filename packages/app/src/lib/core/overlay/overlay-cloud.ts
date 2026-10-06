@@ -52,7 +52,12 @@ export function canPublishOverlaysToCloud(app: App): boolean {
 	);
 }
 
-export async function listCloudOverlayStates(app: App): Promise<CloudOverlayState[]> {
+/**
+ * The signed-in user's cloud overlays, `[]` when signed out, or `null` when the list
+ * could not be loaded (callers must keep their current state rather than treat it as
+ * "nothing published", which would close every publisher socket).
+ */
+export async function listCloudOverlayStates(app: App): Promise<CloudOverlayState[] | null> {
 	if (!app.auth.isAuthenticated || !app.auth.user) {
 		return [];
 	}
@@ -81,12 +86,12 @@ export async function listCloudOverlayStates(app: App): Promise<CloudOverlayStat
 		if (pocketBaseErrorMessage(error, '')) {
 			console.warn('Failed to list cloud overlays', error);
 		}
-		return [];
+		return null;
 	}
 }
 
 export async function listPublishedOverlayIds(app: App): Promise<string[]> {
-	const states = await listCloudOverlayStates(app);
+	const states = (await listCloudOverlayStates(app)) ?? [];
 	return states.filter((entry) => entry.published).map((entry) => entry.overlayId);
 }
 

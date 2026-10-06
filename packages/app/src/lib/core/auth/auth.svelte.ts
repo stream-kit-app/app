@@ -7,6 +7,7 @@ import {
 	AUTH_MEMBERSHIP_EXPAND,
 	AuthCreatedButSignInFailedError,
 	isPocketBaseAutoCancelled,
+	isPocketBaseSessionRejected,
 	isPocketBaseUnauthorized,
 	pocketBaseErrorMessage,
 	resolvePocketBaseUrl,
@@ -92,7 +93,10 @@ export class Auth {
 				await pb.collection('users').authRefresh();
 			} catch (error) {
 				console.warn('Failed to refresh Stream Kit account session', error);
-				pb.authStore.clear();
+				// Starting offline keeps the stored session; only a rejected one is cleared.
+				if (isPocketBaseSessionRejected(error)) {
+					pb.authStore.clear();
+				}
 			}
 		} else if (pb.authStore.token) {
 			// Expired token: PocketBase treats it as a guest (list rules return empty, no 401),
@@ -586,11 +590,13 @@ export class Auth {
 						await pb.collection('users').authRefresh();
 						return await originalSend(path, options);
 					} catch (refreshError) {
-						console.warn(
-							'Stream Kit account session expired; clearing auth store',
-							refreshError
-						);
-						pb.authStore.clear();
+						if (isPocketBaseSessionRejected(refreshError)) {
+							console.warn(
+								'Stream Kit account session expired; clearing auth store',
+								refreshError
+							);
+							pb.authStore.clear();
+						}
 						throw error;
 					} finally {
 						this.#sendRefreshing = false;
@@ -626,7 +632,10 @@ export class Auth {
 			await pb.collection('users').authRefresh();
 		} catch (error) {
 			console.warn('Failed to refresh Stream Kit account session', error);
-			pb.authStore.clear();
+			// A network blip must not sign the user out (and drop cloud overlays) mid-stream.
+			if (isPocketBaseSessionRejected(error)) {
+				pb.authStore.clear();
+			}
 		}
 	}
 
