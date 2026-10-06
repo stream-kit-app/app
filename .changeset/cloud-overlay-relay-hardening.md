@@ -1,5 +1,4 @@
 ---
-'@stream-kit/site': patch
 '@stream-kit/pocketbase': patch
 ---
 
