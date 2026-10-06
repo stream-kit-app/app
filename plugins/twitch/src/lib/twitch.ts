@@ -55,6 +55,9 @@ export type TwitchPluginController = TwitchPluginApi & {
 	shutdown(): Promise<void>;
 };
 
+/** Backoff between token validation attempts while Twitch can't be reached. */
+const TOKEN_VALIDATION_RETRY_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
+
 export function createTwitchPluginApi(
 	app: PluginAppApi,
 	store: PluginStore
@@ -62,6 +65,8 @@ export function createTwitchPluginApi(
 	const listeners = new Set<TwitchStateListener>();
 	let botAccountController: TwitchBotAccountController | undefined;
 	let isConnected = false;
+	/** Bumped by stopClients() so an in-flight connect() stops after its await. */
+	let connectGeneration = 0;
 	let isAuthenticating = false;
 	let oauthFlow: ImplicitOAuthFlow | undefined;
 	let accessToken: string | undefined;
@@ -135,6 +140,9 @@ export function createTwitchPluginApi(
 	}
 
 	async function stopClients(): Promise<void> {
+		// Cancels a connect() that is still validating its token.
+		connectGeneration += 1;
+
 		try {
 			await chat?.quit();
 		} catch (error) {
@@ -201,14 +209,57 @@ export function createTwitchPluginApi(
 		}
 	}
 
+	/**
+	 * Validates the token before connecting: EventSub triggers need the user id, so
+	 * connecting without it left raids/subs/follows silently unsubscribed. Network errors
+	 * are retried with backoff; a rejected token stops and asks the user to reconnect.
+	 */
+	async function validateToken(api: ApiClient, generation: number): Promise<ValidatedTokenInfo | undefined> {
+		for (let attempt = 0; generation === connectGeneration; attempt++) {
+			try {
+				return (await api.getTokenInfo()) as ValidatedTokenInfo;
+			} catch (error) {
+				if (generation !== connectGeneration) {
+					return undefined;
+				}
+
+				if (error instanceof Error && error.name === 'InvalidTokenError') {
+					app.toast.create({
+						title: 'Twitch session expired',
+						description: 'Reconnect your Twitch account in the Twitch plugin settings.',
+						variant: 'warning'
+					});
+					return undefined;
+				}
+
+				const delayMs = TOKEN_VALIDATION_RETRY_MS[Math.min(attempt, TOKEN_VALIDATION_RETRY_MS.length - 1)];
+				console.warn(`[twitch] Could not validate token, retrying in ${delayMs / 1000}s`, error);
+				await new Promise((resolve) => setTimeout(resolve, delayMs));
+			}
+		}
+
+		return undefined;
+	}
+
 	async function connect(nextAccessToken: string): Promise<void> {
 		await stopClients();
 		resetChatListener();
+		const generation = connectGeneration;
 		accessToken = nextAccessToken;
-		isConnected = true;
 
 		authProvider = new StaticAuthProvider(TWITCH_CLIENT_ID, nextAccessToken, scopes);
 		client = new TwurpleApiClient({ authProvider });
+
+		const info = await validateToken(client, generation);
+		if (!info || generation !== connectGeneration) {
+			notify();
+			return;
+		}
+
+		token = info;
+		userId = info.userId ?? undefined;
+		isConnected = true;
+
 		chat = new TwurpleChatClient({
 			authProvider,
 			requestMembershipEvents: true
@@ -226,20 +277,16 @@ export function createTwitchPluginApi(
 
 		await clearStaleEventSubSubscriptions(client);
 
+		if (generation !== connectGeneration) {
+			return;
+		}
+
 		eventSub = new TwurpleEventSubWsListener({ apiClient: client });
 		attachEventSubConflictRecovery(eventSub, client);
 		eventSub.start();
 
-		try {
-			const info = (await client.getTokenInfo()) as ValidatedTokenInfo;
-			token = info;
-			userId = info.userId ?? undefined;
-
-			if (info.userName) {
-				void chat.join(info.userName).catch(console.error);
-			}
-		} catch (error) {
-			console.error(error);
+		if (info.userName) {
+			void chat.join(info.userName).catch(console.error);
 		}
 
 		void refreshBadgeCache(app).finally(() => {
