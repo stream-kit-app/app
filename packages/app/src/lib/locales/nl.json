@@ -1329,5 +1329,10 @@
 	"Add one or more clean recordings of the voice. One to two minutes in total works best. Large files are converted and split automatically.": "Voeg een of meer schone opnames van de stem toe. In totaal één à twee minuten werkt het best. Grote bestanden worden automatisch omgezet en opgedeeld.",
 	"Custom volume": "Eigen volume",
 	"Volume": "Volume",
-	"Uses the ElevenLabs volume from the TTS settings.": "Gebruikt het ElevenLabs-volume uit de TTS-instellingen."
+	"Uses the ElevenLabs volume from the TTS settings.": "Gebruikt het ElevenLabs-volume uit de TTS-instellingen.",
+	"Not now": "Niet nu",
+	"Some plugins were not restored": "Sommige plugins zijn niet hersteld",
+	"{plugins} did not come from the Stream Kit marketplace. Reinstall them manually if you trust the source.": "{plugins} kwamen niet uit de Stream Kit-marketplace. Installeer ze handmatig opnieuw als je de bron vertrouwt.",
+	"Install plugins from your account?": "Plugins uit je account installeren?",
+	"Your account has plugins that are not installed on this computer: {plugins}. Plugins run with full access to Stream Kit and your system.": "Je account heeft plugins die niet op deze computer zijn geïnstalleerd: {plugins}. Plugins hebben volledige toegang tot Stream Kit en je systeem."
 }

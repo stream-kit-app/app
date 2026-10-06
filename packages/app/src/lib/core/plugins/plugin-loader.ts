@@ -232,4 +232,8 @@ export async function uninstallInstalledPlugin(app: App, key: string): Promise<v
 
 	await invoke('uninstall_plugin', { key });
 	app.plugins.remove(key);
+
+	// Otherwise the next config sync would reinstall it from the cloud catalog.
+	const { forgetInstalledPlugin } = await import('../config-sync/installed-plugins-sync');
+	await forgetInstalledPlugin(key);
 }

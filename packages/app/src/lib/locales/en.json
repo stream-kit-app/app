@@ -1329,5 +1329,10 @@
 	"Add one or more clean recordings of the voice. One to two minutes in total works best. Large files are converted and split automatically.": "Add one or more clean recordings of the voice. One to two minutes in total works best. Large files are converted and split automatically.",
 	"Custom volume": "Custom volume",
 	"Volume": "Volume",
-	"Uses the ElevenLabs volume from the TTS settings.": "Uses the ElevenLabs volume from the TTS settings."
+	"Uses the ElevenLabs volume from the TTS settings.": "Uses the ElevenLabs volume from the TTS settings.",
+	"Not now": "Not now",
+	"Some plugins were not restored": "Some plugins were not restored",
+	"{plugins} did not come from the Stream Kit marketplace. Reinstall them manually if you trust the source.": "{plugins} did not come from the Stream Kit marketplace. Reinstall them manually if you trust the source.",
+	"Install plugins from your account?": "Install plugins from your account?",
+	"Your account has plugins that are not installed on this computer: {plugins}. Plugins run with full access to Stream Kit and your system.": "Your account has plugins that are not installed on this computer: {plugins}. Plugins run with full access to Stream Kit and your system."
 }
