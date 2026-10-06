@@ -482,7 +482,7 @@ const result = await app.auth.send<{ ok: boolean }>('/api/my-route', {
 | --- | --- |
 | `user` | Public profile, or `null` when logged out |
 | `isAuthenticated` | Whether a session is active |
-| `send(path, options?)` | Authenticated request to a Stream Kit cloud route. Rejects with an `Error` carrying the HTTP `status` and server message |
+| `send(path, options?)` | Authenticated request to a Stream Kit cloud route. Rejects with an `Error` carrying the HTTP `status` and server message. Plugins can only call routes Stream Kit has granted them; other paths reject |
 | `login` / `register` / `logout` | Session helpers (throw on failure) |
 | `onChange` | Subscribe to auth changes (fires immediately) |
 
@@ -602,7 +602,7 @@ onEnable: async ({ app, pluginKey }) => {
 | `getSnapshot()` | Read all configured actions |
 | `create(input)` | Create a new action record |
 | `update(id, input)` | Update an existing action by database id |
-| `deleteByOwner(pluginKey)` | Delete all actions owned by a plugin |
+| `deleteByOwner(pluginKey)` | Delete all actions owned by your plugin (other keys throw) |
 | `openDraft(input, { onSaved? })` | Open the action editor with an unsaved draft. The user saves it; the result is user-owned (no `ownerPluginKey`). `onSaved(record)` runs once after the first save |
 | `getTriggers()` / `findTrigger(id)` | Read registered trigger definitions |
 
@@ -611,15 +611,17 @@ Owned actions are removed when the plugin is **uninstalled** (not when disabled)
 ### Plugin settings store from a customView
 
 ```ts
-const context = app.plugins.getSettingsContext('bot');
+const context = app.plugins.getSettingsContext('my-plugin');
 await context?.store.set('key', value);
 ```
 
 To change a value that is also a settings field, use `app.plugins.setSettingValue`. It updates the settings form, persists the value, and runs the plugin's `onSave` hook:
 
 ```ts
-await app.plugins.setSettingValue('tts', 'elevenlabsApiKey', newKey);
+await app.plugins.setSettingValue('my-plugin', 'apiKey', newKey);
 ```
+
+A plugin can only use its **own** key for `getSettingsContext`, `setSettingValue`, `db.registerMigrations`, owner keys on actions/commands, and `deleteByOwner`; another key throws. `getSettingValue` can also read `core` settings. Scripts run on your behalf and may access any plugin.
 
 ## Manifest contract
 

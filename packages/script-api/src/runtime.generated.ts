@@ -317,6 +317,8 @@ interface PluginAppPluginsApi {
 
 	/**
 	 * Read a plugin setting from the in-memory settings form (no save required).
+	 * Plugins can read their own settings and \`core\` settings; other keys throw.
+	 * Scripts may read any plugin.
 	 *
 	 * @example
 	 * \`\`\`ts
@@ -328,6 +330,7 @@ interface PluginAppPluginsApi {
 	/**
 	 * Update a single plugin setting, persist it, and run the plugin's \`onSave\` hook.
 	 * The settings form picks up the new value right away.
+	 * Plugins can only update their own settings; scripts may update any plugin.
 	 *
 	 * @example
 	 * \`\`\`ts
@@ -342,6 +345,7 @@ interface PluginAppPluginsApi {
 
 	/**
 	 * Build lifecycle settings context for a plugin (store, getValue, app API).
+	 * Only available for the calling plugin's own key, because the store holds secrets.
 	 */
 	getSettingsContext(pluginKey: string): PluginSettingsContext | undefined;
 }
@@ -827,6 +831,7 @@ interface PluginAppI18nApi {
 interface PluginAppDbApi {
 	/**
 	 * Register SQLite migrations to run on app startup for this plugin key.
+	 * \`pluginKey\` must be the calling plugin's own key.
 	 *
 	 * @example
 	 * \`\`\`ts
@@ -1082,6 +1087,7 @@ interface PluginAppAuthApi {
 	/**
 	 * Authenticated request to a custom Stream Kit cloud route. Rejects with an \`Error\`
 	 * that carries the HTTP \`status\` and the server message.
+	 * Plugins may only call routes granted to them by Stream Kit; other paths reject.
 	 *
 	 * @example
 	 * \`\`\`ts
