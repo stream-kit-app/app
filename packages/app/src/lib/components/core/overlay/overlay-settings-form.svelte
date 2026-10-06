@@ -102,6 +102,10 @@
 			saveStatus = 'saving';
 		}
 
+		// Snapshot what this save writes, before awaiting: edits made while it runs must
+		// still look unsaved afterwards, or their pending save is dropped.
+		const savingSnapshot = JSON.stringify(settings.mergedConfigValues());
+
 		const savePromise = (async () => {
 			await app.overlay.saveConfig(settings);
 
@@ -109,7 +113,7 @@
 				return;
 			}
 
-			lastSavedSnapshot = JSON.stringify(settings.mergedConfigValues());
+			lastSavedSnapshot = savingSnapshot;
 			saveStatus = 'saved';
 		})();
 
