@@ -2,6 +2,13 @@ export { ActionHandler, type HandlerFieldFormErrors, type HandlerBranch } from '
 export { HandlerDefinition } from '../../action/handler/handler-definition.svelte';
 export { runHandlerChain } from '../../action/run-handler-chain';
 export {
+	DEFAULT_HANDLER_TIMEOUT_MS,
+	HandlerTimeoutError,
+	abortableDelay,
+	raceAbort,
+	type HandlerTimeout
+} from '../../action/handler-timeout';
+export {
 	createHandlerFields,
 	migrateLegacyHandlerFields,
 	getHandlerFieldValue

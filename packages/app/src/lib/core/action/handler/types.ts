@@ -1,6 +1,7 @@
 import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
 import type { HandlerTriggerContext } from '../handler-context';
+import type { HandlerTimeout } from '../handler-timeout';
 import type {
 	HandlerFieldDefinition,
 	HandlerFieldItemsContext,
@@ -61,6 +62,16 @@ export type HandlerDefinitionProps = {
 	execute?: HandlerExecuteFn;
 	/** Variables this handler sets for later handlers; shown in variable autocomplete. */
 	outputs?: HandlerOutputsSource;
+	/**
+	 * Max run time in ms before the handler is aborted (default 2 minutes). Handlers that
+	 * wait on purpose (delays, media playback) return a longer limit; `null` disables it.
+	 *
+	 * @example
+	 * ```ts
+	 * timeout: (handler) => Number(getFieldValue(handler.fields, 'duration')) + 5_000
+	 * ```
+	 */
+	timeout?: HandlerTimeout;
 };
 
 /** Handler definition after ids and field keys are resolved at registration time. */

@@ -8,6 +8,9 @@ import { resolveVolume, volumeField } from './volume-field';
 export const createPlayAudioFolderHandler = (app: PluginAppApi) => {
 	return {
 		name: 'Play all audio from folder',
+		// Plays every file in turn, so its length depends on the folder; each file's
+		// playback is capped and the action queue has its own safety limit.
+		timeout: null,
 		fields: [
 			{
 				type: 'select-file-or-folder',

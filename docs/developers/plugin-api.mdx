@@ -772,6 +772,29 @@ Triggers derive their variables from `onTest` sample data. When a trigger has no
 
 Handlers without `outputs` still get basic suggestions from `target-name`, or `variable-name` with action scope, but declaring `outputs` is preferred.
 
+### Timeouts
+
+Each handler may run for **2 minutes** before Stream Kit aborts it, so one stuck handler never blocks an action queue. On timeout `context.signal` aborts, the user gets a toast, a late `next()` is ignored and the rest of the chain stops.
+
+Handlers that wait on purpose set `timeout` (milliseconds, a function of the configured handler, or `null` for no limit) and stop waiting when `context.signal` aborts:
+
+```ts
+import { abortableDelay } from '@stream-kit/plugin/action';
+
+export const createWaitHandler = () =>
+	({
+		name: 'Wait for countdown',
+		timeout: (handler) => Number(getFieldValue(handler.fields, 'seconds')) * 1000 + 5_000,
+		execute: async (_action, handler, context, next) => {
+			const seconds = Number(getFieldValue(handler.fields, 'seconds'));
+			await abortableDelay(seconds * 1000, context.signal);
+			next();
+		}
+	}) satisfies HandlerDefinitionProps;
+```
+
+`@stream-kit/plugin/action` also exports `raceAbort(promise, signal)`, `HandlerTimeoutError` and `DEFAULT_HANDLER_TIMEOUT_MS`.
+
 ## Command parsing
 
 `@stream-kit/core` exposes helpers for chat command names and argument patterns:

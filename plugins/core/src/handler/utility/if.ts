@@ -39,6 +39,8 @@ export const createIfHandler = ({ variables }: CorePluginContext) =>
 	({
 		id: 'if',
 		name: 'If',
+		// Runs a nested handler chain whose handlers time out individually.
+		timeout: null,
 		fields: [
 			{
 				type: 'condition-group',

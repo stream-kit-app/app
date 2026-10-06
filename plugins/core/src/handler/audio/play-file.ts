@@ -15,6 +15,8 @@ const AUDIO_FILTERS = [
 export const createPlayAudioFileHandler = (app: PluginAppApi) => {
 	return {
 		name: 'Play audio file',
+		// Waits behind other queued sounds, then for playback (capped at ~2 minutes).
+		timeout: 5 * 60_000,
 		fields: [
 			{
 				type: 'select-file-or-folder',

@@ -11,7 +11,7 @@ import {
 	restartMediaPlaybackField
 } from '../../lib/field-builders';
 import { callObs, callObsWithResponse } from '../../lib/obs-call';
-import { waitForMediaPlayback } from '../../lib/media-playback-wait';
+import { MEDIA_WAIT_TIMEOUT_MS, waitForMediaPlayback } from '../../lib/media-playback-wait';
 
 const PLAYBACK_MEDIA_ACTIONS = new Set([
 	'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY',
@@ -175,6 +175,8 @@ async function restartMediaInput(
 export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 	({
 		name: 'Trigger Media Action',
+		// Waits for playback to finish; the wait itself is capped and abort-aware.
+		timeout: MEDIA_WAIT_TIMEOUT_MS,
 		fields: [mediaInputSelectField(app), mediaActionField()],
 		execute: async (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'media-input', context);
@@ -209,7 +211,7 @@ export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 
 				if (shouldWaitForPlayback) {
 					// Duration comes from OBS here since we do not know the file.
-					await waitForMediaPlayback(app, trimmed);
+					await waitForMediaPlayback(app, trimmed, { signal: context.signal });
 				}
 
 				completed = true;
@@ -226,6 +228,8 @@ export const createTriggerMediaActionHandler = (app: PluginAppApi) =>
 export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 	({
 		name: 'Set Media Input File',
+		// Waits for playback to finish; the wait itself is capped and abort-aware.
+		timeout: MEDIA_WAIT_TIMEOUT_MS,
 		fields: [mediaInputSelectField(app), mediaFileOneOfField(), restartMediaPlaybackField()],
 		outputs: [
 			{ key: 'mediaFilePath' }
@@ -301,7 +305,10 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 						const restarted = await restartMediaInput(app, trimmed, 'Set Media Input File');
 
 						if (restarted) {
-							await waitForMediaPlayback(app, trimmed, { expectedDurationMs });
+							await waitForMediaPlayback(app, trimmed, {
+								expectedDurationMs,
+								signal: context.signal
+							});
 						}
 					}
 
@@ -332,7 +339,10 @@ export const createSetMediaInputFileHandler = (app: PluginAppApi) =>
 					const restarted = await restartMediaInput(app, trimmed, 'Set Media Input File');
 
 					if (restarted) {
-						await waitForMediaPlayback(app, trimmed, { expectedDurationMs });
+						await waitForMediaPlayback(app, trimmed, {
+								expectedDurationMs,
+								signal: context.signal
+							});
 					}
 				}
 
@@ -460,6 +470,8 @@ export const createGetMediaStatusHandler = (app: PluginAppApi) =>
 export const createRestartInstantReplayHandler = (app: PluginAppApi) =>
 	({
 		name: 'Restart Instant Replay',
+		// Waits for playback to finish; the wait itself is capped and abort-aware.
+		timeout: MEDIA_WAIT_TIMEOUT_MS,
 		fields: [mediaInputSelectField(app, { name: 'Replay source' })],
 		execute: async (_action, handler, context, next) => {
 			const inputName = resolveFieldText(handler.fields, 'media-input', context);
@@ -478,7 +490,7 @@ export const createRestartInstantReplayHandler = (app: PluginAppApi) =>
 					return;
 				}
 
-				await waitForMediaPlayback(app, trimmed);
+				await waitForMediaPlayback(app, trimmed, { signal: context.signal });
 				completed = true;
 			});
 

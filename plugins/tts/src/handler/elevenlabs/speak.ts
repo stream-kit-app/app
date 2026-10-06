@@ -11,6 +11,7 @@ import { clampVoiceSetting } from '../../lib/elevenlabs/service';
 import { elevenlabsVoiceSelectField } from '../../lib/elevenlabs/voices';
 import { createSpeakErrorReporter } from '../../lib/speak-errors';
 import { TTS_TEXT_VARIABLES } from '../../lib/variables';
+import { SPEAK_TIMEOUT_MS } from '../../lib/player';
 
 const VOICE_SETTING_KEYS: { key: string; setting: ElevenLabsNumericVoiceSetting }[] = [
 	{ key: 'stability', setting: 'stability' },
@@ -24,6 +25,8 @@ export const createElevenLabsSpeakHandler = (app: PluginAppApi) => {
 
 	return {
 		name: 'Speak Text',
+		// Synthesis plus playback (each clip is capped at ~2 minutes by the player).
+		timeout: SPEAK_TIMEOUT_MS,
 		fields: [
 			{
 				type: 'text',

@@ -17,6 +17,9 @@ export type TtsPlaybackOptions = {
 /** Must stay at or above the Rust `play_audio` invoke timeout (125s). */
 const PLAYBACK_TIMEOUT_MS = 125_000;
 
+/** Action timeout for speak handlers: synthesis, queueing behind other clips, and playback. */
+export const SPEAK_TIMEOUT_MS = 5 * 60_000;
+
 export class TtsPlayer {
 	private queue: QueueItem[] = [];
 	private playing = false;

@@ -10,6 +10,13 @@ export { ActionHandler } from '../../../app/src/lib/core/action/action-handler.s
 export { HandlerDefinition } from '../../../app/src/lib/core/action/handler/handler-definition.svelte';
 export { runHandlerChain } from '../../../app/src/lib/core/action/run-handler-chain';
 export {
+	DEFAULT_HANDLER_TIMEOUT_MS,
+	HandlerTimeoutError,
+	abortableDelay,
+	raceAbort,
+	type HandlerTimeout
+} from '../../../app/src/lib/core/action/handler-timeout';
+export {
 	createHandlerFields,
 	migrateLegacyHandlerFields,
 	getHandlerFieldValue

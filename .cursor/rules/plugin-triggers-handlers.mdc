@@ -27,6 +27,22 @@ export const createSendMessageHandler = (app: PluginAppApi) => {
 };
 ```
 
+## Timeouts and abort
+
+Every handler run has a time limit (default **2 minutes**, `DEFAULT_HANDLER_TIMEOUT_MS`). When it is exceeded the handler's `context.signal` aborts, a toast names the handler, late `next()` calls are ignored and the rest of the chain stops — so one hung handler can't block an action queue.
+
+- Handlers that wait on purpose declare `timeout` (ms, a function of the handler, or `null` for no limit — only for handlers that run a nested chain such as If).
+- Long waits must listen to `context.signal` and stop (release locks, remove listeners) when it aborts.
+- First-party plugins use `context.signal` directly instead of importing `abortableDelay` from `@stream-kit/plugin/action`, so they still load on an older app.
+
+```ts
+timeout: (handler) => Number(getFieldValue(handler.fields, 'duration-ms')) + 5_000,
+execute: async (_action, handler, context, next) => {
+	await waitUntilDone({ signal: context.signal });
+	next();
+}
+```
+
 ## Folder layout
 
 Mirror the definition tree: `handler/<category>/…`, `trigger/<category>/…`. Register under nested `{ name, children }` groups in the plugin `index.ts` (see Twitch/OBS).

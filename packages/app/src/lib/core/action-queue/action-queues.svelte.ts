@@ -18,6 +18,8 @@ import type {
 	ActionQueueJobContext
 } from './types';
 import { getApp } from '../registry';
+import { raceAbort } from '../action/handler-timeout';
+import { translate } from '#lib/i18n.js';
 
 export type { ActionQueueDefinition, ActionQueueStats, QueuedActionEntry, QueueJob } from './action-queues-types';
 export type {
@@ -43,6 +45,16 @@ function toDefinition(record: ActionQueueRecord): ActionQueueDefinition {
 		maxLength: record.maxLength,
 		sortOrder: record.sortOrder
 	};
+}
+
+/** Upper bound for a whole queued action; individual handlers time out much sooner. */
+const JOB_BACKSTOP_MS = 15 * 60_000;
+
+class QueueJobTimeoutError extends Error {
+	constructor(job: QueueJob) {
+		super(`Action queue job "${job.actionName}" exceeded ${JOB_BACKSTOP_MS / 60_000} minutes`);
+		this.name = 'QueueJobTimeoutError';
+	}
 }
 
 function toJobContext(job: QueueJob): ActionQueueJobContext {
@@ -156,11 +168,29 @@ class QueueRuntime {
 	}
 
 	private async runJob(job: QueueJob): Promise<void> {
+		// Handlers time out individually; this backstop only frees the slot if a job
+		// still hangs (e.g. a handler that ignores its abort signal).
+		const controller = new AbortController();
+		const backstop = setTimeout(() => controller.abort(new QueueJobTimeoutError(job)), JOB_BACKSTOP_MS);
+
 		try {
-			await job.run();
+			await raceAbort(job.run(controller.signal), controller.signal);
 		} catch (error) {
-			console.error('Action queue job failed', error);
+			if (error instanceof QueueJobTimeoutError) {
+				console.warn(error.message);
+				getApp().toast.create({
+					title: translate('Action stopped'),
+					description: translate('"{action}" was still running after {minutes} minutes and was stopped.', {
+						action: job.actionName,
+						minutes: JOB_BACKSTOP_MS / 60_000
+					}),
+					variant: 'warning'
+				});
+			} else {
+				console.error('Action queue job failed', error);
+			}
 		} finally {
+			clearTimeout(backstop);
 			this.active -= 1;
 			this.activeActions = this.activeActions.filter((item) => item.jobId !== job.jobId);
 			this.emit('job_completed', job);
@@ -309,7 +339,7 @@ export class ActionQueues {
 		const definition = this.getDefinition(queueId);
 
 		if (!definition) {
-			void job.run().catch((error) => {
+			void job.run(AbortSignal.timeout(JOB_BACKSTOP_MS)).catch((error) => {
 				console.error('Action queue job failed', error);
 			});
 

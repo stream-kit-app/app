@@ -1334,5 +1334,9 @@
 	"Some plugins were not restored": "Sommige plugins zijn niet hersteld",
 	"{plugins} did not come from the Stream Kit marketplace. Reinstall them manually if you trust the source.": "{plugins} kwamen niet uit de Stream Kit-marketplace. Installeer ze handmatig opnieuw als je de bron vertrouwt.",
 	"Install plugins from your account?": "Plugins uit je account installeren?",
-	"Your account has plugins that are not installed on this computer: {plugins}. Plugins run with full access to Stream Kit and your system.": "Je account heeft plugins die niet op deze computer zijn geïnstalleerd: {plugins}. Plugins hebben volledige toegang tot Stream Kit en je systeem."
+	"Your account has plugins that are not installed on this computer: {plugins}. Plugins run with full access to Stream Kit and your system.": "Je account heeft plugins die niet op deze computer zijn geïnstalleerd: {plugins}. Plugins hebben volledige toegang tot Stream Kit en je systeem.",
+	"Action stopped": "Actie gestopt",
+	"\"{action}\" was still running after {minutes} minutes and was stopped.": "\"{action}\" liep na {minutes} minuten nog steeds en is gestopt.",
+	"Handler timed out": "Handler duurde te lang",
+	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" was niet binnen {seconds}s klaar en is gestopt."
 }

@@ -24,5 +24,6 @@ export type QueueJob = {
 	jobId: string;
 	actionId: number | null;
 	actionName: string;
-	run: () => Promise<void>;
+	/** Aborted when the job exceeds the queue's safety limit; pass it to the handler chain. */
+	run: (signal: AbortSignal) => Promise<void>;
 };
