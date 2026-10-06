@@ -306,33 +306,104 @@ fn install_plugin_archive(app: &AppHandle, zip_path: &Path, replace_existing: bo
     let plugins_root = plugins_dir(app)?;
     let destination = plugin_destination(&plugins_root, &manifest.key)?;
 
-    if destination.exists() {
-        if !replace_existing {
-            return Err(format!(
-                "a plugin with key '{}' is already installed",
-                manifest.key
-            ));
-        }
-
-        fs::remove_dir_all(&destination).map_err(|error| {
-            format!(
-                "failed to remove existing plugin directory {}: {error}",
-                destination.display()
-            )
-        })?;
+    if destination.exists() && !replace_existing {
+        return Err(format!(
+            "a plugin with key '{}' is already installed",
+            manifest.key
+        ));
     }
 
-    fs::create_dir_all(&destination)
-        .map_err(|error| format!("failed to create plugin directory: {error}"))?;
+    // Extract and validate next to the plugin first; the installed version is only
+    // replaced once the new one is complete, so a failed or interrupted update never
+    // leaves the user without a working plugin.
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_millis())
+        .unwrap_or(0);
+    let staging = plugins_root.join(format!("{STAGING_PREFIX}{}-{stamp}", manifest.key));
+    let backup = plugins_root.join(format!("{BACKUP_PREFIX}{}-{stamp}", manifest.key));
 
-    let zip_file = File::open(zip_path)
-        .map_err(|error| format!("failed to open zip file {}: {error}", zip_path.display()))?;
-    let mut archive = ZipArchive::new(zip_file)
-        .map_err(|error| format!("failed to read zip archive: {error}"))?;
+    let staged = (|| {
+        fs::create_dir_all(&staging)
+            .map_err(|error| format!("failed to create plugin staging directory: {error}"))?;
 
-    extract_zip_to_dir(&mut archive, &destination)?;
+        let zip_file = File::open(zip_path).map_err(|error| {
+            format!("failed to open zip file {}: {error}", zip_path.display())
+        })?;
+        let mut archive = ZipArchive::new(zip_file)
+            .map_err(|error| format!("failed to read zip archive: {error}"))?;
+
+        extract_zip_to_dir(&mut archive, &staging)?;
+        read_manifest(&staging)
+    })();
+
+    if let Err(error) = staged {
+        let _ = fs::remove_dir_all(&staging);
+        return Err(error);
+    }
+
+    let had_previous = destination.exists();
+    if had_previous {
+        if let Err(error) = fs::rename(&destination, &backup) {
+            let _ = fs::remove_dir_all(&staging);
+            return Err(format!(
+                "failed to move existing plugin directory {}: {error}",
+                destination.display()
+            ));
+        }
+    }
+
+    if let Err(error) = fs::rename(&staging, &destination) {
+        if had_previous {
+            let _ = fs::rename(&backup, &destination);
+        }
+        let _ = fs::remove_dir_all(&staging);
+        return Err(format!("failed to install plugin {}: {error}", manifest.key));
+    }
+
+    if had_previous {
+        let _ = fs::remove_dir_all(&backup);
+    }
 
     read_manifest(&destination)
+}
+
+const STAGING_PREFIX: &str = ".staging-";
+const BACKUP_PREFIX: &str = ".backup-";
+
+/// Cleans up after an install that was interrupted by a crash: drops half-extracted
+/// staging dirs, and puts a backup back when its plugin directory is missing (the crash
+/// happened between moving the old version away and moving the new one in).
+fn recover_interrupted_installs(plugins_root: &Path) {
+    let Ok(entries) = fs::read_dir(plugins_root) else {
+        return;
+    };
+
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let path = entry.path();
+
+        if name.starts_with(STAGING_PREFIX) {
+            let _ = fs::remove_dir_all(&path);
+            continue;
+        }
+
+        let Some(rest) = name.strip_prefix(BACKUP_PREFIX) else {
+            continue;
+        };
+        let Some((key, _stamp)) = rest.rsplit_once('-') else {
+            continue;
+        };
+        let Ok(destination) = plugin_destination(plugins_root, key) else {
+            continue;
+        };
+
+        if destination.exists() {
+            let _ = fs::remove_dir_all(&path);
+        } else if let Err(error) = fs::rename(&path, &destination) {
+            eprintln!("failed to restore plugin backup {}: {error}", path.display());
+        }
+    }
 }
 
 fn parse_manifest_contents(contents: &str, source: &str) -> Result<PluginManifest, String> {
@@ -722,6 +793,7 @@ pub fn get_plugins_dir(app: AppHandle) -> Result<String, String> {
 
 fn list_installed_plugins_blocking(app: AppHandle) -> Result<Vec<InstalledPluginManifest>, String> {
     let dir = plugins_dir(&app)?;
+    recover_interrupted_installs(&dir);
     let mut manifests = Vec::new();
 
     let entries =
@@ -732,7 +804,8 @@ fn list_installed_plugins_blocking(app: AppHandle) -> Result<Vec<InstalledPlugin
             entry.map_err(|error| format!("failed to read plugins directory entry: {error}"))?;
         let path = entry.path();
 
-        if !path.is_dir() {
+        // `.updates`, `.staging-*` and `.backup-*` are internal, never installed plugins.
+        if !path.is_dir() || entry.file_name().to_string_lossy().starts_with('.') {
             continue;
         }
 
