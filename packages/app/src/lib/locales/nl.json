@@ -1338,5 +1338,7 @@
 	"Action stopped": "Actie gestopt",
 	"\"{action}\" was still running after {minutes} minutes and was stopped.": "\"{action}\" liep na {minutes} minuten nog steeds en is gestopt.",
 	"Handler timed out": "Handler duurde te lang",
-	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" was niet binnen {seconds}s klaar en is gestopt."
+	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" was niet binnen {seconds}s klaar en is gestopt.",
+	"Changes from two devices were merged": "Wijzigingen van twee apparaten samengevoegd",
+	"{count} items were edited on two devices at the same time. Where both changed the same setting, the most recent change was kept.": "{count} items zijn tegelijk op twee apparaten bewerkt. Waar beide dezelfde instelling wijzigden, is de nieuwste wijziging behouden."
 }

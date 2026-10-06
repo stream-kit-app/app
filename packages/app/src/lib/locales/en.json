@@ -1338,5 +1338,7 @@
 	"Action stopped": "Action stopped",
 	"\"{action}\" was still running after {minutes} minutes and was stopped.": "\"{action}\" was still running after {minutes} minutes and was stopped.",
 	"Handler timed out": "Handler timed out",
-	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped."
+	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.",
+	"Changes from two devices were merged": "Changes from two devices were merged",
+	"{count} items were edited on two devices at the same time. Where both changed the same setting, the most recent change was kept.": "{count} items were edited on two devices at the same time. Where both changed the same setting, the most recent change was kept."
 }

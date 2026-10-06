@@ -185,13 +185,17 @@ export class ConfigSync {
 		this.#suppressSchedule = true;
 
 		const userId = this.#app.auth.user!.id;
+		let conflicts = 0;
 		const ctx = {
 			userId,
 			upsertRemote: (
 				collection: string,
 				body: Record<string, unknown>,
 				options?: SyncUpsertRemoteOptions
-			) => this.#upsertRemoteRecord(collection, body, options)
+			) => this.#upsertRemoteRecord(collection, body, options),
+			reportConflict: () => {
+				conflicts += 1;
+			}
 		};
 
 		try {
@@ -206,6 +210,17 @@ export class ConfigSync {
 			this.#clearRetry();
 			await this.#reloadRuntime(changedAdapters);
 			this.#resolveFirstSync();
+
+			if (conflicts > 0) {
+				this.#app.toast.create({
+					title: translate('Changes from two devices were merged'),
+					description: translate(
+						'{count} items were edited on two devices at the same time. Where both changed the same setting, the most recent change was kept.',
+						{ count: conflicts }
+					),
+					variant: 'warning'
+				});
+			}
 		} catch (error) {
 			if (isPocketBaseAutoCancelled(error)) {
 				this.status =

@@ -539,6 +539,7 @@ export async function migrate(sqlite: Database): Promise<void> {
 	await migrateMapsToCollections(sqlite);
 	await migrateConfigSyncIds(sqlite);
 	await createConfigSyncTombstonesTable(sqlite);
+	await createConfigSyncBaseTable(sqlite);
 	await migrateAddRevisionColumns(sqlite);
 	await migrateAddTombstoneRevisionColumn(sqlite);
 	await createConfigSyncTrashTable(sqlite);
@@ -725,6 +726,18 @@ async function migrateConfigSyncIds(sqlite: Database): Promise<void> {
 			`CREATE UNIQUE INDEX IF NOT EXISTS idx_action_queues_sync_id ON action_queues (sync_id)`
 		);
 	}
+}
+
+async function createConfigSyncBaseTable(sqlite: Database): Promise<void> {
+	await sqlite.execute(`
+		CREATE TABLE IF NOT EXISTS config_sync_base (
+			entity_type TEXT NOT NULL,
+			sync_id TEXT NOT NULL,
+			revision INTEGER NOT NULL,
+			content TEXT NOT NULL,
+			PRIMARY KEY (entity_type, sync_id)
+		)
+	`);
 }
 
 async function createConfigSyncTombstonesTable(sqlite: Database): Promise<void> {
