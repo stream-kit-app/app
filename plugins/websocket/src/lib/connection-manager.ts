@@ -79,6 +79,9 @@ function createPoolEntry(url: string): PoolEntry {
 	};
 }
 
+/** Retry interval once the configured fast retries are used up. */
+const EXHAUSTED_RETRY_DELAY_MS = 60_000;
+
 export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPluginController {
 	const listeners = new Set<StateListener>();
 	const logStore = createConnectionLogStore();
@@ -247,9 +250,15 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 	function scheduleReconnect(url: string): void {
 		const entry = pool.get(url);
 
-		if (!entry || entry.reconnectTimer || !shouldKeepAlive(entry) || entry.retriesExhausted) {
+		if (!entry || entry.reconnectTimer || !shouldKeepAlive(entry)) {
 			return;
 		}
+
+		// After the configured retries, keep trying slowly instead of giving up: trigger-only
+		// connections would otherwise stay dead for the rest of the stream after the remote
+		// server restarts.
+		const exhausted = entry.retriesExhausted;
+		const settings = getEntrySettings(entry);
 
 		entry.reconnectTimer = setTimeout(
 			() => {
@@ -260,11 +269,17 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 					return;
 				}
 
+				if (exhausted) {
+					// One attempt per slow retry; on failure it is exhausted again.
+					entry.retriesExhausted = false;
+					entry.connectAttempts = Math.max(0, settings.maxConnectRetries - 1);
+				}
+
 				void connectId(primaryId, false).catch(() => {
 					// Errors are handled inside connectId.
 				});
 			},
-			getEntrySettings(entry).reconnectDelaySec * 1_000
+			exhausted ? EXHAUSTED_RETRY_DELAY_MS : settings.reconnectDelaySec * 1_000
 		);
 	}
 
@@ -552,7 +567,11 @@ export function createWebSocketPluginController(_app: PluginAppApi): WebSocketPl
 			if (entry && shouldKeepAlive(entry) && recordFailedAttempt(entry, message)) {
 				scheduleReconnect(url);
 			} else if (entry) {
-				setEntryStatus(entry, 'error', message);
+				if (entry.retriesExhausted && shouldKeepAlive(entry)) {
+					scheduleReconnect(url);
+				} else {
+					setEntryStatus(entry, 'error', message);
+				}
 			}
 
 			throw error;

@@ -72,12 +72,12 @@ export class DiscordRestClient {
 	}
 
 	async getGatewayBot(): Promise<
-		{ ok: true; data: GatewayBotResponse } | { ok: false; message: string }
+		{ ok: true; data: GatewayBotResponse } | { ok: false; status: number; message: string }
 	> {
 		const result = await this.request<GatewayBotResponse>('GET', '/gateway/bot');
 
 		if (!result.ok) {
-			return { ok: false, message: result.message };
+			return { ok: false, status: result.status, message: result.message };
 		}
 
 		return { ok: true, data: result.data };
