@@ -48,6 +48,8 @@ export type YouTubePluginApi = {
 
 export type YouTubePluginController = YouTubePluginApi & {
 	boot(): Promise<void>;
+	/** Stop polling and timers (plugin disabled) without forgetting the stored tokens. */
+	shutdown(): Promise<void>;
 };
 
 export function createYouTubePluginApi(
@@ -393,6 +395,16 @@ export function createYouTubePluginApi(
 			}
 
 			return client.banLiveChatUser(chatId, userId, durationSec);
+		},
+		async shutdown() {
+			stopMonitors();
+			clearRefreshTimer();
+			clearOAuthListeners();
+			isConnected = false;
+			isAuthenticating = false;
+			client = undefined;
+			liveStream = undefined;
+			notify();
 		},
 		async boot() {
 			const storedAccessToken = await store.get<string>(ACCESS_TOKEN_KEY);

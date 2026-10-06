@@ -55,6 +55,8 @@ export type TwitchBotAccountController = TwitchBotAccountApi & {
 
 	sendChatMessage(broadcasterId: string, message: string): Promise<void>;
 
+	/** Stop the bot connection (plugin disabled) without forgetting its token. */
+	shutdown(): Promise<void>;
 };
 
 
@@ -358,6 +360,16 @@ export function createTwitchBotAccountApi(
 					variant: 'error'
 				});
 			}
+		},
+
+		async shutdown() {
+			oauthFlow?.cancel();
+			oauthFlow = undefined;
+			await stopClient();
+			isConnected = false;
+			isAuthenticating = false;
+			accessToken = undefined;
+			notify();
 		},
 
 		async boot() {

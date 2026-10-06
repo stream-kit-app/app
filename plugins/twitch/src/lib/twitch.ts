@@ -51,6 +51,8 @@ export type TwitchPluginApi = {
 
 export type TwitchPluginController = TwitchPluginApi & {
 	boot(): Promise<void>;
+	/** Stop all connections (plugin disabled) without forgetting the stored tokens. */
+	shutdown(): Promise<void>;
 };
 
 export function createTwitchPluginApi(
@@ -394,6 +396,16 @@ export function createTwitchPluginApi(
 			void botAccountController.boot().catch((error) => {
 				console.error('[twitch] Failed to boot bot account', error);
 			});
+		},
+		async shutdown() {
+			oauthFlow?.cancel();
+			oauthFlow = undefined;
+			await botAccountController?.shutdown();
+			await stopClients();
+			isConnected = false;
+			isAuthenticating = false;
+			accessToken = undefined;
+			notify();
 		}
 	};
 
