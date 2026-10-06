@@ -52,6 +52,9 @@ export type YouTubePluginController = YouTubePluginApi & {
 	shutdown(): Promise<void>;
 };
 
+/** Retry delay after a token refresh failed for a temporary reason. */
+const TOKEN_REFRESH_RETRY_MS = 60_000;
+
 export function createYouTubePluginApi(
 	app: PluginAppApi,
 	store: PluginStore
@@ -84,11 +87,7 @@ export function createYouTubePluginApi(
 		return new ApiClient(
 			() => accessToken,
 			() => {
-				void refreshStoredToken().then((refreshed) => {
-					if (!refreshed) {
-						void disconnect();
-					}
-				});
+				void refreshAndHandle();
 			}
 		);
 	}
@@ -116,32 +115,59 @@ export function createYouTubePluginApi(
 		void store.set(TOKEN_EXPIRES_AT_KEY, tokenExpiresAt);
 
 		refreshTimer = setTimeout(() => {
-			void refreshStoredToken().then((refreshed) => {
-				if (!refreshed) {
-					void disconnect();
-				}
-			});
+			void refreshAndHandle();
 		}, refreshInMs);
 	}
 
-	async function refreshStoredToken(): Promise<boolean> {
+	/**
+	 * `revoked`: Google rejected the refresh token (or none is stored), reconnect needed.
+	 * `failed`: temporary problem (network, Google outage); keep the session and retry.
+	 */
+	async function refreshStoredToken(): Promise<'ok' | 'revoked' | 'failed'> {
 		const storedRefreshToken =
 			refreshToken ?? (await store.get<string>(REFRESH_TOKEN_KEY)) ?? undefined;
 
 		if (!storedRefreshToken) {
-			return false;
+			return 'revoked';
 		}
 
-		const tokens = await refreshAccessToken(storedRefreshToken);
+		const result = await refreshAccessToken(storedRefreshToken);
 
-		if (!tokens) {
-			return false;
+		if (!result.ok) {
+			return result.revoked ? 'revoked' : 'failed';
 		}
 
-		await persistTokens(tokens.access_token, tokens.refresh_token);
-		scheduleTokenRefresh(tokens.expires_in);
+		await persistTokens(result.tokens.access_token, result.tokens.refresh_token);
+		scheduleTokenRefresh(result.tokens.expires_in);
 		notify();
-		return true;
+		return 'ok';
+	}
+
+	let refreshInFlight: Promise<void> | undefined;
+
+	/** Refresh and react; concurrent 401s share one refresh. */
+	function refreshAndHandle(): Promise<void> {
+		refreshInFlight ??= (async () => {
+			const result = await refreshStoredToken().catch(() => 'failed' as const);
+
+			if (result === 'revoked') {
+				app.toast.create({
+					title: 'YouTube session expired',
+					description: 'Reconnect your YouTube account in the YouTube plugin settings.',
+					variant: 'warning'
+				});
+				await disconnect();
+			} else if (result === 'failed') {
+				clearRefreshTimer();
+				refreshTimer = setTimeout(() => {
+					void refreshAndHandle();
+				}, TOKEN_REFRESH_RETRY_MS);
+			}
+		})().finally(() => {
+			refreshInFlight = undefined;
+		});
+
+		return refreshInFlight;
 	}
 
 	function stopMonitors(): void {
@@ -205,8 +231,12 @@ export function createYouTubePluginApi(
 			void syncLiveStream(nextLiveStream);
 		});
 
-		const activeStream = await client.getActiveLiveStream();
-		await syncLiveStream(activeStream);
+		try {
+			await syncLiveStream(await client.getActiveLiveStream());
+		} catch (error) {
+			// The broadcast monitor keeps polling and picks the stream up once YouTube responds.
+			console.warn('[youtube] Initial broadcast check failed', error);
+		}
 	}
 
 	async function connect(nextAccessToken: string, nextRefreshToken?: string): Promise<void> {
@@ -418,11 +448,18 @@ export function createYouTubePluginApi(
 			refreshToken = storedRefreshToken ?? undefined;
 
 			if (tokenExpiresAt > 0 && Date.now() >= tokenExpiresAt - 60_000) {
-				const refreshed = await refreshStoredToken();
+				const refreshed = await refreshStoredToken().catch(() => 'failed' as const);
 
-				if (!refreshed) {
+				if (refreshed === 'revoked') {
 					await disconnect();
 					return;
+				}
+
+				if (refreshed === 'failed') {
+					// Offline at startup: keep the session and retry the refresh later.
+					refreshTimer = setTimeout(() => {
+						void refreshAndHandle();
+					}, TOKEN_REFRESH_RETRY_MS);
 				}
 			}
 
