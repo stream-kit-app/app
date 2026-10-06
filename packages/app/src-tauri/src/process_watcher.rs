@@ -199,6 +199,12 @@ fn run_watcher(app: AppHandle, poll_interval_ms: u64, cancel: Arc<AtomicBool>) {
         }
 
         refresh_process_list(&mut system);
+
+        // The refresh can take a while; a stopped watcher must not emit afterwards.
+        if cancel.load(Ordering::Relaxed) {
+            break;
+        }
+
         let current = collect_snapshots(&system, &previous);
         emit_process_events(&app, &previous, &current);
         previous = current;
@@ -214,11 +220,10 @@ fn stop_watcher_inner(inner: &mut WatcherInner) -> Result<(), String> {
         cancel.store(true, Ordering::Relaxed);
     }
 
-    if let Some(thread) = inner.thread.take() {
-        thread
-            .join()
-            .map_err(|_| "process watcher thread panicked".to_string())?;
-    }
+    // Don't join: the thread may be sleeping for up to MAX_POLL_INTERVAL_MS, and these
+    // commands run on the main thread while holding the state lock (the UI froze for
+    // seconds on every toggle). It exits on its own once it sees the cancel flag.
+    drop(inner.thread.take());
 
     inner.running = false;
 

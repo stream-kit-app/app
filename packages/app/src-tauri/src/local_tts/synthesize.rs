@@ -1,10 +1,39 @@
 use std::fs;
 use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, ExitStatus, Stdio};
+use std::time::{Duration, Instant};
 
 use super::paths::{config_file_path, is_voice_installed, model_file_path, voice_dir};
 use super::runtime::ensure_piper_runtime;
 use tauri::AppHandle;
+
+/// Piper renders a message in seconds; a stuck process would otherwise hold a
+/// blocking-pool thread (and the TTS request) forever.
+const PIPER_TIMEOUT: Duration = Duration::from_secs(120);
+
+fn wait_with_timeout(child: &mut Child, timeout: Duration) -> Result<ExitStatus, String> {
+    let started = Instant::now();
+
+    loop {
+        if let Some(status) = child
+            .try_wait()
+            .map_err(|error| format!("failed while waiting for Piper: {error}"))?
+        {
+            return Ok(status);
+        }
+
+        if started.elapsed() >= timeout {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(format!(
+                "Piper did not finish within {} seconds",
+                timeout.as_secs()
+            ));
+        }
+
+        std::thread::sleep(Duration::from_millis(50));
+    }
+}
 
 pub fn synthesize_speech(app: &AppHandle, voice_id: &str, text: &str) -> Result<Vec<u8>, String> {
     if text.trim().is_empty() {
@@ -63,9 +92,13 @@ pub fn synthesize_speech(app: &AppHandle, voice_id: &str, text: &str) -> Result<
             .map_err(|error| format!("failed to send text to Piper: {error}"))?;
     }
 
-    let status = child
-        .wait()
-        .map_err(|error| format!("failed while waiting for Piper: {error}"))?;
+    let status = match wait_with_timeout(&mut child, PIPER_TIMEOUT) {
+        Ok(status) => status,
+        Err(error) => {
+            let _ = fs::remove_file(&output_path);
+            return Err(error);
+        }
+    };
 
     if !status.success() {
         let _ = fs::remove_file(&output_path);

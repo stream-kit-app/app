@@ -1,9 +1,13 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::process::{Command, Stdio};
+use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
+
+/// How long to wait for output after the process exited.
+const PIPE_DRAIN_TIMEOUT: Duration = Duration::from_secs(2);
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -281,34 +285,45 @@ fn run_program_inner(request: RunProgramRequest) -> Result<RunProgramResult, Str
         .spawn()
         .map_err(|error| format!("failed to start program: {error}"))?;
 
+    // Drain both pipes while waiting: a child that fills a pipe buffer (~4 KB on
+    // Windows) blocks until someone reads it, so reading only after exit made any
+    // chatty program hit the timeout.
+    let stdout_reader = child.stdout.take().map(spawn_pipe_reader);
+    let stderr_reader = child.stderr.take().map(spawn_pipe_reader);
+
     let timeout = Duration::from_secs_f64(wait_seconds);
     let status = wait_with_timeout(&mut child, timeout)?;
 
-    let stdout = child
-        .stdout
-        .take()
-        .map(|mut output| {
-            let mut buffer = Vec::new();
-            let _ = std::io::Read::read_to_end(&mut output, &mut buffer);
-            buffer
-        })
-        .unwrap_or_default();
-
-    let stderr = child
-        .stderr
-        .take()
-        .map(|mut output| {
-            let mut buffer = Vec::new();
-            let _ = std::io::Read::read_to_end(&mut output, &mut buffer);
-            buffer
-        })
-        .unwrap_or_default();
+    let stdout = stdout_reader.map(collect_pipe).unwrap_or_default();
+    let stderr = stderr_reader.map(collect_pipe).unwrap_or_default();
 
     Ok(collect_output(
         stdout,
         stderr,
         status.code(),
     ))
+}
+
+/// Reads a pipe to the end on its own thread.
+fn spawn_pipe_reader<R>(mut pipe: R) -> mpsc::Receiver<Vec<u8>>
+where
+    R: std::io::Read + Send + 'static,
+{
+    let (sender, receiver) = mpsc::channel();
+    std::thread::spawn(move || {
+        let mut buffer = Vec::new();
+        let _ = pipe.read_to_end(&mut buffer);
+        let _ = sender.send(buffer);
+    });
+    receiver
+}
+
+/// The pipe closes when the process exits, unless a grandchild still holds it open;
+/// don't wait for that forever.
+fn collect_pipe(receiver: mpsc::Receiver<Vec<u8>>) -> Vec<u8> {
+    receiver
+        .recv_timeout(PIPE_DRAIN_TIMEOUT)
+        .unwrap_or_default()
 }
 
 #[tauri::command]
