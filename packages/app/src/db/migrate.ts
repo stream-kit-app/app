@@ -1,5 +1,6 @@
 import type Database from '@tauri-apps/plugin-sql';
 
+import { executeBatch, type BatchStatement } from './batch';
 import {
 	migrateStoredActionHandlers,
 	migrateStoredActionTriggers
@@ -450,7 +451,84 @@ async function migrateMapsToCollections(sqlite: Database): Promise<void> {
 	}
 }
 
+/** Tables rebuilt with `replaceTableWithBackup`. */
+const REBUILT_TABLES = ['actions', 'overlays'] as const;
+
+/**
+ * A leftover `<table>_migration_backup` means a rebuild was interrupted (crash or close)
+ * before it finished: the live table may be missing or half-filled, and the original
+ * rows only exist in the backup. Put the backup back so the migration reruns from the
+ * original data; without this the next start created an empty table and the user's
+ * actions silently disappeared.
+ */
+async function restoreInterruptedTableRebuilds(sqlite: Database): Promise<void> {
+	for (const table of REBUILT_TABLES) {
+		const backup = `${table}_migration_backup`;
+		const found = await sqlite.select<Array<{ name: string }>>(
+			`SELECT name FROM sqlite_master WHERE type = 'table' AND name = $1`,
+			[backup]
+		);
+
+		if (found.length === 0) {
+			continue;
+		}
+
+		console.warn(`Restoring "${table}" from an interrupted migration backup`);
+		await executeBatch([
+			{ sql: `DROP TABLE IF EXISTS "${table}"` },
+			{ sql: `ALTER TABLE "${backup}" RENAME TO "${table}"` }
+		]);
+	}
+}
+
+const SYNC_ID_INDEXES = [
+	{ table: 'actions', index: 'idx_actions_sync_id' },
+	{ table: 'action_queues', index: 'idx_action_queues_sync_id' },
+	{ table: 'overlays', index: 'idx_overlays_sync_id' },
+	{ table: 'dashboard_widgets', index: 'idx_dashboard_widgets_sync_id' }
+] as const;
+
+/**
+ * The sync-id migrations add the column, backfill it and create the unique index in
+ * separate steps, and they are skipped once the column exists. Interrupted midway, rows
+ * kept a NULL sync id (which config sync then duplicated on every pass) and the unique
+ * index was never created. Repair both on every start; this is a no-op once healthy.
+ */
+async function repairSyncIds(sqlite: Database): Promise<void> {
+	const { createSyncId } = await import('./sync-id');
+
+	for (const { table, index } of SYNC_ID_INDEXES) {
+		const columns = await sqlite.select<Array<{ name: string }>>(`PRAGMA table_info("${table}")`);
+		if (!columns.some((column) => column.name === 'sync_id')) {
+			continue;
+		}
+
+		const missing = await sqlite.select<Array<{ id: number | string }>>(
+			`SELECT id FROM "${table}" WHERE sync_id IS NULL OR sync_id = ''`
+		);
+		if (missing.length > 0) {
+			console.warn(`Assigning sync ids to ${missing.length} rows in "${table}"`);
+			await executeBatch(
+				missing.map(
+					(row): BatchStatement => ({
+						sql: `UPDATE "${table}" SET sync_id = $1 WHERE id = $2`,
+						params: [createSyncId(), row.id]
+					})
+				)
+			);
+		}
+
+		try {
+			await sqlite.execute(`CREATE UNIQUE INDEX IF NOT EXISTS ${index} ON "${table}" (sync_id)`);
+		} catch (error) {
+			// Duplicate sync ids need a manual look; don't block app start over it.
+			console.error(`Could not create unique sync id index on "${table}"`, error);
+		}
+	}
+}
+
 export async function migrate(sqlite: Database): Promise<void> {
+	await restoreInterruptedTableRebuilds(sqlite);
 	await migrateActionsTable(sqlite);
 	await migrateOverlaysTable(sqlite);
 	await createActionQueuesTable(sqlite);
@@ -467,6 +545,7 @@ export async function migrate(sqlite: Database): Promise<void> {
 	await createPluginRecordsTable(sqlite);
 	await migrateOverlaysSyncColumns(sqlite);
 	await migrateDashboardWidgetsSyncColumns(sqlite);
+	await repairSyncIds(sqlite);
 }
 
 async function migrateOverlaysSyncColumns(sqlite: Database): Promise<void> {

@@ -1,6 +1,7 @@
 import Database from '@tauri-apps/plugin-sql';
 import { drizzle } from 'drizzle-orm/sqlite-proxy';
 
+import { APP_DB_URL } from './batch';
 import { migrate } from './migrate';
 import { runPluginMigrations } from './plugin-migrations';
 import * as schema from './schemas';
@@ -32,7 +33,7 @@ export async function initDb(): Promise<void> {
 		return;
 	}
 
-	const connection = await Database.load('sqlite:app.db');
+	const connection = await Database.load(APP_DB_URL);
 	await migrate(connection);
 
 	sqlite = connection;
@@ -57,6 +58,7 @@ export {
 } from './repositories/actions';
 export type { SaveActionInput } from './repositories/actions';
 export type { ActionRecord, NewActionRecord } from './schemas/actions';
+export { executeBatch, type BatchStatement } from './batch';
 export {
 	getActionQueues,
 	getActionQueue,
