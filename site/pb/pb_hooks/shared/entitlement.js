@@ -6,6 +6,9 @@
  * instead of relying on file-level functions.
  */
 
+/** Access window after cancelling; mirrors `SUBSCRIPTION_GRACE_MS` in the desktop app. */
+const SUBSCRIPTION_GRACE_MS = 30 * 24 * 60 * 60 * 1000;
+
 function parsePbDateToMs(value) {
 	if (value == null || value === '') {
 		return null;
@@ -74,6 +77,7 @@ function requestAuth(e) {
 }
 
 module.exports = {
+	SUBSCRIPTION_GRACE_MS,
 	parsePbDateToMs,
 	isMembershipEntitled,
 	findEntitledMembership,

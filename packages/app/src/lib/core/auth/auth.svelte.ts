@@ -15,11 +15,7 @@ import {
 	toPublicUser,
 	validateAvatarFile
 } from './auth-utils';
-import {
-	SUBSCRIPTION_GRACE_MS,
-	formatEndsAtIso,
-	isMembershipEntitled
-} from './subscription-entitlement';
+import { isMembershipEntitled } from './subscription-entitlement';
 import { createTauriAuthStore } from './tauri-auth-store';
 import type {
 	AuthAccount,
@@ -396,15 +392,10 @@ export class Auth {
 			throw new Error(translate('No active subscription to cancel.'));
 		}
 
-		const nowMs = Date.now();
-		const cancelledAt = formatEndsAtIso(nowMs);
-		const endsAt = formatEndsAtIso(nowMs + SUBSCRIPTION_GRACE_MS);
-
 		try {
-			await this.client.collection('user_subscriptions').update(membershipId, {
-				status: 'cancelled',
-				cancelledAt,
-				endsAt
+			// The server sets `cancelledAt` / `endsAt`; clients can't update memberships directly.
+			await this.client.send(`/api/subscriptions/${encodeURIComponent(membershipId)}/cancel`, {
+				method: 'POST'
 			});
 		} catch (error) {
 			throw new Error(
