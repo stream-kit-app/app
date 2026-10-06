@@ -1,7 +1,7 @@
 {
   "key": "youtube",
   "name": "YouTube",
-  "version": "0.2.0-alpha.6",
+  "version": "0.2.0-alpha.7",
   "description": "YouTube live chat, memberships, moderation, and stream status.",
   "icon": "ri:youtube-fill",
   "entry": "dist/index.js",

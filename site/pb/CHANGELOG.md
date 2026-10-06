@@ -1,5 +1,15 @@
 # @stream-kit/pocketbase
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`8fa8469`](https://github.com/stream-kit-app/app/commit/8fa84697db3886b79d010bb7c614ce659e533f77) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Reserve AI action usage before calling Anthropic so parallel requests can't exceed the daily limit.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`f3c43dd`](https://github.com/stream-kit-app/app/commit/f3c43ddc1c1119266f18b60d2b36ab90fefa5def) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Published cloud overlays can no longer be listed by anyone, and anonymous viewers can no longer send messages to the streamer's app through the overlay relay.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`5ecd3f3`](https://github.com/stream-kit-app/app/commit/5ecd3f3e42373b1d32cfc9161f74ee0c07c2f82d) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Cancel subscriptions through a server route that sets the grace end date, so clients can no longer choose their own `endsAt`.
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes

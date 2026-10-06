@@ -1,5 +1,17 @@
 # @stream-kit/plugin-twitch
 
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`7e43f48`](https://github.com/stream-kit-app/app/commit/7e43f48954173d1bf8e15054a13c4f634f9c5721) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Disabling and re-enabling Twitch, YouTube, OBS or Discord no longer leaves old connections running (duplicate chat handlers, doubled YouTube polling), and pages and widgets keep updating afterwards.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`4539c27`](https://github.com/stream-kit-app/app/commit/4539c27bce4a6c38688e12b820c0e9ee6c808de4) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Connecting the Twitch bot account can no longer replace the main account's token: each sign-in only accepts its own OAuth callback, and listeners are cleaned up afterwards.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`79ca673`](https://github.com/stream-kit-app/app/commit/79ca673900f2c4c8909257025a96ed55c2d22b4f) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Twitch only reports "connected" once the token is validated. If Twitch can't be reached at startup the plugin keeps retrying instead of silently missing raids, subs and follows, and an expired token shows a reconnect hint.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes

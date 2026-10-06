@@ -1,5 +1,13 @@
 # @stream-kit/plugin-bot
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`f119d8d`](https://github.com/stream-kit-app/app/commit/f119d8d295a4eead114006f3c1c647e22b2f31a9) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - A slow or stuck chat command no longer blocks all later commands and moderation, and timers no longer call the Twitch API on every chat line.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
