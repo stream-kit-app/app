@@ -10,6 +10,8 @@ const PocketBaseCtor = PocketBase.default ?? PocketBase;
 
 /** @typedef {{ overlayId: string, role: 'subscriber' | 'publisher' }} ClientMeta */
 
+const OVERLAY_SETTINGS_EVENT = 'overlay:settings';
+
 /**
  * @param {object} options
  * @param {string} options.pocketbaseUrl
@@ -25,6 +27,9 @@ export function createOverlayWsHub(options) {
 	const publishers = new Map();
 	/** @type {WeakMap<import('ws').WebSocket, ClientMeta>} */
 	const meta = new WeakMap();
+	/** Last `overlay:settings` frame per overlay, replayed to subscribers that join later. */
+	/** @type {Map<string, string>} */
+	const lastSettings = new Map();
 
 	/**
 	 * @param {Map<string, Set<import('ws').WebSocket>>} map
@@ -134,17 +139,23 @@ export function createOverlayWsHub(options) {
 			} else {
 				await assertPublished(overlayId);
 				addClient(subscribers, overlayId, ws);
+				const settings = lastSettings.get(overlayId);
+				if (settings && ws.readyState === 1) {
+					ws.send(settings);
+				}
 			}
 
 			meta.set(ws, { overlayId, role });
 
 			ws.on('message', (raw) => {
 				const data = String(raw);
+				let event;
 				try {
 					const parsed = JSON.parse(data);
 					if (!parsed || typeof parsed.event !== 'string') {
 						return;
 					}
+					event = parsed.event;
 				} catch {
 					return;
 				}
@@ -153,6 +164,9 @@ export function createOverlayWsHub(options) {
 				if (!info) return;
 
 				if (info.role === 'publisher') {
+					if (event === OVERLAY_SETTINGS_EVENT) {
+						lastSettings.set(info.overlayId, data);
+					}
 					broadcast(subscribers.get(info.overlayId), data);
 				} else {
 					broadcast(publishers.get(info.overlayId), data);

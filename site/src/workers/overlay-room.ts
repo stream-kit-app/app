@@ -12,6 +12,11 @@ export type OverlayRoomEnv = {
 	PUBLIC_POCKETBASE_URL: string;
 };
 
+const OVERLAY_SETTINGS_EVENT = 'overlay:settings';
+const SETTINGS_STORAGE_KEY = 'settings';
+/** Durable Object storage values are capped at 128 KiB. */
+const MAX_STORED_SETTINGS_BYTES = 120 * 1024;
+
 const PocketBaseCtor = (PocketBase as unknown as { default?: typeof PocketBase }).default ?? PocketBase;
 
 function resolvePocketBaseUrl(env: OverlayRoomEnv): string {
@@ -90,22 +95,41 @@ export class OverlayRoom extends DurableObject<OverlayRoomEnv> {
 		this.ctx.acceptWebSocket(server);
 		server.serializeAttachment({ overlayId, role } satisfies ClientMeta);
 
+		// Like the local overlay server: overlays that load later (e.g. an OBS scene
+		// switch) get the current settings right away instead of rendering defaults.
+		if (role === 'subscriber') {
+			const settings = await this.ctx.storage.get<string>(SETTINGS_STORAGE_KEY);
+			if (settings) {
+				server.send(settings);
+			}
+		}
+
 		return new Response(null, { status: 101, webSocket: client });
 	}
 
-	webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
 		const data = typeof message === 'string' ? message : new TextDecoder().decode(message);
+		let event: string;
 		try {
 			const parsed = JSON.parse(data);
 			if (!parsed || typeof parsed.event !== 'string') {
 				return;
 			}
+			event = parsed.event;
 		} catch {
 			return;
 		}
 
 		const info = ws.deserializeAttachment() as ClientMeta | null;
 		if (!info) return;
+
+		if (
+			info.role === 'publisher' &&
+			event === OVERLAY_SETTINGS_EVENT &&
+			data.length <= MAX_STORED_SETTINGS_BYTES
+		) {
+			await this.ctx.storage.put(SETTINGS_STORAGE_KEY, data);
+		}
 
 		const peers = this.ctx.getWebSockets();
 		for (const peer of peers) {
