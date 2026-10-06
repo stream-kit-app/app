@@ -76,12 +76,12 @@ export function createOverlayWsHub(options) {
 	 * @param {string} overlayId
 	 */
 	async function assertPublished(overlayId) {
-		const pb = new PocketBaseCtor(pocketbaseUrl);
-		const safeId = String(overlayId).replace(/"/g, '');
-		const record = await pb
-			.collection('user_overlays')
-			.getFirstListItem(`overlayId="${safeId}" && published=true`);
-		return record;
+		const response = await fetch(
+			`${pocketbaseUrl}/api/overlays/${encodeURIComponent(overlayId)}/public`
+		);
+		if (!response.ok) {
+			throw new Error(`Overlay is not published (${response.status})`);
+		}
 	}
 
 	/**
@@ -99,10 +99,9 @@ export function createOverlayWsHub(options) {
 		if (!authId) {
 			throw new Error('Invalid auth token');
 		}
-		const safeId = String(overlayId).replace(/"/g, '');
 		const record = await pb
 			.collection('user_overlays')
-			.getFirstListItem(`overlayId="${safeId}"`);
+			.getFirstListItem(pb.filter('overlayId = {:overlayId}', { overlayId }));
 		if (record.user !== authId) {
 			throw new Error('Not overlay owner');
 		}
@@ -168,9 +167,8 @@ export function createOverlayWsHub(options) {
 						lastSettings.set(info.overlayId, data);
 					}
 					broadcast(subscribers.get(info.overlayId), data);
-				} else {
-					broadcast(publishers.get(info.overlayId), data);
 				}
+				// Viewer messages are never relayed to the streamer's app (anonymous senders).
 			});
 
 			ws.on('close', () => {
