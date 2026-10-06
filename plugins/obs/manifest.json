@@ -1,7 +1,7 @@
 {
   "key": "obs",
   "name": "OBS",
-  "version": "0.2.0-alpha.6",
+  "version": "0.2.0-alpha.7",
   "description": "Control OBS scenes, sources, streaming, recording, media, filters, and replay buffer.",
   "icon": "simple-icons:obsstudio",
   "entry": "dist/index.js",

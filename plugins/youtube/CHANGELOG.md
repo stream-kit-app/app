@@ -1,5 +1,15 @@
 # @stream-kit/plugin-youtube
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`7e43f48`](https://github.com/stream-kit-app/app/commit/7e43f48954173d1bf8e15054a13c4f634f9c5721) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Disabling and re-enabling Twitch, YouTube, OBS or Discord no longer leaves old connections running (duplicate chat handlers, doubled YouTube polling), and pages and widgets keep updating afterwards.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`71c47d3`](https://github.com/stream-kit-app/app/commit/71c47d33b1fa8a3312b0d3aaa4477ef95b12bacf) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - YouTube chat and stream polling survive network and quota errors instead of stopping or reporting the stream as offline, "stream started" fires once per broadcast, chat history isn't replayed as new commands when monitoring (re)starts, and a temporary token refresh failure no longer signs you out.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes

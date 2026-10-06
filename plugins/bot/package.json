@@ -1,6 +1,6 @@
 {
 	"name": "@stream-kit/plugin-bot",
-	"version": "0.2.0-alpha.9",
+	"version": "0.2.0-alpha.10",
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE",
 	"exports": {

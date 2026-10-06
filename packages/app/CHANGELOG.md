@@ -1,5 +1,28 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.21
+
+### Minor Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`945cd6b`](https://github.com/stream-kit-app/app/commit/945cd6bdd5fdd9db16291c8ad5070fd3696d4ec6) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Handlers now time out (2 minutes by default) instead of blocking an action queue forever: the handler's `context.signal` aborts, a toast names it, and the rest of its chain stops. Handlers can set `timeout`, and `@stream-kit/plugin/action` exports `abortableDelay`, `raceAbort` and `HandlerTimeoutError`. OBS requests no longer hang when OBS disconnects, and waiting for media playback stops when the source stops playing.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`a00d345`](https://github.com/stream-kit-app/app/commit/a00d345a31ea3c963c471baedc2d415964836547) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Plugins can now only access their own settings, settings context, migrations and owned actions/commands, and `app.auth.send` only reaches routes granted to the plugin. Reading `core` settings and scripts keep full access.
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`0760d46`](https://github.com/stream-kit-app/app/commit/0760d46a62b67277fff29d96963213795b3b8076) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Clicking the menu item of the page you're already on no longer clears its toolbar and header.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`8235f3f`](https://github.com/stream-kit-app/app/commit/8235f3f490a38d3e8f732093cd505cd28137d239) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Ask before installing plugins from your account's cloud catalog, only restore marketplace plugins automatically offered by Stream Kit, and stop uninstalled plugins from coming back on the next sync.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`11ef607`](https://github.com/stream-kit-app/app/commit/11ef6071dcfc2104fc98d1639894d50a1e351cb9) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - "Run program" no longer times out on programs that print a lot of output, toggling the process watcher no longer freezes the window, and local TTS gives up on a stuck Piper process after two minutes.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`5ecd3f3`](https://github.com/stream-kit-app/app/commit/5ecd3f3e42373b1d32cfc9161f74ee0c07c2f82d) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Cancel subscriptions through a server route that sets the grace end date, so clients can no longer choose their own `endsAt`.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`ccd271f`](https://github.com/stream-kit-app/app/commit/ccd271f592cdb4bd6a0ad6fc3f2fa044f09c500b) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Cloud sync keeps retrying after a failed sync, a network hiccup no longer signs you out (also when starting offline), and cloud overlays stay connected when their status can't be loaded.
+- Updated dependencies [[`945cd6b`](https://github.com/stream-kit-app/app/commit/945cd6bdd5fdd9db16291c8ad5070fd3696d4ec6), [`a00d345`](https://github.com/stream-kit-app/app/commit/a00d345a31ea3c963c471baedc2d415964836547)]:
+    - @stream-kit/plugin@0.2.0-alpha.12
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.1.0-alpha.20
 
 ### Minor Changes

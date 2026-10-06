@@ -1,5 +1,15 @@
 # @stream-kit/plugin-discord
 
+## 0.1.0-alpha.4
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`c4019ad`](https://github.com/stream-kit-app/app/commit/c4019adea886b58765701461ca573f79732f6171) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Discord detects connections that silently stopped delivering events and reconnects, and retries when it can't connect at startup. WebSocket connections keep retrying (once a minute) after their configured attempts are used up instead of staying disconnected.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`7e43f48`](https://github.com/stream-kit-app/app/commit/7e43f48954173d1bf8e15054a13c4f634f9c5721) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Disabling and re-enabling Twitch, YouTube, OBS or Discord no longer leaves old connections running (duplicate chat handlers, doubled YouTube polling), and pages and widgets keep updating afterwards.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.1.0-alpha.3
 
 ### Patch Changes

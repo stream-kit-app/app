@@ -1,5 +1,18 @@
 # @stream-kit/plugin
 
+## 0.2.0-alpha.12
+
+### Minor Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`945cd6b`](https://github.com/stream-kit-app/app/commit/945cd6bdd5fdd9db16291c8ad5070fd3696d4ec6) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Handlers now time out (2 minutes by default) instead of blocking an action queue forever: the handler's `context.signal` aborts, a toast names it, and the rest of its chain stops. Handlers can set `timeout`, and `@stream-kit/plugin/action` exports `abortableDelay`, `raceAbort` and `HandlerTimeoutError`. OBS requests no longer hang when OBS disconnects, and waiting for media playback stops when the source stops playing.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`a00d345`](https://github.com/stream-kit-app/app/commit/a00d345a31ea3c963c471baedc2d415964836547) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Plugins can now only access their own settings, settings context, migrations and owned actions/commands, and `app.auth.send` only reaches routes granted to the plugin. Reading `core` settings and scripts keep full access.
+
+### Patch Changes
+
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.11
 
 ### Patch Changes

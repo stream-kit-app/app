@@ -1,5 +1,15 @@
 # @stream-kit/plugin-obs
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`945cd6b`](https://github.com/stream-kit-app/app/commit/945cd6bdd5fdd9db16291c8ad5070fd3696d4ec6) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Handlers now time out (2 minutes by default) instead of blocking an action queue forever: the handler's `context.signal` aborts, a toast names it, and the rest of its chain stops. Handlers can set `timeout`, and `@stream-kit/plugin/action` exports `abortableDelay`, `raceAbort` and `HandlerTimeoutError`. OBS requests no longer hang when OBS disconnects, and waiting for media playback stops when the source stops playing.
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`7e43f48`](https://github.com/stream-kit-app/app/commit/7e43f48954173d1bf8e15054a13c4f634f9c5721) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Disabling and re-enabling Twitch, YouTube, OBS or Discord no longer leaves old connections running (duplicate chat handlers, doubled YouTube polling), and pages and widgets keep updating afterwards.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes

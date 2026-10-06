@@ -1,5 +1,13 @@
 # @stream-kit/plugin-websocket
 
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- [#25](https://github.com/stream-kit-app/app/pull/25) [`c4019ad`](https://github.com/stream-kit-app/app/commit/c4019adea886b58765701461ca573f79732f6171) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Discord detects connections that silently stopped delivering events and reconnects, and retries when it can't connect at startup. WebSocket connections keep retrying (once a minute) after their configured attempts are used up instead of staying disconnected.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes
