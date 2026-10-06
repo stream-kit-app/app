@@ -26,6 +26,7 @@ import { createPredictionCancelHandler } from './handler/predictions/cancel';
 import { createPredictionStartHandler } from './handler/predictions/create';
 import { createPredictionEndHandler } from './handler/predictions/end';
 import { createPredictionLockHandler } from './handler/predictions/lock';
+import { subscribeMessages } from './lib/irc-setup';
 import { createTwitchPluginApi } from './lib/twitch';
 import { configureFieldValueResolver } from './get-field-value';
 import { createAdBreakBeginTrigger } from './trigger/ads/ad-break-begin';
@@ -75,6 +76,15 @@ export type { TwitchBotAccountApi, TwitchPluginApi } from './lib/twitch';
 const plugin: Plugin = (app) => {
 	configureFieldValueResolver(app);
 	let twitchApi: TwitchPluginController | undefined;
+	// Listeners live on the plugin, not the controller, so they survive disable/enable
+	// (which creates a new controller) and can subscribe before the plugin is enabled.
+	const stateListeners = new Set<() => void>();
+	let unsubscribeController: (() => void) | undefined;
+	const notifyState = (): void => {
+		for (const listener of stateListeners) {
+			listener();
+		}
+	};
 	const warnUnavailable = () => {
 		app.toast.create({
 			title: 'Twitch plugin unavailable',
@@ -142,9 +152,14 @@ const plugin: Plugin = (app) => {
 
 			await twitchApi.sendChatMessageAsBot(broadcasterId, message);
 		},
-		subscribe: (listener) => twitchApi?.subscribe(listener) ?? (() => {}),
-		subscribeChatMessages: (filter, handler) =>
-			twitchApi?.subscribeChatMessages(filter, handler) ?? (() => {})
+		subscribe: (listener) => {
+			stateListeners.add(listener);
+			return () => {
+				stateListeners.delete(listener);
+			};
+		},
+		// Chat handlers are kept at module level and rebound on every (re)connect.
+		subscribeChatMessages: (filter, handler) => subscribeMessages(app, filter, handler)
 	};
 
 	return {
@@ -347,7 +362,17 @@ const plugin: Plugin = (app) => {
 		onEnable: async ({ store }) => {
 			configureFieldValueResolver(app);
 			twitchApi = createTwitchPluginApi(app, store);
+			unsubscribeController = twitchApi.subscribe(notifyState);
+			notifyState();
 			await twitchApi.boot();
+		},
+		onDisable: async () => {
+			const controller = twitchApi;
+			twitchApi = undefined;
+			unsubscribeController?.();
+			unsubscribeController = undefined;
+			notifyState();
+			await controller?.shutdown();
 		}
 	};
 };

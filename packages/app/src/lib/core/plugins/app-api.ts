@@ -3,6 +3,7 @@ import type { HandlerTriggerContext } from '../action/handler-context';
 import type { ActionRecord, NewActionRecord } from '../action/stored-action';
 import type { TriggerDefinitionProps } from '../action/trigger';
 import type { App } from '../app.svelte';
+import type { AuthSendOptions } from '../auth/types';
 import type { CommandRuntimeFactory, PluginAppApi, PluginDbClient } from './plugin-app-api.types';
 import type { PluginMigration } from '#db/plugin-migrations.js';
 import type { TranslationKey } from '#lib/i18n.js';
@@ -82,11 +83,61 @@ function requireCommandsApi(app: App): BotCommandsService {
 	return commands;
 }
 
+/**
+ * Plugins allowed to act on other plugins' settings and records. `core` hosts user
+ * scripts, which run on the user's behalf. Every other plugin is limited to its own key.
+ */
+const TRUSTED_PLUGIN_KEYS = new Set(['core']);
+
+/** `app.auth.send` route prefixes granted per plugin; other plugins can't call the backend as the user. */
+const AUTH_ROUTE_GRANTS: Record<string, readonly string[]> = {
+	'ai-actions': ['/api/ai/']
+};
+
+function isTrustedScope(scope: PluginAppScope | undefined): boolean {
+	return !scope?.pluginKey || TRUSTED_PLUGIN_KEYS.has(scope.pluginKey);
+}
+
+function assertOwnPluginKey(scope: PluginAppScope | undefined, pluginKey: string, what: string): void {
+	if (isTrustedScope(scope) || scope?.pluginKey === pluginKey) {
+		return;
+	}
+
+	throw new Error(`Plugin "${scope?.pluginKey}" cannot access ${what} of plugin "${pluginKey}"`);
+}
+
 function resolveOwnerPluginKey(
 	scope: PluginAppScope | undefined,
 	options?: { ownerPluginKey?: string }
 ): string | undefined {
-	return options?.ownerPluginKey ?? scope?.pluginKey;
+	const ownerPluginKey = options?.ownerPluginKey ?? scope?.pluginKey;
+
+	if (ownerPluginKey) {
+		assertOwnPluginKey(scope, ownerPluginKey, 'records');
+	}
+
+	return ownerPluginKey;
+}
+
+function createAuthSend(app: App, scope: PluginAppScope | undefined): App['auth']['send'] {
+	if (isTrustedScope(scope)) {
+		return app.auth.send.bind(app.auth);
+	}
+
+	const pluginKey = scope!.pluginKey!;
+	const grants = AUTH_ROUTE_GRANTS[pluginKey] ?? [];
+
+	return async <T = unknown>(path: string, options?: AuthSendOptions): Promise<T> => {
+		const pathname = path.split('?')[0];
+		const allowed =
+			!pathname.includes('..') && grants.some((prefix) => pathname.startsWith(prefix));
+
+		if (!allowed) {
+			throw new Error(`Plugin "${pluginKey}" is not allowed to call ${pathname}`);
+		}
+
+		return app.auth.send<T>(path, options);
+	};
 }
 
 function createCommandsApi(app: App, scope?: PluginAppScope) {
@@ -115,8 +166,10 @@ function createCommandsApi(app: App, scope?: PluginAppScope) {
 				ownerPluginKey: resolveOwnerPluginKey(scope, options)
 			}),
 		delete: (id: string) => requireCommandsApi(app).deleteById(id),
-		deleteByOwner: (ownerPluginKey: string) =>
-			requireCommandsApi(app).deleteByOwner(ownerPluginKey)
+		deleteByOwner: (ownerPluginKey: string) => {
+			assertOwnPluginKey(scope, ownerPluginKey, 'commands');
+			return requireCommandsApi(app).deleteByOwner(ownerPluginKey);
+		}
 	};
 }
 
@@ -126,6 +179,11 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			get: app.plugins.get.bind(app.plugins),
 			tryGet: app.plugins.tryGet.bind(app.plugins),
 			getSettingValue: (pluginKey, settingKey) => {
+				// Core settings (e.g. process watcher) are readable by every plugin.
+				if (pluginKey !== 'core') {
+					assertOwnPluginKey(scope, pluginKey, 'settings');
+				}
+
 				const plugin = app.plugins.find(pluginKey);
 
 				if (!plugin) {
@@ -135,6 +193,8 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 				return getSettingsFieldValue(plugin.fields, settingKey);
 			},
 			setSettingValue: async (pluginKey, settingKey, value) => {
+				assertOwnPluginKey(scope, pluginKey, 'settings');
+
 				const plugin = app.plugins.find(pluginKey);
 				const field = plugin
 					? getSettingsFieldInstance(plugin.fields, settingKey)
@@ -148,6 +208,9 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 				await plugin.saveFieldInstances(app, [field]);
 			},
 			getSettingsContext: (pluginKey) => {
+				// The context exposes the plugin's raw store, including secrets.
+				assertOwnPluginKey(scope, pluginKey, 'settings');
+
 				const plugin = app.plugins.find(pluginKey);
 
 				if (!plugin) {
@@ -269,6 +332,7 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 		},
 		db: {
 			registerMigrations: (pluginKey: string, migrations: PluginMigration[]) => {
+				assertOwnPluginKey(scope, pluginKey, 'migrations');
 				registerPluginMigrations(pluginKey, migrations);
 			},
 			getClient: (): PluginDbClient => db
@@ -323,7 +387,10 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 					ownerPluginKey: resolveOwnerPluginKey(scope, options)
 				}),
 			delete: (id: number) => app.actions.delete(id),
-			deleteByOwner: (ownerPluginKey: string) => app.actions.deleteByOwner(ownerPluginKey),
+			deleteByOwner: (ownerPluginKey: string) => {
+				assertOwnPluginKey(scope, ownerPluginKey, 'actions');
+				return app.actions.deleteByOwner(ownerPluginKey);
+			},
 			getSnapshot: () => app.actions.getSnapshot()
 		},
 		commands: createCommandsApi(app, scope),
@@ -337,7 +404,7 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 			login: app.auth.login.bind(app.auth),
 			register: app.auth.register.bind(app.auth),
 			logout: app.auth.logout.bind(app.auth),
-			send: app.auth.send.bind(app.auth),
+			send: createAuthSend(app, scope),
 			onChange: app.auth.onChange.bind(app.auth)
 		},
 		oauth: {

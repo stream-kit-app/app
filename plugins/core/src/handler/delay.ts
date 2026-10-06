@@ -2,10 +2,34 @@ import type { HandlerDefinitionProps } from '@stream-kit/plugin';
 
 import { getFieldValue } from '../get-field-value';
 
-function delay(ms: number): Promise<void> {
+/** Extra time on top of the configured duration before the action aborts the delay. */
+const TIMEOUT_MARGIN_MS = 5_000;
+
+/** Resolves after `ms`; `false` when `signal` aborted first (the action was stopped). */
+function delay(ms: number, signal?: AbortSignal): Promise<boolean> {
 	return new Promise((resolve) => {
-		setTimeout(resolve, ms);
+		if (signal?.aborted) {
+			resolve(false);
+			return;
+		}
+
+		const onAbort = (): void => {
+			clearTimeout(timer);
+			resolve(false);
+		};
+		const timer = setTimeout(() => {
+			signal?.removeEventListener('abort', onAbort);
+			resolve(true);
+		}, ms);
+		signal?.addEventListener('abort', onAbort, { once: true });
 	});
+}
+
+function readDurationMs(fields: Parameters<typeof getFieldValue>[0]): number | null {
+	const durationText = getFieldValue(fields, 'duration-ms');
+	const duration = Number(typeof durationText === 'string' ? durationText : '0');
+
+	return Number.isFinite(duration) && duration >= 0 ? Math.round(duration) : null;
 }
 
 export const createDelayHandler = () =>
@@ -20,15 +44,16 @@ export const createDelayHandler = () =>
 				required: true
 			}
 		],
-		execute: async (_action, handler, _context, next) => {
-			const durationText = getFieldValue(handler.fields, 'duration-ms');
-			const duration = Number(typeof durationText === 'string' ? durationText : '0');
+		timeout: (handler) => (readDurationMs(handler.fields) ?? 0) + TIMEOUT_MARGIN_MS,
+		execute: async (_action, handler, context, next) => {
+			const duration = readDurationMs(handler.fields);
 
-			if (!Number.isFinite(duration) || duration < 0) {
+			if (duration === null) {
 				return;
 			}
 
-			await delay(Math.round(duration));
-			next();
+			if (await delay(duration, context.signal)) {
+				next();
+			}
 		}
 	}) satisfies HandlerDefinitionProps;

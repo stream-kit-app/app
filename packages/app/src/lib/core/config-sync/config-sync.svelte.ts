@@ -233,6 +233,9 @@ export class ConfigSync {
 			this.#resolveFirstSync();
 		} finally {
 			this.#running = false;
+			// Only suppressed while this run writes local rows; a failed run must not
+			// leave retries, local edits and `online` events ignored for the session.
+			this.#suppressSchedule = false;
 		}
 
 		if (this.status === 'synced') {

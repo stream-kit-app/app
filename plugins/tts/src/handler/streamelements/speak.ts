@@ -5,12 +5,15 @@ import { createSpeakErrorReporter } from '../../lib/speak-errors';
 import { streamelements } from '../../lib/streamelements';
 import { voiceSelectField } from '../../lib/streamelements/voices';
 import { TTS_TEXT_VARIABLES } from '../../lib/variables';
+import { SPEAK_TIMEOUT_MS } from '../../lib/player';
 
 export const createStreamElementsSpeakHandler = (app: PluginAppApi) => {
 	const reportError = createSpeakErrorReporter(app, 'StreamElements');
 
 	return {
 		name: 'Speak Text',
+		// Synthesis plus playback (each clip is capped at ~2 minutes by the player).
+		timeout: SPEAK_TIMEOUT_MS,
 		fields: [
 			{
 				type: 'text',

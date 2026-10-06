@@ -11,44 +11,80 @@ import { YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET } from '../config';
 
 const API_BASE = 'https://www.googleapis.com/youtube/v3';
 
+/** A request that failed (network, quota, server error), as opposed to "no data". */
+export class YouTubeRequestError extends Error {
+	constructor(
+		message: string,
+		readonly status?: number
+	) {
+		super(message);
+		this.name = 'YouTubeRequestError';
+	}
+}
+
 export class YouTubeApiClient {
 	constructor(
 		private readonly getAccessToken: () => string | undefined,
 		private readonly onUnauthorized: () => void
 	) {}
 
-	private async request<T>(path: string, init?: RequestInit): Promise<T | undefined> {
+	/**
+	 * `strict` requests throw `YouTubeRequestError` on failure so pollers can tell an
+	 * outage apart from an empty result; other callers get `undefined`.
+	 */
+	private async request<T>(
+		path: string,
+		init?: RequestInit,
+		options: { strict?: boolean } = {}
+	): Promise<T | undefined> {
+		const fail = (message: string, status?: number): undefined => {
+			if (options.strict) {
+				throw new YouTubeRequestError(message, status);
+			}
+			return undefined;
+		};
+
 		const accessToken = this.getAccessToken();
 
 		if (!accessToken) {
-			return undefined;
+			return fail('Not signed in to YouTube');
 		}
 
-		const response = await fetch(`${API_BASE}${path}`, {
-			...init,
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-				'Content-Type': 'application/json',
-				...init?.headers
-			}
-		});
+		let response: Response;
+		try {
+			response = await fetch(`${API_BASE}${path}`, {
+				...init,
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+					...init?.headers
+				}
+			});
+		} catch (error) {
+			console.warn('YouTube API request failed', error);
+			return fail(error instanceof Error ? error.message : String(error));
+		}
 
 		if (response.status === 401) {
 			this.onUnauthorized();
-			return undefined;
+			return fail('YouTube session expired', 401);
 		}
 
 		if (!response.ok) {
 			const body = await response.text().catch(() => '');
 			console.error(`YouTube API error (${response.status}): ${body}`);
-			return undefined;
+			return fail(`YouTube API error (${response.status})`, response.status);
 		}
 
 		if (response.status === 204) {
 			return undefined;
 		}
 
-		return (await response.json()) as T;
+		try {
+			return (await response.json()) as T;
+		} catch (error) {
+			return fail(error instanceof Error ? error.message : String(error));
+		}
 	}
 
 	async getChannel(): Promise<YouTubeChannelInfo | undefined> {
@@ -68,9 +104,12 @@ export class YouTubeApiClient {
 		};
 	}
 
+	/** The live broadcast, `undefined` when none is live; throws when YouTube can't be reached. */
 	async getActiveLiveStream(): Promise<YouTubeLiveStreamInfo | undefined> {
 		const data = await this.request<YouTubeLiveBroadcastListResponse>(
-			'/liveBroadcasts?part=snippet,status&mine=true&broadcastType=all&maxResults=50'
+			'/liveBroadcasts?part=snippet,status&mine=true&broadcastType=all&maxResults=50',
+			undefined,
+			{ strict: true }
 		);
 		const broadcast = data?.items?.find(
 			(item) => item.status.lifeCycleStatus === 'live' && item.snippet.liveChatId
@@ -102,7 +141,9 @@ export class YouTubeApiClient {
 			params.set('pageToken', pageToken);
 		}
 
-		return this.request<YouTubeLiveChatMessageListResponse>(`/liveChat/messages?${params}`);
+		return this.request<YouTubeLiveChatMessageListResponse>(`/liveChat/messages?${params}`, undefined, {
+			strict: true
+		});
 	}
 
 	async insertLiveChatMessage(liveChatId: string, messageText: string): Promise<boolean> {
@@ -232,30 +273,39 @@ export async function exchangeAuthorizationCode(
 	return { ok: true, tokens: (await response.json()) as YouTubeTokenResponse };
 }
 
-export async function refreshAccessToken(
-	refreshToken: string
-): Promise<YouTubeTokenResponse | undefined> {
+export type TokenRefreshResult =
+	| { ok: true; tokens: YouTubeTokenResponse }
+	/** `revoked`: Google rejected the refresh token, the user must reconnect. */
+	| { ok: false; revoked: boolean };
+
+export async function refreshAccessToken(refreshToken: string): Promise<TokenRefreshResult> {
 	if (!YOUTUBE_CLIENT_ID || !YOUTUBE_CLIENT_SECRET) {
-		return undefined;
+		return { ok: false, revoked: false };
 	}
 
-	const response = await fetch('https://oauth2.googleapis.com/token', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-		body: new URLSearchParams({
-			client_id: YOUTUBE_CLIENT_ID,
-			client_secret: YOUTUBE_CLIENT_SECRET,
-			grant_type: 'refresh_token',
-			refresh_token: refreshToken
-		})
-	});
+	try {
+		const response = await fetch('https://oauth2.googleapis.com/token', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: new URLSearchParams({
+				client_id: YOUTUBE_CLIENT_ID,
+				client_secret: YOUTUBE_CLIENT_SECRET,
+				grant_type: 'refresh_token',
+				refresh_token: refreshToken
+			})
+		});
 
-	if (!response.ok) {
-		console.error('YouTube token refresh failed:', await response.text().catch(() => ''));
-		return undefined;
+		if (!response.ok) {
+			const body = await response.text().catch(() => '');
+			console.error('YouTube token refresh failed:', body);
+			return { ok: false, revoked: body.includes('invalid_grant') };
+		}
+
+		return { ok: true, tokens: (await response.json()) as YouTubeTokenResponse };
+	} catch (error) {
+		console.warn('YouTube token refresh request failed', error);
+		return { ok: false, revoked: false };
 	}
-
-	return (await response.json()) as YouTubeTokenResponse;
 }
 
 export type { YouTubeLiveChatMessage };

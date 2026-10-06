@@ -26,6 +26,15 @@ export type { DiscordPluginApi } from './lib/discord';
 const plugin: Plugin = (app) => {
 	configureFieldValueResolver(app);
 	let discordApi: DiscordPluginController | undefined;
+	// Listeners live on the plugin, not the controller, so they survive disable/enable
+	// (which creates a new controller) and can subscribe before the plugin is enabled.
+	const stateListeners = new Set<() => void>();
+	let unsubscribeController: (() => void) | undefined;
+	const notifyState = (): void => {
+		for (const listener of stateListeners) {
+			listener();
+		}
+	};
 
 	const warnUnavailable = () => {
 		app.toast.create({
@@ -77,7 +86,12 @@ const plugin: Plugin = (app) => {
 
 			await discordApi.startInviteOAuth();
 		},
-		subscribe: (listener) => discordApi?.subscribe(listener) ?? (() => {}),
+		subscribe: (listener) => {
+			stateListeners.add(listener);
+			return () => {
+				stateListeners.delete(listener);
+			};
+		},
 		sendMessage: async (channelId, content) =>
 			discordApi?.sendMessage(channelId, content) ?? false,
 		addRole: async (guildId, userId, roleId) =>
@@ -226,6 +240,8 @@ const plugin: Plugin = (app) => {
 		],
 		onEnable: async ({ getValue }) => {
 			discordApi = createDiscordPluginApi(app);
+			unsubscribeController = discordApi.subscribe(notifyState);
+			notifyState();
 			syncGetValue(getValue);
 			await discordApi.boot();
 		},
@@ -233,7 +249,12 @@ const plugin: Plugin = (app) => {
 			syncGetValue(getValue);
 		},
 		onDisable: async () => {
-			await discordApi?.disconnect();
+			const controller = discordApi;
+			discordApi = undefined;
+			unsubscribeController?.();
+			unsubscribeController = undefined;
+			notifyState();
+			await controller?.disconnect();
 		}
 	};
 };

@@ -70,6 +70,8 @@ export function createDiscordGateway(
 	let socket: WebSocket | undefined;
 	let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
 	let heartbeatIntervalMs = 0;
+	/** Set when a heartbeat is sent, cleared by its ACK; still set at the next beat = zombie. */
+	let awaitingHeartbeatAck = false;
 	let lastSequence: number | null = null;
 	let sessionId: string | undefined;
 	let resumeGatewayUrl: string | undefined;
@@ -103,9 +105,37 @@ export function createDiscordGateway(
 	function startHeartbeat(interval: number): void {
 		clearHeartbeat();
 		heartbeatIntervalMs = interval;
+		awaitingHeartbeatAck = false;
 		heartbeatTimer = setInterval(() => {
+			if (awaitingHeartbeatAck) {
+				dropZombieConnection();
+				return;
+			}
+
+			awaitingHeartbeatAck = true;
 			send({ op: Opcode.Heartbeat, d: lastSequence });
 		}, interval);
+	}
+
+	/**
+	 * No ACK since the last heartbeat: the connection is half-open and delivers nothing.
+	 * Discord says to reconnect and resume. Don't wait for the browser's close event,
+	 * which can take minutes on a dead TCP connection.
+	 */
+	function dropZombieConnection(): void {
+		const dead = socket;
+		socket = undefined;
+		clearHeartbeat();
+
+		try {
+			dead?.close(4000, 'heartbeat ack timeout');
+		} catch {
+			// ignore
+		}
+
+		identifyResume = Boolean(sessionId);
+		scheduleReconnect(resumeGatewayUrl ?? lastGatewayUrl);
+		callbacks.onDisconnected('Discord Gateway stopped responding. Reconnecting…');
 	}
 
 	function upsertGuild(raw: DiscordGuild): CachedGuild {
@@ -500,13 +530,19 @@ export function createDiscordGateway(
 		url.searchParams.set('v', String(GATEWAY_VERSION));
 		url.searchParams.set('encoding', ENCODING);
 
-		socket = new WebSocket(url.toString());
+		const ws = new WebSocket(url.toString());
+		socket = ws;
 
-		socket.addEventListener('open', () => {
+		ws.addEventListener('open', () => {
 			// wait for HELLO
 		});
 
-		socket.addEventListener('message', (event) => {
+		ws.addEventListener('message', (event) => {
+			// Ignore late frames from a socket that was already replaced.
+			if (socket !== ws) {
+				return;
+			}
+
 			let payload: GatewayPayload;
 
 			try {
@@ -534,6 +570,7 @@ export function createDiscordGateway(
 					break;
 				}
 				case Opcode.HeartbeatAck:
+					awaitingHeartbeatAck = false;
 					break;
 				case Opcode.Reconnect:
 					identifyResume = true;
@@ -562,7 +599,12 @@ export function createDiscordGateway(
 			}
 		});
 
-		socket.addEventListener('close', () => {
+		ws.addEventListener('close', () => {
+			// A replaced (e.g. zombie) socket closing late must not schedule another reconnect.
+			if (socket !== ws) {
+				return;
+			}
+
 			clearHeartbeat();
 			socket = undefined;
 
@@ -576,7 +618,7 @@ export function createDiscordGateway(
 			callbacks.onDisconnected('Discord Gateway disconnected. Reconnecting…');
 		});
 
-		socket.addEventListener('error', () => {
+		ws.addEventListener('error', () => {
 			// close handler will reconnect
 		});
 	}

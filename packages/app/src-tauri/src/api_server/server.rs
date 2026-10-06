@@ -1,5 +1,6 @@
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
+use std::time::Duration;
 
 use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{Query, State};
@@ -13,7 +14,6 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use tauri::{AppHandle, Emitter};
 use tokio::net::TcpListener;
 use tokio::sync::{broadcast, oneshot};
-use tower_http::cors::CorsLayer;
 
 use super::state::{
     current_timestamp_ms, parse_auth_frame, ApiClientLifecycleEvent, ApiIncomingRequest,
@@ -21,6 +21,25 @@ use super::state::{
 };
 
 static CLIENT_SEQ: AtomicU64 = AtomicU64::new(1);
+
+/// Unauthenticated sockets must send their auth frame within this window.
+const AUTH_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Compares tokens without short-circuiting on the first differing byte.
+fn tokens_match(provided: &str, expected: &str) -> bool {
+    let provided = provided.as_bytes();
+    let expected = expected.as_bytes();
+
+    if provided.len() != expected.len() {
+        return false;
+    }
+
+    provided
+        .iter()
+        .zip(expected)
+        .fold(0u8, |diff, (left, right)| diff | (left ^ right))
+        == 0
+}
 
 fn new_client_id() -> String {
     format!(
@@ -64,8 +83,7 @@ pub async fn run_server(
 
     let router = Router::new()
         .route("/ws", get(ws_handler))
-        .with_state(app_state)
-        .layer(CorsLayer::permissive());
+        .with_state(app_state);
 
     let addr = SocketAddr::from((ip, port));
     let listener = TcpListener::bind(addr)
@@ -121,7 +139,7 @@ async fn handle_socket(
     let (mut sender, mut receiver) = socket.split();
 
     let authenticated = match query_token.as_deref() {
-        Some(token) if token == expected_token => true,
+        Some(token) if tokens_match(token, &expected_token) => true,
         Some(_) => {
             let _ = sender
                 .send(Message::Close(Some(CloseFrame {
@@ -137,15 +155,14 @@ async fn handle_socket(
     let mut authenticated = authenticated;
 
     if !authenticated {
-        match receiver.next().await {
-            Some(Ok(Message::Text(text))) => {
-                if let Some(token) = parse_auth_frame(text.as_ref()) {
-                    if token == expected_token {
-                        authenticated = true;
-                    }
+        if let Ok(Some(Ok(Message::Text(text)))) =
+            tokio::time::timeout(AUTH_TIMEOUT, receiver.next()).await
+        {
+            if let Some(token) = parse_auth_frame(text.as_ref()) {
+                if tokens_match(&token, &expected_token) {
+                    authenticated = true;
                 }
             }
-            _ => {}
         }
 
         if !authenticated {

@@ -76,7 +76,13 @@
 		});
 	});
 
-	beforeNavigate(() => {
+	beforeNavigate(({ from, to }) => {
+		// Same page (e.g. clicking the active nav item, or only query/hash changes): the
+		// page isn't rebuilt, so it wouldn't set its header and toolbar again.
+		if (from && to && from.url.pathname === to.url.pathname) {
+			return;
+		}
+
 		app.pageHeader.reset();
 		app.toolbar.reset();
 

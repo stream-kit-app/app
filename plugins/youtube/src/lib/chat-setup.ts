@@ -237,6 +237,10 @@ export function startChatMonitor(
 	let pageToken: string | undefined;
 	let pollingTimer: ReturnType<typeof setTimeout> | undefined;
 	let stopped = false;
+	let failures = 0;
+	// The first response is recent chat history; replaying it would re-run commands
+	// every time the monitor (re)starts, e.g. when the app opens mid-stream.
+	let isFirstResponse = true;
 
 	function scheduleNextPoll(delayMs: number): void {
 		if (stopped) {
@@ -251,7 +255,16 @@ export function startChatMonitor(
 			return;
 		}
 
-		const response = await client.listLiveChatMessages(liveStream.liveChatId, pageToken);
+		let response: Awaited<ReturnType<YouTubeApiClient['listLiveChatMessages']>>;
+		try {
+			response = await client.listLiveChatMessages(liveStream.liveChatId, pageToken);
+			failures = 0;
+		} catch (error) {
+			failures += 1;
+			console.warn('[youtube] Chat poll failed', error);
+			scheduleNextPoll(Math.min(5_000 * 2 ** failures, 60_000));
+			return;
+		}
 
 		if (!response) {
 			scheduleNextPoll(5000);
@@ -276,8 +289,12 @@ export function startChatMonitor(
 			}
 
 			seenMessageIds.add(message.id);
-			routeMessage(message, channel, liveStream);
+			if (!isFirstResponse) {
+				routeMessage(message, channel, liveStream);
+			}
 		}
+
+		isFirstResponse = false;
 
 		pageToken = response.nextPageToken;
 		scheduleNextPoll(response.pollingIntervalMillis ?? 5000);

@@ -85,7 +85,7 @@ export function createDiscordPluginApi(app: PluginAppApi): DiscordPluginControll
 			isConnecting = false;
 			isConnected = false;
 			notify();
-			throw new Error(connectionError);
+			throw Object.assign(new Error(connectionError), { retryable: false });
 		}
 
 		isConnecting = true;
@@ -100,7 +100,12 @@ export function createDiscordPluginApi(app: PluginAppApi): DiscordPluginControll
 			isConnected = false;
 			connectionError = gatewayInfo.message;
 			notify();
-			throw new Error(gatewayInfo.message);
+			// Network errors, rate limits and Discord outages are worth retrying; a rejected
+			// token (401/403) or other client error is not.
+			const { status } = gatewayInfo;
+			throw Object.assign(new Error(gatewayInfo.message), {
+				retryable: status === 0 || status === 429 || status >= 500
+			});
 		}
 
 		gateway?.disconnect();
@@ -180,7 +185,40 @@ export function createDiscordPluginApi(app: PluginAppApi): DiscordPluginControll
 		});
 	}
 
+	let bootRetryTimer: ReturnType<typeof setTimeout> | undefined;
+	let bootAttempt = 0;
+
+	function clearBootRetry(): void {
+		if (bootRetryTimer) {
+			clearTimeout(bootRetryTimer);
+			bootRetryTimer = undefined;
+		}
+	}
+
+	/** Connect, retrying with backoff when Discord can't be reached (e.g. offline at startup). */
+	async function connectWithRetry(): Promise<void> {
+		clearBootRetry();
+
+		try {
+			await connectGateway();
+			bootAttempt = 0;
+		} catch (error) {
+			const retryable = (error as { retryable?: boolean }).retryable !== false;
+			if (!retryable) {
+				return;
+			}
+
+			const delayMs = Math.min(5_000 * 2 ** bootAttempt, 60_000);
+			bootAttempt += 1;
+			bootRetryTimer = setTimeout(() => {
+				void connectWithRetry();
+			}, delayMs);
+		}
+	}
+
 	async function disconnect(): Promise<void> {
+		clearBootRetry();
+		bootAttempt = 0;
 		clearOAuthListeners();
 		isInviting = false;
 		gateway?.disconnect();
@@ -412,11 +450,8 @@ export function createDiscordPluginApi(app: PluginAppApi): DiscordPluginControll
 				return;
 			}
 
-			try {
-				await connectGateway();
-			} catch {
-				// connectionError already set
-			}
+			// Errors are shown via connectionError; transient ones are retried.
+			await connectWithRetry();
 		}
 	};
 

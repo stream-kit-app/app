@@ -362,6 +362,11 @@ export class OverlayService {
 		}
 
 		const states = await listCloudOverlayStates(app);
+		if (!states) {
+			// Couldn't reach the cloud (e.g. a network blip): keep publishing what we have.
+			return;
+		}
+
 		this.cloudPublished = Object.fromEntries(
 			states.filter((entry) => entry.published).map((entry) => [entry.overlayId, true])
 		);

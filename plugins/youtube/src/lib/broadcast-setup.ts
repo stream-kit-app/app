@@ -33,13 +33,34 @@ export function startBroadcastMonitor(
 	let wasLive = false;
 	let pollingTimer: ReturnType<typeof setTimeout> | undefined;
 	let stopped = false;
+	let failures = 0;
+	/** "Stream started" fires once per broadcast, even if polling flaps. */
+	let announcedBroadcastId: string | undefined;
 
 	const poll = async () => {
 		if (stopped) {
 			return;
 		}
 
-		const activeStream = await client.getActiveLiveStream();
+		let activeStream: YouTubeLiveStreamInfo | undefined;
+		try {
+			activeStream = await client.getActiveLiveStream();
+			failures = 0;
+		} catch (error) {
+			// An outage or quota error says nothing about the stream: keep the current
+			// state (don't fire offline/online) and try again with backoff.
+			failures += 1;
+			console.warn('[youtube] Broadcast check failed', error);
+			if (!stopped) {
+				pollingTimer = setTimeout(poll, Math.min(5_000 * 2 ** failures, 60_000));
+			}
+			return;
+		}
+
+		if (stopped) {
+			return;
+		}
+
 		const isLive = activeStream != null;
 		const baseContext: StreamContext = {
 			channelId: channel.channelId,
@@ -49,7 +70,10 @@ export function startBroadcastMonitor(
 		};
 
 		if (isLive && !wasLive) {
-			emitOnline(baseContext);
+			if (activeStream?.broadcastId !== announcedBroadcastId) {
+				announcedBroadcastId = activeStream?.broadcastId;
+				emitOnline(baseContext);
+			}
 		} else if (!isLive && wasLive) {
 			emitOffline({
 				...baseContext,

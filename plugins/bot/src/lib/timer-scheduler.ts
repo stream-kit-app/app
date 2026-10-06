@@ -25,10 +25,16 @@ type TimerState = {
 
 export type RunTimerFn = (id: string, data: TimerTriggerContext) => void;
 
+/** How long a "stream is live" lookup is reused; ticks run on every chat line. */
+const LIVE_STATUS_TTL_MS = 60_000;
+
 export class TimerScheduler {
 	private tickTimer: ReturnType<typeof setInterval> | undefined;
 	private chatLineCount = 0;
 	private timerStates = new Map<string, TimerState>();
+	private liveStatus = new Map<TimerPlatform, { live: boolean; checkedAt: number }>();
+	/** One tick at a time, so concurrent ticks can't both fire the same timer. */
+	private ticking = false;
 
 	constructor(
 		private readonly app: PluginAppApi,
@@ -41,7 +47,7 @@ export class TimerScheduler {
 		this.stop();
 		this.syncStates();
 		this.tickTimer = setInterval(() => {
-			void this.tick();
+			void this.runTick();
 		}, 30_000);
 	}
 
@@ -54,7 +60,22 @@ export class TimerScheduler {
 
 	onChatLine(): void {
 		this.chatLineCount += 1;
-		void this.tick();
+		void this.runTick();
+	}
+
+	private async runTick(): Promise<void> {
+		if (this.ticking) {
+			return;
+		}
+
+		this.ticking = true;
+		try {
+			await this.tick();
+		} catch (error) {
+			console.error('[bot] Timer tick failed', error);
+		} finally {
+			this.ticking = false;
+		}
 	}
 
 	private syncStates(): void {
@@ -88,6 +109,23 @@ export class TimerScheduler {
 	}
 
 	private async isPlatformLive(platform: TimerPlatform): Promise<boolean> {
+		const cached = this.liveStatus.get(platform);
+		if (cached && Date.now() - cached.checkedAt < LIVE_STATUS_TTL_MS) {
+			return cached.live;
+		}
+
+		let live = false;
+		try {
+			live = await this.fetchPlatformLive(platform);
+		} catch (error) {
+			console.warn(`[bot] Could not check whether ${platform} is live`, error);
+		}
+
+		this.liveStatus.set(platform, { live, checkedAt: Date.now() });
+		return live;
+	}
+
+	private async fetchPlatformLive(platform: TimerPlatform): Promise<boolean> {
 		if (platform === 'twitch') {
 			const twitch = this.app.plugins.tryGet<TwitchStreamApi>('twitch');
 
@@ -135,7 +173,8 @@ export class TimerScheduler {
 				continue;
 			}
 
-			if (timer.onlineOnly && !(await this.isTimerLive(timer))) {
+			// Cheap checks first: the live lookup is an API call.
+			if (now < state.nextDueAt) {
 				continue;
 			}
 
@@ -143,7 +182,7 @@ export class TimerScheduler {
 				continue;
 			}
 
-			if (now < state.nextDueAt) {
+			if (timer.onlineOnly && !(await this.isTimerLive(timer))) {
 				continue;
 			}
 

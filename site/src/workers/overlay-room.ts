@@ -12,6 +12,11 @@ export type OverlayRoomEnv = {
 	PUBLIC_POCKETBASE_URL: string;
 };
 
+const OVERLAY_SETTINGS_EVENT = 'overlay:settings';
+const SETTINGS_STORAGE_KEY = 'settings';
+/** Durable Object storage values are capped at 128 KiB. */
+const MAX_STORED_SETTINGS_BYTES = 120 * 1024;
+
 const PocketBaseCtor = (PocketBase as unknown as { default?: typeof PocketBase }).default ?? PocketBase;
 
 function resolvePocketBaseUrl(env: OverlayRoomEnv): string {
@@ -20,9 +25,12 @@ function resolvePocketBaseUrl(env: OverlayRoomEnv): string {
 }
 
 async function assertPublished(pocketbaseUrl: string, overlayId: string) {
-	const pb = new PocketBaseCtor(pocketbaseUrl);
-	const safeId = String(overlayId).replace(/"/g, '');
-	return pb.collection('user_overlays').getFirstListItem(`overlayId="${safeId}" && published=true`);
+	const response = await fetch(
+		`${pocketbaseUrl}/api/overlays/${encodeURIComponent(overlayId)}/public`
+	);
+	if (!response.ok) {
+		throw new Error(`Overlay is not published (${response.status})`);
+	}
 }
 
 async function assertPublisher(pocketbaseUrl: string, token: string, overlayId: string) {
@@ -36,8 +44,9 @@ async function assertPublisher(pocketbaseUrl: string, token: string, overlayId: 
 	if (!authId) {
 		throw new Error('Invalid auth token');
 	}
-	const safeId = String(overlayId).replace(/"/g, '');
-	const record = await pb.collection('user_overlays').getFirstListItem(`overlayId="${safeId}"`);
+	const record = await pb
+		.collection('user_overlays')
+		.getFirstListItem(pb.filter('overlayId = {:overlayId}', { overlayId }));
 	if (record.user !== authId) {
 		throw new Error('Not overlay owner');
 	}
@@ -90,16 +99,27 @@ export class OverlayRoom extends DurableObject<OverlayRoomEnv> {
 		this.ctx.acceptWebSocket(server);
 		server.serializeAttachment({ overlayId, role } satisfies ClientMeta);
 
+		// Like the local overlay server: overlays that load later (e.g. an OBS scene
+		// switch) get the current settings right away instead of rendering defaults.
+		if (role === 'subscriber') {
+			const settings = await this.ctx.storage.get<string>(SETTINGS_STORAGE_KEY);
+			if (settings) {
+				server.send(settings);
+			}
+		}
+
 		return new Response(null, { status: 101, webSocket: client });
 	}
 
-	webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
 		const data = typeof message === 'string' ? message : new TextDecoder().decode(message);
+		let event: string;
 		try {
 			const parsed = JSON.parse(data);
 			if (!parsed || typeof parsed.event !== 'string') {
 				return;
 			}
+			event = parsed.event;
 		} catch {
 			return;
 		}
@@ -107,15 +127,27 @@ export class OverlayRoom extends DurableObject<OverlayRoomEnv> {
 		const info = ws.deserializeAttachment() as ClientMeta | null;
 		if (!info) return;
 
+		if (
+			info.role === 'publisher' &&
+			event === OVERLAY_SETTINGS_EVENT &&
+			data.length <= MAX_STORED_SETTINGS_BYTES
+		) {
+			await this.ctx.storage.put(SETTINGS_STORAGE_KEY, data);
+		}
+
+		// Viewers are anonymous, so their messages are never relayed to the streamer's
+		// app (they would fire overlay-message triggers).
+		if (info.role !== 'publisher') {
+			return;
+		}
+
 		const peers = this.ctx.getWebSockets();
 		for (const peer of peers) {
 			if (peer === ws) continue;
 			const peerMeta = peer.deserializeAttachment() as ClientMeta | null;
 			if (!peerMeta || peerMeta.overlayId !== info.overlayId) continue;
 
-			if (info.role === 'publisher' && peerMeta.role === 'subscriber') {
-				peer.send(data);
-			} else if (info.role === 'subscriber' && peerMeta.role === 'publisher') {
+			if (peerMeta.role === 'subscriber') {
 				peer.send(data);
 			}
 		}

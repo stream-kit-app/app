@@ -1,9 +1,11 @@
 use std::net::SocketAddr;
-use std::path::PathBuf;
+use std::path::{Component, Path, PathBuf};
+use std::time::{Duration, Instant};
 
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
-use axum::extract::{Path as AxumPath, Query, State};
-use axum::http::{header, StatusCode};
+use axum::extract::{Path as AxumPath, Query, Request, State};
+use axum::http::{header, HeaderMap, StatusCode};
+use axum::middleware::{self, Next};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
@@ -13,12 +15,17 @@ use serde_json::Value;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::net::TcpListener;
 use tokio::sync::{broadcast, oneshot};
-use tower_http::cors::CorsLayer;
 
 use super::state::{
     create_overlay_config_cache, overlay_settings_message, parse_overlay_incoming,
     OverlayBroadcastMessage, OverlayConfigCache, OverlayServerInner,
 };
+
+/// Overlay pages only ever send small control messages back to the app.
+const MAX_INCOMING_MESSAGE_BYTES: usize = 64 * 1024;
+/// Incoming messages per socket per second; extra messages are dropped.
+const MAX_INCOMING_MESSAGES_PER_SECOND: u32 = 50;
+const OVERLAY_ID_MAX_LEN: usize = 64;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -56,7 +63,7 @@ pub async fn run_server(
         .route("/o/{overlay_id}/", get(serve_overlay_index))
         .route("/o/{overlay_id}/{*file_path}", get(serve_overlay_asset))
         .with_state(app_state)
-        .layer(CorsLayer::permissive());
+        .layer(middleware::from_fn_with_state(port, require_loopback_host));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     let listener = TcpListener::bind(addr)
@@ -85,19 +92,86 @@ pub async fn run_server(
     })
 }
 
+/// Rejects requests whose `Host` isn't this loopback server, so a public site can't
+/// reach it through DNS rebinding.
+async fn require_loopback_host(State(port): State<u16>, request: Request, next: Next) -> Response {
+    let allowed = request
+        .headers()
+        .get(header::HOST)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|host| {
+            host == format!("127.0.0.1:{port}") || host == format!("localhost:{port}")
+        });
+
+    if !allowed {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+
+    next.run(request).await
+}
+
+/// Overlay ids are UUIDs or slugs; anything else could escape the overlays directory.
+fn is_valid_overlay_id(overlay_id: &str) -> bool {
+    !overlay_id.is_empty()
+        && overlay_id.len() <= OVERLAY_ID_MAX_LEN
+        && overlay_id
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
+}
+
+/// OBS loads overlays from this server (same origin) and scaffolded overlays run on a
+/// local Vite dev server; pages on any other site must not open the socket.
+fn is_allowed_ws_origin(headers: &HeaderMap) -> bool {
+    let Some(origin) = headers.get(header::ORIGIN) else {
+        // Non-browser local clients don't send an Origin.
+        return true;
+    };
+    let Ok(origin) = origin.to_str() else {
+        return false;
+    };
+    let Some(authority) = origin.strip_prefix("http://") else {
+        return false;
+    };
+    let host = authority
+        .rsplit_once(':')
+        .map_or(authority, |(host, _port)| host);
+
+    matches!(host, "127.0.0.1" | "localhost" | "[::1]")
+}
+
 async fn ws_handler(
     ws: WebSocketUpgrade,
+    headers: HeaderMap,
     Query(query): Query<WsQuery>,
     State(state): State<AppState>,
-) -> impl IntoResponse {
+) -> Response {
     let overlay_id = query.overlay_id;
+
+    if !is_allowed_ws_origin(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+
+    if !is_valid_overlay_id(&overlay_id) {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+
+    let known_overlay = state.config_cache.read().await.contains_key(&overlay_id)
+        || tokio::fs::metadata(state.overlays_dir.join(&overlay_id))
+            .await
+            .is_ok_and(|metadata| metadata.is_dir());
+    if !known_overlay {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+
     let broadcast_tx = state.broadcast_tx.clone();
     let config_cache = state.config_cache.clone();
     let app_handle = state.app_handle.clone();
 
-    ws.on_upgrade(move |socket| {
-        handle_socket(socket, overlay_id, broadcast_tx, config_cache, app_handle)
-    })
+    ws.max_message_size(MAX_INCOMING_MESSAGE_BYTES)
+        .on_upgrade(move |socket| {
+            handle_socket(socket, overlay_id, broadcast_tx, config_cache, app_handle)
+        })
+        .into_response()
 }
 
 async fn handle_socket(
@@ -158,6 +232,9 @@ async fn handle_socket(
 
     let recv_overlay_id = overlay_id.clone();
     let mut recv_task = tokio::spawn(async move {
+        let mut window_start = Instant::now();
+        let mut window_count = 0u32;
+
         while let Some(result) = receiver.next().await {
             let Ok(message) = result else {
                 break;
@@ -165,6 +242,15 @@ async fn handle_socket(
 
             match message {
                 Message::Text(text) => {
+                    if window_start.elapsed() >= Duration::from_secs(1) {
+                        window_start = Instant::now();
+                        window_count = 0;
+                    }
+                    window_count += 1;
+                    if window_count > MAX_INCOMING_MESSAGES_PER_SECOND {
+                        continue;
+                    }
+
                     if let Some(incoming) =
                         parse_overlay_incoming(text.as_ref(), &recv_overlay_id)
                     {
@@ -187,14 +273,17 @@ async fn serve_overlay_index(
     AxumPath(overlay_id): AxumPath<String>,
     State(state): State<AppState>,
 ) -> Response {
-    let dist_dir = state.overlays_dir.join(&overlay_id).join("dist");
-    let index_path = dist_dir.join("index.html");
+    if !is_valid_overlay_id(&overlay_id) {
+        return StatusCode::NOT_FOUND.into_response();
+    }
 
-    if !index_path.exists() {
+    let index_path = state.overlays_dir.join(&overlay_id).join("dist").join("index.html");
+
+    if !tokio::fs::try_exists(&index_path).await.unwrap_or(false) {
         return Html(overlay_not_built_html(&overlay_id)).into_response();
     }
 
-    match std::fs::read_to_string(&index_path) {
+    match tokio::fs::read_to_string(&index_path).await {
         Ok(content) => Html(content).into_response(),
         Err(error) => (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -208,18 +297,16 @@ async fn serve_overlay_asset(
     AxumPath((overlay_id, file_path)): AxumPath<(String, String)>,
     State(state): State<AppState>,
 ) -> Response {
-    let dist_dir = state.overlays_dir.join(&overlay_id).join("dist");
-    let asset_path = dist_dir.join(&file_path);
-
-    if !asset_path.starts_with(&dist_dir) {
-        return StatusCode::FORBIDDEN.into_response();
-    }
-
-    if !asset_path.exists() || asset_path.is_dir() {
+    if !is_valid_overlay_id(&overlay_id) || !is_plain_relative_path(&file_path) {
         return StatusCode::NOT_FOUND.into_response();
     }
 
-    match std::fs::read(&asset_path) {
+    let Some(asset_path) = resolve_asset_path(&state.overlays_dir, &overlay_id, &file_path).await
+    else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+
+    match tokio::fs::read(&asset_path).await {
         Ok(bytes) => {
             let mime = mime_guess::from_path(&asset_path)
                 .first_or_octet_stream()
@@ -239,7 +326,50 @@ async fn serve_overlay_asset(
     }
 }
 
+/// Only plain path segments: no `..`, roots, drive prefixes or `.`.
+fn is_plain_relative_path(path: &str) -> bool {
+    !path.is_empty()
+        && Path::new(path)
+            .components()
+            .all(|component| matches!(component, Component::Normal(_)))
+}
+
+/// Resolves symlinks and confirms the file really lives inside the overlay's `dist`.
+async fn resolve_asset_path(
+    overlays_dir: &Path,
+    overlay_id: &str,
+    file_path: &str,
+) -> Option<PathBuf> {
+    let dist_dir = tokio::fs::canonicalize(overlays_dir.join(overlay_id).join("dist"))
+        .await
+        .ok()?;
+    let asset_path = tokio::fs::canonicalize(dist_dir.join(file_path)).await.ok()?;
+
+    if !asset_path.starts_with(&dist_dir) {
+        return None;
+    }
+
+    let metadata = tokio::fs::metadata(&asset_path).await.ok()?;
+    metadata.is_file().then_some(asset_path)
+}
+
+fn escape_html(value: &str) -> String {
+    let mut escaped = String::with_capacity(value.len());
+    for character in value.chars() {
+        match character {
+            '&' => escaped.push_str("&amp;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            '"' => escaped.push_str("&quot;"),
+            '\'' => escaped.push_str("&#39;"),
+            _ => escaped.push(character),
+        }
+    }
+    escaped
+}
+
 fn overlay_not_built_html(overlay_id: &str) -> String {
+    let overlay_id = escape_html(overlay_id);
     format!(
         r#"<!DOCTYPE html>
 <html lang="en">

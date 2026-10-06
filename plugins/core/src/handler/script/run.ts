@@ -7,6 +7,8 @@ import { runUserScript, SCRIPT_TEMPLATE } from '../../lib/run-code';
 export const createRunScriptHandler = ({ app, logs }: CorePluginContext) => {
 	return {
 		name: 'Run script',
+		// User scripts may legitimately wait (e.g. for an API or a timer).
+		timeout: 10 * 60_000,
 		fields: [
 			{
 				type: 'code',

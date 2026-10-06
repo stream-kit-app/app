@@ -31,19 +31,56 @@ routerAdd(
 		const input = ai.parseRequestBody(e.requestInfo().body);
 		const day = ai.usageDay();
 
-		let usage = null;
-		try {
-			usage = e.app.findFirstRecordByFilter('ai_usage', 'user = {:user} && day = {:day}', {
-				user: auth.id,
-				day
-			});
-		} catch (_) {
-			usage = null;
-		}
+		const findUsage = (app) => {
+			try {
+				return app.findFirstRecordByFilter('ai_usage', 'user = {:user} && day = {:day}', {
+					user: auth.id,
+					day
+				});
+			} catch (_) {
+				return null;
+			}
+		};
 
-		if (usage && usage.getInt('count') >= ai.DAILY_LIMIT) {
+		// Reserve a slot before calling Anthropic. Write transactions run one at a time,
+		// so parallel requests can't all pass the limit check before any of them counts.
+		let limitReached = false;
+		let remaining = 0;
+		e.app.runInTransaction((txApp) => {
+			let row = findUsage(txApp);
+			if (!row) {
+				row = new Record(txApp.findCollectionByNameOrId('ai_usage'));
+				row.set('user', auth.id);
+				row.set('day', day);
+				row.set('count', 0);
+				row.set('inputTokens', 0);
+				row.set('outputTokens', 0);
+			}
+
+			if (row.getInt('count') >= ai.DAILY_LIMIT) {
+				limitReached = true;
+				return;
+			}
+
+			row.set('count', row.getInt('count') + 1);
+			txApp.save(row);
+			remaining = Math.max(0, ai.DAILY_LIMIT - row.getInt('count'));
+		});
+
+		if (limitReached) {
 			throw new TooManyRequestsError('Daily AI limit reached. Try again tomorrow.');
 		}
+
+		// Failed calls aren't billed, so give the reserved slot back.
+		const releaseReservation = () => {
+			e.app.runInTransaction((txApp) => {
+				const row = findUsage(txApp);
+				if (row && row.getInt('count') > 0) {
+					row.set('count', row.getInt('count') - 1);
+					txApp.save(row);
+				}
+			});
+		};
 
 		const model = $os.getenv('AI_MODEL') || ai.DEFAULT_MODEL;
 		const headers = {
@@ -59,19 +96,27 @@ routerAdd(
 			headers['anthropic-workspace-id'] = workspaceId;
 		}
 
-		const res = $http.send({
-			url: ai.ANTHROPIC_URL,
-			method: 'POST',
-			timeout: 120,
-			headers,
-			body: JSON.stringify(ai.buildRequest(model, input))
-		});
+		let res;
+		try {
+			res = $http.send({
+				url: ai.ANTHROPIC_URL,
+				method: 'POST',
+				timeout: 120,
+				headers,
+				body: JSON.stringify(ai.buildRequest(model, input))
+			});
+		} catch (error) {
+			releaseReservation();
+			throw error;
+		}
 
 		if (res.statusCode === 429 || res.statusCode === 529) {
+			releaseReservation();
 			throw new TooManyRequestsError('The AI service is busy. Try again in a moment.');
 		}
 
 		if (res.statusCode < 200 || res.statusCode >= 300) {
+			releaseReservation();
 			e.app.logger().error('AI action request failed', 'status', res.statusCode, 'body', res.json);
 			throw new InternalServerError('The AI request failed.');
 		}
@@ -79,24 +124,21 @@ routerAdd(
 		const json = res.json;
 		const tokens = json && json.usage ? json.usage : {};
 
-		if (!usage) {
-			usage = new Record(e.app.findCollectionByNameOrId('ai_usage'));
-			usage.set('user', auth.id);
-			usage.set('day', day);
-			usage.set('count', 0);
-			usage.set('inputTokens', 0);
-			usage.set('outputTokens', 0);
-		}
-		usage.set('count', usage.getInt('count') + 1);
-		usage.set(
-			'inputTokens',
-			usage.getInt('inputTokens') +
-				(tokens.input_tokens || 0) +
-				(tokens.cache_read_input_tokens || 0) +
-				(tokens.cache_creation_input_tokens || 0)
-		);
-		usage.set('outputTokens', usage.getInt('outputTokens') + (tokens.output_tokens || 0));
-		e.app.save(usage);
+		e.app.runInTransaction((txApp) => {
+			const row = findUsage(txApp);
+			if (!row) {
+				return;
+			}
+			row.set(
+				'inputTokens',
+				row.getInt('inputTokens') +
+					(tokens.input_tokens || 0) +
+					(tokens.cache_read_input_tokens || 0) +
+					(tokens.cache_creation_input_tokens || 0)
+			);
+			row.set('outputTokens', row.getInt('outputTokens') + (tokens.output_tokens || 0));
+			txApp.save(row);
+		});
 
 		if (json.stop_reason === 'refusal') {
 			throw new BadRequestError('The AI declined this request.');
@@ -121,7 +163,7 @@ routerAdd(
 		return e.json(200, {
 			action,
 			raw: text,
-			remaining: Math.max(0, ai.DAILY_LIMIT - usage.getInt('count'))
+			remaining
 		});
 	},
 	$apis.requireAuth()

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read, Seek};
-use std::sync::mpsc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use rodio::{Decoder, DeviceSinkBuilder, Player, Source};
 use tokio::time::timeout;
@@ -11,6 +11,7 @@ use tokio::time::timeout;
 const PLAYBACK_TIMEOUT_MARGIN: Duration = Duration::from_secs(5);
 const PLAYBACK_TIMEOUT_MAX: Duration = Duration::from_secs(120);
 const PLAYBACK_INVOKE_TIMEOUT: Duration = Duration::from_secs(125);
+const PLAYBACK_POLL_INTERVAL: Duration = Duration::from_millis(20);
 
 type StopFn = Box<dyn Fn() + Send + Sync>;
 
@@ -94,17 +95,43 @@ fn playback_timeout(source_duration: Option<Duration>) -> Duration {
 		.max(PLAYBACK_TIMEOUT_MARGIN)
 }
 
-fn sleep_until_end_or_timeout(player: &Arc<Player>, limit: Duration) {
-	let (done_tx, done_rx) = mpsc::channel::<()>();
-	let player_for_timeout = Arc::clone(player);
-	let watchdog = std::thread::spawn(move || {
-		if done_rx.recv_timeout(limit).is_err() {
-			player_for_timeout.stop();
+/// Why playback stopped waiting before the clip finished on its own.
+enum PlaybackEnd {
+	Finished,
+	Stopped,
+	TimedOut,
+	StreamFailed,
+}
+
+/// Polls instead of `Player::sleep_until_end`: rodio only applies `stop()` while the
+/// output device pulls samples, so a lost/switched device (e.g. OBS grabbing audio on
+/// a scene switch) would otherwise block this thread — and the caller's queue — forever.
+fn wait_until_done(
+	player: &Player,
+	stopped: &AtomicBool,
+	stream_failed: &AtomicBool,
+	limit: Duration,
+) -> PlaybackEnd {
+	let deadline = Instant::now() + limit;
+
+	let end = loop {
+		if player.empty() {
+			break PlaybackEnd::Finished;
 		}
-	});
-	player.sleep_until_end();
-	let _ = done_tx.send(());
-	let _ = watchdog.join();
+		if stopped.load(Ordering::SeqCst) {
+			break PlaybackEnd::Stopped;
+		}
+		if stream_failed.load(Ordering::SeqCst) {
+			break PlaybackEnd::StreamFailed;
+		}
+		if Instant::now() >= deadline {
+			break PlaybackEnd::TimedOut;
+		}
+		std::thread::sleep(PLAYBACK_POLL_INTERVAL);
+	};
+
+	player.stop();
+	end
 }
 
 fn play_source<R>(
@@ -116,7 +143,15 @@ fn play_source<R>(
 where
 	R: Read + Seek + Send + Sync + 'static,
 {
-	let mut device_sink = DeviceSinkBuilder::open_default_sink()
+	let stream_failed = Arc::new(AtomicBool::new(false));
+	let stream_failed_for_callback = Arc::clone(&stream_failed);
+	let mut device_sink = DeviceSinkBuilder::from_default_device()
+		.map_err(|error| format!("failed to open default audio output: {error}"))?
+		.with_error_callback(move |error| {
+			eprintln!("audio stream error: {error}");
+			stream_failed_for_callback.store(true, Ordering::SeqCst);
+		})
+		.open_sink_or_fallback()
 		.map_err(|error| format!("failed to open default audio output: {error}"))?;
 	device_sink.log_on_drop(false);
 	let source = Decoder::new(read)
@@ -125,23 +160,28 @@ where
 	let limit = playback_timeout(source.total_duration());
 	let player = Player::connect_new(device_sink.mixer());
 	player.append(source);
-	let player = Arc::new(player);
 
-	if let (Some(session_id), Some(state)) = (session_id, state) {
-		let player_for_stop = Arc::clone(&player);
+	let stopped = Arc::new(AtomicBool::new(false));
+	let end = if let (Some(session_id), Some(state)) = (session_id, state) {
+		let stopped_for_session = Arc::clone(&stopped);
 		let generation = state.register_stop(
 			session_id.clone(),
 			Box::new(move || {
-				player_for_stop.stop();
+				stopped_for_session.store(true, Ordering::SeqCst);
 			}),
 		);
-		sleep_until_end_or_timeout(&player, limit);
+		let end = wait_until_done(&player, &stopped, &stream_failed, limit);
 		state.unregister(&session_id, generation);
+		end
 	} else {
-		sleep_until_end_or_timeout(&player, limit);
-	}
+		wait_until_done(&player, &stopped, &stream_failed, limit)
+	};
 
-	Ok(())
+	match end {
+		PlaybackEnd::Finished | PlaybackEnd::Stopped => Ok(()),
+		PlaybackEnd::TimedOut => Err("audio playback did not finish in time".to_string()),
+		PlaybackEnd::StreamFailed => Err("audio output device stopped during playback".to_string()),
+	}
 }
 
 async fn run_playback_blocking<F>(work: F) -> Result<(), String>

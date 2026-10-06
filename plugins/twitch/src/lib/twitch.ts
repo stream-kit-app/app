@@ -19,7 +19,7 @@ import { chunkTwitchChatMessages } from './chat-message';
 import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
 import { resetEventSubSubscriptions } from './eventsub-setup';
 import { clearBadgeCache, refreshBadgeCache } from './badge-cache';
-import { describeOAuthError, parseImplicitOAuthCallback } from './oauth-callback';
+import { type ImplicitOAuthFlow, startImplicitOAuthFlow } from './oauth-callback';
 
 export type ValidatedTokenInfo = TokenInfo & { userId: string };
 
@@ -51,7 +51,12 @@ export type TwitchPluginApi = {
 
 export type TwitchPluginController = TwitchPluginApi & {
 	boot(): Promise<void>;
+	/** Stop all connections (plugin disabled) without forgetting the stored tokens. */
+	shutdown(): Promise<void>;
 };
+
+/** Backoff between token validation attempts while Twitch can't be reached. */
+const TOKEN_VALIDATION_RETRY_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
 
 export function createTwitchPluginApi(
 	app: PluginAppApi,
@@ -60,7 +65,10 @@ export function createTwitchPluginApi(
 	const listeners = new Set<TwitchStateListener>();
 	let botAccountController: TwitchBotAccountController | undefined;
 	let isConnected = false;
+	/** Bumped by stopClients() so an in-flight connect() stops after its await. */
+	let connectGeneration = 0;
 	let isAuthenticating = false;
+	let oauthFlow: ImplicitOAuthFlow | undefined;
 	let accessToken: string | undefined;
 	let token: ValidatedTokenInfo | undefined;
 	let userId: string | undefined;
@@ -132,6 +140,9 @@ export function createTwitchPluginApi(
 	}
 
 	async function stopClients(): Promise<void> {
+		// Cancels a connect() that is still validating its token.
+		connectGeneration += 1;
+
 		try {
 			await chat?.quit();
 		} catch (error) {
@@ -198,14 +209,57 @@ export function createTwitchPluginApi(
 		}
 	}
 
+	/**
+	 * Validates the token before connecting: EventSub triggers need the user id, so
+	 * connecting without it left raids/subs/follows silently unsubscribed. Network errors
+	 * are retried with backoff; a rejected token stops and asks the user to reconnect.
+	 */
+	async function validateToken(api: ApiClient, generation: number): Promise<ValidatedTokenInfo | undefined> {
+		for (let attempt = 0; generation === connectGeneration; attempt++) {
+			try {
+				return (await api.getTokenInfo()) as ValidatedTokenInfo;
+			} catch (error) {
+				if (generation !== connectGeneration) {
+					return undefined;
+				}
+
+				if (error instanceof Error && error.name === 'InvalidTokenError') {
+					app.toast.create({
+						title: 'Twitch session expired',
+						description: 'Reconnect your Twitch account in the Twitch plugin settings.',
+						variant: 'warning'
+					});
+					return undefined;
+				}
+
+				const delayMs = TOKEN_VALIDATION_RETRY_MS[Math.min(attempt, TOKEN_VALIDATION_RETRY_MS.length - 1)];
+				console.warn(`[twitch] Could not validate token, retrying in ${delayMs / 1000}s`, error);
+				await new Promise((resolve) => setTimeout(resolve, delayMs));
+			}
+		}
+
+		return undefined;
+	}
+
 	async function connect(nextAccessToken: string): Promise<void> {
 		await stopClients();
 		resetChatListener();
+		const generation = connectGeneration;
 		accessToken = nextAccessToken;
-		isConnected = true;
 
 		authProvider = new StaticAuthProvider(TWITCH_CLIENT_ID, nextAccessToken, scopes);
 		client = new TwurpleApiClient({ authProvider });
+
+		const info = await validateToken(client, generation);
+		if (!info || generation !== connectGeneration) {
+			notify();
+			return;
+		}
+
+		token = info;
+		userId = info.userId ?? undefined;
+		isConnected = true;
+
 		chat = new TwurpleChatClient({
 			authProvider,
 			requestMembershipEvents: true
@@ -223,20 +277,16 @@ export function createTwitchPluginApi(
 
 		await clearStaleEventSubSubscriptions(client);
 
+		if (generation !== connectGeneration) {
+			return;
+		}
+
 		eventSub = new TwurpleEventSubWsListener({ apiClient: client });
 		attachEventSubConflictRecovery(eventSub, client);
 		eventSub.start();
 
-		try {
-			const info = (await client.getTokenInfo()) as ValidatedTokenInfo;
-			token = info;
-			userId = info.userId ?? undefined;
-
-			if (info.userName) {
-				void chat.join(info.userName).catch(console.error);
-			}
-		} catch (error) {
-			console.error(error);
+		if (info.userName) {
+			void chat.join(info.userName).catch(console.error);
 		}
 
 		void refreshBadgeCache(app).finally(() => {
@@ -321,46 +371,46 @@ export function createTwitchPluginApi(
 			isAuthenticating = true;
 			notify();
 
-			const port = await app.oauth.start({ ports: [9001] });
-			const url = new URL('https://id.twitch.tv/oauth2/authorize');
-			const state = Math.random().toString(36).substring(2, 15);
+			oauthFlow?.cancel();
 
-			url.searchParams.set('response_type', 'token');
-			url.searchParams.set('redirect_uri', `http://localhost:${port}`);
-			url.searchParams.set('scope', scopes.join(' '));
-			url.searchParams.set('client_id', TWITCH_CLIENT_ID);
-			url.searchParams.set('state', state);
-
-			await app.opener.openUrl(url.toString());
-			void app.oauth.onUrl((value: string) => {
-				const callback = parseImplicitOAuthCallback(value);
-
-				if (callback.error) {
-					isAuthenticating = false;
-					app.toast.create({
-						title: 'Twitch authorization failed',
-						description: describeOAuthError(callback.error, callback.errorDescription, port),
-						variant: 'error'
-					});
-					notify();
-					return;
-				}
-
-				if (!callback.accessToken) {
-					return;
-				}
-
-				void store.set(ACCESS_TOKEN_KEY, callback.accessToken);
+			try {
+				oauthFlow = await startImplicitOAuthFlow(app, {
+					port: 9001,
+					clientId: TWITCH_CLIENT_ID,
+					scopes,
+					onToken: (accessToken) => {
+						void store.set(ACCESS_TOKEN_KEY, accessToken);
+						isAuthenticating = false;
+						void connect(accessToken);
+						notify();
+					},
+					onError: (description) => {
+						isAuthenticating = false;
+						app.toast.create({
+							title: 'Twitch authorization failed',
+							description,
+							variant: 'error'
+						});
+						notify();
+					},
+					onCancel: () => {
+						isAuthenticating = false;
+						notify();
+					}
+				});
+			} catch (error) {
 				isAuthenticating = false;
-				void connect(callback.accessToken);
+				app.toast.create({
+					title: 'Twitch authorization failed',
+					description: error instanceof Error ? error.message : String(error),
+					variant: 'error'
+				});
 				notify();
-			});
-			void app.oauth.onInvalidUrl(() => {
-				isAuthenticating = false;
-				notify();
-			});
+			}
 		},
 		async disconnect() {
+			oauthFlow?.cancel();
+			oauthFlow = undefined;
 			await store.delete(ACCESS_TOKEN_KEY);
 			await stopClients();
 			isConnected = false;
@@ -393,6 +443,16 @@ export function createTwitchPluginApi(
 			void botAccountController.boot().catch((error) => {
 				console.error('[twitch] Failed to boot bot account', error);
 			});
+		},
+		async shutdown() {
+			oauthFlow?.cancel();
+			oauthFlow = undefined;
+			await botAccountController?.shutdown();
+			await stopClients();
+			isConnected = false;
+			isAuthenticating = false;
+			accessToken = undefined;
+			notify();
 		}
 	};
 

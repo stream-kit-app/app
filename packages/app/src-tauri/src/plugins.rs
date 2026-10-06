@@ -1,6 +1,7 @@
 use std::fs::{self, File};
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
+use std::time::Duration;
 
 use reqwest::blocking::Client;
 use semver::{Version, VersionReq};
@@ -11,6 +12,9 @@ use zip::ZipArchive;
 
 const DEV_LINK_FILE: &str = "dev-link.json";
 const MANIFEST_FILE: &str = "manifest.json";
+const HTTP_TIMEOUT: Duration = Duration::from_secs(60);
+const HTTP_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+const MAX_DOWNLOAD_BYTES: u64 = 50 * 1024 * 1024;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -174,6 +178,8 @@ fn validate_manifest_compatibility(manifest: &PluginManifest) -> Result<(), Stri
 fn http_client() -> Result<Client, String> {
     Client::builder()
         .user_agent(format!("StreamKit/{}", app_version()))
+        .timeout(HTTP_TIMEOUT)
+        .connect_timeout(HTTP_CONNECT_TIMEOUT)
         .build()
         .map_err(|error| format!("failed to create HTTP client: {error}"))
 }
@@ -192,9 +198,20 @@ fn download_file(client: &Client, url: &str, destination: &Path) -> Result<(), S
         ));
     }
 
+    if response
+        .content_length()
+        .is_some_and(|length| length > MAX_DOWNLOAD_BYTES)
+    {
+        return Err("plugin download is too large".to_string());
+    }
+
     let bytes = response
         .bytes()
         .map_err(|error| format!("failed to read download response: {error}"))?;
+
+    if bytes.len() as u64 > MAX_DOWNLOAD_BYTES {
+        return Err("plugin download is too large".to_string());
+    }
 
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent).map_err(|error| {
@@ -218,7 +235,7 @@ fn verify_sha256(path: &Path, expected: &str) -> Result<(), String> {
     let expected = expected.trim().to_ascii_lowercase();
 
     if expected.is_empty() {
-        return Ok(());
+        return Err("plugin download has no SHA-256 checksum".to_string());
     }
 
     let mut file = File::open(path)
@@ -287,7 +304,7 @@ fn install_plugin_archive(app: &AppHandle, zip_path: &Path, replace_existing: bo
     let manifest = read_manifest_from_zip(&mut archive)?;
 
     let plugins_root = plugins_dir(app)?;
-    let destination = plugin_destination(&plugins_root, &manifest.key);
+    let destination = plugin_destination(&plugins_root, &manifest.key)?;
 
     if destination.exists() {
         if !replace_existing {
@@ -326,6 +343,10 @@ fn parse_manifest_contents(contents: &str, source: &str) -> Result<PluginManifes
 fn validate_plugin_key(key: &str) -> Result<(), String> {
     let trimmed = key.trim();
 
+    if trimmed != key {
+        return Err("manifest key must not contain surrounding whitespace".to_string());
+    }
+
     if trimmed.is_empty() {
         return Err("manifest key must not be empty".to_string());
     }
@@ -357,9 +378,7 @@ fn validate_manifest(manifest: &PluginManifest, install_dir: Option<&Path>) -> R
         return Err("manifest name must not be empty".to_string());
     }
 
-    if manifest.entry.trim().is_empty() {
-        return Err("manifest entry must not be empty".to_string());
-    }
+    validate_entry_path(&manifest.entry)?;
 
     if let Some(install_dir) = install_dir {
         let entry_path = install_dir.join(&manifest.entry);
@@ -372,6 +391,43 @@ fn validate_manifest(manifest: &PluginManifest, install_dir: Option<&Path>) -> R
     }
 
     Ok(())
+}
+
+/// The entry is joined onto the plugin directory, so it must stay inside it.
+fn validate_entry_path(entry: &str) -> Result<(), String> {
+    if entry.trim().is_empty() {
+        return Err("manifest entry must not be empty".to_string());
+    }
+
+    let is_plain = Path::new(entry)
+        .components()
+        .all(|component| matches!(component, Component::Normal(_)));
+
+    if !is_plain {
+        return Err("manifest entry must be a relative path inside the plugin".to_string());
+    }
+
+    Ok(())
+}
+
+/// Plugin code is downloaded and executed, so only accept HTTPS (plain HTTP to
+/// localhost is allowed in debug builds for local testing).
+fn require_secure_url(url: &str) -> Result<(), String> {
+    let parsed =
+        reqwest::Url::parse(url).map_err(|error| format!("invalid plugin URL {url}: {error}"))?;
+
+    if parsed.scheme() == "https" {
+        return Ok(());
+    }
+
+    let is_local_http = parsed.scheme() == "http"
+        && matches!(parsed.host_str(), Some("localhost" | "127.0.0.1"));
+
+    if cfg!(debug_assertions) && is_local_http {
+        return Ok(());
+    }
+
+    Err(format!("plugin URL must use https: {url}"))
 }
 
 fn plugins_dir(app: &AppHandle) -> Result<PathBuf, String> {
@@ -459,8 +515,20 @@ fn read_manifest(path: &Path) -> Result<InstalledPluginManifest, String> {
     Ok(installed)
 }
 
-fn plugin_destination(plugins_root: &Path, key: &str) -> PathBuf {
-    plugins_root.join(key)
+/// Validates the key first: it comes from the webview and is used to delete directories.
+fn plugin_destination(plugins_root: &Path, key: &str) -> Result<PathBuf, String> {
+    validate_plugin_key(key)?;
+    Ok(plugins_root.join(key))
+}
+
+async fn run_blocking<T, F>(work: F) -> Result<T, String>
+where
+    F: FnOnce() -> Result<T, String> + Send + 'static,
+    T: Send + 'static,
+{
+    tauri::async_runtime::spawn_blocking(work)
+        .await
+        .map_err(|error| format!("plugin task failed: {error}"))?
 }
 
 fn copy_file_create_parents(source: &Path, destination: &Path) -> Result<(), String> {
@@ -589,9 +657,7 @@ fn read_manifest_from_project(project_root: &Path) -> Result<PluginManifest, Str
         return Err("manifest name must not be empty".to_string());
     }
 
-    if manifest.entry.trim().is_empty() {
-        return Err("manifest entry must not be empty".to_string());
-    }
+    validate_entry_path(&manifest.entry)?;
 
     let source_entry = project_root.join(&manifest.entry);
     if !source_entry.is_file() {
@@ -654,8 +720,7 @@ pub fn get_plugins_dir(app: AppHandle) -> Result<String, String> {
         .ok_or_else(|| "plugins directory path is not valid UTF-8".to_string())
 }
 
-#[tauri::command]
-pub fn list_installed_plugins(app: AppHandle) -> Result<Vec<InstalledPluginManifest>, String> {
+fn list_installed_plugins_blocking(app: AppHandle) -> Result<Vec<InstalledPluginManifest>, String> {
     let dir = plugins_dir(&app)?;
     let mut manifests = Vec::new();
 
@@ -687,8 +752,7 @@ pub fn list_installed_plugins(app: AppHandle) -> Result<Vec<InstalledPluginManif
     Ok(manifests)
 }
 
-#[tauri::command]
-pub fn install_plugin_zip(
+fn install_plugin_zip_blocking(
     app: AppHandle,
     zip_path: String,
     replace_existing: bool,
@@ -696,8 +760,7 @@ pub fn install_plugin_zip(
     install_plugin_archive(&app, Path::new(&zip_path), replace_existing)
 }
 
-#[tauri::command]
-pub fn link_plugin_dev(
+fn link_plugin_dev_blocking(
     app: AppHandle,
     project_path: String,
     replace_existing: bool,
@@ -706,7 +769,7 @@ pub fn link_plugin_dev(
     let manifest = read_manifest_from_project(&project_root)?;
 
     let plugins_root = plugins_dir(&app)?;
-    let destination = plugin_destination(&plugins_root, &manifest.key);
+    let destination = plugin_destination(&plugins_root, &manifest.key)?;
 
     if destination.exists() {
         if !replace_existing {
@@ -739,8 +802,7 @@ struct WorkspaceDevPluginsConfig {
     plugins: Vec<String>,
 }
 
-#[tauri::command]
-pub fn link_workspace_dev_plugins(
+fn link_workspace_dev_plugins_blocking(
     app: AppHandle,
     workspace_root: String,
     replace_existing: bool,
@@ -780,7 +842,7 @@ pub fn link_workspace_dev_plugins(
             continue;
         }
 
-        match link_plugin_dev(
+        match link_plugin_dev_blocking(
             app.clone(),
             project_root
                 .to_str()
@@ -801,10 +863,9 @@ pub fn link_workspace_dev_plugins(
     Ok(linked)
 }
 
-#[tauri::command]
-pub fn sync_dev_plugin_entry(app: AppHandle, plugin_key: String) -> Result<(), String> {
+fn sync_dev_plugin_entry_blocking(app: AppHandle, plugin_key: String) -> Result<(), String> {
     let plugins_root = plugins_dir(&app)?;
-    let destination = plugin_destination(&plugins_root, &plugin_key);
+    let destination = plugin_destination(&plugins_root, &plugin_key)?;
 
     if !destination.is_dir() {
         return Err(format!("plugin '{plugin_key}' is not installed"));
@@ -856,10 +917,9 @@ pub fn sync_dev_plugin_entry(app: AppHandle, plugin_key: String) -> Result<(), S
     Ok(())
 }
 
-#[tauri::command]
-pub fn uninstall_plugin(app: AppHandle, key: String) -> Result<(), String> {
+fn uninstall_plugin_blocking(app: AppHandle, key: String) -> Result<(), String> {
     let plugins_root = plugins_dir(&app)?;
-    let destination = plugins_root.join(&key);
+    let destination = plugin_destination(&plugins_root, &key)?;
 
     if !destination.exists() {
         return Err(format!("plugin '{key}' is not installed"));
@@ -886,8 +946,8 @@ fn manifest_fetch_url(manifest_url: &str) -> String {
     }
 }
 
-#[tauri::command]
-pub fn fetch_plugin_manifest(manifest_url: String) -> Result<RemotePluginManifest, String> {
+fn fetch_plugin_manifest_blocking(manifest_url: String) -> Result<RemotePluginManifest, String> {
+    require_secure_url(&manifest_url)?;
     let client = http_client()?;
     let response = client
         .get(manifest_fetch_url(&manifest_url))
@@ -913,13 +973,17 @@ pub fn fetch_plugin_manifest(manifest_url: String) -> Result<RemotePluginManifes
     Ok(RemotePluginManifest::from(manifest))
 }
 
-#[tauri::command]
-pub fn download_and_install_plugin_update(
+fn download_and_install_plugin_update_blocking(
     app: AppHandle,
     download_url: String,
     expected_key: String,
     expected_sha256: Option<String>,
 ) -> Result<InstalledPluginManifest, String> {
+    validate_plugin_key(&expected_key)?;
+    require_secure_url(&download_url)?;
+    let expected_sha256 = expected_sha256
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| "plugin download has no SHA-256 checksum".to_string())?;
     let client = http_client()?;
     let plugins_root = plugins_dir(&app)?;
     let temp_dir = plugins_root.join(".updates");
@@ -934,8 +998,9 @@ pub fn download_and_install_plugin_update(
 
     download_file(&client, &download_url, &temp_zip)?;
 
-    if let Some(expected_sha256) = expected_sha256.as_deref() {
-        verify_sha256(&temp_zip, expected_sha256)?;
+    if let Err(error) = verify_sha256(&temp_zip, &expected_sha256) {
+        let _ = fs::remove_file(&temp_zip);
+        return Err(error);
     }
 
     let zip_file = File::open(&temp_zip)
@@ -956,4 +1021,44 @@ pub fn download_and_install_plugin_update(
     let _ = fs::remove_file(&temp_zip);
 
     installed
+}
+
+#[tauri::command]
+pub async fn list_installed_plugins(app: AppHandle) -> Result<Vec<InstalledPluginManifest>, String> {
+    run_blocking(move || list_installed_plugins_blocking(app)).await
+}
+
+#[tauri::command]
+pub async fn install_plugin_zip(app: AppHandle, zip_path: String, replace_existing: bool) -> Result<InstalledPluginManifest, String> {
+    run_blocking(move || install_plugin_zip_blocking(app, zip_path, replace_existing)).await
+}
+
+#[tauri::command]
+pub async fn link_plugin_dev(app: AppHandle, project_path: String, replace_existing: bool) -> Result<InstalledPluginManifest, String> {
+    run_blocking(move || link_plugin_dev_blocking(app, project_path, replace_existing)).await
+}
+
+#[tauri::command]
+pub async fn link_workspace_dev_plugins(app: AppHandle, workspace_root: String, replace_existing: bool) -> Result<Vec<InstalledPluginManifest>, String> {
+    run_blocking(move || link_workspace_dev_plugins_blocking(app, workspace_root, replace_existing)).await
+}
+
+#[tauri::command]
+pub async fn sync_dev_plugin_entry(app: AppHandle, plugin_key: String) -> Result<(), String> {
+    run_blocking(move || sync_dev_plugin_entry_blocking(app, plugin_key)).await
+}
+
+#[tauri::command]
+pub async fn uninstall_plugin(app: AppHandle, key: String) -> Result<(), String> {
+    run_blocking(move || uninstall_plugin_blocking(app, key)).await
+}
+
+#[tauri::command]
+pub async fn fetch_plugin_manifest(manifest_url: String) -> Result<RemotePluginManifest, String> {
+    run_blocking(move || fetch_plugin_manifest_blocking(manifest_url)).await
+}
+
+#[tauri::command]
+pub async fn download_and_install_plugin_update(app: AppHandle, download_url: String, expected_key: String, expected_sha256: Option<String>) -> Result<InstalledPluginManifest, String> {
+    run_blocking(move || download_and_install_plugin_update_blocking(app, download_url, expected_key, expected_sha256)).await
 }

@@ -194,6 +194,16 @@ export function isPocketBaseUnauthorized(error: unknown): boolean {
 }
 
 /**
+ * True when an auth refresh failed because the server rejected the session (expired,
+ * revoked or deleted user). Network errors and outages return false: keep the session
+ * and try again later instead of signing the user out mid-stream.
+ */
+export function isPocketBaseSessionRejected(error: unknown): boolean {
+	const status = pocketBaseStatus(error);
+	return status === 401 || status === 403 || status === 404;
+}
+
+/**
  * Prefer field-level PocketBase validation messages; fall back to top-level message.
  */
 export function pocketBaseErrorMessage(error: unknown, fallback: string): string {

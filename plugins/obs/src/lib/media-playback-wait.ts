@@ -23,6 +23,13 @@ const MAX_WAIT_MS = 30 * 60 * 1000;
 // giving up, and how long to keep checking the live state afterwards.
 const START_TIMEOUT_MS = 5_000;
 const POLL_INTERVAL_MS = 200;
+// Fallback: after playback started, check the live state this often so a source that is
+// stopped, hidden (scene switch) or lost (OBS disconnect) without an "ended" event
+// doesn't keep the action waiting.
+const PLAYING_POLL_INTERVAL_MS = 1_000;
+
+/** Upper bound for handlers that wait on playback (used as their action timeout). */
+export const MEDIA_WAIT_TIMEOUT_MS = MAX_WAIT_MS + 10_000;
 
 function log(...args: unknown[]): void {
 	if (DEBUG) {
@@ -34,21 +41,41 @@ function matchesInputName(left: string, right: string): boolean {
 	return left.trim().toLowerCase() === right.trim().toLowerCase();
 }
 
-function delay(ms: number): Promise<void> {
+/** Resolves after `ms`, or early when `signal` aborts (callers then just stop waiting). */
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
 	return new Promise((resolve) => {
-		setTimeout(resolve, ms);
+		if (signal?.aborted) {
+			resolve();
+			return;
+		}
+
+		const onAbort = (): void => {
+			clearTimeout(timer);
+			resolve();
+		};
+		const timer = setTimeout(() => {
+			signal?.removeEventListener('abort', onAbort);
+			resolve();
+		}, ms);
+		signal?.addEventListener('abort', onAbort, { once: true });
 	});
 }
 
 async function getMediaStatus(
 	app: PluginAppApi,
-	inputName: string
+	inputName: string,
+	options: { silent?: boolean } = {}
 ): Promise<{ mediaState?: string; mediaDuration?: number | null; mediaCursor?: number | null }> {
 	const status = await callObsWithResponse<{
 		mediaState?: string;
 		mediaDuration?: number | null;
 		mediaCursor?: number | null;
-	}>(app, 'GetMediaInputStatus', { inputName: inputName.trim() }, { label: 'Wait for media playback' });
+	}>(
+		app,
+		'GetMediaInputStatus',
+		{ inputName: inputName.trim() },
+		{ label: 'Wait for media playback', silent: options.silent }
+	);
 
 	return status ?? {};
 }
@@ -85,12 +112,13 @@ async function resolveRemainingMsFromObs(
  *     `MediaInputPlaybackEnded` event (after confirming playback actually
  *     started), with a short start timeout so the chain can never hang.
  *
- * Call this AFTER the play/restart command has been sent to OBS.
+ * Call this AFTER the play/restart command has been sent to OBS. Resolves early when
+ * `signal` aborts (the action timed out), so callers release their media input lock.
  */
 export async function waitForMediaPlayback(
 	app: PluginAppApi,
 	inputName: string,
-	options: { expectedDurationMs?: number | null } = {}
+	options: { expectedDurationMs?: number | null; signal?: AbortSignal } = {}
 ): Promise<void> {
 	const trimmed = inputName.trim();
 
@@ -105,16 +133,20 @@ export async function waitForMediaPlayback(
 	if (remainingMs != null && remainingMs > 0) {
 		const waitMs = Math.min(remainingMs + DURATION_BUFFER_MS, MAX_WAIT_MS);
 		log('duration wait', { input: trimmed, source, remainingMs, waitMs });
-		await delay(waitMs);
+		await delay(waitMs, options.signal);
 		log('duration wait done', { input: trimmed });
 		return;
 	}
 
 	log('no duration, falling back to events', { input: trimmed });
-	await waitForPlaybackEndedEvent(app, trimmed);
+	await waitForPlaybackEndedEvent(app, trimmed, options.signal);
 }
 
-function waitForPlaybackEndedEvent(app: PluginAppApi, inputName: string): Promise<void> {
+function waitForPlaybackEndedEvent(
+	app: PluginAppApi,
+	inputName: string,
+	signal?: AbortSignal
+): Promise<void> {
 	const trimmed = inputName.trim();
 
 	return new Promise<void>((resolve) => {
@@ -129,9 +161,17 @@ function waitForPlaybackEndedEvent(app: PluginAppApi, inputName: string): Promis
 			settled = true;
 			unsubscribeStarted();
 			unsubscribeEnded();
+			signal?.removeEventListener('abort', onAbort);
 			log('event settle', { input: trimmed, reason });
 			resolve();
 		};
+		const onAbort = (): void => settle('aborted');
+
+		if (signal?.aborted) {
+			settle('aborted');
+			return;
+		}
+		signal?.addEventListener('abort', onAbort, { once: true });
 
 		const unsubscribeStarted = subscribeObsEvent<MediaContext>(
 			OBS_EVENTS.MEDIA_STARTED,
@@ -159,12 +199,31 @@ function waitForPlaybackEndedEvent(app: PluginAppApi, inputName: string): Promis
 					break;
 				}
 
-				await delay(POLL_INTERVAL_MS);
+				await delay(POLL_INTERVAL_MS, signal);
 			}
 
 			if (!started) {
 				settle('start-timeout');
+				return;
 			}
+
+			// The "ended" event never comes when playback is interrupted (source hidden,
+			// stopped by another action, OBS gone), so also watch the live state.
+			const maxDeadline = Date.now() + MAX_WAIT_MS;
+			while (!settled && Date.now() < maxDeadline) {
+				await delay(PLAYING_POLL_INTERVAL_MS, signal);
+				if (settled) {
+					return;
+				}
+
+				const status = await getMediaStatus(app, trimmed, { silent: true });
+				if (!status.mediaState || !ACTIVE_MEDIA_STATES.has(status.mediaState)) {
+					settle('no-longer-playing');
+					return;
+				}
+			}
+
+			settle('max-wait');
 		})();
 	});
 }

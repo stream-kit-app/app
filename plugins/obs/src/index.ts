@@ -131,6 +131,15 @@ export type { ObsPluginApi } from './lib/obs';
 const plugin: Plugin = (app) => {
 	configureFieldValueResolver(app);
 	let obsApi: ObsPluginController | undefined;
+	// Listeners live on the plugin, not the controller, so they survive disable/enable
+	// (which creates a new controller) and can subscribe before the plugin is enabled.
+	const stateListeners = new Set<() => void>();
+	let unsubscribeController: (() => void) | undefined;
+	const notifyState = (): void => {
+		for (const listener of stateListeners) {
+			listener();
+		}
+	};
 	const warnUnavailable = () => {
 		app.toast.create({
 			title: 'OBS plugin unavailable',
@@ -180,7 +189,12 @@ const plugin: Plugin = (app) => {
 
 			return obsApi.testConnection();
 		},
-		subscribe: (listener) => obsApi?.subscribe(listener) ?? (() => {})
+		subscribe: (listener) => {
+			stateListeners.add(listener);
+			return () => {
+				stateListeners.delete(listener);
+			};
+		}
 	};
 
 	const syncGetValue = (getValue: (key: string) => string | boolean | number | undefined) => {
@@ -522,6 +536,8 @@ const plugin: Plugin = (app) => {
 		],
 		onEnable: async ({ getValue }) => {
 			obsApi = createObsPluginApi(app);
+			unsubscribeController = obsApi.subscribe(notifyState);
+			notifyState();
 			syncGetValue(getValue);
 			await obsApi.boot();
 		},
@@ -530,7 +546,12 @@ const plugin: Plugin = (app) => {
 			await obsApi?.reconnectFromSettings();
 		},
 		onDisable: async () => {
-			await obsApi?.disconnect();
+			const controller = obsApi;
+			obsApi = undefined;
+			unsubscribeController?.();
+			unsubscribeController = undefined;
+			notifyState();
+			await controller?.disconnect();
 		}
 	};
 };

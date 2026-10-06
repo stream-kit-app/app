@@ -73,7 +73,10 @@ function withOverlayBaseHref(html: Uint8Array, overlayId: string): Uint8Array {
 	return new TextEncoder().encode(`${tag}${text}`);
 }
 
-function bundleUrl(record: UserOverlaysResponse): string {
+/** Shape returned by the PocketBase `GET /api/overlays/{overlayId}/public` route. */
+type PublicOverlay = Pick<UserOverlaysResponse, 'id' | 'overlayId' | 'bundle' | 'updatedAt'>;
+
+function bundleUrl(record: Pick<UserOverlaysResponse, 'id' | 'bundle'>): string {
 	const base = PUBLIC_POCKETBASE_URL.replace(/\/$/, '');
 	const filename = String(record.bundle);
 	return `${base}/api/files/${COLLECTION_ID}/${record.id}/${encodeURIComponent(filename)}`;
@@ -153,15 +156,17 @@ export class OverlaysService extends Service {
 		});
 	}
 
+	/** Published overlays are looked up by id only; the collection can't be listed publicly. */
+	private getPublishedOverlay(uuid: string): Promise<PublicOverlay> {
+		return this.pocketbase.send<PublicOverlay>(
+			`/api/overlays/${encodeURIComponent(uuid)}/public`,
+			{ method: 'GET' }
+		);
+	}
+
 	isPublished(uuid: string): ResultAsync<boolean, ServiceError<2001, 'OVERLAY_ASSET_FAILED'>> {
 		return fromPromise(
-			this.pocketbase
-				.collection('user_overlays')
-				.getFirstListItem(
-					this.pocketbase.filter('overlayId={:overlayId} && published=true', {
-						overlayId: uuid
-					})
-				)
+			this.getPublishedOverlay(uuid)
 				.then(() => true)
 				.catch((error) => {
 					if (error instanceof ClientResponseError && error.status === 404) {
@@ -174,11 +179,7 @@ export class OverlaysService extends Service {
 	}
 
 	private async loadPublishedFiles(uuid: string): Promise<Map<string, Uint8Array>> {
-		const record = await this.pocketbase.collection('user_overlays').getFirstListItem(
-			this.pocketbase.filter('overlayId={:overlayId} && published=true', {
-				overlayId: uuid
-			})
-		);
+		const record = await this.getPublishedOverlay(uuid);
 		if (!record.bundle) {
 			throw new Error('Overlay has no bundle');
 		}

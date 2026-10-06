@@ -7,6 +7,7 @@ import {
 	AUTH_MEMBERSHIP_EXPAND,
 	AuthCreatedButSignInFailedError,
 	isPocketBaseAutoCancelled,
+	isPocketBaseSessionRejected,
 	isPocketBaseUnauthorized,
 	pocketBaseErrorMessage,
 	resolvePocketBaseUrl,
@@ -15,11 +16,7 @@ import {
 	toPublicUser,
 	validateAvatarFile
 } from './auth-utils';
-import {
-	SUBSCRIPTION_GRACE_MS,
-	formatEndsAtIso,
-	isMembershipEntitled
-} from './subscription-entitlement';
+import { isMembershipEntitled } from './subscription-entitlement';
 import { createTauriAuthStore } from './tauri-auth-store';
 import type {
 	AuthAccount,
@@ -96,7 +93,10 @@ export class Auth {
 				await pb.collection('users').authRefresh();
 			} catch (error) {
 				console.warn('Failed to refresh Stream Kit account session', error);
-				pb.authStore.clear();
+				// Starting offline keeps the stored session; only a rejected one is cleared.
+				if (isPocketBaseSessionRejected(error)) {
+					pb.authStore.clear();
+				}
 			}
 		} else if (pb.authStore.token) {
 			// Expired token: PocketBase treats it as a guest (list rules return empty, no 401),
@@ -396,15 +396,10 @@ export class Auth {
 			throw new Error(translate('No active subscription to cancel.'));
 		}
 
-		const nowMs = Date.now();
-		const cancelledAt = formatEndsAtIso(nowMs);
-		const endsAt = formatEndsAtIso(nowMs + SUBSCRIPTION_GRACE_MS);
-
 		try {
-			await this.client.collection('user_subscriptions').update(membershipId, {
-				status: 'cancelled',
-				cancelledAt,
-				endsAt
+			// The server sets `cancelledAt` / `endsAt`; clients can't update memberships directly.
+			await this.client.send(`/api/subscriptions/${encodeURIComponent(membershipId)}/cancel`, {
+				method: 'POST'
 			});
 		} catch (error) {
 			throw new Error(
@@ -595,11 +590,13 @@ export class Auth {
 						await pb.collection('users').authRefresh();
 						return await originalSend(path, options);
 					} catch (refreshError) {
-						console.warn(
-							'Stream Kit account session expired; clearing auth store',
-							refreshError
-						);
-						pb.authStore.clear();
+						if (isPocketBaseSessionRejected(refreshError)) {
+							console.warn(
+								'Stream Kit account session expired; clearing auth store',
+								refreshError
+							);
+							pb.authStore.clear();
+						}
 						throw error;
 					} finally {
 						this.#sendRefreshing = false;
@@ -635,7 +632,10 @@ export class Auth {
 			await pb.collection('users').authRefresh();
 		} catch (error) {
 			console.warn('Failed to refresh Stream Kit account session', error);
-			pb.authStore.clear();
+			// A network blip must not sign the user out (and drop cloud overlays) mid-stream.
+			if (isPocketBaseSessionRejected(error)) {
+				pb.authStore.clear();
+			}
 		}
 	}
 

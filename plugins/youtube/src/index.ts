@@ -4,6 +4,7 @@ import type { Plugin } from '@stream-kit/plugin';
 import { createDeleteMessageHandler } from './handler/chat/delete-message';
 import { createSendMessageHandler } from './handler/chat/send-message';
 import { createBanHandler } from './handler/moderation/ban';
+import { subscribeChatMessages } from './lib/chat-setup';
 import { createYouTubePluginApi } from './lib/youtube';
 import { configureFieldValueResolver } from './get-field-value';
 import { createGiftTrigger } from './trigger/chat/gift';
@@ -31,6 +32,15 @@ export type { YouTubePluginApi } from './lib/youtube';
 const plugin: Plugin = (app) => {
 	configureFieldValueResolver(app);
 	let youtubeApi: YouTubePluginController | undefined;
+	// Listeners live on the plugin, not the controller, so they survive disable/enable
+	// (which creates a new controller) and can subscribe before the plugin is enabled.
+	const stateListeners = new Set<() => void>();
+	let unsubscribeController: (() => void) | undefined;
+	const notifyState = (): void => {
+		for (const listener of stateListeners) {
+			listener();
+		}
+	};
 	const warnUnavailable = () => {
 		app.toast.create({
 			title: 'YouTube plugin unavailable',
@@ -81,9 +91,14 @@ const plugin: Plugin = (app) => {
 
 			await youtubeApi.disconnect();
 		},
-		subscribe: (listener) => youtubeApi?.subscribe(listener) ?? (() => {}),
-		subscribeChatMessages: (filter, handler) =>
-			youtubeApi?.subscribeChatMessages(filter, handler) ?? (() => {}),
+		subscribe: (listener) => {
+			stateListeners.add(listener);
+			return () => {
+				stateListeners.delete(listener);
+			};
+		},
+		// Chat handlers are kept at module level, independent of the controller.
+		subscribeChatMessages: (filter, handler) => subscribeChatMessages(filter, handler),
 		sendMessage: async (text) => youtubeApi?.sendMessage(text) ?? false,
 		deleteMessage: async (messageId) => youtubeApi?.deleteMessage(messageId) ?? false,
 		banUser: async (userId, durationSec) => youtubeApi?.banUser(userId, durationSec) ?? false
@@ -193,7 +208,17 @@ const plugin: Plugin = (app) => {
 		],
 		onEnable: async ({ store }) => {
 			youtubeApi = createYouTubePluginApi(app, store);
+			unsubscribeController = youtubeApi.subscribe(notifyState);
+			notifyState();
 			await youtubeApi.boot();
+		},
+		onDisable: async () => {
+			const controller = youtubeApi;
+			youtubeApi = undefined;
+			unsubscribeController?.();
+			unsubscribeController = undefined;
+			notifyState();
+			await controller?.shutdown();
 		}
 	};
 };

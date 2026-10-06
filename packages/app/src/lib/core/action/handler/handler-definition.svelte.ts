@@ -2,6 +2,7 @@ import type { Action } from '../action.svelte';
 import type { ActionHandler } from '../action-handler.svelte';
 import type { HandlerTriggerContext } from '../handler-context';
 import type { HandlerFieldDefinition, ResolvedHandlerFieldDefinition } from './field';
+import type { HandlerTimeout } from '../handler-timeout';
 import type { HandlerDefinitionProps, HandlerExecuteFn, HandlerOutputsSource } from './types';
 
 import { slugify, uniqueSlug } from '#lib/utils.js';
@@ -57,6 +58,7 @@ export class HandlerDefinition {
 	fields?: ResolvedHandlerFieldDefinition[];
 	execute?: HandlerExecuteFn;
 	outputs?: HandlerOutputsSource;
+	timeout?: HandlerTimeout;
 
 	children = new HandlerDefinitions();
 
@@ -66,6 +68,7 @@ export class HandlerDefinition {
 		this.fields = resolveFieldDefinitions(props.fields);
 		this.execute = props.execute;
 		this.outputs = props.outputs;
+		this.timeout = props.timeout;
 
 		props.children?.forEach((child) => this.children.add(child, { idScope: this.id }));
 	}

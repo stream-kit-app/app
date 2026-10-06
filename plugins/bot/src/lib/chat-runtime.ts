@@ -92,17 +92,41 @@ async function handleChatMessage(
 	);
 }
 
+/**
+ * Longest a single chat line may hold up the next one. A command that runs longer (a
+ * delay, TTS, a chat send while disconnected) keeps running in the background, but
+ * later commands and moderation are no longer blocked behind it.
+ */
+const MESSAGE_TURN_TIMEOUT_MS = 30_000;
+
+function settleWithin(work: Promise<void>, timeoutMs: number): Promise<void> {
+	return new Promise((resolve) => {
+		const timer = setTimeout(() => {
+			console.warn(`[bot] Chat message still processing after ${timeoutMs / 1000}s; continuing`);
+			resolve();
+		}, timeoutMs);
+
+		work
+			.catch((error) => {
+				console.error('Failed to handle chat message', error);
+			})
+			.finally(() => {
+				clearTimeout(timer);
+				resolve();
+			});
+	});
+}
+
 export function createChatRuntime(app: PluginAppApi, deps: ChatRuntimeDeps): () => void {
 	const cooldownState = createCooldownTracker();
 	let chain: Promise<void> = Promise.resolve();
 
 	return subscribeBotChatMessages(app, (context) => {
 		// Process chat lines one at a time so cooldown replies cannot race ahead of
-		// an in-flight command that still has handlers sending chat.
-		chain = chain
-			.then(() => handleChatMessage(app, deps, context, cooldownState))
-			.catch((error) => {
-				console.error('Failed to handle chat message', error);
-			});
+		// an in-flight command that still has handlers sending chat — but never let
+		// one line block the rest of chat indefinitely.
+		chain = chain.then(() =>
+			settleWithin(handleChatMessage(app, deps, context, cooldownState), MESSAGE_TURN_TIMEOUT_MS)
+		);
 	});
 }

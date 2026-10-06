@@ -10,6 +10,8 @@ const PocketBaseCtor = PocketBase.default ?? PocketBase;
 
 /** @typedef {{ overlayId: string, role: 'subscriber' | 'publisher' }} ClientMeta */
 
+const OVERLAY_SETTINGS_EVENT = 'overlay:settings';
+
 /**
  * @param {object} options
  * @param {string} options.pocketbaseUrl
@@ -25,6 +27,9 @@ export function createOverlayWsHub(options) {
 	const publishers = new Map();
 	/** @type {WeakMap<import('ws').WebSocket, ClientMeta>} */
 	const meta = new WeakMap();
+	/** Last `overlay:settings` frame per overlay, replayed to subscribers that join later. */
+	/** @type {Map<string, string>} */
+	const lastSettings = new Map();
 
 	/**
 	 * @param {Map<string, Set<import('ws').WebSocket>>} map
@@ -71,12 +76,12 @@ export function createOverlayWsHub(options) {
 	 * @param {string} overlayId
 	 */
 	async function assertPublished(overlayId) {
-		const pb = new PocketBaseCtor(pocketbaseUrl);
-		const safeId = String(overlayId).replace(/"/g, '');
-		const record = await pb
-			.collection('user_overlays')
-			.getFirstListItem(`overlayId="${safeId}" && published=true`);
-		return record;
+		const response = await fetch(
+			`${pocketbaseUrl}/api/overlays/${encodeURIComponent(overlayId)}/public`
+		);
+		if (!response.ok) {
+			throw new Error(`Overlay is not published (${response.status})`);
+		}
 	}
 
 	/**
@@ -94,10 +99,9 @@ export function createOverlayWsHub(options) {
 		if (!authId) {
 			throw new Error('Invalid auth token');
 		}
-		const safeId = String(overlayId).replace(/"/g, '');
 		const record = await pb
 			.collection('user_overlays')
-			.getFirstListItem(`overlayId="${safeId}"`);
+			.getFirstListItem(pb.filter('overlayId = {:overlayId}', { overlayId }));
 		if (record.user !== authId) {
 			throw new Error('Not overlay owner');
 		}
@@ -134,17 +138,23 @@ export function createOverlayWsHub(options) {
 			} else {
 				await assertPublished(overlayId);
 				addClient(subscribers, overlayId, ws);
+				const settings = lastSettings.get(overlayId);
+				if (settings && ws.readyState === 1) {
+					ws.send(settings);
+				}
 			}
 
 			meta.set(ws, { overlayId, role });
 
 			ws.on('message', (raw) => {
 				const data = String(raw);
+				let event;
 				try {
 					const parsed = JSON.parse(data);
 					if (!parsed || typeof parsed.event !== 'string') {
 						return;
 					}
+					event = parsed.event;
 				} catch {
 					return;
 				}
@@ -153,10 +163,12 @@ export function createOverlayWsHub(options) {
 				if (!info) return;
 
 				if (info.role === 'publisher') {
+					if (event === OVERLAY_SETTINGS_EVENT) {
+						lastSettings.set(info.overlayId, data);
+					}
 					broadcast(subscribers.get(info.overlayId), data);
-				} else {
-					broadcast(publishers.get(info.overlayId), data);
 				}
+				// Viewer messages are never relayed to the streamer's app (anonymous senders).
 			});
 
 			ws.on('close', () => {

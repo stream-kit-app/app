@@ -56,6 +56,7 @@ import {
 } from './handler-chain-mutations';
 import { handlerFromStored } from './handler-tree';
 import { HandlerDefinition } from './handler/handler-definition.svelte';
+import { HandlerTimeoutError } from './handler-timeout';
 import { runHandlerChain } from './run-handler-chain';
 import { DEFAULT_ACTION_GROUP } from './stored-action';
 import { TriggerDefinitions } from './trigger';
@@ -1073,7 +1074,7 @@ export class Action {
 			return;
 		}
 
-		const runChain = async (): Promise<void> => {
+		const runChain = async (signal?: AbortSignal): Promise<void> => {
 			if (trackVisual && shouldQueue) {
 				this.execution.begin();
 			}
@@ -1081,7 +1082,8 @@ export class Action {
 			try {
 				await this.runHandlers(data, trigger.definition.name, {
 					bypassEnabled: options.bypassEnabled,
-					showVisual: showFormVisual
+					showVisual: showFormVisual,
+					signal
 				});
 			} finally {
 				if (trackVisual) {
@@ -1119,16 +1121,37 @@ export class Action {
 				if (this._runHandlersShowVisual) {
 					this.execution.markHandlerCompleted(handler.id);
 				}
-			}
+			},
+			onHandlerError: (handler, _index, error) => this.notifyHandlerTimeout(handler, error)
+		});
+	}
+
+	/** A timed-out handler stops the rest of its chain; tell the user which one. */
+	private notifyHandlerTimeout(handler: ActionHandler, error: unknown): void {
+		if (!(error instanceof HandlerTimeoutError)) {
+			return;
+		}
+
+		getApp().toast.create({
+			title: translate('Handler timed out'),
+			description: translate(
+				'"{handler}" in "{action}" did not finish within {seconds}s and was stopped.',
+				{
+					handler: handler.definition.name,
+					action: this.name.trim() || translate('Untitled action'),
+					seconds: Math.round(error.timeoutMs / 1000)
+				}
+			),
+			variant: 'warning'
 		});
 	}
 
 	async runHandlers(
 		data: unknown,
 		triggerLabel = 'Command',
-		options: { bypassEnabled?: boolean; showVisual?: boolean } = {}
+		options: { bypassEnabled?: boolean; showVisual?: boolean; signal?: AbortSignal } = {}
 	): Promise<void> {
-		const { bypassEnabled = false, showVisual = false } = options;
+		const { bypassEnabled = false, showVisual = false, signal } = options;
 
 		if (!bypassEnabled && !this.enabled) {
 			return;
@@ -1137,7 +1160,8 @@ export class Action {
 		const context: HandlerTriggerContext = {
 			trigger: triggerLabel,
 			data,
-			actionVariables: {}
+			actionVariables: {},
+			signal
 		};
 
 		this._runHandlersShowVisual = showVisual;
@@ -1153,7 +1177,8 @@ export class Action {
 					if (showVisual) {
 						this.execution.markHandlerCompleted(handler.id);
 					}
-				}
+				},
+				onHandlerError: (handler, _index, error) => this.notifyHandlerTimeout(handler, error)
 			});
 		} finally {
 			this._runHandlersShowVisual = false;
