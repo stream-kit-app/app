@@ -19,7 +19,7 @@ import { chunkTwitchChatMessages } from './chat-message';
 import { rebindExistingMessageHandlers, resetChatListener, subscribeMessages } from './irc-setup';
 import { resetEventSubSubscriptions } from './eventsub-setup';
 import { clearBadgeCache, refreshBadgeCache } from './badge-cache';
-import { describeOAuthError, parseImplicitOAuthCallback } from './oauth-callback';
+import { type ImplicitOAuthFlow, startImplicitOAuthFlow } from './oauth-callback';
 
 export type ValidatedTokenInfo = TokenInfo & { userId: string };
 
@@ -61,6 +61,7 @@ export function createTwitchPluginApi(
 	let botAccountController: TwitchBotAccountController | undefined;
 	let isConnected = false;
 	let isAuthenticating = false;
+	let oauthFlow: ImplicitOAuthFlow | undefined;
 	let accessToken: string | undefined;
 	let token: ValidatedTokenInfo | undefined;
 	let userId: string | undefined;
@@ -321,46 +322,46 @@ export function createTwitchPluginApi(
 			isAuthenticating = true;
 			notify();
 
-			const port = await app.oauth.start({ ports: [9001] });
-			const url = new URL('https://id.twitch.tv/oauth2/authorize');
-			const state = Math.random().toString(36).substring(2, 15);
+			oauthFlow?.cancel();
 
-			url.searchParams.set('response_type', 'token');
-			url.searchParams.set('redirect_uri', `http://localhost:${port}`);
-			url.searchParams.set('scope', scopes.join(' '));
-			url.searchParams.set('client_id', TWITCH_CLIENT_ID);
-			url.searchParams.set('state', state);
-
-			await app.opener.openUrl(url.toString());
-			void app.oauth.onUrl((value: string) => {
-				const callback = parseImplicitOAuthCallback(value);
-
-				if (callback.error) {
-					isAuthenticating = false;
-					app.toast.create({
-						title: 'Twitch authorization failed',
-						description: describeOAuthError(callback.error, callback.errorDescription, port),
-						variant: 'error'
-					});
-					notify();
-					return;
-				}
-
-				if (!callback.accessToken) {
-					return;
-				}
-
-				void store.set(ACCESS_TOKEN_KEY, callback.accessToken);
+			try {
+				oauthFlow = await startImplicitOAuthFlow(app, {
+					port: 9001,
+					clientId: TWITCH_CLIENT_ID,
+					scopes,
+					onToken: (accessToken) => {
+						void store.set(ACCESS_TOKEN_KEY, accessToken);
+						isAuthenticating = false;
+						void connect(accessToken);
+						notify();
+					},
+					onError: (description) => {
+						isAuthenticating = false;
+						app.toast.create({
+							title: 'Twitch authorization failed',
+							description,
+							variant: 'error'
+						});
+						notify();
+					},
+					onCancel: () => {
+						isAuthenticating = false;
+						notify();
+					}
+				});
+			} catch (error) {
 				isAuthenticating = false;
-				void connect(callback.accessToken);
+				app.toast.create({
+					title: 'Twitch authorization failed',
+					description: error instanceof Error ? error.message : String(error),
+					variant: 'error'
+				});
 				notify();
-			});
-			void app.oauth.onInvalidUrl(() => {
-				isAuthenticating = false;
-				notify();
-			});
+			}
 		},
 		async disconnect() {
+			oauthFlow?.cancel();
+			oauthFlow = undefined;
 			await store.delete(ACCESS_TOKEN_KEY);
 			await stopClients();
 			isConnected = false;
