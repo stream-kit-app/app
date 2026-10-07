@@ -9,6 +9,13 @@ import { translate } from '#lib/i18n.js';
 
 import { getApp } from '../registry';
 
+const UPDATE_TOAST_ID = 'app-update-install';
+
+/** Whole megabytes, for the progress bar (the toast shows `done / total`). */
+function toMb(bytes: number): number {
+	return Math.round(bytes / (1024 * 1024));
+}
+
 class AppUpdater {
 	isChecking = $state(false);
 	isInstalling = $state(false);
@@ -133,12 +140,46 @@ class AppUpdater {
 
 		this.isInstalling = true;
 
+		// The download takes a while and the installer only closes the app at the end;
+		// without feedback "Install and restart" looks like it did nothing.
+		const toast = getApp().toast.create({
+			id: UPDATE_TOAST_ID,
+			title: translate('Downloading update…'),
+			description: translate('Stream Kit restarts when the update is installed.'),
+			duration: 0
+		});
+		let totalBytes = 0;
+		let downloadedBytes = 0;
+		let shownMb = -1;
+
 		try {
-			await update.downloadAndInstall();
+			await update.downloadAndInstall((event) => {
+				if (event.event === 'Started') {
+					totalBytes = event.data.contentLength ?? 0;
+					return;
+				}
+
+				if (event.event === 'Progress') {
+					downloadedBytes += event.data.chunkLength;
+					const mb = toMb(downloadedBytes);
+					if (totalBytes > 0 && mb !== shownMb) {
+						shownMb = mb;
+						toast.update({ progress: { done: mb, total: toMb(totalBytes) } });
+					}
+					return;
+				}
+
+				toast.update({
+					title: translate('Installing update…'),
+					description: translate('Stream Kit closes and restarts in a moment.'),
+					progress: undefined
+				});
+			});
 			await relaunch();
 		} catch (error) {
 			console.error('Failed to install app update', error);
 			getApp().toast.create({
+				id: UPDATE_TOAST_ID,
 				title: translate('Could not install the update'),
 				description:
 					error instanceof Error
