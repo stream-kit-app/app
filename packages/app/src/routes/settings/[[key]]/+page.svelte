@@ -72,9 +72,11 @@
 					type: 'button',
 					key: 'checkAppUpdates',
 					name:
-						appUpdater.isChecking || appUpdater.isInstalling
-							? t('Checking...')
-							: t('Check for updates'),
+						appUpdater.isInstalling
+							? t('Installing update…')
+							: appUpdater.isChecking
+								? t('Checking...')
+								: t('Check for updates'),
 					variant: 'outline',
 					onClick: () => appUpdater.check(),
 					visible: () => !appUpdater.isStoreInstall
