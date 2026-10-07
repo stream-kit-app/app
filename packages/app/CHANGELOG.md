@@ -1,5 +1,22 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.22
+
+### Patch Changes
+
+- [#28](https://github.com/stream-kit-app/app/pull/28) [`70403e0`](https://github.com/stream-kit-app/app/commit/70403e058ed4fabbd1724b72fcf10fc8e13cb775) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Recover from database migrations that were interrupted by a crash or close (previously actions could disappear), and repair rows without a sync id that caused actions to duplicate on every cloud sync.
+
+- [#28](https://github.com/stream-kit-app/app/pull/28) [`7875e31`](https://github.com/stream-kit-app/app/commit/7875e31c5149699dd9abe8b17355a2e1e0a9ca2b) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Deleted actions no longer come back after a crash, a failed or interrupted plugin update no longer removes the installed plugin, and an update that fails to load keeps the plugin installed.
+
+- [#28](https://github.com/stream-kit-app/app/pull/28) [`8f1e1e0`](https://github.com/stream-kit-app/app/commit/8f1e1e0dfb22f4c25cb096e1828e468fd215a35f) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Overlay settings changed while a previous change was still saving are no longer lost.
+
+- [#28](https://github.com/stream-kit-app/app/pull/28) [`118ddc6`](https://github.com/stream-kit-app/app/commit/118ddc6c53fe086da75556611100e57c260803da) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Signing in with a different account on a PC no longer mixes that PC's actions, overlays and plugin data into the new account. Cloud sync pauses and asks whether to copy the data to the new account.
+
+- [#28](https://github.com/stream-kit-app/app/pull/28) [`7034378`](https://github.com/stream-kit-app/app/commit/7034378ed17130fb4f3ef9ce7e9df68ed023bed4) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - When an action or queue is edited on two devices before they sync, changes to different settings are now combined instead of one device overwriting the other (for example reordering on one PC no longer discards a handler edit made on another). Overwritten versions are kept as a local backup.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+    - @stream-kit/plugin@0.2.0-alpha.12
+
 ## 0.1.0-alpha.21
 
 ### Minor Changes
