@@ -53,5 +53,8 @@ jobs:
             - name: Build SDK packages
               run: pnpm --filter @stream-kit/core build && pnpm --filter @stream-kit/plugin build && pnpm --filter @stream-kit/ui build
 
+            # Inline rather than `pnpm publish:npm`: the checkout is the release tag, whose
+            # script may be older. Recursive publish skips versions already on npm, so a
+            # rerun after a partial publish only publishes what is missing.
             - name: Publish to npm
-              run: pnpm publish:npm
+              run: pnpm -r --filter @stream-kit/core --filter @stream-kit/plugin --filter @stream-kit/ui publish --access public --no-git-checks
