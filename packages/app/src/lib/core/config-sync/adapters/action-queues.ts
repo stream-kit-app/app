@@ -105,6 +105,7 @@ export function createActionQueueAdapter(app: App): SyncAdapter<ActionQueueRecor
 			};
 		},
 		snapshotToTrash: snapshotActionQueueToTrash,
+		fieldMerge: true,
 		shouldSkipDelete: (local) => isDefaultActionQueue(local),
 		async afterSync(ctx) {
 			await reconcileDefaultQueues(app, ctx);

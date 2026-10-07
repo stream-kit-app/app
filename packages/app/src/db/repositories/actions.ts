@@ -12,7 +12,8 @@ import { db } from '../index';
 import { createSyncId } from '../sync-id';
 import { actions, DEFAULT_ACTION_GROUP } from '../schemas/actions';
 import { getDefaultActionQueueId } from './action-queues';
-import { recordConfigSyncTombstone } from './config-sync-tombstones';
+import { configSyncTombstoneStatement, recordConfigSyncTombstone } from './config-sync-tombstones';
+import { executeBatch, type BatchStatement } from '../batch';
 import { notifyConfigLocalChange } from '../config-sync-notify';
 
 export type SaveActionInput = {
@@ -251,19 +252,20 @@ export async function deleteActions(ids: number[]): Promise<void> {
 		.from(actions)
 		.where(inArray(actions.id, ids));
 
-	await db.delete(actions).where(inArray(actions.id, ids));
-
+	// Tombstones and the delete commit together: deleting first and crashing before the
+	// tombstones were written made the next sync restore the "deleted" actions.
 	const deletedAt = new Date();
-	for (const row of rows) {
-		if (row.syncId) {
-			await recordConfigSyncTombstone(
-				'action',
-				row.syncId,
-				deletedAt,
-				(row.revision ?? 1) + 1
-			);
-		}
-	}
+	const statements: BatchStatement[] = rows
+		.filter((row): row is { syncId: string; revision: number } => Boolean(row.syncId))
+		.map((row) =>
+			configSyncTombstoneStatement('action', row.syncId, deletedAt, (row.revision ?? 1) + 1)
+		);
+	statements.push({
+		sql: `DELETE FROM actions WHERE id IN (${ids.map(() => '?').join(', ')})`,
+		params: ids
+	});
+
+	await executeBatch(statements);
 	notifyConfigLocalChange();
 }
 

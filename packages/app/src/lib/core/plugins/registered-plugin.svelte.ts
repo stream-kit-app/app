@@ -56,7 +56,7 @@ function fnv1a36(value: string, seed: number): string {
  * Deterministic per-plugin sync id (15 chars, `[a-z0-9]`), so every device writes the
  * same record for a plugin's account settings.
  */
-function accountSettingsSyncId(pluginKey: string): string {
+export function accountSettingsSyncId(pluginKey: string): string {
 	const input = `account-settings:${pluginKey}`;
 
 	return `s${fnv1a36(input, 0x811c9dc5)}${fnv1a36(input, 0x9e3779b9)}`.slice(0, 15);

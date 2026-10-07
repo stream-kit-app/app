@@ -27,6 +27,8 @@ export type SyncAdapterContext = {
 		body: Record<string, unknown>,
 		options?: SyncUpsertRemoteOptions
 	) => Promise<void>;
+	/** Called when both sides edited the same field and one version was set aside. */
+	reportConflict?: (entityType: ConfigSyncEntityType, syncId: string) => void;
 };
 
 /**
@@ -52,8 +54,14 @@ export type SyncAdapter<TLocal extends SyncLocalRow = SyncLocalRow, TRemote exte
 		local: TLocal | undefined,
 		ctx: SyncAdapterContext
 	): Record<string, unknown> | Promise<Record<string, unknown>>;
-	/** Optional trash snapshot before local hard-delete. */
+	/** Optional trash snapshot before local hard-delete or a conflicting overwrite. */
 	snapshotToTrash?(syncId: string): Promise<void>;
+	/**
+	 * Merge per field when both sides changed since the last sync. Requires that remote
+	 * rows and `toRemotePayload` bodies use the same field names, and that
+	 * `upsertLocalFromSync` accepts a remote row with merged fields.
+	 */
+	fieldMerge?: boolean;
 	/** Skip local hard-delete when remote soft-delete wins (e.g. default queue). */
 	shouldSkipDelete?(local: TLocal): boolean;
 	/** Hook after the per-id LWW pass (e.g. reconcile default queues). */

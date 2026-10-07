@@ -1338,5 +1338,12 @@
 	"Action stopped": "Actie gestopt",
 	"\"{action}\" was still running after {minutes} minutes and was stopped.": "\"{action}\" liep na {minutes} minuten nog steeds en is gestopt.",
 	"Handler timed out": "Handler duurde te lang",
-	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" was niet binnen {seconds}s klaar en is gestopt."
+	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" was niet binnen {seconds}s klaar en is gestopt.",
+	"Changes from two devices were merged": "Wijzigingen van twee apparaten samengevoegd",
+	"{count} items were edited on two devices at the same time. Where both changed the same setting, the most recent change was kept.": "{count} items zijn tegelijk op twee apparaten bewerkt. Waar beide dezelfde instelling wijzigden, is de nieuwste wijziging behouden.",
+	"This PC has data from another account": "Deze pc heeft data van een ander account",
+	"The actions, queues, overlays and plugin data on this PC were synced with a different Stream Kit account. Copy them to the account you just signed in with? The other account keeps its own copy. Until you choose, cloud sync is paused.": "De acties, wachtrijen, overlays en plugindata op deze pc zijn gesynct met een ander Stream Kit-account. Wil je ze kopiëren naar het account waarmee je nu bent ingelogd? Het andere account houdt zijn eigen kopie. Tot je kiest, staat cloud-sync op pauze.",
+	"Copy to this account": "Kopiëren naar dit account",
+	"Could not copy data to this account": "Kon de data niet naar dit account kopiëren",
+	"This PC has data from another account. Choose Sync now to copy it to this account.": "Deze pc heeft data van een ander account. Kies Nu synchroniseren om die naar dit account te kopiëren."
 }

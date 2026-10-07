@@ -1338,5 +1338,12 @@
 	"Action stopped": "Action stopped",
 	"\"{action}\" was still running after {minutes} minutes and was stopped.": "\"{action}\" was still running after {minutes} minutes and was stopped.",
 	"Handler timed out": "Handler timed out",
-	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped."
+	"\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.": "\"{handler}\" in \"{action}\" did not finish within {seconds}s and was stopped.",
+	"Changes from two devices were merged": "Changes from two devices were merged",
+	"{count} items were edited on two devices at the same time. Where both changed the same setting, the most recent change was kept.": "{count} items were edited on two devices at the same time. Where both changed the same setting, the most recent change was kept.",
+	"This PC has data from another account": "This PC has data from another account",
+	"The actions, queues, overlays and plugin data on this PC were synced with a different Stream Kit account. Copy them to the account you just signed in with? The other account keeps its own copy. Until you choose, cloud sync is paused.": "The actions, queues, overlays and plugin data on this PC were synced with a different Stream Kit account. Copy them to the account you just signed in with? The other account keeps its own copy. Until you choose, cloud sync is paused.",
+	"Copy to this account": "Copy to this account",
+	"Could not copy data to this account": "Could not copy data to this account",
+	"This PC has data from another account. Choose Sync now to copy it to this account.": "This PC has data from another account. Choose Sync now to copy it to this account."
 }

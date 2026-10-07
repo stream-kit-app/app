@@ -161,6 +161,7 @@ export function createActionAdapter(app: App): SyncAdapter<ActionRecord, RemoteA
 			};
 		},
 		snapshotToTrash: snapshotActionToTrash,
+		fieldMerge: true,
 		async reload() {
 			if (app.actionQueues.hasBusyQueues()) {
 				console.warn('Skipping config sync runtime reload: action queues are busy');

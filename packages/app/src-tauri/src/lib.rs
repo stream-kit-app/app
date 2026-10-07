@@ -1,6 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod api_server;
 mod audio;
+mod db_batch;
 mod dev;
 mod editor;
 mod local_tts;
@@ -75,6 +76,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             greet,
+            db_batch::db_execute_batch,
             play_audio,
             play_audio_file,
             stop_audio,

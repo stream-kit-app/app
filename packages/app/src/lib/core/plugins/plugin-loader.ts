@@ -187,7 +187,13 @@ export async function reloadInstalledPlugin(
 		app.overlay.notifyDependenciesChanged();
 	} catch (error) {
 		app.plugins.remove(manifest.key);
-		await invoke('uninstall_plugin', { key: manifest.key }).catch(() => undefined);
+
+		// Only clean up a fresh install. An update that fails to load used to uninstall the
+		// plugin the user already had; keep its files so it can be updated again.
+		if (!existing) {
+			await invoke('uninstall_plugin', { key: manifest.key }).catch(() => undefined);
+		}
+
 		throw error;
 	}
 }

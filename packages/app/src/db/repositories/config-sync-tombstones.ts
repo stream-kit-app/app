@@ -1,3 +1,4 @@
+import type { BatchStatement } from '../batch';
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '../index';
@@ -5,6 +6,26 @@ import {
 	configSyncTombstones,
 	type ConfigSyncEntityType
 } from '../schemas/config-sync-tombstones';
+
+/**
+ * Tombstone upsert as a raw statement, for writing it in the same `executeBatch`
+ * transaction as the delete it records (keeps an existing revision when none is given).
+ */
+export function configSyncTombstoneStatement(
+	entityType: ConfigSyncEntityType,
+	syncId: string,
+	deletedAt: Date,
+	revision?: number
+): BatchStatement {
+	return {
+		sql: `INSERT INTO config_sync_tombstones (entity_type, sync_id, deleted_at, revision)
+			VALUES (?, ?, ?, ?)
+			ON CONFLICT (entity_type, sync_id) DO UPDATE SET
+				deleted_at = excluded.deleted_at,
+				revision = COALESCE(excluded.revision, config_sync_tombstones.revision)`,
+		params: [entityType, syncId, deletedAt.getTime(), revision ?? null]
+	};
+}
 
 export async function recordConfigSyncTombstone(
 	entityType: ConfigSyncEntityType,
