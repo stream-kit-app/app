@@ -1,5 +1,14 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.23
+
+### Patch Changes
+
+- [#32](https://github.com/stream-kit-app/app/pull/32) [`40e5ed3`](https://github.com/stream-kit-app/app/commit/40e5ed34b46c83b3b88cd54d0dcb855ba789f80b) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Installing an app update now shows download progress and when it is installing, instead of appearing to do nothing until the app restarts.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+    - @stream-kit/plugin@0.2.0-alpha.12
+
 ## 0.1.0-alpha.22
 
 ### Patch Changes
