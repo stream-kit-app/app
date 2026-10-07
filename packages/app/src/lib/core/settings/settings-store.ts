@@ -8,6 +8,7 @@ const CHECK_PLUGIN_UPDATES_KEY = 'checkPluginUpdatesOnStartup';
 const CHECK_APP_UPDATES_KEY = 'checkAppUpdatesOnStartup';
 const OFFLINE_CLOUD_FILES_MIRROR_KEY = 'offlineCloudFilesMirror';
 const OFFLINE_CLOUD_FILES_MIRROR_USER_KEY = 'offlineCloudFilesMirrorUserId';
+const CONFIG_SYNC_OWNER_USER_KEY = 'configSyncOwnerUserId';
 
 const store = new LazyStore('app.settings.json');
 
@@ -114,4 +115,14 @@ export async function saveOfflineCloudFilesMirrorUserId(userId: string | null): 
 		return;
 	}
 	await store.delete(OFFLINE_CLOUD_FILES_MIRROR_USER_KEY);
+}
+
+/** Account the local synced data belongs to; `null` until the first successful sync. */
+export async function getConfigSyncOwnerUserId(): Promise<string | null> {
+	const value = await store.get<string>(CONFIG_SYNC_OWNER_USER_KEY);
+	return typeof value === 'string' && value ? value : null;
+}
+
+export async function saveConfigSyncOwnerUserId(userId: string): Promise<void> {
+	await store.set(CONFIG_SYNC_OWNER_USER_KEY, userId);
 }

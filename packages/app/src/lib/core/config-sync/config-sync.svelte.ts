@@ -10,6 +10,12 @@ import {
 import type { SyncUpsertRemoteOptions } from './adapter';
 import { translate } from '#lib/i18n.js';
 import { setConfigSyncLocalChangeHandler } from '#db/config-sync-notify.js';
+import { reassignSyncIdsForNewAccount } from '#db/repositories/config-sync-reassign.js';
+import {
+	getConfigSyncOwnerUserId,
+	saveConfigSyncOwnerUserId
+} from '../settings/settings-store';
+import { accountSettingsSyncId } from '../plugins/registered-plugin.svelte';
 
 import { createActionAdapter } from './adapters/actions';
 import { createActionQueueAdapter } from './adapters/action-queues';
@@ -25,7 +31,9 @@ export type ConfigSyncStatus =
 	| 'synced'
 	| 'offline'
 	| 'error'
-	| 'restoring';
+	| 'restoring'
+	/** Local data belongs to another account; waiting for the user to decide. */
+	| 'paused';
 
 const SYNC_DEBOUNCE_MS = 1500;
 const RETRY_BASE_MS = 1000;
@@ -50,6 +58,7 @@ export class ConfigSync {
 	#adapters: SyncAdapter[] = [];
 	#firstSyncResolve: (() => void) | null = null;
 	#firstSyncComplete: Promise<void>;
+	#accountPromptOpen = false;
 
 	status = $state<ConfigSyncStatus>('idle');
 	lastSyncedAt = $state<Date | null>(null);
@@ -150,7 +159,8 @@ export class ConfigSync {
 	}
 
 	scheduleSync(): void {
-		if (this.#suppressSchedule || !this.#canSync()) {
+		// While paused only an explicit sync (sign-in, start-up, "Sync now") asks again.
+		if (this.#suppressSchedule || this.status === 'paused' || !this.#canSync()) {
 			return;
 		}
 
@@ -178,13 +188,26 @@ export class ConfigSync {
 
 		this.#running = true;
 		this.#pending = false;
+
+		const userId = this.#app.auth.user!.id;
+		const owner = await getConfigSyncOwnerUserId().catch(() => null);
+
+		if (owner && owner !== userId) {
+			// Merging another account's data into this one (or the reverse) can't be undone.
+			this.#running = false;
+			this.#pending = false;
+			this.status = 'paused';
+			this.#resolveFirstSync();
+			void this.#askToCopyToAccount(userId);
+			return;
+		}
+
 		const previousStatus = this.status;
 		const isFirst = !this.lastSyncedAt;
 		this.status = isFirst ? 'restoring' : 'syncing';
 		this.lastError = null;
 		this.#suppressSchedule = true;
 
-		const userId = this.#app.auth.user!.id;
 		let conflicts = 0;
 		const ctx = {
 			userId,
@@ -204,6 +227,10 @@ export class ConfigSync {
 				if (await runSyncAdapter(adapter, ctx)) {
 					changedAdapters.push(adapter);
 				}
+			}
+			if (owner !== userId) {
+				// Data without an owner (first sync, or from before owners were stored) is adopted.
+				await saveConfigSyncOwnerUserId(userId);
 			}
 			this.lastSyncedAt = new Date();
 			this.status = 'synced';
@@ -284,6 +311,45 @@ export class ConfigSync {
 			this.#pending = false;
 			void this.sync();
 		}
+	}
+
+	async #askToCopyToAccount(userId: string): Promise<void> {
+		if (this.#accountPromptOpen) {
+			return;
+		}
+		this.#accountPromptOpen = true;
+
+		try {
+			const confirmed = await this.#app.confirm.ask({
+				title: translate('This PC has data from another account'),
+				description: translate(
+					'The actions, queues, overlays and plugin data on this PC were synced with a different Stream Kit account. Copy them to the account you just signed in with? The other account keeps its own copy. Until you choose, cloud sync is paused.'
+				),
+				confirmLabel: translate('Copy to this account'),
+				cancelLabel: translate('Not now')
+			});
+
+			if (!confirmed || this.#app.auth.user?.id !== userId) {
+				return;
+			}
+
+			await reassignSyncIdsForNewAccount(
+				(row) => row.syncId === accountSettingsSyncId(row.pluginKey)
+			);
+			await saveConfigSyncOwnerUserId(userId);
+			await this.#reloadRuntime(this.#adapters);
+		} catch (error) {
+			this.#app.toast.create({
+				title: translate('Could not copy data to this account'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'error'
+			});
+			return;
+		} finally {
+			this.#accountPromptOpen = false;
+		}
+
+		await this.sync();
 	}
 
 	#resolveFirstSync(): void {

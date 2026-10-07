@@ -61,6 +61,8 @@
 				return { label: t('Synced'), variant: 'success' as const };
 			case 'offline':
 				return { label: t('Offline'), variant: 'warning' as const };
+			case 'paused':
+				return { label: t('Paused'), variant: 'warning' as const };
 			case 'error':
 				return { label: t('Failed'), variant: 'destructive' as const };
 			case 'disabled':
@@ -83,6 +85,8 @@
 			}
 			case 'offline':
 				return t('Waiting for a network connection.');
+			case 'paused':
+				return t('This PC has data from another account. Choose Sync now to copy it to this account.');
 			case 'error':
 				return t('Could not sync. Try again when you are ready.');
 			case 'disabled':
