@@ -13,6 +13,8 @@ on:
 
 permissions:
     contents: read
+    # npm trusted publishing: the job's OIDC token replaces an npm access token.
+    id-token: write
 
 concurrency:
     group: publish-npm-${{ github.event.inputs.tag || github.ref_name }}
@@ -41,6 +43,10 @@ jobs:
                   registry-url: https://registry.npmjs.org
                   cache: pnpm
 
+            # Trusted publishing needs npm 11.5.1+; Node 22 ships npm 10. pnpm publish uses npm.
+            - name: Update npm
+              run: npm install -g npm@latest
+
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
@@ -48,6 +54,4 @@ jobs:
               run: pnpm --filter @stream-kit/core build && pnpm --filter @stream-kit/plugin build && pnpm --filter @stream-kit/ui build
 
             - name: Publish to npm
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: pnpm publish:npm
