@@ -1,5 +1,5 @@
-/** Latest Windows installer. GitHub releases are what the in-app updater uses too. */
-export const DOWNLOAD_URL = 'https://github.com/stream-kit-app/app/releases/latest';
+/** Latest Windows installer. Publish Updater Feed copies it to the `updater` release under a stable name. */
+export const DOWNLOAD_URL = 'https://github.com/stream-kit-app/app/releases/download/updater/stream-kit-setup.exe';
 
 export const DOCS_URL = 'https://docs.stream-kit.app';
 

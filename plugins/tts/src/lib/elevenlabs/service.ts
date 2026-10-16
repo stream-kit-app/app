@@ -1,3 +1,4 @@
+import { trace } from '../debug-trace';
 import type {
 	ElevenLabsNumericVoiceSetting,
 	ElevenLabsVoice,
@@ -152,6 +153,8 @@ export class ElevenLabsService {
 		}
 
 		const generation = this.player.getSpeakGeneration();
+		const startedAt = Date.now();
+		trace(`elevenlabs synth start voice=${voiceId} chars=${text.length}`);
 		const blob = await this.synthesize(text, voiceId, {
 			// Action model, then the voice's own model, then the default model.
 			modelId: options.modelId?.trim() || elevenlabsVoiceTuning.getModelId(voiceId),
@@ -164,11 +167,15 @@ export class ElevenLabsService {
 			}
 		});
 
+		trace(`elevenlabs synth done after ${Date.now() - startedAt}ms bytes=${blob.size}`);
+
 		if (generation !== this.player.getSpeakGeneration()) {
+			trace('elevenlabs speak dropped (skipped during synth)');
 			return;
 		}
 
 		await this.player.enqueue(blob, options.volume ?? this.resolveVolume(voiceId));
+		trace(`elevenlabs speak done after ${Date.now() - startedAt}ms`);
 	}
 
 	/**

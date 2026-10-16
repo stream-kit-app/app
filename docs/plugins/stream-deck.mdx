@@ -8,7 +8,7 @@ description: Connect Elgato Stream Deck to Stream Kit — run actions, fire trig
 The Stream Deck integration has two parts:
 
 1. **Stream Kit plugin** (`stream-deck`) — triggers, feedback handlers, button registry, and API methods
-2. **Elgato Stream Deck plugin** (`integrations/stream-deck`) — keys/dials in the Stream Deck app that talk to Stream Kit over the [WebSocket API Server](/docs/developers/api-server)
+2. **Elgato Stream Deck plugin** — keys/dials in the Stream Deck app that talk to Stream Kit over the [WebSocket API Server](/docs/developers/api-server)
 
 ## Requirements
 
@@ -81,15 +81,3 @@ The Stream Kit plugin extends the API Server with `plugin:stream-deck:*`:
 Clients should also subscribe to `plugin:stream-deck.*` for feedback events (`setTitle`, `setImage`, …).
 
 Running actions uses the built-in `actions.getSnapshot` and `actions.runById` methods — no duplicates.
-
-## Elgato plugin development
-
-From the monorepo:
-
-```bash
-pnpm --filter @stream-kit/streamdeck-plugin build
-pnpm --filter @stream-kit/streamdeck-plugin link
-pnpm --filter @stream-kit/streamdeck-plugin watch
-```
-
-Requires the [Stream Deck CLI](https://github.com/elgatosf/cli) (`npm i -g @elgato/cli`) for `link` / `restart`. Details: `integrations/stream-deck/README.md`.

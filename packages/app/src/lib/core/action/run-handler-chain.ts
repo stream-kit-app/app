@@ -2,6 +2,7 @@ import type { ActionHandler } from './action-handler.svelte';
 import type { Action } from './action.svelte';
 import type { HandlerTriggerContext } from './handler-context';
 
+import { trace } from '../debug-trace';
 import { HandlerTimeoutError, raceAbort, resolveHandlerTimeout } from './handler-timeout';
 
 export type HandlerChainCallbacks = {
@@ -36,6 +37,10 @@ export async function runHandlerChain(
 	// Non-blocking handlers run alongside the rest of the chain; the chain only
 	// resolves once they have settled too, so queues and run state stay accurate.
 	const detached: Promise<HandlerOutcome>[] = [];
+	// TEMPORARY diagnostics: only queued actions, to keep cron/overlay noise out.
+	const traced = action.queueId != null;
+	const label = (handler: ActionHandler, index: number): string =>
+		`"${action.name}" #${index} ${handler.definition.name}`;
 
 	const executeHandler = async (
 		handler: ActionHandler,
@@ -83,6 +88,11 @@ export async function runHandlerChain(
 			resolveNext?.();
 		};
 
+		const startedAt = Date.now();
+		if (traced) {
+			trace('handler', `start ${label(handler, index)}`, { timeoutMs });
+		}
+
 		try {
 			await raceAbort(
 				Promise.resolve(execute(action, handler, handlerContext, next)),
@@ -91,12 +101,26 @@ export async function runHandlerChain(
 
 			if (!called) {
 				complete();
+				if (traced) {
+					trace('handler', `stop (no next) ${label(handler, index)} after ${Date.now() - startedAt}ms`);
+				}
 				return 'stop';
 			}
 
 			await raceAbort(nextPromise, controller.signal);
+			if (traced) {
+				trace('handler', `next ${label(handler, index)} after ${Date.now() - startedAt}ms`);
+			}
 			return 'next';
 		} catch (error) {
+			if (traced) {
+				trace('handler', `FAILED ${label(handler, index)} after ${Date.now() - startedAt}ms`, {
+					aborted: controller.signal.aborted,
+					reason: controller.signal.reason,
+					error
+				});
+			}
+
 			complete();
 
 			if (controller.signal.aborted) {

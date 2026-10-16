@@ -1,3 +1,5 @@
+import { trace } from './debug-trace';
+
 /** Highest playback gain (2 = 200%), matching the host audio engine. */
 export const MAX_TTS_VOLUME = 2;
 
@@ -53,6 +55,7 @@ export class TtsPlayer {
 				volume: Math.min(MAX_TTS_VOLUME, Math.max(0, volume)),
 				resolve
 			});
+			trace(`player enqueue session=${this.sessionId} queued=${this.queue.length} playing=${this.playing}`);
 
 			if (!this.playing) {
 				void this.playNext();
@@ -61,6 +64,7 @@ export class TtsPlayer {
 	}
 
 	skip(): void {
+		trace(`player skip session=${this.sessionId} playing=${this.playing} queued=${this.queue.length}`);
 		this.beginSkipGeneration();
 
 		if (!this.playing) {
@@ -94,8 +98,15 @@ export class TtsPlayer {
 			}
 		}, PLAYBACK_TIMEOUT_MS);
 
+		const startedAt = Date.now();
+		trace(`player play start session=${this.sessionId} bytes=${item.blob.size} queued=${this.queue.length}`);
+
 		try {
 			await this.playback(item.blob, item.volume);
+			trace(`player play end session=${this.sessionId} after ${Date.now() - startedAt}ms`);
+		} catch (error) {
+			trace(`player play FAILED session=${this.sessionId} after ${Date.now() - startedAt}ms`, error);
+			throw error;
 		} finally {
 			clearTimeout(timer);
 		}

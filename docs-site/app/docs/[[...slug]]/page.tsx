@@ -12,6 +12,7 @@ import { getMDXComponents } from '@/components/mdx';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
+import { Breadcrumb } from '@/components/breadcrumb';
 
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
@@ -22,10 +23,10 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const markdownUrl = getPageMarkdownUrl(page).url;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
-      <div className="flex flex-row gap-2 items-center border-b pb-6">
+    <DocsPage toc={page.data.toc} full={page.data.full} slots={{ breadcrumb: Breadcrumb }}>
+      <DocsTitle className="font-outfit text-4xl font-semibold text-foreground">{page.data.title}</DocsTitle>
+      <DocsDescription className="mb-0 text-base text-muted-foreground">{page.data.description}</DocsDescription>
+      <div className="flex flex-row items-center gap-2 border-b border-rule pb-6">
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover
           markdownUrl={markdownUrl}

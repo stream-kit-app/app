@@ -1,12 +1,32 @@
 import { docs } from 'collections/server';
-import { loader } from 'fumadocs-core/source';
+import { loader, type LoaderPlugin } from 'fumadocs-core/source';
+import { resolveIcon } from './icon';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
+
+/** Resolves `icon` names in frontmatter / meta.json to Remix Icons (the app's icon set). */
+function remixIconsPlugin(): LoaderPlugin {
+  function replaceIcon<T extends { icon?: unknown }>(node: T): T {
+    if (node.icon === undefined || typeof node.icon === 'string') {
+      node.icon = resolveIcon(node.icon as string | undefined);
+    }
+    return node;
+  }
+
+  return {
+    name: 'stream-kit:remix-icons',
+    transformPageTree: {
+      file: replaceIcon,
+      folder: replaceIcon,
+      separator: replaceIcon,
+    },
+  };
+}
 
 // See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
-  plugins: [],
+  plugins: [remixIconsPlugin()],
 });
 
 export function getPageImage(page: (typeof source)['$inferPage']) {

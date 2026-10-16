@@ -45,6 +45,7 @@ import { createResumeQueueHandler } from './handler/queue/resume';
 import { createToggleQueueHandler } from './handler/queue/toggle';
 
 import { createRunProgramHandler } from './handler/program/run';
+import { createRunCommandHandler } from './handler/program/run-command';
 
 import { createRunScriptHandler } from './handler/script/run';
 
@@ -424,7 +425,7 @@ const plugin = (app: PluginAppApi) => {
 
 						name: 'Program',
 
-						children: [createRunProgramHandler(ctx)]
+						children: [createRunProgramHandler(ctx), createRunCommandHandler(ctx)]
 
 					},
 

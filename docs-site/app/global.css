@@ -1,37 +1,159 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
+/* Registers the fd-* colors as theme tokens (no longer in preset.css); values are overridden below. */
+@import 'fumadocs-ui/css/lib/default-colors.css';
+@import '../../packages/ui/src/styles/blueprint.css';
 
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
+/*
+ * Stream Kit palette — copy of packages/app/src/routes/layout.css (keep in sync, see theme-tokens.mdc).
+ * Dark is the default; `.light` (set by next-themes on <html>) mirrors the scales like the app does.
+ */
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-dark-50: oklch(0.93 0.006 275);
+  --color-dark-100: oklch(0.85 0.008 275);
+  --color-dark-200: oklch(0.76 0.01 275);
+  --color-dark-300: oklch(0.66 0.012 275);
+  --color-dark-400: oklch(0.55 0.014 275);
+  --color-dark-500: oklch(0.45 0.015 275);
+  --color-dark-600: oklch(0.36 0.016 275);
+  --color-dark-700: oklch(0.3 0.016 275);
+  --color-dark-800: oklch(0.25 0.014 275);
+  --color-dark-900: oklch(0.215 0.014 275);
+  --color-dark-950: oklch(0.19 0.012 275);
+
+  --color-primary-50: oklch(0.78 0.06 280);
+  --color-primary-100: oklch(0.7 0.1 280);
+  --color-primary-200: oklch(0.62 0.14 280);
+  --color-primary-300: oklch(0.54 0.17 280);
+  --color-primary-400: oklch(0.46 0.18 280);
+
+  --color-brand-500: #fffa00;
+
+  --color-background: var(--color-dark-950);
+  --color-foreground: oklch(0.98 0.003 275);
+  --color-primary: var(--color-primary-200);
+  --color-primary-foreground: oklch(0.99 0.002 280);
+  --color-brand: var(--color-brand-500);
+  --color-secondary: oklch(0.62 0.14 305);
+  --color-success: oklch(0.62 0.14 152);
+  --color-warning: oklch(0.62 0.14 85);
+  --color-destructive: oklch(0.62 0.14 27);
+  --color-muted: var(--color-dark-800);
+  --color-muted-foreground: var(--color-dark-300);
+  --color-accent: var(--color-dark-700);
+  --color-accent-foreground: oklch(0.98 0.003 275);
+  --color-border: var(--color-dark-600);
+  --color-ring: var(--color-primary-200);
+  --color-rule: oklch(0.98 0.002 264 / 0.1);
+  --color-rule-strong: oklch(0.98 0.002 264 / 0.18);
+  --color-surface: var(--color-dark-900);
+  --color-item-hover: oklch(0.98 0.002 264 / 0.05);
+  --color-item-active: oklch(0.98 0.002 264 / 0.08);
+  --color-sidebar: oklch(0.165 0.01 275);
+
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.1875rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.3125rem;
+  --radius-xl: 0.4375rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.75rem;
+  --radius-4xl: 1rem;
+
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-outfit: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-:root {
+.light {
+  color-scheme: light;
+
+  --color-dark-50: oklch(0.22 0.014 275);
+  --color-dark-100: oklch(0.32 0.014 275);
+  --color-dark-200: oklch(0.4 0.014 275);
+  --color-dark-300: oklch(0.48 0.013 275);
+  --color-dark-400: oklch(0.56 0.012 275);
+  --color-dark-500: oklch(0.72 0.01 275);
+  --color-dark-600: oklch(0.87 0.008 275);
+  --color-dark-700: oklch(0.92 0.006 275);
+  --color-dark-800: oklch(0.945 0.005 275);
+  --color-dark-900: oklch(0.965 0.004 275);
+  --color-dark-950: oklch(0.985 0.002 275);
+
+  --color-primary-50: oklch(0.3 0.1 280);
+  --color-primary-100: oklch(0.38 0.14 280);
+  --color-primary-200: oklch(0.46 0.17 280);
+  --color-primary-300: oklch(0.52 0.18 280);
+  --color-primary-400: oklch(0.58 0.17 280);
+
+  --color-foreground: oklch(0.2 0.014 275);
+  --color-primary: oklch(0.52 0.18 280);
+  --color-secondary: oklch(0.55 0.15 305);
+  --color-success: oklch(0.52 0.15 152);
+  --color-warning: oklch(0.6 0.15 75);
+  --color-destructive: oklch(0.55 0.2 27);
+  --color-accent-foreground: oklch(0.2 0.014 275);
+  --color-ring: oklch(0.52 0.18 280);
+  --color-rule: oklch(0.22 0.014 275 / 0.1);
+  --color-rule-strong: oklch(0.22 0.014 275 / 0.18);
+  --color-surface: oklch(1 0 0);
+  --color-item-hover: oklch(0.22 0.014 275 / 0.05);
+  --color-item-active: oklch(0.22 0.014 275 / 0.08);
+  --color-sidebar: oklch(0.965 0.004 275);
+}
+
+/* Fumadocs tokens mapped onto the Stream Kit palette (both themes resolve through the tokens above). */
+:root,
+.dark,
+.light {
+  --color-fd-background: var(--color-background);
+  --color-fd-foreground: var(--color-dark-100);
+  --color-fd-muted: var(--color-muted);
+  --color-fd-muted-foreground: var(--color-muted-foreground);
+  --color-fd-popover: var(--color-surface);
+  --color-fd-popover-foreground: var(--color-foreground);
+  --color-fd-card: var(--color-surface);
+  --color-fd-card-foreground: var(--color-foreground);
+  --color-fd-border: var(--color-rule-strong);
+  --color-fd-primary: var(--color-primary);
+  --color-fd-primary-foreground: var(--color-primary-foreground);
+  --color-fd-secondary: var(--color-item-hover);
+  --color-fd-secondary-foreground: var(--color-foreground);
+  --color-fd-accent: var(--color-item-active);
+  --color-fd-accent-foreground: var(--color-foreground);
+  --color-fd-ring: var(--color-ring);
+  --color-fd-overlay: oklch(0.1 0.01 275 / 0.5);
+  --color-fd-info: var(--color-primary);
+  --color-fd-warning: var(--color-warning);
+  --color-fd-error: var(--color-destructive);
+  --color-fd-success: var(--color-success);
+  --color-fd-idea: var(--color-secondary);
+  --color-fd-diff-remove: oklch(0.62 0.14 27 / 0.12);
+  --color-fd-diff-remove-symbol: var(--color-destructive);
+  --color-fd-diff-add: oklch(0.62 0.14 152 / 0.12);
+  --color-fd-diff-add-symbol: var(--color-success);
+
   --fd-layout-width: 1400px;
 }
 
-.dark {
-  --color-fd-background: oklch(0.11 0.005 264);
-  --color-fd-foreground: oklch(0.78 0.012 264);
-  --color-fd-muted: oklch(0.17 0.006 264);
-  --color-fd-muted-foreground: oklch(0.54 0.009 264);
-  --color-fd-popover: oklch(0.17 0.006 264);
-  --color-fd-popover-foreground: oklch(0.78 0.012 264);
-  --color-fd-card: oklch(0.14 0.006 264);
-  --color-fd-card-foreground: oklch(0.78 0.012 264);
-  --color-fd-border: oklch(0.3 0.007 264 / 55%);
-  --color-fd-primary: oklch(0.54 0.17 255);
-  --color-fd-primary-foreground: oklch(0.98 0.01 264);
-  --color-fd-secondary: oklch(0.23 0.006 264);
-  --color-fd-secondary-foreground: oklch(0.78 0.012 264);
-  --color-fd-accent: oklch(0.3 0.007 264 / 70%);
-  --color-fd-accent-foreground: oklch(0.9 0.01 264);
-  --color-fd-ring: oklch(0.46 0.18 255);
-}
+@layer base {
+  html {
+    font-size: 16px;
+    color-scheme: dark;
+    scrollbar-gutter: stable;
+  }
 
-html {
-  scrollbar-gutter: stable;
+  body {
+    @apply bg-background font-sans text-fd-foreground antialiased;
+  }
+
+  :where(h1, h2) {
+    font-family: var(--font-heading);
+  }
 }
 
 html > body[data-scroll-locked] {
@@ -39,10 +161,113 @@ html > body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0 !important;
 }
 
+/* Eyebrow — mono section label, same recipe as @stream-kit/ui Eyebrow */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+/* ── Sidebar: app shell recipe (bg-sidebar, hairline edge, quiet item states, no primary rail) ── */
+#nd-sidebar {
+  background-color: var(--color-sidebar);
+  border-color: var(--color-rule);
+}
+
+#nd-sidebar a[data-active],
+#nd-sidebar button[data-state] {
+  border-radius: var(--radius-md);
+  padding-block: 0.375rem;
+  font-weight: 500;
+  color: var(--color-dark-200);
+}
+
+#nd-sidebar a[data-active]:hover,
+#nd-sidebar button[data-state]:hover {
+  background-color: var(--color-item-hover);
+  color: var(--color-dark-50);
+}
+
+#nd-sidebar a[data-active='true'] {
+  background-color: var(--color-item-active);
+  color: var(--color-foreground);
+}
+
+#nd-sidebar a[data-active='true']::before {
+  display: none;
+}
+
+/* ── Page header ── */
+#nd-page h1 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ── Prose ── */
 .prose {
-  --tw-prose-body: var(--color-fd-foreground);
-  --tw-prose-headings: var(--color-fd-foreground);
-  --tw-prose-links: var(--color-fd-primary);
-  --tw-prose-bold: var(--color-fd-foreground);
-  --tw-prose-code: var(--color-fd-foreground);
+  --tw-prose-body: var(--color-dark-100);
+  --tw-prose-headings: var(--color-foreground);
+  --tw-prose-links: var(--color-foreground);
+  --tw-prose-bold: var(--color-foreground);
+  --tw-prose-code: var(--color-foreground);
+  --tw-prose-counters: var(--color-muted-foreground);
+  --tw-prose-bullets: var(--color-dark-500);
+  --tw-prose-hr: var(--color-rule);
+  --tw-prose-th-borders: var(--color-rule-strong);
+  --tw-prose-td-borders: var(--color-rule);
+}
+
+.prose :where(h2) {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.prose :where(a):not(:where(.not-prose, .not-prose *)) {
+  text-decoration-color: color-mix(in oklab, var(--color-primary) 60%, transparent);
+  text-underline-offset: 3px;
+}
+
+.prose :where(a):not(:where(.not-prose, .not-prose *)):hover {
+  text-decoration-color: var(--color-primary);
+}
+
+.prose :where(code):not(:where(pre code, .not-prose *)) {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-rule);
+  background-color: var(--color-item-hover);
+  padding: 0.1em 0.35em;
+}
+
+.prose :where(table):not(:where(.not-prose, .not-prose *)) {
+  font-variant-numeric: tabular-nums;
+}
+
+.prose :where(th):not(:where(.not-prose, .not-prose *)) {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+pre,
+code,
+kbd {
+  font-family: var(--font-mono);
+}
+
+.prose kbd {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-rule-strong);
+  border-bottom-width: 2px;
+  background-color: var(--color-surface);
+  padding: 0.05em 0.4em;
+  font-size: 0.8em;
 }

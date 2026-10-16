@@ -56,6 +56,7 @@ import {
 } from './handler-chain-mutations';
 import { handlerFromStored } from './handler-tree';
 import { HandlerDefinition } from './handler/handler-definition.svelte';
+import { trace } from '../debug-trace';
 import { HandlerTimeoutError } from './handler-timeout';
 import { runHandlerChain } from './run-handler-chain';
 import { DEFAULT_ACTION_GROUP } from './stored-action';
@@ -985,6 +986,9 @@ export class Action {
 
 	fire(trigger: ActionTrigger, data: unknown): void {
 		if (!this.enabled) {
+			if (this.queueId != null) {
+				trace('action', `fire ignored (disabled) "${this.name}"`);
+			}
 			return;
 		}
 
@@ -1046,6 +1050,7 @@ export class Action {
 		}
 
 		if (!trigger.definition.isAvailable) {
+			trace('action', `dispatch skipped, trigger unavailable "${this.name}" / ${trigger.definition.name}`);
 			return;
 		}
 
@@ -1057,8 +1062,12 @@ export class Action {
 
 		// For queued runs the "running" indicator must reflect the actual run
 		// start (when the worker picks up the job), not the moment we enqueue, so
-		// begin()/end() are deferred into the job below.
-		if (trackVisual && !shouldQueue) {
+		// the run's begin()/end() are deferred into the job below. The evaluation
+		// itself is still tracked when the form is open, so the trigger highlight
+		// is reset even when the conditions don't match.
+		const trackEvaluation = shouldQueue ? showFormVisual : trackVisual;
+
+		if (trackEvaluation) {
 			this.execution.begin();
 		}
 
@@ -1066,8 +1075,25 @@ export class Action {
 			this.execution.markTriggerActive(trigger.id);
 		}
 
-		if (!trigger.evaluate(data)) {
-			if (trackVisual && !shouldQueue) {
+		let passed: boolean;
+
+		try {
+			passed = trigger.evaluate(data);
+		} catch (error) {
+			trace('action', `evaluate THREW "${this.name}" / ${trigger.definition.name}`, error);
+			throw error;
+		}
+
+		if (shouldQueue || passed) {
+			trace(
+				'action',
+				`evaluate "${this.name}" / ${trigger.definition.name} -> ${passed ? 'pass' : 'filtered'}`,
+				shouldQueue ? { queueId: this.queueId } : undefined
+			);
+		}
+
+		if (!passed) {
+			if (trackEvaluation) {
 				await this.execution.end();
 			}
 
@@ -1079,12 +1105,21 @@ export class Action {
 				this.execution.begin();
 			}
 
+			const startedAt = Date.now();
+			trace('action', `run start "${this.name}"`);
+
 			try {
 				await this.runHandlers(data, trigger.definition.name, {
 					bypassEnabled: options.bypassEnabled,
 					showVisual: showFormVisual,
 					signal
 				});
+				trace('action', `run end "${this.name}" after ${Date.now() - startedAt}ms`, {
+					aborted: signal?.aborted ?? false
+				});
+			} catch (error) {
+				trace('action', `run THREW "${this.name}" after ${Date.now() - startedAt}ms`, error);
+				throw error;
 			} finally {
 				if (trackVisual) {
 					await this.execution.end();
@@ -1093,12 +1128,20 @@ export class Action {
 		};
 
 		if (shouldQueue && this.queueId != null) {
-			getApp().actionQueues.enqueue(this.queueId, {
+			if (trackEvaluation) {
+				void this.execution.end();
+			}
+
+			const accepted = getApp().actionQueues.enqueue(this.queueId, {
 				jobId: crypto.randomUUID(),
 				actionId: this.id ?? null,
 				actionName: this.name.trim() || translate('Untitled action'),
 				run: runChain
 			});
+
+			if (!accepted) {
+				trace('action', `enqueue REJECTED "${this.name}" (queue full)`);
+			}
 			return;
 		}
 

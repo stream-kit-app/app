@@ -195,16 +195,7 @@ At runtime the app injects an import map:
 - `@stream-kit/ui/*` → `/plugin-host/@stream-kit/ui/*` (all Svelte exports from `@stream-kit/ui`, generated automatically)
 - `@iconify/svelte` → `/plugin-host/@iconify/svelte.js`
 
-`@stream-kit/ui` subpaths, vendor stubs, and the runtime import map are generated from `packages/ui/package.json` by `packages/app/plugin-host-config.mjs` when you run `pnpm build:plugin-host` or `pnpm sync:plugin-host`. Add new UI components by exporting them from `@stream-kit/ui`; no manual import-map entries are required.
-
 Install `@stream-kit/ui` from npm as a **dev dependency** when you import Svelte components in custom views or widgets. At runtime the app always loads the host bundles — do not bundle `@stream-kit/ui` into `dist/index.js`. Match the npm version to the Stream Kit app version you target.
-
-To exclude a subpath from the plugin host (for example internal-only exports), add it to `PLUGIN_HOST_UI_EXCLUDED_SUBPATHS` in `plugin-host-config.mjs`.
-
-Action form components and utilities are bundled at build time via aliases (monorepo first-party plugins only):
-
-- `@stream-kit/plugin/action-ui/*` → app action components
-- `@stream-kit/plugin/utils` → app `cn()` helper
 
 ## Plugin updates
 

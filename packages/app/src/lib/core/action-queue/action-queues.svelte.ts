@@ -19,6 +19,7 @@ import type {
 } from './types';
 import { getApp } from '../registry';
 import { raceAbort } from '../action/handler-timeout';
+import { trace } from '../debug-trace';
 import { translate } from '#lib/i18n.js';
 
 export type { ActionQueueDefinition, ActionQueueStats, QueuedActionEntry, QueueJob } from './action-queues-types';
@@ -97,12 +98,19 @@ class QueueRuntime {
 		this.pump();
 	}
 
+	/** TEMPORARY diagnostics: one line describing this queue's state. */
+	describe(): string {
+		return `queue "${this.definition.name}" pending=${this.jobs.length} active=${this.active}/${this.concurrency} paused=${this.paused} running=[${this.activeActions.map((item) => item.actionName).join(', ')}]`;
+	}
+
 	enqueue(job: QueueJob): boolean {
 		if (this.maxLength != null && this.jobs.length >= this.maxLength) {
+			trace('queue', `enqueue REJECTED "${job.actionName}" job=${job.jobId.slice(0, 8)}; ${this.describe()}`);
 			return false;
 		}
 
 		this.jobs.push(job);
+		trace('queue', `enqueue "${job.actionName}" job=${job.jobId.slice(0, 8)}; ${this.describe()}`);
 		this.syncPending();
 		this.emit('job_enqueued', job);
 		this.pump();
@@ -120,17 +128,20 @@ class QueueRuntime {
 	}
 
 	pause(): void {
+		trace('queue', `pause; ${this.describe()}`);
 		this.paused = true;
 		this.emit('paused');
 	}
 
 	resume(): void {
+		trace('queue', `resume; ${this.describe()}`);
 		this.paused = false;
 		this.emit('resumed');
 		this.pump();
 	}
 
 	clear(): void {
+		trace('queue', `clear; ${this.describe()}`);
 		this.jobs = [];
 		this.pending = 0;
 		this.pendingActions = [];
@@ -158,7 +169,14 @@ class QueueRuntime {
 				{ jobId: job.jobId, actionId: job.actionId, actionName: job.actionName }
 			];
 
-			this.emit('job_started', job);
+			trace('queue', `job start "${job.actionName}" job=${job.jobId.slice(0, 8)}; ${this.describe()}`);
+
+			try {
+				this.emit('job_started', job);
+			} catch (error) {
+				trace('queue', 'job_started listener THREW', error);
+			}
+
 			void this.runJob(job);
 		}
 
@@ -171,7 +189,11 @@ class QueueRuntime {
 		// Handlers time out individually; this backstop only frees the slot if a job
 		// still hangs (e.g. a handler that ignores its abort signal).
 		const controller = new AbortController();
-		const backstop = setTimeout(() => controller.abort(new QueueJobTimeoutError(job)), JOB_BACKSTOP_MS);
+		const backstop = setTimeout(() => {
+			trace('queue', `BACKSTOP abort "${job.actionName}" job=${job.jobId.slice(0, 8)}`);
+			controller.abort(new QueueJobTimeoutError(job));
+		}, JOB_BACKSTOP_MS);
+		const startedAt = Date.now();
 
 		try {
 			await raceAbort(job.run(controller.signal), controller.signal);
@@ -193,10 +215,19 @@ class QueueRuntime {
 			clearTimeout(backstop);
 			this.active -= 1;
 			this.activeActions = this.activeActions.filter((item) => item.jobId !== job.jobId);
-			this.emit('job_completed', job);
+			trace(
+				'queue',
+				`job end "${job.actionName}" job=${job.jobId.slice(0, 8)} after ${Date.now() - startedAt}ms; ${this.describe()}`
+			);
 
-			if (this.pending === 0 && this.active === 0) {
-				this.emit('idle');
+			try {
+				this.emit('job_completed', job);
+
+				if (this.pending === 0 && this.active === 0) {
+					this.emit('idle');
+				}
+			} catch (error) {
+				trace('queue', 'job_completed/idle listener THREW', error);
 			}
 
 			this.pump();
@@ -339,6 +370,7 @@ export class ActionQueues {
 		const definition = this.getDefinition(queueId);
 
 		if (!definition) {
+			trace('queue', `enqueue "${job.actionName}" to unknown queue ${queueId}; running inline`);
 			void job.run(AbortSignal.timeout(JOB_BACKSTOP_MS)).catch((error) => {
 				console.error('Action queue job failed', error);
 			});
@@ -389,6 +421,11 @@ export class ActionQueues {
 			pendingActions: runtime.pendingActions,
 			activeActions: runtime.activeActions
 		};
+	}
+
+	/** TEMPORARY diagnostics: state of every queue, for the periodic heartbeat. */
+	describeAll(): string[] {
+		return [...this.runtimes.values()].map((runtime) => runtime.describe());
 	}
 
 	/** True when any queue has pending or running jobs (skip disruptive reloads). */

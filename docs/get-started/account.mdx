@@ -40,25 +40,6 @@ Active (or grace-period) plans also enable **cloud sync** for your Stream Kit se
 
 Active plans also unlock **cloud overlays**: built overlays publish to the cloud automatically and show a public browser-source URL on the site (`/app/overlays/{id}`) on the overlays list and configure page. Live events still require the desktop app online. You can unpublish an overlay from its configure page if you do not want a public URL. Authoring projects themselves also sync for Pro accounts (see multi-PC guide).
 
-## Developers / local setup
-
-The desktop app talks to PocketBase using `PUBLIC_POCKETBASE_URL` from `$app/env/public` (baked in at build time). Cloud overlays also need `PUBLIC_SITE_URL` (the marketing site origin).
-
-Root `pnpm dev` bootstraps this automatically:
-
-1. Creates `packages/app/.env` and `site/.env` from their `.env.example` files when missing
-2. Starts PocketBase on `http://127.0.0.1:8090` (localhost only) with a local superuser (`admin@stream-kit.local` / `stream-kit-dev` by default — override with `POCKETBASE_ADMIN_EMAIL` / `POCKETBASE_ADMIN_PASSWORD`)
-3. Seeds a `pro` plan if missing and grants active memberships to users without an entitled plan (`SK_DEV_SEED=plan` for plan only, `SK_DEV_SEED=0` to skip)
-
-Dev seed and the PocketBase task refuse non-localhost `PUBLIC_POCKETBASE_URL` values so a remote/production instance cannot be seeded by accident.
-
-Example app env (local `.env`):
-
-```dotenv
-PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090
-PUBLIC_SITE_URL=http://localhost:5173
-```
-
-Release / `tauri build` uses committed `packages/app/.env.production` (`https://api.stream-kit.app` and `https://stream-kit.app`), which overrides localhost values from `.env`. The Vite production build fails if those URLs are wrong.
+## For plugin developers
 
 Plugins can read the signed-in public profile and call login/logout via `app.auth` — see [Plugin Authoring API](/docs/developers/plugin-api). Subscription objects may include optional `endsAt` during the post-cancel grace period.

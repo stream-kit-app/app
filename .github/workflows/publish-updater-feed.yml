@@ -10,18 +10,20 @@ permissions:
 
 jobs:
     publish-feed:
-        name: Copy latest.json to updater tag
+        name: Copy latest.json and installer to updater tag
         runs-on: ubuntu-latest
         if: github.event.release.tag_name != 'updater' && startsWith(github.event.release.tag_name, 'v')
         steps:
-            - name: Download latest.json from published release
+            - name: Download latest.json and installer from published release
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   gh release download "${{ github.event.release.tag_name }}" \
                     --repo "${{ github.repository }}" \
                     --pattern latest.json \
+                    --pattern '*_x64-setup.exe' \
                     --dir updater-feed
+                  mv updater-feed/*_x64-setup.exe updater-feed/stream-kit-setup.exe
 
             - name: Ensure updater release exists
               env:
@@ -33,13 +35,13 @@ jobs:
                   gh release create updater \
                     --repo "${{ github.repository }}" \
                     --title "Updater manifest" \
-                    --notes "Static Tauri updater feed. Installers live on versioned releases; this tag only hosts latest.json." \
+                    --notes "Static Tauri updater feed. Installers live on versioned releases; this tag hosts latest.json and a stable-named copy of the latest Windows installer." \
                     --latest=false
 
-            - name: Upload latest.json to updater tag
+            - name: Upload latest.json and installer to updater tag
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  gh release upload updater updater-feed/latest.json \
+                  gh release upload updater updater-feed/latest.json updater-feed/stream-kit-setup.exe \
                     --repo "${{ github.repository }}" \
                     --clobber
