@@ -1,5 +1,16 @@
 # @stream-kit/plugin-handlers
 
+## 0.2.0-alpha.11
+
+### Minor Changes
+
+- [#34](https://github.com/stream-kit-app/app/pull/34) [`47cbae0`](https://github.com/stream-kit-app/app/commit/47cbae0e0d3f4a27d0b6ea6cc5c3488daaf4f106) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - New "Run command" handler in Core: runs a shell command such as `pnpm run start` or `node script.js {user}`, optionally waits for it to exit and exposes the exit code and output as action variables
+
+### Patch Changes
+
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes

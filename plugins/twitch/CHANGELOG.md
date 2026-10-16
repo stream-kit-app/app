@@ -1,5 +1,13 @@
 # @stream-kit/plugin-twitch
 
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- [#34](https://github.com/stream-kit-app/app/pull/34) [`47cbae0`](https://github.com/stream-kit-app/app/commit/47cbae0e0d3f4a27d0b6ea6cc5c3488daaf4f106) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Rejoin the Twitch chat channel after a chat reconnect, so chat message, subscription and raid triggers keep firing
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes
