@@ -51,7 +51,7 @@ function QuickCopyChip({ name }: { name: string }) {
 
 	return (
 		<span className="inline-flex items-center gap-0.5 rounded-md border border-fd-border bg-fd-background px-2 py-1">
-			<code className="font-mono text-xs text-sky-400">{token}</code>
+			<code className="font-mono text-xs text-primary">{token}</code>
 			<CopyButton
 				value={token}
 				className="inline-flex shrink-0 items-center justify-center rounded p-0.5 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
@@ -126,7 +126,7 @@ export function VariablesTable({ variables }: VariablesTableProps) {
 									>
 										<td className="px-3 py-2 align-top">
 											<div className="inline-flex max-w-full items-center gap-1 rounded-md border border-fd-border bg-fd-muted/50 px-2 py-0.5">
-												<code className="font-mono text-[13px] text-sky-400">{token}</code>
+												<code className="font-mono text-[13px] text-primary">{token}</code>
 												<CopyButton value={token} />
 											</div>
 										</td>

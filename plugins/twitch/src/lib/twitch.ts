@@ -172,6 +172,7 @@ export function createTwitchPluginApi(
 			const match = /subscription already exists;\s*id=([0-9a-f-]+)/i.exec(message);
 
 			if (!match?.[1]) {
+				console.error(`[twitch] Failed to create EventSub subscription ${subscription.id}`, error);
 				return;
 			}
 
@@ -262,7 +263,33 @@ export function createTwitchPluginApi(
 
 		chat = new TwurpleChatClient({
 			authProvider,
+			// Joined on every (re)register: a channel joined once via chat.join() is dropped
+			// after an IRC reconnect, silently stopping chat, sub and raid triggers.
+			channels: info.userName ? [info.userName] : [],
 			requestMembershipEvents: true
+		});
+		chat.onDisconnect((manually, reason) => {
+			if (!manually) {
+				console.warn('[twitch] Chat disconnected, reconnecting', reason);
+			}
+		});
+		// TEMPORARY diagnostics.
+		const traceChat = (message: string): void =>
+			(
+				globalThis as { __streamKitTrace?: (scope: string, message: string) => void }
+			).__streamKitTrace?.('twitch', message);
+		chat.onConnect(() => traceChat('chat connected'));
+		chat.onAuthenticationSuccess(() => traceChat('chat registered'));
+		chat.onJoin((channel, user) => {
+			if (user === info.userName?.toLowerCase()) {
+				traceChat(`joined #${channel}`);
+			}
+		});
+		chat.onJoinFailure((channel, reason) => {
+			console.warn(`[twitch] Failed to join chat channel ${channel}: ${reason}`);
+		});
+		chat.onAuthenticationFailure((text, retryCount) => {
+			console.warn(`[twitch] Chat authentication failed (attempt ${retryCount}): ${text}`);
 		});
 		const originalSay = chat.say.bind(chat);
 		chat.say = async (channel, message) => {
@@ -270,9 +297,8 @@ export function createTwitchPluginApi(
 				await originalSay(channel, chunk);
 			}
 		};
-		// Twurple's connect() only starts IRC; join must not block — if the socket
-		// keeps dying (e.g. WS 1006) the join rate limiter stays paused and
-		// await chat.join() never settles.
+		// Twurple's connect() only starts IRC; the configured channel is joined in the
+		// background once registered, so a socket that keeps dying (e.g. WS 1006) can't block.
 		void chat.connect();
 
 		await clearStaleEventSubSubscriptions(client);
@@ -284,10 +310,6 @@ export function createTwitchPluginApi(
 		eventSub = new TwurpleEventSubWsListener({ apiClient: client });
 		attachEventSubConflictRecovery(eventSub, client);
 		eventSub.start();
-
-		if (info.userName) {
-			void chat.join(info.userName).catch(console.error);
-		}
 
 		void refreshBadgeCache(app).finally(() => {
 			rebindExistingMessageHandlers(app);

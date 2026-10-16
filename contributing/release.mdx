@@ -64,7 +64,7 @@ After the Version Packages PR merges, CI publishes all three packages to npm whe
 4. The Release workflow pushes a tag like `v0.1.0-alpha.1` to GitHub.
 5. The Release workflow explicitly dispatches **Build Release** for that tag.
 
-Publish the draft release on GitHub when you are ready to ship. Publishing copies `latest.json` to the persistent `updater` release so installed apps can find the update. GitHub `/releases/latest` is not used: alpha tags are prereleases, and that endpoint ignores them.
+Publish the draft release on GitHub when you are ready to ship. Publishing copies `latest.json` and the Windows installer (as `stream-kit-setup.exe`) to the persistent `updater` release, so installed apps can find the update and the site download buttons always get the newest `.exe`. GitHub `/releases/latest` is not used: alpha tags are prereleases, and that endpoint ignores them.
 
 ### Build did not start?
 

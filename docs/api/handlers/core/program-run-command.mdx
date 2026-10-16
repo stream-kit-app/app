@@ -1,0 +1,27 @@
+---
+title: "Run command"
+description: "Core handler: core:core:program:run-command"
+---
+
+# Run command
+
+| | |
+| --- | --- |
+| **Handler ID** | `core:core:program:run-command` |
+| **Plugin** | Core |
+| **Category** | Program |
+
+## Configuration
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| Command | text | Yes | `e.g. pnpm run start or node script.js {user}` |
+| Working directory | select-file-or-folder | No | — |
+| Environment variables | key-value-list | No | Key-value pairs. |
+| Wait for exit (seconds) | text | No | 0 |
+| Hide window | switch | No | Enable or disable this option. |
+
+## Related
+
+- [Core plugin](/docs/plugins/core)
+- [Actions guide](/docs/guide/actions)

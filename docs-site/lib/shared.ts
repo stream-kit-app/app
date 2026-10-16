@@ -12,5 +12,6 @@ export const gitConfig = {
 export const siteLinks = {
   home: 'https://stream-kit.app',
   plugins: 'https://stream-kit.app/plugins',
+  download: 'https://github.com/stream-kit-app/app/releases/download/updater/stream-kit-setup.exe',
   docs: 'https://docs.stream-kit.app',
 };

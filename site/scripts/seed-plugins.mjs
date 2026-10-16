@@ -237,13 +237,20 @@ async function main() {
 
 	try {
 		for (const manifest of manifests) {
-			const plugin = await upsertPlugin(pb, author.id, manifest);
 			const zipName = `plugin-${manifest.key}.zip`;
 			const zipPath = join(tempDir, zipName);
 			const downloadUrl = distributionDownloadUrl(manifest);
 
 			console.log(`  ↓ ${manifest.name}: downloading ${downloadUrl}`);
-			await downloadZip(downloadUrl, zipPath);
+
+			try {
+				await downloadZip(downloadUrl, zipPath);
+			} catch (error) {
+				console.warn(`  ⚠ ${manifest.name}: skipped, no published release (${error.message})`);
+				continue;
+			}
+
+			const plugin = await upsertPlugin(pb, author.id, manifest);
 
 			let existingFileId;
 

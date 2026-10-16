@@ -8,6 +8,7 @@ on:
       - 'site/**'
       - 'packages/ui/**'
       - 'packages/core/**'
+      - 'packages/app/src/lib/core/overlay/overlay-manifest.schema.json'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'

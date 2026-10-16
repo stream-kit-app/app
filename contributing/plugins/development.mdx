@@ -108,6 +108,33 @@ The workspace keeps first-party plugins under `plugins/*`. Each plugin has:
 
 [`dev-plugins.json`](../../dev-plugins.json) is generated automatically from `plugins/*/manifest.json` when you run `pnpm build:plugin-host` or `pnpm sync:plugin-host`. New first-party plugins are picked up without editing that file manually.
 
+## Plugin host import map
+
+`@stream-kit/ui` subpaths, vendor stubs, and the runtime import map are generated from `packages/ui/package.json` by `packages/app/plugin-host-config.mjs` when you run `pnpm build:plugin-host` or `pnpm sync:plugin-host`. Add new UI components by exporting them from `@stream-kit/ui`; no manual import-map entries are required.
+
+To exclude a subpath from the plugin host (for example internal-only exports), add it to `PLUGIN_HOST_UI_EXCLUDED_SUBPATHS` in `plugin-host-config.mjs`.
+
+Action form components and utilities are bundled at build time via aliases (first-party plugins only):
+
+- `@stream-kit/plugin/action-ui/*` → app action components
+- `@stream-kit/plugin/utils` → app `cn()` helper
+
+## Twitch application
+
+The Twitch plugin ships with a baked-in Client ID. To use your own Twitch application:
+
+1. Create a Twitch application at [Twitch Developer Console](https://dev.twitch.tv/console/apps) (or use an existing one).
+2. Add these **OAuth Redirect URLs** on the application (exact match required):
+   - `http://localhost:9001` — main Twitch account
+   - `http://localhost:9003` — bot account (optional, for [Bot plugin](/docs/plugins/bot))
+3. Copy the **Client ID** into `plugins/twitch/src/config.ts` (see `config.example.ts`).
+
+If OAuth fails with `redirect_mismatch`, the redirect URLs on the application don't match exactly.
+
+## Discord invite helper
+
+The **Invite bot to server** button in the Discord plugin needs `DISCORD_CLIENT_ID` in `plugins/discord/src/config.ts` (empty by default).
+
 ## Distribution
 
 External authors package plugins with the [plugin-starter](https://github.com/stream-kit-app/plugin-starter) template:

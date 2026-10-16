@@ -1,6 +1,7 @@
 import { initDb, runRegisteredPluginMigrations } from '#db';
 
 import { app } from './app-init';
+import { installDebugTrace, trace } from './debug-trace';
 import { registerBuiltinDashboardWidgets } from './dashboard/register-builtin-widgets';
 import { linkWorkspaceDevPlugins } from './plugins/plugin-dev-link';
 import { initPluginDevWatcher, syncPluginDevWatchers } from './plugins/plugin-dev-watcher';
@@ -22,6 +23,7 @@ export function bootApp(): Promise<void> {
 }
 
 async function runBoot(): Promise<void> {
+	installDebugTrace();
 	await app.theme.load();
 	await initDb();
 	registerBuiltinDashboardWidgets();
@@ -47,6 +49,12 @@ async function runBoot(): Promise<void> {
 	await app.boot();
 	await app.overlay.init(app);
 	await app.actionQueues.load();
+	// TEMPORARY diagnostics: queue state every minute.
+	setInterval(() => {
+		for (const line of app.actionQueues.describeAll()) {
+			trace('heartbeat', line);
+		}
+	}, 60_000);
 	await app.actions.load();
 	await app.plugins.ready(app);
 	await app.apiServer.init(app);

@@ -24,6 +24,12 @@ import { createTestChatMessageContext } from '../../lib/test-contexts';
 import { createOnTest, evaluateWith } from '../../lib/trigger-helpers';
 import { MSG_VARIABLE } from '../../lib/variables';
 
+/** TEMPORARY diagnostics, written by the app to AppData/logs/debug-trace.log. */
+function trace(message: string): void {
+	(globalThis as { __streamKitTrace?: (scope: string, message: string) => void })
+		.__streamKitTrace?.('twitch', message);
+}
+
 export const createChatMessageTrigger = (app: PluginAppApi) =>
 	({
 		name: 'Chat Message',
@@ -71,10 +77,12 @@ export const createChatMessageTrigger = (app: PluginAppApi) =>
 			});
 		},
 		activate: (action, trigger) => {
+			trace(`chat trigger activate "${action.name}" trigger=${trigger.id.slice(0, 8)}`);
 			const unsubscribe = subscribeMessages(
 				app,
 				() => true,
 				(context) => {
+					trace(`chat trigger fire "${action.name}" (enabled=${action.enabled})`);
 					const enriched = enrichChatMessageWithCommand(context, trigger.conditions);
 					action.fire(trigger, enriched);
 				}
@@ -83,7 +91,8 @@ export const createChatMessageTrigger = (app: PluginAppApi) =>
 			setTriggerSubscription(trigger, { dispose: unsubscribe });
 		},
 		onTest: createOnTest(() => createTestChatMessageContext(app)),
-		deactivate: (_action, trigger) => {
+		deactivate: (action, trigger) => {
+			trace(`chat trigger deactivate "${action.name}" trigger=${trigger.id.slice(0, 8)}`);
 			disposeTriggerSubscription(trigger);
 		}
 	}) satisfies TriggerDefinitionProps;

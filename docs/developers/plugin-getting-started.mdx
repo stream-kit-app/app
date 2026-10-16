@@ -60,8 +60,6 @@ pnpm add -D @stream-kit/ui
 
 Zip plugins that use declarative page blocks only do not need `@stream-kit/ui`.
 
-> **Monorepo contributors:** The same template source lives in [`packages/plugin-template/`](../../packages/plugin-template/) for internal development inside the Stream Kit repository.
-
 Update `manifest.json`:
 
 ```json
@@ -152,7 +150,7 @@ external: [
 ]
 ```
 
-In the monorepo, use the shared Vite config from [`plugins/create-vite-build-config.js`](../../plugins/create-vite-build-config.js). Standalone projects use the bundled `vite.build.config.js` from the plugin-starter template.
+Use the bundled `vite.build.config.js` from the plugin-starter template.
 
 Build output:
 
@@ -172,8 +170,6 @@ dist/
 5. Open the plugin's settings page (**Configure** / **Details** on the card) and enable **Dev mode**
 
 When `dist/index.js` rebuilds, the app mirrors the output and reloads the plugin.
-
-First-party plugins listed in [`dev-plugins.json`](../../dev-plugins.json) are linked automatically during monorepo development.
 
 ## Step 5 — Package and distribute
 
@@ -260,7 +256,7 @@ try {
 
 ## Zip plugins vs built-in plugins
 
-| Feature | Zip / external plugin | Built-in monorepo plugin |
+| Feature | Zip / external plugin | Built-in plugin |
 |---------|----------------------|--------------------------|
 | Declarative menu pages (blocks) | Yes | Yes |
 | Handlers and triggers | Yes | Yes |

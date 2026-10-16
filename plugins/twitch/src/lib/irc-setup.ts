@@ -7,12 +7,19 @@ import { getTwitch } from './plugin-api';
 import { resolveUserRole } from './role';
 import { chatMessageToContext } from './variables';
 
+/** TEMPORARY diagnostics, written by the app to AppData/logs/debug-trace.log. */
+function trace(message: string, data?: unknown): void {
+	(globalThis as { __streamKitTrace?: (scope: string, message: string, data?: unknown) => void })
+		.__streamKitTrace?.('twitch', message, data);
+}
+
 type RawMessageHandler = (context: ChatMessageContext) => void;
 
 const messageHandlers = new Set<RawMessageHandler>();
 let messageListener: { unbind(): void } | undefined;
 
 export function resetChatListener(): void {
+	trace(`resetChatListener (had listener: ${messageListener != null}, handlers: ${messageHandlers.size})`);
 	messageListener?.unbind();
 	messageListener = undefined;
 }
@@ -39,6 +46,7 @@ function ensureMessageListener(app: PluginAppApi): void {
 	const chat = getTwitch(app).chat;
 
 	if (!chat) {
+		trace('ensureMessageListener: no chat client');
 		resetChatListener();
 		return;
 	}
@@ -47,11 +55,27 @@ function ensureMessageListener(app: PluginAppApi): void {
 		return;
 	}
 
+	trace('ensureMessageListener: binding onMessage');
 	messageListener = chat.onMessage((channel, user, text, msg) => {
-		const context = buildMessageContext(app, channel, user, text, msg);
+		trace(`message #${channel} ${user}: ${text.slice(0, 80)} -> ${messageHandlers.size} handlers`);
+
+		let context: ChatMessageContext;
+
+		try {
+			context = buildMessageContext(app, channel, user, text, msg);
+		} catch (error) {
+			trace('buildMessageContext THREW', error);
+			throw error;
+		}
 
 		for (const handler of messageHandlers) {
-			handler(context);
+			try {
+				handler(context);
+			} catch (error) {
+				// One failing subscriber must not starve the others.
+				trace('message handler THREW', error);
+				console.error('[twitch] Chat message handler failed', error);
+			}
 		}
 	});
 }
@@ -79,9 +103,11 @@ export function subscribeMessages(
 	};
 
 	messageHandlers.add(wrapped);
+	trace(`subscribeMessages: +1 (now ${messageHandlers.size})`);
 
 	return () => {
 		messageHandlers.delete(wrapped);
+		trace(`subscribeMessages: -1 (now ${messageHandlers.size})`);
 	};
 }
 

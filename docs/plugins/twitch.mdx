@@ -9,17 +9,12 @@ The Twitch plugin connects your **Twitch account** for chat, whispers, channel p
 
 ## Setup
 
-1. Create a Twitch application at [Twitch Developer Console](https://dev.twitch.tv/console/apps) (or use an existing one).
-2. Add these **OAuth Redirect URLs** on the application (exact match required):
-   - `http://localhost:9001` — main Twitch account
-   - `http://localhost:9003` — bot account (optional, for [Bot plugin](/docs/plugins/bot))
-3. Copy the **Client ID** into `plugins/twitch/src/config.ts` (see `config.example.ts`).
-4. Open **Plugins → Twitch** in Stream Kit.
-5. Click **Connect your Twitch account** to start OAuth.
-6. Authorize Stream Kit in the browser window.
-7. Confirm status shows **Connected**.
+1. Open **Plugins → Twitch** in Stream Kit.
+2. Click **Connect your Twitch account** to start OAuth.
+3. Authorize Stream Kit in the browser window.
+4. Confirm status shows **Connected**.
 
-OAuth runs in the **desktop app** (Tauri). Stream Kit starts a temporary local server on the redirect port while you authorize. If the browser shows `redirect_mismatch` or `ERR_CONNECTION_REFUSED`, verify the redirect URLs above and connect from the running app — not from a bookmarked OAuth URL.
+OAuth runs in the **desktop app**. Stream Kit starts a temporary local server on port `9001` (`9003` for the bot account) while you authorize. If the browser shows `ERR_CONNECTION_REFUSED`, connect again from the running app — not from a bookmarked OAuth URL — and make sure no other program uses that port.
 
 EventSub subscriptions are created automatically for supported events (follows, subs, raids, polls, predictions, etc.).
 
