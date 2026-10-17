@@ -35,6 +35,18 @@ jobs:
               with:
                   ref: ${{ env.RELEASE_REF }}
 
+            # The plugin sources come from the release tag, but the workflow definition runs
+            # from main. Take the publish tooling from main as well, so fixes to these scripts
+            # also apply when an older tag is (re)published.
+            - name: Use publish tooling from main
+              run: |
+                  git fetch --depth=1 origin main
+                  git checkout FETCH_HEAD -- \
+                    scripts/package-plugin.mjs \
+                    scripts/plugin-distribution-config.mjs \
+                    scripts/publish-plugin-distribution.mjs \
+                    site/scripts/publish-plugin-pocketbase.mjs
+
             - name: Setup pnpm
               uses: pnpm/action-setup@v4
 
