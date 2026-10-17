@@ -384,7 +384,11 @@ export function createPluginAppApi(app: App, scope?: PluginAppScope): PluginAppA
 				options?: { ownerPluginKey?: string }
 			) =>
 				app.actions.updateFromRecord(id, input, {
-					ownerPluginKey: resolveOwnerPluginKey(scope, options)
+					// Without an explicit owner the action keeps its current one, so a plugin
+					// that fixes up a user's action does not take it over.
+					ownerPluginKey: options?.ownerPluginKey
+						? resolveOwnerPluginKey(scope, options)
+						: undefined
 				}),
 			delete: (id: number) => app.actions.delete(id),
 			deleteByOwner: (ownerPluginKey: string) => {

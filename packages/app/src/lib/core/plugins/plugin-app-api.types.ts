@@ -815,7 +815,8 @@ export interface PluginAppActionsApi {
 	create(input: NewActionRecord, options?: { ownerPluginKey?: string }): Promise<ActionRecord>;
 
 	/**
-	 * Update an existing action by database id.
+	 * Update an existing action by database id. The action keeps its current owner
+	 * unless `ownerPluginKey` is given, so a plugin can fix up a user's action without taking it over.
 	 */
 	update(
 		id: number,

@@ -165,6 +165,15 @@
 
 	<InputSwitch label={t('Remove background noise')} bind:checked={editor.removeBackgroundNoise} />
 
+	<div class="grid gap-1.5">
+		<InputSwitch label={t('Keep a backup on this device')} bind:checked={editor.keepBackup} />
+		<p class="text-xs text-dark-400">
+			{t(
+				'Saves the samples on this device so the voice can be restored when you switch ElevenLabs accounts.'
+			)}
+		</p>
+	</div>
+
 	<InputCheckbox
 		label={t('I have the rights and consent to clone this voice.')}
 		bind:checked={editor.consent}

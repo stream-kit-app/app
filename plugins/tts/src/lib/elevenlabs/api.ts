@@ -136,9 +136,35 @@ export async function fetchElevenLabsVoices(apiKey: string): Promise<ElevenLabsV
 			category: voice.category,
 			description: voice.description || undefined,
 			previewUrl: voice.previewUrl || undefined,
-			labels: voice.labels
+			labels: voice.labels,
+			samples: voice.samples
+				?.filter((sample) => sample.sampleId)
+				.map((sample) => ({
+					id: sample.sampleId!,
+					fileName: sample.fileName || `${sample.sampleId}.mp3`,
+					mimeType: sample.mimeType || 'audio/mpeg',
+					size: sample.sizeBytes ?? 0,
+					removeBackgroundNoise: sample.removeBackgroundNoise
+				}))
 		}))
 		.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Download one of the recordings a cloned voice was made from. */
+export async function fetchElevenLabsVoiceSample(
+	apiKey: string,
+	voiceId: string,
+	sampleId: string,
+	mimeType: string
+): Promise<Blob> {
+	const stream = await withTimeout(
+		getClient(apiKey).voices.samples.audio.get(voiceId, sampleId),
+		SPEECH_FETCH_TIMEOUT_MS,
+		'Voice sample download timed out'
+	);
+	const blob = await streamToBlob(stream);
+
+	return mimeType && blob.type !== mimeType ? new Blob([blob], { type: mimeType }) : blob;
 }
 
 export type ElevenLabsVoiceCloneRequest = {

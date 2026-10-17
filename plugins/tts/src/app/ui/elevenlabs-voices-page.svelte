@@ -16,6 +16,10 @@
 	import { ToggleGroup } from '@stream-kit/ui/toggle-group';
 
 	import {
+		canBackUpVoice,
+		elevenlabsVoiceBackups
+	} from '../../lib/elevenlabs/voice-backups.svelte';
+	import {
 		ElevenLabsVoiceLibrary,
 		isOwnedVoice
 	} from '../../lib/elevenlabs/voice-library.svelte';
@@ -144,6 +148,81 @@
 			<Alert variant="error" title={t('Could not load voices')} description={library.error} />
 		{/if}
 
+		{#if library.missingBackups.length > 0}
+			<section class="flex flex-col gap-3">
+				<Alert
+					variant="warning"
+					icon="ri:hard-drive-2-line"
+					title={t('Backed-up voices not on this account')}
+					description={t(
+						'These voices are saved on this device but missing from the connected ElevenLabs account. Restore them to clone them again; their tuning and actions follow automatically.'
+					)}
+				>
+					{#if library.missingBackups.length > 1}
+						<div class="mt-3">
+							<Button
+								size="sm"
+								variant="outline"
+								icon="ri:upload-cloud-2-line"
+								isLoading={elevenlabsVoiceBackups.restoringAll}
+								disabled={elevenlabsVoiceBackups.restoringAll}
+								onclick={() => void library.restoreAllBackups()}
+							>
+								{t('Restore all')}
+							</Button>
+						</div>
+					{/if}
+				</Alert>
+				<ul class="grid overflow-hidden rounded-xl border border-rule">
+					{#each library.missingBackups as backup (backup.id)}
+						{@const busy =
+							elevenlabsVoiceBackups.busyIds.has(backup.id) ||
+							elevenlabsVoiceBackups.restoringAll}
+						<li
+							class="flex flex-wrap items-center gap-3 border-b border-rule bg-dark-900/40 px-4 py-3 last:border-b-0"
+						>
+							<Icon
+								icon="ri:hard-drive-2-line"
+								class="size-4 shrink-0 text-dark-300"
+								aria-hidden="true"
+							/>
+							<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+								<span class="truncate text-sm font-semibold text-dark-50"
+									>{backup.name}</span
+								>
+								<p class="truncate text-xs text-dark-300">
+									{t('{count} samples', { count: backup.samples.length })}
+									{#if backup.description}
+										· {backup.description}
+									{/if}
+								</p>
+							</div>
+							<div class="flex shrink-0 items-center gap-1">
+								<Button
+									size="sm"
+									icon="ri:upload-cloud-2-line"
+									isLoading={elevenlabsVoiceBackups.busyIds.has(backup.id)}
+									disabled={busy}
+									onclick={() => void library.restoreBackup(backup)}
+								>
+									{t('Restore')}
+								</Button>
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									icon="ri:delete-bin-line"
+									disabled={busy}
+									aria-label={t('Delete backup of {name}', { name: backup.name })}
+									onclick={() => void library.deleteBackup(backup)}
+									{@attach tooltip(() => t('Delete backup'))}
+								/>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
+
 		{#if library.loading && library.voices.length === 0}
 			<p class="py-10 text-center text-sm text-dark-300">{t('Loading voices…')}</p>
 		{:else if visibleVoices.length === 0}
@@ -192,6 +271,18 @@
 										{t('Tuned')}
 									</Badge>
 								{/if}
+								{#if elevenlabsVoiceBackups.has(voice.id)}
+									<Badge
+										variant="outline"
+										size="sm"
+										{@attach tooltip(() =>
+											t('The samples are saved on this device for a restore.')
+										)}
+									>
+										<Icon icon="ri:hard-drive-2-line" aria-hidden="true" />
+										{t('Backed up')}
+									</Badge>
+								{/if}
 							</div>
 							<p class="truncate text-xs text-dark-300">
 								{#if details}{details} ·
@@ -215,6 +306,22 @@
 								onCopied={() => library.notifyIdCopied(voice)}
 								onCopyError={() => library.notifyIdCopyFailed()}
 							/>
+							{#if canBackUpVoice(voice) && !elevenlabsVoiceBackups.has(voice.id)}
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									icon="ri:hard-drive-2-line"
+									isLoading={elevenlabsVoiceBackups.backingUpVoiceIds.has(
+										voice.id
+									)}
+									disabled={elevenlabsVoiceBackups.backingUpVoiceIds.has(
+										voice.id
+									)}
+									aria-label={t('Back up {name}', { name: voice.name })}
+									onclick={() => void library.backUp(voice)}
+									{@attach tooltip(() => t('Back up the samples on this device'))}
+								/>
+							{/if}
 							{#if isOwnedVoice(voice)}
 								<Button
 									variant="ghost"

@@ -10,10 +10,24 @@ export type ElevenLabsVoice = {
 	/** Hosted sample clip; usually missing for instant clones. */
 	previewUrl?: string;
 	labels?: Record<string, string>;
+	/** Recordings the voice was cloned from; only set for owned clones. */
+	samples?: ElevenLabsVoiceSample[];
+};
+
+export type ElevenLabsVoiceSample = {
+	id: string;
+	fileName: string;
+	mimeType: string;
+	size: number;
+	removeBackgroundNoise?: boolean;
 };
 
 /** Voice categories the account owns and may delete. */
 export const ELEVENLABS_OWNED_VOICE_CATEGORIES = ['cloned', 'generated', 'professional'] as const;
+
+export function isOwnedVoice(voice: ElevenLabsVoice): boolean {
+	return (ELEVENLABS_OWNED_VOICE_CATEGORIES as readonly string[]).includes(voice.category ?? '');
+}
 
 /** Stream Kit's own tuning for one voice (overrides the global defaults). */
 export type ElevenLabsVoiceTuning = Required<

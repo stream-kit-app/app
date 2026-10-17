@@ -14,6 +14,7 @@ import {
 	DEFAULT_ELEVENLABS_MODEL_ID,
 	ELEVENLABS_VOICE_SETTING_RANGES
 } from './types';
+import { elevenlabsVoiceBackups } from './voice-backups.svelte';
 import { elevenlabsVoiceTuning } from './voice-tuning.svelte';
 
 const VOICE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -141,7 +142,7 @@ export class ElevenLabsService {
 
 	async speak(
 		text: string,
-		voiceId: string,
+		requestedVoiceId: string,
 		options: ElevenLabsSpeakOptions = {}
 	): Promise<void> {
 		if (!this.apiKey) {
@@ -152,6 +153,8 @@ export class ElevenLabsService {
 			throw new Error('ElevenLabs is not configured');
 		}
 
+		// A voice restored on another account has a new id; old ids (e.g. from variables) still work.
+		const voiceId = elevenlabsVoiceBackups.resolveVoiceId(requestedVoiceId);
 		const generation = this.player.getSpeakGeneration();
 		const startedAt = Date.now();
 		trace(`elevenlabs synth start voice=${voiceId} chars=${text.length}`);

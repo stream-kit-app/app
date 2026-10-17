@@ -9,6 +9,10 @@ import { createStreamElementsSpeakHandler } from './handler/streamelements/speak
 import { elevenlabs } from './lib/elevenlabs';
 import { elevenlabsAccount } from './lib/elevenlabs/account.svelte';
 import { createElevenLabsSettingsSection } from './lib/elevenlabs/settings';
+import {
+	elevenlabsVoiceBackups,
+	restoreMissingVoiceBackups
+} from './lib/elevenlabs/voice-backups.svelte';
 import { elevenlabsVoiceTuning } from './lib/elevenlabs/voice-tuning.svelte';
 import { local } from './lib/local';
 import { createLocalSettingsSection } from './lib/local/settings';
@@ -92,6 +96,7 @@ const plugin: Plugin = (app) => {
 		onLoad: async ({ store }) => {
 			elevenlabs.ensureStore(store);
 			await elevenlabsVoiceTuning.boot(app);
+			await elevenlabsVoiceBackups.boot(app);
 			await streamelements.syncFromStore();
 			await elevenlabs.syncFromStore();
 			await local.syncFromStore();
@@ -106,6 +111,16 @@ const plugin: Plugin = (app) => {
 
 			if (elevenlabs.apiKey !== previousApiKey) {
 				void elevenlabsAccount.refresh();
+
+				// Another account may not have the cloned voices; recreate them from the backups.
+				if (elevenlabs.apiKey && elevenlabsVoiceBackups.backups.length > 0) {
+					void elevenlabs
+						.fetchVoices(true)
+						.then((voices) => restoreMissingVoiceBackups(app, voices))
+						.catch((error) => {
+							console.warn('[tts/elevenlabs] Could not check voice backups', error);
+						});
+				}
 			}
 		},
 		onEnable: async ({ store }) => {

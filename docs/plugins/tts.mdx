@@ -42,12 +42,24 @@ Open **TTS → ElevenLabs voices** in the sidebar to manage your voices:
 All TTS volume sliders (Local, StreamElements, ElevenLabs and per voice) go up to 200%. Above 100% the audio is amplified, which can clip on loud recordings.
 - **Audio tags**: in the tuning dialog, add tags such as `[heavy german accent]` or `[whispers]`. They are placed before every message spoken with that voice, but only when the model in use supports audio tags (Eleven v3 and newer). Pick such a model for the voice to make sure the tags are used. Older models skip them, so the tags are never read out loud.
 - **Add voice**: clone a voice from one or more audio samples (one to two minutes in total works best). Files over 10 MB are converted to mono WAV, trimmed to 5 minutes and split into parts automatically. ElevenLabs accepts up to 25 samples per voice. You must confirm you have the rights and consent to clone the voice. Optionally remove background noise.
-- **Delete**: cloned, generated and professional voices can be removed from your ElevenLabs account.
+- **Delete**: cloned, generated and professional voices can be removed from your ElevenLabs account. Deleting a voice in Stream Kit also deletes its local backup.
 - **Copy voice ID** for use in actions. In **TTS → ElevenLabs → Speak Text**, choose **Variable** for voice and use `{voiceId}` from context.
 
 Choose a default **model** on the configure page; override per handler or use **Use default model**.
 
 Per-voice tuning is stored in Stream Kit and synced with your Stream Kit account, not at ElevenLabs.
+
+### Voice backups
+
+Cloned voices live in your ElevenLabs account, so they disappear from Stream Kit when you switch to an API key of another account. Backups keep them on this device:
+
+- **Automatic backup**: every voice you clone in Stream Kit is saved on this device (the uploaded samples, name, description and noise-removal setting) under the app data folder. Turn off **Keep a backup on this device** in the clone dialog if you don't want that for a voice.
+- **Back up**: cloned voices that were made elsewhere (for example on the ElevenLabs website) show a **Back up** button that downloads their samples from ElevenLabs. Backed-up voices get a **Backed up** badge. Only instant clones with samples can be backed up; generated, professional and library voices cannot.
+- **Automatic restore**: when you save a different ElevenLabs API key, every backed-up voice that is missing from that account is cloned again from its samples. The voice gets a new voice id at ElevenLabs; its per-voice tuning, the default voice in the TTS settings and every **Speak Text** action that used the old id are moved to the new one, so nothing has to be set up again. Old ids that still arrive through variables keep working too.
+- **Switching back**: when you return to an account that still has the voice, the backup is linked to that voice again by name, and tuning and actions follow.
+- **Restore by hand**: backups that are not on the connected account (for example because the account has no free voice slots) are listed at the top of the voices page with **Restore** and **Restore all** buttons. **Delete backup** removes just the local copy; the voice at ElevenLabs stays.
+
+Backups are stored per device and are not synced with your Stream Kit account. Restoring a voice uses a voice slot on the new account like any other clone.
 
 ## ElevenLabs voice settings
 

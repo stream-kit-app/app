@@ -1,4 +1,5 @@
 import type { ElevenLabsVoice, ElevenLabsVoiceTuning } from './types';
+import type { ElevenLabsVoiceBackup } from './voice-backups.svelte';
 import type { PluginAppApi } from '@stream-kit/plugin';
 
 import VoiceCloneFormFooter from '../../app/ui/voice-clone-form-footer.svelte';
@@ -9,26 +10,33 @@ import { errorMessage } from '../settings-helpers';
 import { cloneElevenLabsVoice, deleteElevenLabsVoice } from './api';
 import { prepareCloneAudio } from './audio-chunks';
 import { elevenlabs } from './service';
-import { ELEVENLABS_OWNED_VOICE_CATEGORIES, supportsAudioTags } from './types';
+import { supportsAudioTags } from './types';
+import { elevenlabsVoiceBackups, restoreMissingVoiceBackups } from './voice-backups.svelte';
 import { defaultVoiceTuning, elevenlabsVoiceTuning } from './voice-tuning.svelte';
 
 const TUNING_MODAL_ID = 'tts-elevenlabs-voice-tuning';
 const CLONE_MODAL_ID = 'tts-elevenlabs-voice-clone';
 const SAMPLE_TEXT = 'Hi chat! Thanks for the follow, welcome to the stream.';
 
-export function isOwnedVoice(voice: ElevenLabsVoice): boolean {
-	return (ELEVENLABS_OWNED_VOICE_CATEGORIES as readonly string[]).includes(voice.category ?? '');
-}
+export { isOwnedVoice } from './types';
 
-/** Voice library page state: voice list, previews, delete, and the tuning/clone modals. */
+/** Voice library page state: voice list, previews, delete, backups, and the tuning/clone modals. */
 export class ElevenLabsVoiceLibrary {
 	voices = $state<ElevenLabsVoice[]>([]);
 	loading = $state(false);
+	/** The voice list has been fetched at least once for the current key. */
+	loaded = $state(false);
 	error = $state<string>();
 	/** Voice whose preview is loading or playing. */
 	previewingId = $state<string>();
 	/** Mirrors `elevenlabs.apiKey` presence; updated on refresh. */
 	hasApiKey = $state(Boolean(elevenlabs.apiKey));
+	/** Backups saved on this device whose voice is not on the connected account. */
+	missingBackups = $derived(
+		this.hasApiKey && this.loaded && !this.error
+			? elevenlabsVoiceBackups.missing(this.voices)
+			: []
+	);
 
 	constructor(private readonly app: PluginAppApi) {}
 
@@ -37,13 +45,24 @@ export class ElevenLabsVoiceLibrary {
 
 		if (!elevenlabs.apiKey) {
 			this.voices = [];
+			this.loaded = false;
 			return;
 		}
 
 		this.loading = true;
 
 		try {
-			this.voices = await elevenlabs.fetchVoices(force);
+			const voices = await elevenlabs.fetchVoices(force);
+
+			// Backups of voices that are back on this account (switched back) relink by name.
+			try {
+				await elevenlabsVoiceBackups.reconcile(voices);
+			} catch (error) {
+				console.warn('[tts/elevenlabs] Could not reconcile voice backups', error);
+			}
+
+			this.voices = voices;
+			this.loaded = true;
 			this.error = undefined;
 		} catch (error) {
 			this.error = errorMessage(error);
@@ -99,10 +118,15 @@ export class ElevenLabsVoiceLibrary {
 		const { translate } = this.app.i18n;
 		const confirmed = await this.app.confirm.ask({
 			title: translate('Delete voice?'),
-			description: translate(
-				'"{name}" is removed from your ElevenLabs account. Actions that use this voice will stop working.',
-				{ name: voice.name }
-			),
+			description: elevenlabsVoiceBackups.has(voice.id)
+				? translate(
+						'"{name}" is removed from your ElevenLabs account and its backup is deleted from this device. Actions that use this voice will stop working.',
+						{ name: voice.name }
+					)
+				: translate(
+						'"{name}" is removed from your ElevenLabs account. Actions that use this voice will stop working.',
+						{ name: voice.name }
+					),
 			confirmLabel: translate('Delete')
 		});
 
@@ -113,11 +137,95 @@ export class ElevenLabsVoiceLibrary {
 		try {
 			await deleteElevenLabsVoice(elevenlabs.apiKey, voice.id);
 			await elevenlabsVoiceTuning.reset(voice.id);
+			await elevenlabsVoiceBackups.deleteForVoice(voice.id);
 			elevenlabs.invalidateVoices();
 			await this.refresh(true);
 			this.app.toast.create({
 				title: translate('Voice deleted'),
 				description: voice.name,
+				variant: 'success'
+			});
+		} catch (error) {
+			this.app.toast.create({
+				title: translate('Delete failed'),
+				description: errorMessage(error),
+				variant: 'error'
+			});
+		}
+	}
+
+	/** Download the samples of an existing clone and keep them on this device. */
+	async backUp(voice: ElevenLabsVoice): Promise<void> {
+		const { translate } = this.app.i18n;
+
+		try {
+			await elevenlabsVoiceBackups.createFromVoice(voice);
+			this.app.toast.create({
+				title: translate('Voice backed up'),
+				description: translate(
+					'{name} can be restored from this device when you switch ElevenLabs accounts.',
+					{ name: voice.name }
+				),
+				variant: 'success'
+			});
+		} catch (error) {
+			this.app.toast.create({
+				title: translate('Backup failed'),
+				description: errorMessage(error),
+				variant: 'error'
+			});
+		}
+	}
+
+	/** Clone a backed-up voice again on the connected account. */
+	async restoreBackup(backup: ElevenLabsVoiceBackup): Promise<void> {
+		const { translate } = this.app.i18n;
+
+		try {
+			await elevenlabsVoiceBackups.restore(backup);
+			await this.refresh(true);
+			this.app.toast.create({
+				title: translate('Voice restored'),
+				description: translate('{name} was added to your ElevenLabs account again.', {
+					name: backup.name
+				}),
+				variant: 'success'
+			});
+		} catch (error) {
+			this.app.toast.create({
+				title: translate('Restore failed'),
+				description: errorMessage(error),
+				variant: 'error'
+			});
+		}
+	}
+
+	async restoreAllBackups(): Promise<void> {
+		await restoreMissingVoiceBackups(this.app, this.voices);
+		await this.refresh(true);
+	}
+
+	/** Remove the saved samples from this device; the voice at ElevenLabs is untouched. */
+	async deleteBackup(backup: ElevenLabsVoiceBackup): Promise<void> {
+		const { translate } = this.app.i18n;
+		const confirmed = await this.app.confirm.ask({
+			title: translate('Delete backup?'),
+			description: translate(
+				'The saved samples of "{name}" are removed from this device. The voice can then no longer be restored automatically.',
+				{ name: backup.name }
+			),
+			confirmLabel: translate('Delete')
+		});
+
+		if (!confirmed) {
+			return;
+		}
+
+		try {
+			await elevenlabsVoiceBackups.delete(backup.id);
+			this.app.toast.create({
+				title: translate('Backup deleted'),
+				description: backup.name,
 				variant: 'success'
 			});
 		} catch (error) {
@@ -288,6 +396,8 @@ export class VoiceCloneEditor {
 	description = $state('');
 	samples = $state<CloneSample[]>([]);
 	removeBackgroundNoise = $state(false);
+	/** Save the samples on this device so the voice can be restored on another account. */
+	keepBackup = $state(true);
 	consent = $state(false);
 	error = $state<string>();
 	isSaving = $state(false);
@@ -384,19 +494,46 @@ export class VoiceCloneEditor {
 		this.isSaving = true;
 		this.error = undefined;
 
+		const name = this.name.trim();
+		const description = this.description.trim();
+		const files = this.files;
+
 		try {
-			await cloneElevenLabsVoice(elevenlabs.apiKey, {
-				name: this.name.trim(),
-				description: this.description.trim(),
-				files: this.files,
+			const voiceId = await cloneElevenLabsVoice(elevenlabs.apiKey, {
+				name,
+				description,
+				files,
 				removeBackgroundNoise: this.removeBackgroundNoise
 			});
+			let backupFailed = false;
+
+			if (this.keepBackup) {
+				try {
+					await elevenlabsVoiceBackups.create({
+						name,
+						description,
+						removeBackgroundNoise: this.removeBackgroundNoise,
+						voiceId,
+						files
+					});
+				} catch (error) {
+					backupFailed = true;
+					console.warn('[tts/elevenlabs] Could not back up the new voice', error);
+				}
+			}
+
 			await this.onCreated();
-			this.app.toast.create({
-				title: translate('Voice added'),
-				description: this.name.trim(),
-				variant: 'success'
-			});
+			this.app.toast.create(
+				backupFailed
+					? {
+							title: translate('Voice added, but not backed up'),
+							description: translate(
+								'The samples could not be saved on this device.'
+							),
+							variant: 'warning'
+						}
+					: { title: translate('Voice added'), description: name, variant: 'success' }
+			);
 			this.close();
 		} catch (error) {
 			this.error = errorMessage(error);

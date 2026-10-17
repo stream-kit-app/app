@@ -162,6 +162,23 @@ export class ElevenLabsVoiceTuningStore {
 		this.entries.delete(voiceId);
 	}
 
+	/** Re-key the tuning of a voice after it got a new id (restored on another account). */
+	async move(fromVoiceId: string, toVoiceId: string): Promise<void> {
+		const existing = this.entries.get(fromVoiceId);
+
+		if (!existing || fromVoiceId === toVoiceId) {
+			return;
+		}
+
+		// The restored voice keeps the tuning it had; a stale entry under the new id goes.
+		await this.reset(toVoiceId);
+		await this.requireRecords().update<VoiceTuningRecord>(existing.recordId, {
+			voiceId: toVoiceId
+		});
+		this.entries.delete(fromVoiceId);
+		this.entries.set(toVoiceId, existing);
+	}
+
 	private async reload(): Promise<void> {
 		if (!this.records) {
 			return;

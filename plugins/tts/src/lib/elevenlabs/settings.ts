@@ -271,6 +271,13 @@ export function createElevenLabsSettingsSection(
 						description:
 							'Preview voices, tune each voice and clone your own voice under TTS → ElevenLabs voices in the sidebar. Per-voice tuning overrides the voice tuning above.',
 						variant: 'default'
+					},
+					{
+						type: 'alert',
+						name: 'Voice backups',
+						description:
+							'Cloned voices are backed up on this device. When you switch to another ElevenLabs API key, missing voices are cloned again and their tuning and actions follow automatically.',
+						variant: 'default'
 					}
 				]
 			}
