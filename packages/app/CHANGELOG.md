@@ -1,5 +1,14 @@
 # @stream-kit/app
 
+## 0.1.0-alpha.24
+
+### Patch Changes
+
+- [`f12ff7e`](https://github.com/stream-kit-app/app/commit/f12ff7eba2bfb6d504d15703ecaa044dfd304e3a) Thanks [@codeit-ninja](https://github.com/codeit-ninja)! - Back up cloned ElevenLabs voices on this device and restore them automatically when the API key changes to another account. Voices cloned in Stream Kit are saved with their samples; existing clones get a **Back up** button. Restored voices keep their tuning, and the default voice and Speak Text actions move to the new voice id. Plugins that update a user's action no longer take over its ownership.
+- Updated dependencies []:
+    - @stream-kit/core@0.2.0-alpha.11
+    - @stream-kit/plugin@0.2.0-alpha.12
+
 ## 0.1.0-alpha.23
 
 ### Patch Changes
