@@ -71,10 +71,25 @@ jobs:
                   tagName: ${{ env.RELEASE_TAG }}
                   releaseName: Stream Kit ${{ env.RELEASE_TAG }}
                   releaseBody: 'See the assets to download and install this version.'
-                  releaseDraft: true
+                  # Published right away: no manual "publish draft" step before updates roll out.
+                  releaseDraft: false
                   prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
                   updaterJsonPreferNsis: true
                   args: --target x86_64-pc-windows-msvc --bundles nsis,msi
+
+    publish-updater-feed:
+        name: Publish updater feed
+        needs: build-windows
+        runs-on: ubuntu-latest
+        permissions:
+            actions: write
+        steps:
+            # A release published with GITHUB_TOKEN does not fire the `release` event, so the
+            # feed workflow is dispatched explicitly (same reason release.yml dispatches this build).
+            - name: Dispatch Publish updater feed
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: gh workflow run publish-updater-feed.yml --repo "${{ github.repository }}" --ref main -f tag="${{ env.RELEASE_TAG }}"
 
     publish-microsoft-store:
         name: Build MSIX and publish to Microsoft Store

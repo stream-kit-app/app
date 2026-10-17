@@ -82,3 +82,28 @@ jobs:
                   else
                     node scripts/publish-plugin-distribution.mjs --all
                   fi
+
+            - name: Verify PocketBase publish credentials
+              env:
+                  POCKETBASE_ADMIN_EMAIL: ${{ secrets.POCKETBASE_ADMIN_EMAIL }}
+                  POCKETBASE_ADMIN_PASSWORD: ${{ secrets.POCKETBASE_ADMIN_PASSWORD }}
+              run: |
+                  if [ -z "$POCKETBASE_ADMIN_EMAIL" ] || [ -z "$POCKETBASE_ADMIN_PASSWORD" ]; then
+                    echo "::error::POCKETBASE_ADMIN_EMAIL and POCKETBASE_ADMIN_PASSWORD are required. Add a PocketBase superuser (https://api.stream-kit.app/_/) as repository secrets so plugin releases reach https://stream-kit.app/api/plugins/<key>/manifest.json."
+                    exit 1
+                  fi
+
+            # Installed plugins poll stream-kit.app/api/plugins/<key>/manifest.json, which reads
+            # PocketBase. Without this step the GitHub distribution repo is updated but no app
+            # ever sees the new version.
+            - name: Publish plugin versions to PocketBase
+              env:
+                  PUBLIC_POCKETBASE_URL: https://api.stream-kit.app
+                  POCKETBASE_ADMIN_EMAIL: ${{ secrets.POCKETBASE_ADMIN_EMAIL }}
+                  POCKETBASE_ADMIN_PASSWORD: ${{ secrets.POCKETBASE_ADMIN_PASSWORD }}
+              run: |
+                  if [ -n "${{ github.event.inputs.plugin }}" ]; then
+                    node site/scripts/publish-plugin-pocketbase.mjs --plugin "${{ github.event.inputs.plugin }}"
+                  else
+                    node site/scripts/publish-plugin-pocketbase.mjs --all
+                  fi
